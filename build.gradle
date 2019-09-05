@@ -1,0 +1,41 @@
+
+plugins {
+    id "org.jetbrains.intellij" version "0.4.10"
+}
+
+
+apply plugin: 'idea'
+apply plugin: 'org.jetbrains.intellij'
+apply plugin: 'java'
+apply plugin: 'jacoco'
+
+intellij {
+    //version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
+    localPath 'C:\\Users\\JeffMAURY\\AppData\\Local\\JetBrains\\Toolbox\\apps\\IDEA-U\\ch-2\\191.6183.87'
+    plugins 'Spring', 'SpringMvc', 'SpringBoot', 'maven', 'gradle'
+    //plugins 'maven'
+    pluginName 'com.redhat.devtools.intellij.quarkus'
+    updateSinceUntilBuild false
+}
+
+publishPlugin {
+    token    jetBrainsToken
+    channels jetBrainsChannel
+}
+
+repositories {
+    mavenCentral()
+}
+dependencies {
+    compile 'org.zeroturnaround:zt-zip:1.13'
+}
+
+configurations {
+    compile {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+}
+
+
+group 'com.redhat.devtools.intellij'
+version projectVersion // Plugin version

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+    <artifact version="0.17.0" name="Quarkus">
+        <item name="quarkus-core-0.17.0.jar" md5=""
+              url="http://central.maven.org/maven2/io/quarkus/quarkus-core/0.17.0/quarkus-core-0.17.0.jar">
+            <required-class fqn="io.quarkus.runtime.Quarkus"/>
+        </item>
+    </artifact>
+</artifacts>
