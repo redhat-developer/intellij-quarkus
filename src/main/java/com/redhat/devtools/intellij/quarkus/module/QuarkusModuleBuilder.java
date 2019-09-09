@@ -116,16 +116,16 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         parameters.put("v", wizardContext.getUserData(QuarkusConstants.WIZARD_VERSION_KEY));
         parameters.put("c", wizardContext.getUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY));
         parameters.put("v", wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY));
-        url = url.addParameters(parameters);
+        //url = url.addParameters(parameters);
         QuarkusModel model = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY);
         for(QuarkusCategory category : model.getCategories()) {
             for(QuarkusExtension extension : category.getExtensions()) {
                 if (extension.isSelected()) {
-                    url = url.addParameters(Collections.singletonMap("e", extension.getId()));
+                    //url = url.addParameters(Collections.singletonMap("e", extension.getId()));
                 }
             }
         }
-        RequestBuilder builder = HttpRequests.request(url);
+        RequestBuilder builder = HttpRequests.request(url.toString());
         File moduleFile = new File(getContentEntryPath());
         builder.connect(request -> {
             ZipUtil.unpack(request.getInputStream(), moduleFile, name -> {
