@@ -15,26 +15,35 @@ import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.redhat.devtools.intellij.quarkus.search.ModuleAnalyzer;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
+import com.redhat.quarkus.commons.QuarkusPropertiesScope;
+import com.redhat.quarkus.ls.api.QuarkusLanguageClientAPI;
 import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-@JsonSegment("quarkus")
-public class QuarkusLanguageClient extends LanguageClientImpl {
-  @JsonRequest("projectInfo")
-  public CompletableFuture<Object> projectInfo(QuarkusProjectInfoParams request) {
-    System.out.println("Received object is:" + request);
+public class QuarkusLanguageClient extends LanguageClientImpl implements QuarkusLanguageClientAPI {
+  private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusLanguageClient.class);
+
+  @Override
+  public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams request) {
+    LOGGER.info("Project info for:" + request.getUri() + " scope=" + request.getScope());
     QuarkusProjectInfo result = new QuarkusProjectInfo();
-    ApplicationManager.getApplication().runReadAction(() -> result.setProperties(ModuleAnalyzer.INSTANCE.getConfigItem(request)));
-    result.setQuarkusProject(!result.getProperties().isEmpty());
+    if (request.getScope() == QuarkusPropertiesScope.classpath) {
+      ApplicationManager.getApplication().runReadAction(() -> result.setProperties(ModuleAnalyzer.INSTANCE.getConfigItem(request)));
+    } else {
+      result.setProperties(new ArrayList<>());
+    }
     return CompletableFuture.completedFuture(result);
   }
 }
