@@ -20,13 +20,13 @@ import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -49,8 +49,8 @@ import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
 
-public class ModuleAnalyzer {
-    public static final ModuleAnalyzer INSTANCE = new ModuleAnalyzer();
+public class PSIQuarkusManager {
+    public static final PSIQuarkusManager INSTANCE = new PSIQuarkusManager();
     private static final List<String> NUMBER_TYPES = Arrays.asList("short", "int", "long", "double", "float");
 
     private static Module getModule(String uri) {
@@ -76,9 +76,15 @@ public class ModuleAnalyzer {
         }
     }
 
-    public List<ExtendedConfigDescriptionBuildItem> getConfigItem(QuarkusProjectInfoParams request) {
-        List<ExtendedConfigDescriptionBuildItem> configItems = new ArrayList<>();
+    public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
         Module module = getModule(request.getUri());
+        return getConfigItems(module);
+
+    }
+
+    @NotNull
+    public List<ExtendedConfigDescriptionBuildItem> getConfigItems(Module module) {
+        List<ExtendedConfigDescriptionBuildItem> configItems = new ArrayList<>();
         Map<PsiDirectory, Properties> javaDocCache = new HashMap<>();
         if (module != null) {
             getQuery(CONFIG_ROOT_ANNOTATION, module).forEach(psiClass -> {
@@ -86,7 +92,6 @@ public class ModuleAnalyzer {
             });
         }
         return configItems;
-
     }
 
     private void process(PsiClass psiClass, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
@@ -104,11 +109,38 @@ public class ModuleAnalyzer {
         if (extension == null) {
             return;
         }
+        // Location (JAR, src)
+        PsiDirectory packageRoot = getRootDirectory(PsiTreeUtil.getParentOfType(psiClass, PsiFile.class));
+        String location = packageRoot.getName();
+        String extensionName = getExtensionName(location);
         String baseKey = QUARKUS_PREFIX + extension;
-        processConfigGroup(psiClass, baseKey, configPhase, javaDocCache, configItems);
+        processConfigGroup(location, extensionName, psiClass, baseKey, configPhase, javaDocCache, configItems);
     }
 
-    private void processConfigGroup(PsiClass psiClass, String baseKey, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+    private String getExtensionName(String location) {
+        if (location == null) {
+            return null;
+        }
+        if (!location.endsWith(".jar")) {
+            return null;
+        }
+        int start = location.lastIndexOf('/');
+        start++;
+        int end = location.lastIndexOf('-');
+        if (end == -1) {
+            end = location.lastIndexOf('.');
+        }
+        if (end < start) {
+            return null;
+        }
+        String extensionName = location.substring(start, end);
+        if (extensionName.endsWith("-deployment")) {
+            extensionName = extensionName.substring(0, extensionName.length() - "-deployment".length());
+        }
+        return extensionName;
+    }
+
+    private void processConfigGroup(String location, String extensionName, PsiClass psiClass, String baseKey, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
         for(PsiField field : psiClass.getAllFields()) {
             PsiFile f = PsiTreeUtil.getParentOfType(field, PsiFile.class);
             PsiDirectory dir = getRootDirectory(f);
@@ -139,14 +171,14 @@ public class ModuleAnalyzer {
 
             String fieldTypeName = getResolvedTypeName(field);
             /*IType fieldClass = findType(field.getJavaProject(), fieldTypeName);*/
-            PsiClass fieldClass = PsiTypesUtil.getPsiClass(field.getType());
+            PsiClass fieldClass = JavaPsiFacade.getInstance(field.getProject()).findClass(fieldTypeName, GlobalSearchScope.allScope(field.getProject()));
             final PsiAnnotation configGroupAnnotation = getAnnotation((PsiModifierListOwner) fieldClass,
                     CONFIG_GROUP_ANNOTATION);
             if (configGroupAnnotation != null) {
-                processConfigGroup(fieldClass, subKey, configPhase,
+                processConfigGroup(location, extensionName, fieldClass, subKey, configPhase,
                         javaDocCache, configItems);
             } else {
-                addField(field, fieldTypeName, fieldClass, subKey, defaultValue,
+                addField(location, extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
                         configPhase, javaDocCache, configItems);
             }
         }
@@ -163,17 +195,13 @@ public class ModuleAnalyzer {
         return dir;
     }
 
-    private void addField(PsiField field, String fieldTypeName, PsiClass fieldClass, String propertyName, String defaultValue, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+    private void addField(String location, String extensionName, PsiField field, String fieldTypeName, PsiClass fieldClass, String propertyName, String defaultValue, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
         // Class type
         String type = fieldClass != null ? fieldClass.getQualifiedName() : fieldTypeName;
 
         // Javadoc
         String docs = getJavadoc(field, javaDocCache);
         //docs = converter.convert(docs);
-
-        // Location (JAR, src)
-        PsiDirectory packageRoot = getRootDirectory(PsiTreeUtil.getParentOfType(field, PsiFile.class));
-        String location = packageRoot.getName();
 
         // field and class source
         String source = field.getContainingClass().getQualifiedName() + "#" + field.getName();
@@ -184,10 +212,10 @@ public class ModuleAnalyzer {
         // Default value for primitive type
         if ("boolean".equals(fieldTypeName)) {
             addField(propertyName, type, ConfigItem.NO_DEFAULT.equals(defaultValue) ? "propertyNamefalse" : defaultValue, docs,
-                    location, source, enumerations, configPhase, configItems);
+                    location, extensionName, source, enumerations, configPhase, configItems);
         } else if (isNumber(fieldTypeName)) {
             addField(propertyName, type, ConfigItem.NO_DEFAULT.equals(defaultValue) ? "0" : defaultValue, docs,
-                    location, source, enumerations, configPhase, configItems);
+                    location, extensionName, source, enumerations, configPhase, configItems);
         } else if (isMap(fieldTypeName)) {
             // FIXME: find better mean to check field is a Map
             // this code works only if user uses Map as declaration and not if they declare
@@ -195,29 +223,29 @@ public class ModuleAnalyzer {
             String[] rawTypeParameters = getRawTypeParameters(fieldTypeName);
             if ((rawTypeParameters[0].trim().equals("java.lang.String"))) {
                 // The key Map must be a String
-                processMap(field, propertyName, rawTypeParameters[1], docs, location, source, configPhase,
+                processMap(field, propertyName, rawTypeParameters[1], docs, location, extensionName, source, configPhase,
                         javaDocCache, configItems);
             }
         } else if (isList(fieldTypeName)) {
-            addField(propertyName, type, defaultValue, docs, location, source, enumerations, configPhase,
+            addField(propertyName, type, defaultValue, docs, location, extensionName, source, enumerations, configPhase,
                     configItems);
         } else if (isOptional(fieldTypeName)) {
-            ExtendedConfigDescriptionBuildItem item = addField(propertyName, type, defaultValue, docs, location, source,
+            ExtendedConfigDescriptionBuildItem item = addField(propertyName, type, defaultValue, docs, location, extensionName, source,
                     enumerations, configPhase, configItems);
             item.setRequired(false);
         } else {
-            addField(propertyName, type, defaultValue, docs, location, source, enumerations, configPhase,
+            addField(propertyName, type, defaultValue, docs, location, extensionName, source, enumerations, configPhase,
                     configItems);
         }
     }
 
-    private void processMap(PsiField field, String baseKey, String mapValueClass, String docs, String location, String source, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+    private void processMap(PsiField field, String baseKey, String mapValueClass, String docs, String location, String extensionName, String source, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
         final String subKey = baseKey + ".{*}";
         if ("java.util.Map".equals(mapValueClass)) {
             // ignore, Map must be parameterized
         } else if (isMap(mapValueClass)) {
             String[] rawTypeParameters = getRawTypeParameters(mapValueClass);
-            processMap(field, subKey, rawTypeParameters[1], docs, location, source, configPhase,
+            processMap(field, subKey, rawTypeParameters[1], docs, location, extensionName, source, configPhase,
                     javaDocCache, configItems);
         } else if (isOptional(mapValueClass)) {
             // Optionals are not allowed as a map value type
@@ -227,20 +255,20 @@ public class ModuleAnalyzer {
                 // This case comes from when mapValueClass is:
                 // - Simple type, like java.lang.String
                 // - Type which cannot be found (bad classpath?)
-                addField(field, mapValueClass, null, subKey, null, configPhase, javaDocCache,
+                addField(location, extensionName, field, mapValueClass, null, subKey, null, configPhase, javaDocCache,
                         configItems);
             } else {
-                processConfigGroup(type, subKey, configPhase, javaDocCache, configItems);
+                processConfigGroup(location, extensionName, type, subKey, configPhase, javaDocCache, configItems);
             }
         }
     }
 
     private PsiClass findType(PsiManager manager, String mapValueClass) {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(manager.getProject());
-        return facade.findClass(mapValueClass, GlobalSearchScope.projectScope(manager.getProject()));
+        return facade.findClass(mapValueClass, GlobalSearchScope.allScope(manager.getProject()));
     }
 
-    private ExtendedConfigDescriptionBuildItem addField(String propertyName, String type, String defaultValue, String docs, String location, String source, List<String> enums, ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> configItems) {
+    private ExtendedConfigDescriptionBuildItem addField(String propertyName, String type, String defaultValue, String docs, String location, String extensionName, String source, List<String> enums, ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> configItems) {
         ExtendedConfigDescriptionBuildItem property = new ExtendedConfigDescriptionBuildItem();
         property.setPropertyName(propertyName);
         property.setType(type);
@@ -248,6 +276,7 @@ public class ModuleAnalyzer {
         property.setDocs(docs);
 
         // Extra properties
+        property.setExtensionName(extensionName);
         property.setLocation(location);
         property.setSource(source);
         property.setPhase(getPhase(configPhase));
@@ -352,8 +381,9 @@ public class ModuleAnalyzer {
     }
 
     private String getResolvedTypeName(PsiField field) {
-        PsiClass psiClass = PsiTypesUtil.getPsiClass(field.getType());
-        return psiClass != null ? psiClass.getQualifiedName(): "";
+        /*PsiClass psiClass = PsiTypesUtil.getPsiClass(field.getType());
+        return psiClass != null ? psiClass.getQualifiedName(): "";*/
+        return field.getType().getCanonicalText();
     }
 
     private PsiAnnotation getAnnotation(PsiModifierListOwner annotatable, String annotationName) {
