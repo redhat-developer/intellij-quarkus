@@ -6,7 +6,9 @@ import com.redhat.devtools.intellij.quarkus.search.PSIQuarkusManager;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
+import com.redhat.quarkus.commons.QuarkusPropertyDefinitionParams;
 import com.redhat.quarkus.ls.api.QuarkusLanguageClientAPI;
+import org.eclipse.lsp4j.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,5 +28,11 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements Quarkus
       result.setProperties(new ArrayList<>());
     }
     return CompletableFuture.completedFuture(result);
+  }
+
+  @Override
+  public CompletableFuture<Location> getPropertyDefinition(QuarkusPropertyDefinitionParams quarkusPropertyDefinitionParams) {
+    //TODO: implements property definition
+    return CompletableFuture.completedFuture(null);
   }
 }

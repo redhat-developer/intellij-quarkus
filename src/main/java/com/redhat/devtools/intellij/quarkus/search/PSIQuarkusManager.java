@@ -22,6 +22,7 @@ import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
+import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
 import io.quarkus.runtime.annotations.ConfigItem;
@@ -207,7 +208,7 @@ public class PSIQuarkusManager {
         String source = field.getContainingClass().getQualifiedName() + "#" + field.getName();
 
         // Enumerations
-        List<String> enumerations = getEnumerations(fieldClass);
+        List<EnumItem> enumerations = getEnumerations(fieldClass);
 
         // Default value for primitive type
         if ("boolean".equals(fieldTypeName)) {
@@ -268,7 +269,7 @@ public class PSIQuarkusManager {
         return facade.findClass(mapValueClass, GlobalSearchScope.allScope(manager.getProject()));
     }
 
-    private ExtendedConfigDescriptionBuildItem addField(String propertyName, String type, String defaultValue, String docs, String location, String extensionName, String source, List<String> enums, ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> configItems) {
+    private ExtendedConfigDescriptionBuildItem addField(String propertyName, String type, String defaultValue, String docs, String location, String extensionName, String source, List<EnumItem> enums, ConfigPhase configPhase, List<ExtendedConfigDescriptionBuildItem> configItems) {
         ExtendedConfigDescriptionBuildItem property = new ExtendedConfigDescriptionBuildItem();
         property.setPropertyName(propertyName);
         property.setType(type);
@@ -321,15 +322,16 @@ public class PSIQuarkusManager {
         return NUMBER_TYPES.contains(valueClass);
     }
 
-    private List<String> getEnumerations(PsiClass fieldClass) {
-        List<String> enumerations = null;
+    private List<EnumItem> getEnumerations(PsiClass fieldClass) {
+        List<EnumItem> enumerations = null;
         if (fieldClass != null && fieldClass.isEnum()) {
             enumerations = new ArrayList<>();
             PsiElement[] children = fieldClass.getChildren();
             for (PsiElement c : children) {
                 if (c instanceof PsiEnumConstant) {
                     String enumName = ((PsiEnumConstant) c).getName();
-                    enumerations.add(enumName);
+                    //TODO: implement enum item docs
+                    enumerations.add(new EnumItem(enumName, null));
                 }
             }
         }

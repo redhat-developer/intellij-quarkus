@@ -11,7 +11,7 @@ apply plugin: 'jacoco'
 
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    plugins 'maven', 'com.github.gtache.lsp:1.5.4'
+    plugins 'maven', 'properties', 'com.github.gtache.lsp:1.5.4'
     pluginName 'com.redhat.devtools.intellij.quarkus'
     updateSinceUntilBuild false
 }
@@ -21,9 +21,14 @@ publishPlugin {
     channels jetBrainsChannel
 }
 
+//LSP plugin causes this task to fail
+buildSearchableOptions.enabled = false
+
 repositories {
     mavenCentral()
-    mavenLocal()
+    maven {
+        url 'https://repository.jboss.org/nexus/content/repositories/snapshots'
+    }
 }
 configurations {
     compile {
@@ -37,8 +42,8 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.9.9'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.3'
     compile 'org.zeroturnaround:zt-zip:1.13'
-    compile 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.1-SNAPSHOT'
-    lsp 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.1-SNAPSHOT:uber'
+    compile 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.2-SNAPSHOT'
+    lsp 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.2-SNAPSHOT:uber'
     compile files(new File(buildDir, 'server')) {
         builtBy 'copyDeps'
     }
