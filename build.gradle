@@ -21,6 +21,9 @@ publishPlugin {
     channels jetBrainsChannel
 }
 
+//LSP plugin causes this task to fail
+buildSearchableOptions.enabled = false
+
 repositories {
     mavenCentral()
     maven {
