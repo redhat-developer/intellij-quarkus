@@ -13,6 +13,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.zeroturnaround.zip.ZipUtil;
 
+import javax.swing.Icon;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -58,6 +60,11 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
     @Override
     public String getPresentableName() {
         return "Quarkus";
+    }
+
+    @Override
+    public Icon getNodeIcon() {
+        return IconLoader.getIcon("/quarkus_icon_rgb_16px_default.png", QuarkusModuleBuilder.class);
     }
 
     @Nullable
@@ -121,7 +128,7 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         for(QuarkusCategory category : model.getCategories()) {
             for(QuarkusExtension extension : category.getExtensions()) {
                 if (extension.isSelected()) {
-                    //url = url.addParameters(Collections.singletonMap("e", extension.getId()));
+                    url = url.addParameters(Collections.singletonMap("e", extension.getId()));
                 }
             }
         }

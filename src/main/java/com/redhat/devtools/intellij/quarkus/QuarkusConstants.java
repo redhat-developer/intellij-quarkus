@@ -11,9 +11,16 @@ public class QuarkusConstants {
     public final static Key<String> WIZARD_PATH_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".path");
     public final static Key<QuarkusModel> WIZARD_MODEL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".model");
     public final static Key<String> WIZARD_ENDPOINT_URL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".endpointURL");
+
     public static final String CONFIG_ROOT_ANNOTATION = "io.quarkus.runtime.annotations.ConfigRoot";
-    public static final String CONFIG_ITEM_ANNOTATION = "io.quarkus.runtime.annotations.ConfigItem";
-    public static final String QUARKUS_PREFIX = "quarkus.";
     public static final String CONFIG_GROUP_ANNOTATION = "io.quarkus.runtime.annotations.ConfigGroup";
+    public static final String CONFIG_ITEM_ANNOTATION = "io.quarkus.runtime.annotations.ConfigItem";
+    public static final String CONFIG_PROPERTY_ANNOTATION = "org.eclipse.microprofile.config.inject.ConfigProperty";
+
+    public static final String QUARKUS_PREFIX = "quarkus.";
     public static final String QUARKUS_JAVADOC_PROPERTIES = "quarkus-javadoc.properties";
+    public static final String QUARKUS_EXTENSION_PROPERTIES = "META-INF/quarkus-extension.properties";
+    public static final String QUARKUS_DEPLOYMENT_PROPERTY_NAME = "deployment-artifact";
+
+    public static final String QUARKUS_DEPLOYMENT_LIBRARY_NAME = "Quarkus (deployment)";
 }

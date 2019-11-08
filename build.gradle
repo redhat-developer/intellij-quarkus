@@ -1,6 +1,7 @@
 
 plugins {
     id "org.jetbrains.intellij" version "0.4.10"
+    id "com.adarshr.test-logger" version "1.7.0"
 }
 
 
@@ -43,7 +44,7 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.3'
     compile 'org.zeroturnaround:zt-zip:1.13'
     compile 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.2-SNAPSHOT'
-    lsp 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.2-SNAPSHOT:uber'
+    lsp 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.4-SNAPSHOT:uber'
     compile files(new File(buildDir, 'server')) {
         builtBy 'copyDeps'
     }

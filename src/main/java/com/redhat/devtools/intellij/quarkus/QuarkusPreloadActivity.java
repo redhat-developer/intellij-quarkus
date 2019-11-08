@@ -19,7 +19,7 @@ public class QuarkusPreloadActivity extends PreloadingActivity {
     public void preload(@NotNull ProgressIndicator indicator) {
         hackClassLoader();
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
-        File serverPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls-0.0.1-SNAPSHOT-uber.jar");
+        File serverPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls-0.0.4-SNAPSHOT-uber.jar");
         String javaHome = System.getProperty("java.home");
         LanguageServerDefinition.register(new QuarkusLanguageServerDefinition("properties", javaHome + File.separator + "bin" + File.separator + "java", new String[] { "-jar", serverPath.getAbsolutePath().toString()}));
     }
