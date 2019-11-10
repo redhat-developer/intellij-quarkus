@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
+ ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.module;
 
 import com.intellij.icons.AllIcons;
@@ -79,7 +89,6 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep {
         this.customRadioButton.addActionListener(listener);
         FormBuilder builder = new FormBuilder();
         builder.addComponent(new JBLabel("Choose Quarkus Code endpoint URL."));
-        //builder.addVerticalSpacing();
         BorderLayoutPanel defaultPanel = JBUI.Panels.simplePanel(10, 0);
         defaultPanel.addToLeft(this.defaultRadioButton);
         HyperlinkLabel label = new HyperlinkLabel(QUARKUS_CODE_URL);
@@ -91,7 +100,6 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep {
         this.customUrlWithBrowseButton.setButtonIcon(AllIcons.Actions.ShowViewer);
         customPanel.addToCenter(this.customUrlWithBrowseButton);
         builder.addComponent(customPanel);
-        //builder.addVerticalSpacing();
         builder.addTooltip("Make sure your network connection is active before continuing.");
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(builder.getPanel(), "North");
@@ -133,8 +141,5 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep {
             this.wizardContext.putUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY, endpointURL);
             PropertiesComponent.getInstance().setValue(LAST_ENDPOINT_URL, endpointURL);
         }
-
     }
-
-
 }

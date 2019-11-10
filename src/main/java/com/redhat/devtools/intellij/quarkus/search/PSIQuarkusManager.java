@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
+ ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
 import com.intellij.openapi.application.Application;
@@ -78,7 +88,6 @@ import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
 public class PSIQuarkusManager {
     public static final PSIQuarkusManager INSTANCE = new PSIQuarkusManager();
     private static final List<String> NUMBER_TYPES = Arrays.asList("short", "int", "long", "double", "float");
-    private static final String QUARKUS_LSP_NAME = "Quarkus private";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PSIQuarkusManager.class);
 
@@ -108,20 +117,13 @@ public class PSIQuarkusManager {
 
     @NotNull
     private static GlobalSearchScope getPSIScope(Module module, QuarkusPropertiesScope scope, boolean isTest, List<VirtualFile> deploymentFiles) {
-        GlobalSearchScope psiScope =  scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope());
-        /*return psiScope.union(GlobalSearchScope.filesWithLibrariesScope(module.getProject(), deploymentFiles, true));*/
-        return psiScope;
+        return  scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope());
     }
 
-    private static void registerDeploymentJARsForIndex(Module module, List<VirtualFile> deploymentFiles) {
-        //ApplicationManager.getApplication().runWriteAction(() -> CacheUpdateRunner.processFiles(new EmptyProgressIndicator(), deploymentFiles, module.getProject(), content -> ((FileBasedIndexImpl)FileBasedIndex.getInstance()).indexFileContent(module.getProject(), content)));
-        /*ApplicationManager.getApplication().runWriteAction(() -> {
-            deploymentFiles.forEach(file -> ((FileBasedIndexImpl)FileBasedIndex.getInstance()).requestReindex(file));
-        });*/
+    private static void addQuarkusDeploymentJARsLibrary(Module module, List<VirtualFile> deploymentFiles) {
         List<String> classesURLs = deploymentFiles.stream().map(f -> f.getUrl()).collect(Collectors.toList());
         Application app = ApplicationManager.getApplication();
         app.invokeAndWait(() -> app.runWriteAction(() -> ModuleRootModificationUtil.addModuleLibrary(module, QUARKUS_DEPLOYMENT_LIBRARY_NAME, classesURLs, Collections.emptyList(), DependencyScope.PROVIDED)));
-        //ApplicationManager.getApplication().runWriteAction(() -> deploymentFiles.forEach(file -> ((FileBasedIndexImpl)FileBasedIndex.getInstance()).indexFileContent(module.getProject(), new FileContent(file))));
     }
 
     public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
@@ -141,7 +143,7 @@ public class PSIQuarkusManager {
         Map<VirtualFile, Properties> javaDocCache = new HashMap<>();
         if (module != null) {
             List<VirtualFile> deploymentFiles = ToolDelegate.scanDeploymentFiles(module);
-            registerDeploymentJARsForIndex(module, deploymentFiles);
+            addQuarkusDeploymentJARsLibrary(module, deploymentFiles);
 
             DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
                 Query<PsiMember> query = new MergeQuery<>(getQuery(CONFIG_ROOT_ANNOTATION, module, scope, isTest, deploymentFiles),
@@ -155,10 +157,8 @@ public class PSIQuarkusManager {
     }
 
     private void process(PsiMember psiMember, Map<VirtualFile, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
-        LOGGER.error("Found class " + psiMember);
         for(PsiAnnotation annotation : psiMember.getAnnotations()) {
             if (annotation.getQualifiedName().equals(CONFIG_ROOT_ANNOTATION)) {
-                LOGGER.error("Found class " + psiMember + " with annotation " + annotation);
                 processConfigRoot(annotation, psiMember, javaDocCache, configItems);
             } else if (annotation.getQualifiedName().equals(CONFIG_PROPERTY_ANNOTATION)) {
                 processConfigProperty(annotation, psiMember, javaDocCache, configItems);
@@ -298,16 +298,7 @@ public class PSIQuarkusManager {
         if (directory == null) {
             directory = index.getClassRootForFile(f.getVirtualFile());
         }
-        String path = VfsUtilCore.getRelativePath(directory, LocalFileSystem.getInstance().findFileByPath(f.getProject().getBasePath()));
         return directory;
-        /*PsiDirectory dir = f.getContainingDirectory();
-        while (dir != null) {
-            if (dir.getName().endsWith(".jar")) {
-                break;
-            }
-            dir = dir.getParent();
-        }
-        return dir==null?f.getContainingDirectory():dir;*/
     }
 
     private void addField(String location, String extensionName, PsiField field, String fieldTypeName, PsiClass fieldClass, String propertyName, String defaultValue, ConfigPhase configPhase, Map<VirtualFile, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
@@ -472,8 +463,7 @@ public class PSIQuarkusManager {
                 try (Reader reader = new StringReader(quarkusJavadocResource)) {
                     properties.load(reader);
                 } catch (Exception e) {
-                    // TODO : log it
-                    e.printStackTrace();
+                    LOGGER.error(e.getLocalizedMessage(), e);
                 }
             }
         }
@@ -501,7 +491,7 @@ public class PSIQuarkusManager {
                 try {
                     return VfsUtilCore.loadText(file);
                 } catch (IOException e) {
-                    //TODO: log exception
+                    LOGGER.error(e.getLocalizedMessage(), e);
                 }
             }
         }
@@ -509,9 +499,6 @@ public class PSIQuarkusManager {
     }
 
     private String getResolvedTypeName(PsiField field) {
-        /*PsiClass psiClass = PsiTypesUtil.getPsiClass(field.getType());
-        return psiClass != null ? psiClass.getQualifiedName(): field.getType().getCanonicalText();
-         */
         return field.getType().getCanonicalText();
     }
 
