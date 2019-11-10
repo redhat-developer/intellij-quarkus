@@ -6,6 +6,7 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
@@ -15,6 +16,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.RefreshQueue;
@@ -36,6 +38,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class QuarkusModuleBuilder extends JavaModuleBuilder {
 
@@ -134,13 +137,17 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         }
         RequestBuilder builder = HttpRequests.request(url.toString());
         File moduleFile = new File(getContentEntryPath());
-        builder.connect(request -> {
-            ZipUtil.unpack(request.getInputStream(), moduleFile, name -> {
-                int index = name.indexOf('/');
-                return name.substring(index);
-            });
-            return true;
-        });
+        try {
+            ApplicationManager.getApplication().executeOnPooledThread(() -> builder.connect(request -> {
+                ZipUtil.unpack(request.getInputStream(), moduleFile, name -> {
+                    int index = name.indexOf('/');
+                    return name.substring(index);
+                });
+                return true;
+            })).get();
+        } catch (InterruptedException|ExecutionException e) {
+            throw new IOException(e);
+        }
         VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
         RefreshQueue.getInstance().refresh(true, true, (Runnable)null, new VirtualFile[]{vf});
     }
