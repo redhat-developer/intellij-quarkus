@@ -1,6 +1,11 @@
 # Quarkus plugin for IntelliJ platform
+[plugin-repo]: https://plugins.jetbrains.com/plugin/13234-quarkus
+[plugin-version-svg]: https://img.shields.io/jetbrains/plugin/v/13234-quarkus.svg
+[plugin-downloads-svg]: https://img.shields.io/jetbrains/plugin/d/13234-quarkus.svg
 
 [![Build Status](https://travis-ci.com/redhat-developer/intellij-openshift-connector.svg?branch=master)](https://travis-ci.com/redhat-developer/intellij-quarkus)
+[![JetBrains plugins][plugin-version-svg]][plugin-repo]
+[![JetBrains plugins][plugin-downloads-svg]][plugin-repo]
 
 
 ## Description
