@@ -35,6 +35,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -52,7 +53,6 @@ import com.intellij.util.ui.UIUtil;
 import org.apache.commons.io.FileUtils;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.concurrency.AsyncPromise;
 import org.jetbrains.idea.maven.execution.MavenExecutor;
 import org.jetbrains.idea.maven.execution.MavenExternalExecutor;
 import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
@@ -503,8 +503,8 @@ public abstract class MavenImportingTestCase extends MavenTestCase {
                                                                      List<MavenArtifact> artifacts) {
     final MavenArtifactDownloader.DownloadResult[] unresolved = new MavenArtifactDownloader.DownloadResult[1];
 
-    AsyncPromise<MavenArtifactDownloader.DownloadResult> result = new AsyncPromise<>();
-    result.onSuccess(unresolvedArtifacts -> unresolved[0] = unresolvedArtifacts);
+    AsyncResult<MavenArtifactDownloader.DownloadResult> result = new AsyncResult<>();
+    result.doWhenDone((AsyncResult.Handler<MavenArtifactDownloader.DownloadResult>) downloadResult -> unresolved[0] = downloadResult);
 
     myProjectsManager.scheduleArtifactsDownloading(projects, artifacts, true, true, result);
     myProjectsManager.waitForArtifactsDownloadingCompletion();
