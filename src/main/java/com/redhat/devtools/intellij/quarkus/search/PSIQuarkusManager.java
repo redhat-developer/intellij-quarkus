@@ -20,6 +20,7 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -126,6 +127,21 @@ public class PSIQuarkusManager {
         app.invokeAndWait(() -> app.runWriteAction(() -> ModuleRootModificationUtil.addModuleLibrary(module, QUARKUS_DEPLOYMENT_LIBRARY_NAME, classesURLs, Collections.emptyList(), DependencyScope.PROVIDED)));
     }
 
+    private static void removeQuarkusDeploymentJARsLibrary(Module module) {
+        ModuleRootManager.getInstance(module).orderEntries().forEachLibrary(library -> {
+            if (library.getName().equals(QUARKUS_DEPLOYMENT_LIBRARY_NAME)) {
+                ModuleRootModificationUtil.updateModel(module, model -> {
+                    LibraryTable.ModifiableModel libModel = model.getModuleLibraryTable().getModifiableModel();
+                    libModel.removeLibrary(library);
+                    Application app = ApplicationManager.getApplication();
+                    app.invokeAndWait(() -> app.runWriteAction(libModel::commit));
+                });
+                return false;
+            }
+            return true;
+        });
+    }
+
     public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
         try {
             VirtualFile file = uriToVirtualFile(request.getUri());
@@ -152,6 +168,7 @@ public class PSIQuarkusManager {
                     process(psiMember, javaDocCache, configItems);
                 });
             });
+            removeQuarkusDeploymentJARsLibrary(module);
         }
         return configItems;
     }
