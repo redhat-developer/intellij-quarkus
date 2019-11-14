@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
+ ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.module;
 
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
@@ -6,6 +16,7 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
@@ -13,6 +24,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,11 +41,13 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.zeroturnaround.zip.ZipUtil;
 
+import javax.swing.Icon;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class QuarkusModuleBuilder extends JavaModuleBuilder {
 
@@ -58,6 +72,11 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
     @Override
     public String getPresentableName() {
         return "Quarkus";
+    }
+
+    @Override
+    public Icon getNodeIcon() {
+        return IconLoader.getIcon("/quarkus_icon_rgb_16px_default.png", QuarkusModuleBuilder.class);
     }
 
     @Nullable
@@ -121,19 +140,23 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         for(QuarkusCategory category : model.getCategories()) {
             for(QuarkusExtension extension : category.getExtensions()) {
                 if (extension.isSelected()) {
-                    //url = url.addParameters(Collections.singletonMap("e", extension.getId()));
+                    url = url.addParameters(Collections.singletonMap("e", extension.getId()));
                 }
             }
         }
         RequestBuilder builder = HttpRequests.request(url.toString());
         File moduleFile = new File(getContentEntryPath());
-        builder.connect(request -> {
-            ZipUtil.unpack(request.getInputStream(), moduleFile, name -> {
-                int index = name.indexOf('/');
-                return name.substring(index);
-            });
-            return true;
-        });
+        try {
+            ApplicationManager.getApplication().executeOnPooledThread(() -> builder.connect(request -> {
+                ZipUtil.unpack(request.getInputStream(), moduleFile, name -> {
+                    int index = name.indexOf('/');
+                    return name.substring(index);
+                });
+                return true;
+            })).get();
+        } catch (InterruptedException|ExecutionException e) {
+            throw new IOException(e);
+        }
         VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
         RefreshQueue.getInstance().refresh(true, true, (Runnable)null, new VirtualFile[]{vf});
     }

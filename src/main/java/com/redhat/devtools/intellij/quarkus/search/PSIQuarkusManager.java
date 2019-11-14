@@ -1,34 +1,63 @@
+/*******************************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
+ ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiEnumConstant;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
+import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.EmptyQuery;
+import com.intellij.util.MergeQuery;
 import com.intellij.util.Query;
+import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import com.redhat.quarkus.commons.EnumItem;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
+import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
@@ -36,12 +65,19 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.*;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_GROUP_ANNOTATION;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_ITEM_ANNOTATION;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_ROOT_ANNOTATION;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_JAVADOC_PROPERTIES;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_PREFIX;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
@@ -54,68 +90,132 @@ public class PSIQuarkusManager {
     public static final PSIQuarkusManager INSTANCE = new PSIQuarkusManager();
     private static final List<String> NUMBER_TYPES = Arrays.asList("short", "int", "long", "double", "float");
 
-    private static Module getModule(String uri) {
-        try {
-            VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(Paths.get(new URI(uri)).toFile());
-            for(Project project : ProjectManager.getInstance().getOpenProjects()) {
-                Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
-                if (module != null) {
-                    return module;
-                }
+    private static final Logger LOGGER = LoggerFactory.getLogger(PSIQuarkusManager.class);
+
+    private static Module getModule(VirtualFile file) {
+        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+            Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
+            if (module != null) {
+                return module;
             }
-        } catch (URISyntaxException e) {}
+        }
         return null;
     }
 
-    private static Query<PsiClass> getQuery(String annotationFQCN, Module module) {
+    private static VirtualFile uriToVirtualFile(String uri) throws URISyntaxException {
+        return LocalFileSystem.getInstance().findFileByIoFile(Paths.get(new URI(uri)).toFile());
+    }
+
+    private static Query<PsiMember> getQuery(String annotationFQCN, Module module, QuarkusPropertiesScope scope, boolean isTest, List<VirtualFile> deploymentFiles) {
         JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(module.getProject());
         PsiClass serviceAnnotation = javaPsiFacade.findClass(annotationFQCN, GlobalSearchScope.allScope(module.getProject()));
         if (serviceAnnotation != null) {
-            return AnnotatedElementsSearch.searchPsiClasses(serviceAnnotation, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module));
+            return AnnotatedElementsSearch.searchElements(serviceAnnotation, (SearchScope) getPSIScope(module, scope, isTest, deploymentFiles), PsiMember.class);
         } else {
             return new EmptyQuery<>();
         }
     }
 
-    public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
-        Module module = getModule(request.getUri());
-        return getConfigItems(module);
+    @NotNull
+    private static GlobalSearchScope getPSIScope(Module module, QuarkusPropertiesScope scope, boolean isTest, List<VirtualFile> deploymentFiles) {
+        return  scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope());
+    }
 
+    private static void addQuarkusDeploymentJARsLibrary(Module module, List<VirtualFile> deploymentFiles) {
+        List<String> classesURLs = deploymentFiles.stream().map(f -> f.getUrl()).collect(Collectors.toList());
+        Application app = ApplicationManager.getApplication();
+        app.invokeAndWait(() -> app.runWriteAction(() -> ModuleRootModificationUtil.addModuleLibrary(module, QUARKUS_DEPLOYMENT_LIBRARY_NAME, classesURLs, Collections.emptyList(), DependencyScope.PROVIDED)));
+    }
+
+    private static void removeQuarkusDeploymentJARsLibrary(Module module) {
+        ModuleRootManager.getInstance(module).orderEntries().forEachLibrary(library -> {
+            if (library.getName().equals(QUARKUS_DEPLOYMENT_LIBRARY_NAME)) {
+                ModuleRootModificationUtil.updateModel(module, model -> {
+                    LibraryTable.ModifiableModel libModel = model.getModuleLibraryTable().getModifiableModel();
+                    libModel.removeLibrary(library);
+                    Application app = ApplicationManager.getApplication();
+                    app.invokeAndWait(() -> app.runWriteAction(libModel::commit));
+                });
+                return false;
+            }
+            return true;
+        });
+    }
+
+    public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
+        try {
+            VirtualFile file = uriToVirtualFile(request.getUri());
+            Module module = getModule(file);
+            boolean isTest = ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(file);
+            return getConfigItems(module, request.getScope(), isTest);
+        } catch (URISyntaxException e) {
+            return Collections.emptyList();
+        }
     }
 
     @NotNull
-    public List<ExtendedConfigDescriptionBuildItem> getConfigItems(Module module) {
+    public List<ExtendedConfigDescriptionBuildItem> getConfigItems(Module module, QuarkusPropertiesScope scope, boolean isTest) {
         List<ExtendedConfigDescriptionBuildItem> configItems = new ArrayList<>();
-        Map<PsiDirectory, Properties> javaDocCache = new HashMap<>();
+        Map<VirtualFile, Properties> javaDocCache = new HashMap<>();
         if (module != null) {
-            getQuery(CONFIG_ROOT_ANNOTATION, module).forEach(psiClass -> {
-                process(psiClass, javaDocCache, configItems);
+            List<VirtualFile> deploymentFiles = ToolDelegate.scanDeploymentFiles(module);
+            addQuarkusDeploymentJARsLibrary(module, deploymentFiles);
+
+            DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
+                Query<PsiMember> query = new MergeQuery<>(getQuery(CONFIG_ROOT_ANNOTATION, module, scope, isTest, deploymentFiles),
+                        getQuery(CONFIG_PROPERTY_ANNOTATION, module, scope, isTest, deploymentFiles));
+                query.forEach(psiMember -> {
+                    process(psiMember, javaDocCache, configItems);
+                });
             });
+            removeQuarkusDeploymentJARsLibrary(module);
         }
         return configItems;
     }
 
-    private void process(PsiClass psiClass, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
-        for(PsiAnnotation annotation : psiClass.getAnnotations()) {
+    private void process(PsiMember psiMember, Map<VirtualFile, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+        for(PsiAnnotation annotation : psiMember.getAnnotations()) {
             if (annotation.getQualifiedName().equals(CONFIG_ROOT_ANNOTATION)) {
-                processConfigRoot(annotation, psiClass, javaDocCache, configItems);
+                processConfigRoot(annotation, psiMember, javaDocCache, configItems);
+            } else if (annotation.getQualifiedName().equals(CONFIG_PROPERTY_ANNOTATION)) {
+                processConfigProperty(annotation, psiMember, javaDocCache, configItems);
             }
         }
     }
 
-    private void processConfigRoot(PsiAnnotation configRootAnnotation, PsiClass psiClass, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+
+    private void processConfigRoot(PsiAnnotation configRootAnnotation, PsiMember psiMember, Map<VirtualFile, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
         ConfigPhase configPhase = getConfigPhase(configRootAnnotation);
         String configRootAnnotationName = getConfigRootName(configRootAnnotation);
-        String extension = getExtensionName(getSimpleName(psiClass), configRootAnnotationName, configPhase);
+        String extension = getExtensionName(getSimpleName(psiMember), configRootAnnotationName, configPhase);
         if (extension == null) {
             return;
         }
         // Location (JAR, src)
-        PsiDirectory packageRoot = getRootDirectory(PsiTreeUtil.getParentOfType(psiClass, PsiFile.class));
-        String location = packageRoot.getName();
+        VirtualFile packageRoot = getRootDirectory(PsiTreeUtil.getParentOfType(psiMember, PsiFile.class));
+        String location = getLocation(psiMember.getProject(), packageRoot);
         String extensionName = getExtensionName(location);
         String baseKey = QUARKUS_PREFIX + extension;
-        processConfigGroup(location, extensionName, psiClass, baseKey, configPhase, javaDocCache, configItems);
+        processConfigGroup(location, extensionName, psiMember, baseKey, configPhase, javaDocCache, configItems);
+    }
+
+    private static String getLocation(Project project, VirtualFile directory) {
+        String location = null;
+        Module module = ProjectFileIndex.getInstance(project).getModuleForFile(directory);
+        if (module != null) {
+            VirtualFile moduleRoot = LocalFileSystem.getInstance().findFileByIoFile(new File(module.getModuleFilePath()).getParentFile());
+            String path = VfsUtilCore.getRelativePath(directory, moduleRoot);
+            if (path != null) {
+                location = '/' + module.getName() + '/' + path;
+            }
+        }
+        if (location == null) {
+            location = directory.getPath();
+        }
+        if (location.endsWith("!/")) {
+            location = location.substring(0, location.length() - 2);
+        }
+        return location;
     }
 
     private String getExtensionName(String location) {
@@ -141,71 +241,93 @@ public class PSIQuarkusManager {
         return extensionName;
     }
 
-    private void processConfigGroup(String location, String extensionName, PsiClass psiClass, String baseKey, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
-        for(PsiField field : psiClass.getAllFields()) {
-            PsiFile f = PsiTreeUtil.getParentOfType(field, PsiFile.class);
-            PsiDirectory dir = getRootDirectory(f);
-            final PsiAnnotation configItemAnnotation = getAnnotation((PsiModifierListOwner) field,
-                    CONFIG_ITEM_ANNOTATION);
-            String name = configItemAnnotation == null ? hyphenate(field.getName())
-                    : getAnnotationMemberValue(configItemAnnotation, "name");
-            if (name == null) {
-                name = ConfigItem.HYPHENATED_ELEMENT_NAME;
-            }
-            String subKey;
-            boolean consume;
-            if (name.equals(ConfigItem.PARENT)) {
-                subKey = baseKey;
-                consume = false;
-            } else if (name.equals(ConfigItem.ELEMENT_NAME)) {
-                subKey = baseKey + "." + field.getName();
-                consume = true;
-            } else if (name.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
-                subKey = baseKey + "." + hyphenate(field.getName());
-                consume = true;
-            } else {
-                subKey = baseKey + "." + name;
-                consume = true;
-            }
-            final String defaultValue = configItemAnnotation == null ? ConfigItem.NO_DEFAULT
-                    : getAnnotationMemberValue(configItemAnnotation, "defaultValue");
+    private void processConfigGroup(String location, String extensionName, PsiMember psiMember, String baseKey, ConfigPhase configPhase, Map<VirtualFile, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+        if (psiMember instanceof PsiClass) {
+            for(PsiField field : ((PsiClass)psiMember).getAllFields()) {
+                PsiFile f = PsiTreeUtil.getParentOfType(field, PsiFile.class);
+                VirtualFile dir = getRootDirectory(f);
+                final PsiAnnotation configItemAnnotation = getAnnotation((PsiModifierListOwner) field,
+                        CONFIG_ITEM_ANNOTATION);
+                String name = configItemAnnotation == null ? hyphenate(field.getName())
+                        : getAnnotationMemberValue(configItemAnnotation, "name");
+                if (name == null) {
+                    name = ConfigItem.HYPHENATED_ELEMENT_NAME;
+                }
+                String subKey;
+                boolean consume;
+                if (name.equals(ConfigItem.PARENT)) {
+                    subKey = baseKey;
+                    consume = false;
+                } else if (name.equals(ConfigItem.ELEMENT_NAME)) {
+                    subKey = baseKey + "." + field.getName();
+                    consume = true;
+                } else if (name.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
+                    subKey = baseKey + "." + hyphenate(field.getName());
+                    consume = true;
+                } else {
+                    subKey = baseKey + "." + name;
+                    consume = true;
+                }
+                final String defaultValue = configItemAnnotation == null ? ConfigItem.NO_DEFAULT
+                        : getAnnotationMemberValue(configItemAnnotation, "defaultValue");
 
-            String fieldTypeName = getResolvedTypeName(field);
-            /*IType fieldClass = findType(field.getJavaProject(), fieldTypeName);*/
-            PsiClass fieldClass = JavaPsiFacade.getInstance(field.getProject()).findClass(fieldTypeName, GlobalSearchScope.allScope(field.getProject()));
-            final PsiAnnotation configGroupAnnotation = getAnnotation((PsiModifierListOwner) fieldClass,
-                    CONFIG_GROUP_ANNOTATION);
-            if (configGroupAnnotation != null) {
-                processConfigGroup(location, extensionName, fieldClass, subKey, configPhase,
-                        javaDocCache, configItems);
-            } else {
-                addField(location, extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
-                        configPhase, javaDocCache, configItems);
+                String fieldTypeName = getResolvedTypeName(field);
+                /*IType fieldClass = findType(field.getJavaProject(), fieldTypeName);*/
+                PsiClass fieldClass = JavaPsiFacade.getInstance(field.getProject()).findClass(fieldTypeName, GlobalSearchScope.allScope(field.getProject()));
+                final PsiAnnotation configGroupAnnotation = getAnnotation((PsiModifierListOwner) fieldClass,
+                        CONFIG_GROUP_ANNOTATION);
+                if (configGroupAnnotation != null) {
+                    processConfigGroup(location, extensionName, fieldClass, subKey, configPhase,
+                            javaDocCache, configItems);
+                } else {
+                    addField(location, extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
+                            configPhase, javaDocCache, configItems);
+                }
             }
         }
     }
 
-    private PsiDirectory getRootDirectory(PsiFile f) {
-        PsiDirectory dir = f.getContainingDirectory();
-        while (dir != null) {
-            if (dir.getName().endsWith(".jar")) {
-                break;
+    private void processConfigProperty(PsiAnnotation annotation, PsiMember psiMember, Map<VirtualFile, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+        if (psiMember instanceof PsiField || psiMember instanceof PsiMethod) {
+            String propertyName = getAnnotationMemberValue(annotation, "name");
+            if (StringUtils.isNotEmpty(propertyName)) {
+                String propertyTypeName;
+                if (psiMember instanceof PsiField) {
+                    propertyTypeName = getResolvedTypeName((PsiField)psiMember);
+                } else {
+                    propertyTypeName = getResolvedTypeName((PsiMethod)psiMember);
+                }
+                PsiClass fieldClass = JavaPsiFacade.getInstance(psiMember.getProject()).findClass(propertyTypeName, GlobalSearchScope.allScope(psiMember.getProject()));
+                String defaultValue = getAnnotationMemberValue(annotation, "defaultValue");
+                VirtualFile packageRoot = getRootDirectory(PsiTreeUtil.getParentOfType(psiMember, PsiFile.class));
+                String location = getLocation(psiMember.getProject(), packageRoot);
+                String extensionName = getExtensionName(location);
+                addField(location, extensionName, (PsiField)psiMember, propertyTypeName, fieldClass, propertyName, defaultValue,
+                        null, javaDocCache, configItems);
+
             }
-            dir = dir.getParent();
         }
-        return dir;
     }
 
-    private void addField(String location, String extensionName, PsiField field, String fieldTypeName, PsiClass fieldClass, String propertyName, String defaultValue, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+    private VirtualFile getRootDirectory(PsiFile f) {
+        ProjectFileIndex index = ProjectFileIndex.getInstance(f.getProject());
+        VirtualFile directory = index.getSourceRootForFile(f.getVirtualFile());
+        if (directory == null) {
+            directory = index.getClassRootForFile(f.getVirtualFile());
+        }
+        return directory;
+    }
+
+    private void addField(String location, String extensionName, PsiField field, String fieldTypeName, PsiClass fieldClass, String propertyName, String defaultValue, ConfigPhase configPhase, Map<VirtualFile, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
         // Class type
-        String type = fieldClass != null ? fieldClass.getQualifiedName() : fieldTypeName;
+        String type = fieldClass != null ? ClassUtil.getJVMClassName(fieldClass) : fieldTypeName;
 
         // Javadoc
         String docs = getJavadoc(field, javaDocCache);
         //docs = converter.convert(docs);
 
         // field and class source
-        String source = field.getContainingClass().getQualifiedName() + "#" + field.getName();
+        String source = ClassUtil.getJVMClassName(field.getContainingClass()) + "#" + field.getName();
 
         // Enumerations
         List<EnumItem> enumerations = getEnumerations(fieldClass);
@@ -240,7 +362,7 @@ public class PSIQuarkusManager {
         }
     }
 
-    private void processMap(PsiField field, String baseKey, String mapValueClass, String docs, String location, String extensionName, String source, ConfigPhase configPhase, Map<PsiDirectory, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
+    private void processMap(PsiField field, String baseKey, String mapValueClass, String docs, String location, String extensionName, String source, ConfigPhase configPhase, Map<VirtualFile, Properties> javaDocCache, List<ExtendedConfigDescriptionBuildItem> configItems) {
         final String subKey = baseKey + ".{*}";
         if ("java.util.Map".equals(mapValueClass)) {
             // ignore, Map must be parameterized
@@ -252,7 +374,7 @@ public class PSIQuarkusManager {
             // Optionals are not allowed as a map value type
         } else {
             PsiClass type = findType(field.getManager(), mapValueClass);
-            if (type == null) {
+            if (type == null || isPrimitiveType(mapValueClass)) {
                 // This case comes from when mapValueClass is:
                 // - Simple type, like java.lang.String
                 // - Type which cannot be found (bad classpath?)
@@ -280,7 +402,9 @@ public class PSIQuarkusManager {
         property.setExtensionName(extensionName);
         property.setLocation(location);
         property.setSource(source);
-        property.setPhase(getPhase(configPhase));
+        if (configPhase != null) {
+            property.setPhase(getPhase(configPhase));
+        }
         property.setEnums(enums);
 
         configItems.add(property);
@@ -322,6 +446,12 @@ public class PSIQuarkusManager {
         return NUMBER_TYPES.contains(valueClass);
     }
 
+    private static boolean isPrimitiveType(String valueClass) {
+        return valueClass.equals("java.lang.String") || valueClass.equals("java.lang.Boolean")
+                || valueClass.equals("java.lang.Integer") || valueClass.equals("java.lang.Long")
+                || valueClass.equals("java.lang.Double") || valueClass.equals("java.lang.Float");
+    }
+
     private List<EnumItem> getEnumerations(PsiClass fieldClass) {
         List<EnumItem> enumerations = null;
         if (fieldClass != null && fieldClass.isEnum()) {
@@ -339,8 +469,8 @@ public class PSIQuarkusManager {
 
     }
 
-    private String getJavadoc(PsiField field, Map<PsiDirectory, Properties> javaDocCache) {
-        PsiDirectory packageRoot = getRootDirectory(PsiTreeUtil.getParentOfType(field, PsiFile.class));
+    private String getJavadoc(PsiField field, Map<VirtualFile, Properties> javaDocCache) {
+        VirtualFile packageRoot = getRootDirectory(PsiTreeUtil.getParentOfType(field, PsiFile.class));
         Properties properties = javaDocCache.get(packageRoot);
         if (properties == null) {
             properties = new Properties();
@@ -350,8 +480,7 @@ public class PSIQuarkusManager {
                 try (Reader reader = new StringReader(quarkusJavadocResource)) {
                     properties.load(reader);
                 } catch (Exception e) {
-                    // TODO : log it
-                    e.printStackTrace();
+                    LOGGER.error(e.getLocalizedMessage(), e);
                 }
             }
         }
@@ -371,21 +500,27 @@ public class PSIQuarkusManager {
         return properties.getProperty(fieldKey);
     }
 
-    private String findJavadocFromQuakusJavadocProperties(PsiDirectory packageRoot) {
-        PsiDirectory metaInfDir = packageRoot.findSubdirectory("META-INF");
+    private String findJavadocFromQuakusJavadocProperties(VirtualFile packageRoot) {
+        VirtualFile metaInfDir = packageRoot.findChild("META-INF");
         if (metaInfDir != null) {
-            PsiFile file = metaInfDir.findFile(QUARKUS_JAVADOC_PROPERTIES);
+            VirtualFile file = metaInfDir.findChild(QUARKUS_JAVADOC_PROPERTIES);
             if (file != null) {
-                return file.getText();
+                try {
+                    return VfsUtilCore.loadText(file);
+                } catch (IOException e) {
+                    LOGGER.error(e.getLocalizedMessage(), e);
+                }
             }
         }
         return null;
     }
 
     private String getResolvedTypeName(PsiField field) {
-        /*PsiClass psiClass = PsiTypesUtil.getPsiClass(field.getType());
-        return psiClass != null ? psiClass.getQualifiedName(): "";*/
         return field.getType().getCanonicalText();
+    }
+
+    private String getResolvedTypeName(PsiMethod method) {
+        return method.getReturnType().getCanonicalText();
     }
 
     private PsiAnnotation getAnnotation(PsiModifierListOwner annotatable, String annotationName) {
@@ -430,8 +565,10 @@ public class PSIQuarkusManager {
         return rootName;
     }
 
-    private String getSimpleName(PsiClass psiClass) {
-        return psiClass.getName();
+    private String getSimpleName(PsiMember psiMember) {
+        String elementName = psiMember.getName();
+        int index = elementName.lastIndexOf('.');
+        return index != -1 ? elementName.substring(index + 1, elementName.length()) : elementName;
     }
 
     private String getConfigRootName(PsiAnnotation configRootAnnotation) {

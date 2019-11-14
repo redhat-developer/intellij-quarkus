@@ -1,0 +1,10 @@
+<idea-plugin>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <preloadingActivity implementation="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLSPPreloadActivity"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.github.gtache.lsp">
+    <lspIconProvider implementation="com.redhat.devtools.intellij.quarkus.lsp.IconProvider"/>
+  </extensions>
+
+</idea-plugin>

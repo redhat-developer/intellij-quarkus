@@ -1,18 +1,25 @@
+/*******************************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
+ ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp;
 
 import com.github.gtache.lsp.client.LanguageClientImpl;
-import com.intellij.openapi.application.ApplicationManager;
 import com.redhat.devtools.intellij.quarkus.search.PSIQuarkusManager;
 import com.redhat.quarkus.commons.QuarkusProjectInfo;
 import com.redhat.quarkus.commons.QuarkusProjectInfoParams;
-import com.redhat.quarkus.commons.QuarkusPropertiesScope;
 import com.redhat.quarkus.commons.QuarkusPropertyDefinitionParams;
 import com.redhat.quarkus.ls.api.QuarkusLanguageClientAPI;
 import org.eclipse.lsp4j.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 public class QuarkusLanguageClient extends LanguageClientImpl implements QuarkusLanguageClientAPI {
@@ -22,11 +29,7 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements Quarkus
   public CompletableFuture<QuarkusProjectInfo> getQuarkusProjectInfo(QuarkusProjectInfoParams request) {
     LOGGER.info("Project info for:" + request.getUri() + " scope=" + request.getScope());
     QuarkusProjectInfo result = new QuarkusProjectInfo();
-    if (request.getScope() == QuarkusPropertiesScope.classpath) {
-      ApplicationManager.getApplication().runReadAction(() -> result.setProperties(PSIQuarkusManager.INSTANCE.getConfigItems(request)));
-    } else {
-      result.setProperties(new ArrayList<>());
-    }
+    result.setProperties(PSIQuarkusManager.INSTANCE.getConfigItems(request));
     return CompletableFuture.completedFuture(result);
   }
 
