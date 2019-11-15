@@ -38,8 +38,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_CODE_URL;
+
 public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep {
-    private static final String QUARKUS_CODE_URL = "https://code.quarkus.io";
     private static final String LAST_ENDPOINT_URL = "quarkus.code.endpoint.url.last";
     private static final String ENDPOINT_URL_HISTORY = "quarkus.code.endpoint.url.history";
     private final WizardContext wizardContext;
