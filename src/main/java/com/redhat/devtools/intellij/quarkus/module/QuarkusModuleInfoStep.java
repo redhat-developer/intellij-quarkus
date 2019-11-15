@@ -21,6 +21,8 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -28,6 +30,8 @@ import java.awt.BorderLayout;
 import java.io.IOException;
 
 public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleInfoStep.class);
+
     private final JBLoadingPanel panel = new JBLoadingPanel(new BorderLayout(), this, 300);
 
     private JBTextField groupIdField;
@@ -89,7 +93,8 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
             formBuilder.addLabeledComponent("Path:", pathField);
             panel.add(ScrollPaneFactory.createScrollPane(formBuilder.getPanel(), true), "North");
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getLocalizedMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 

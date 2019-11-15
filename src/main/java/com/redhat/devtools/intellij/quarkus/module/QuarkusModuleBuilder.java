@@ -49,6 +49,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE;
+
 public class QuarkusModuleBuilder extends JavaModuleBuilder {
 
     private WizardContext wizardContext;
@@ -144,7 +149,10 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
                 }
             }
         }
-        RequestBuilder builder = HttpRequests.request(url.toString());
+        RequestBuilder builder = HttpRequests.request(url.toString()).tuner(connection -> {
+            connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
+            connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
+        });
         File moduleFile = new File(getContentEntryPath());
         try {
             ApplicationManager.getApplication().executeOnPooledThread(() -> builder.connect(request -> {

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.util.io.HttpRequests;
+import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -22,6 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE;
 
 public class QuarkusModelRegistry {
     private static final String EXTENSIONS_SUFFIX = "/api/extensions";
@@ -38,12 +44,16 @@ public class QuarkusModelRegistry {
         if (model == null) {
             indicator.setText("Loading Quarkus model from endpoint " + endPointURL);
             try {
-                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(endPointURL + EXTENSIONS_SUFFIX).connect(request -> {
-                    try (Reader reader = request.getReader(indicator)) {
-                        List<QuarkusExtension> extensions = mapper.readValue(reader, new TypeReference<List<QuarkusExtension>>() {});
-                        QuarkusModel newModel = new QuarkusModel(extensions);
-                        return newModel;
-                    }
+                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(endPointURL + EXTENSIONS_SUFFIX).tuner(request -> {
+                    request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
+                    request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
+                }).connect(request -> {
+                        try (Reader reader = request.getReader(indicator)) {
+                            List<QuarkusExtension> extensions = mapper.readValue(reader, new TypeReference<List<QuarkusExtension>>() {
+                            });
+                            QuarkusModel newModel = new QuarkusModel(extensions);
+                            return newModel;
+                        }
                 })).get();
             } catch (InterruptedException|ExecutionException e) {
                 throw new IOException(e);
