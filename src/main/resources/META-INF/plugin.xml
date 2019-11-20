@@ -6,11 +6,17 @@
 
   <description><![CDATA[
       <img src="https://raw.githubusercontent.com/redhat-developer/intellij-quarkus/master/src/main/resources/quarkus_icon_rgb_32px_default.png" width="32" height="32"/>
-      <h2>Overview</h2>
-      <p>Quarkus<p>
+      <h2>Quarkus Tools for IntelliJ</h2>
+      <p>A plugin aim at Quarkus based development, providing easy bootstrapping and code assist from Quarkus related assets.<p>
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>0.0.1</b></p>
+    <p>Initial release</p>
+    <ul>
+      <li>Project and module wizard through code.quarkus.io</li>
+      <li>application.properties code assist through the quarkus-ls LSP language server</li>
+    </ul>
   ]]>
   </change-notes>
 
