@@ -44,15 +44,16 @@ public class QuarkusLSPPreloadActivity extends PreloadingActivity {
                 Field parentsField = loader.getClass().getDeclaredField("myParents");
                 parentsField.setAccessible(true);
                 ClassLoader[] parents = (ClassLoader[]) parentsField.get(loader);
-                if (parents.length > 1) {
-                    ClassLoader first = parents[0];
-                    parents[0] = parents[parents.length - 1];
-                    parents[parents.length - 1] = first;
+                for(int i=1; i < parents.length;++i) {
+                    if (parents[i] instanceof PluginClassLoader && ((PluginClassLoader)parents[i]).getPluginId().getIdString().equals("com.github.gtache.lsp")) {
+                        ClassLoader first = parents[0];
+                        parents[0] = parents[i];
+                        parents[i] = first;
+                    }
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 LOGGER.error(e.getLocalizedMessage(), e);
             }
         }
     }
-
 }
