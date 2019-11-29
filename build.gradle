@@ -44,8 +44,8 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.3'
     compile 'org.zeroturnaround:zt-zip:1.13'
     compile 'io.quarkus:quarkus-core:1.0.0.CR1'
-    compile 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.2-SNAPSHOT'
-    lsp 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.4-SNAPSHOT:uber'
+    compile 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.5-SNAPSHOT'
+    lsp 'com.redhat.quarkus:com.redhat.quarkus.ls:0.0.5-SNAPSHOT:uber'
     compile files(new File(buildDir, 'server')) {
         builtBy 'copyDeps'
     }
