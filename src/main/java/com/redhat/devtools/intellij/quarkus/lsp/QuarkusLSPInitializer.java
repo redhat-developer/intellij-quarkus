@@ -14,22 +14,19 @@ import com.github.gtache.lsp.client.languageserver.serverdefinition.LanguageServ
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.plugins.cl.PluginClassLoader;
-import com.intellij.openapi.application.PreloadingActivity;
+import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.progress.ProgressIndicator;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Field;
 
-
-public class QuarkusLSPPreloadActivity extends PreloadingActivity {
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusLSPPreloadActivity.class);
+public class QuarkusLSPInitializer implements BaseComponent {
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusLSPInitializer.class);
 
     @Override
-    public void preload(@NotNull ProgressIndicator indicator) {
+    public void initComponent() {
         hackClassLoader();
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
         File serverPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls-0.0.4-SNAPSHOT-uber.jar");
@@ -38,7 +35,7 @@ public class QuarkusLSPPreloadActivity extends PreloadingActivity {
     }
 
     private void hackClassLoader() {
-        ClassLoader loader = QuarkusLSPPreloadActivity.class.getClassLoader();
+        ClassLoader loader = QuarkusLSPInitializer.class.getClassLoader();
         if (loader instanceof PluginClassLoader) {
             try {
                 Field parentsField = loader.getClass().getDeclaredField("myParents");
