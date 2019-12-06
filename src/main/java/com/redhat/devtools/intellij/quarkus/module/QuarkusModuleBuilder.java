@@ -139,7 +139,7 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         parameters.put("a", wizardContext.getUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY));
         parameters.put("v", wizardContext.getUserData(QuarkusConstants.WIZARD_VERSION_KEY));
         parameters.put("c", wizardContext.getUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY));
-        parameters.put("v", wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY));
+        parameters.put("p", wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY));
         url = url.addParameters(parameters);
         QuarkusModel model = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY);
         for(QuarkusCategory category : model.getCategories()) {
