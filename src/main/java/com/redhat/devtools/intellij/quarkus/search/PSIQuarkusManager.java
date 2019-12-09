@@ -143,6 +143,7 @@ public class PSIQuarkusManager {
     }
 
     public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
+        long start = System.currentTimeMillis();
         try {
             VirtualFile file = uriToVirtualFile(request.getUri());
             Module module = getModule(file);
@@ -150,6 +151,8 @@ public class PSIQuarkusManager {
             return getConfigItems(module, request.getScope(), isTest);
         } catch (URISyntaxException e) {
             return Collections.emptyList();
+        } finally {
+            LOGGER.info("getConfigItems duration= " + (System.currentTimeMillis() - start));
         }
     }
 

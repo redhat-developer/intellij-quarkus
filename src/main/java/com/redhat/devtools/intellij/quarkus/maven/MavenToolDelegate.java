@@ -59,9 +59,13 @@ public class MavenToolDelegate implements ToolDelegate {
                         if (!artifactFile.exists()) {
                             processDownload(module, mavenProject, deploymentId);
                         }
-                        VirtualFile f = LocalFileSystem.getInstance().findFileByIoFile(artifactFile);
-                        VirtualFile jarRoot = JarFileSystem.getInstance().getJarRootForLocalFile(f);
-                        result.add(jarRoot);
+                        VirtualFile f = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(artifactFile);
+                        if (f != null) {
+                            VirtualFile jarRoot = JarFileSystem.getInstance().getJarRootForLocalFile(f);
+                            result.add(jarRoot);
+                        } else {
+                            LOGGER.error("Error processing file " + artifactFile.getAbsolutePath());
+                        }
                     }
                 }
             }

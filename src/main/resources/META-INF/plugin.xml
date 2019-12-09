@@ -27,7 +27,7 @@
        on how to target different products -->
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.java</depends>
-  <depends optional="true" config-file="plugin-lsp.xml">com.github.gtache.lsp</depends>
+  <depends>com.github.gtache.lsp</depends>
   <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -42,10 +42,18 @@
 
     <fileTypeFactory implementation="com.redhat.devtools.intellij.quarkus.lang.ApplicationPropertiesFileTypeFactory"/>
   </extensions>
+  <extensions defaultExtensionNs="com.github.gtache.lsp">
+    <lspIconProvider implementation="com.redhat.devtools.intellij.quarkus.lsp.IconProvider"/>
+  </extensions>
 
   <extensionPoints>
     <extensionPoint name="toolDelegate" interface="com.redhat.devtools.intellij.quarkus.tool.ToolDelegate"/>
   </extensionPoints>
 
-
+  <application-components>
+    <component>
+      <interface-class>com.redhat.devtools.intellij.quarkus.lsp.QuarkusLSPInitializer</interface-class>
+      <implementation-class>com.redhat.devtools.intellij.quarkus.lsp.QuarkusLSPInitializer</implementation-class>
+    </component>
+  </application-components>
 </idea-plugin>
