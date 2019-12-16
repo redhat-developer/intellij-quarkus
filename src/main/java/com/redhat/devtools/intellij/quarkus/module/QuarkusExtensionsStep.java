@@ -58,7 +58,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                 if (columnIndex == 0) {
                     return extension.isSelected();
                 } else {
-                    return extension.getName();
+                    return extension.asLabel();
                 }
             }
 

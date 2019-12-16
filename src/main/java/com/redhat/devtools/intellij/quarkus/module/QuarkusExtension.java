@@ -39,6 +39,9 @@ public class QuarkusExtension {
     @JsonProperty("order")
     private int order;
 
+    @JsonProperty("status")
+    private String status;
+
     private boolean selected;
 
     public String getCategory() {
@@ -97,11 +100,27 @@ public class QuarkusExtension {
         this.order = order;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public boolean isSelected() {
         return selected;
     }
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public String asLabel() {
+        StringBuffer buffer = new StringBuffer(getName());
+        if ("preview".equalsIgnoreCase(getStatus())) {
+            buffer.append(" (Preview)");
+        }
+        return buffer.toString();
     }
 }
