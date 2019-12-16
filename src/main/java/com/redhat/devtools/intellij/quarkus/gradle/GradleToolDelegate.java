@@ -108,6 +108,7 @@ public class GradleToolDelegate implements ToolDelegate {
 
     private void processDownload(File file, String artifactId) throws IOException {
         String url = CENTRAL_URL + toPath(artifactId);
+        file.getParentFile().mkdirs();
         try (OutputStream stream = new FileOutputStream(file)) {
             HttpRequests.request(url).connect(request -> {
                 IOUtils.copy(request.getInputStream(), stream);
