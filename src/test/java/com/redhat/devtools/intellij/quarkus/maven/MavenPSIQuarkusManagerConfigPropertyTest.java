@@ -8,10 +8,9 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.module;
+package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.quarkus.MavenImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.search.PSIQuarkusManager;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
@@ -22,7 +21,7 @@ import java.util.List;
 import static com.redhat.devtools.intellij.quarkus.module.QuarkusAssert.assertProperties;
 import static com.redhat.devtools.intellij.quarkus.module.QuarkusAssert.p;
 
-public class PSIQuarkusManagerConfigPropertyTest extends MavenImportingTestCase {
+public class MavenPSIQuarkusManagerConfigPropertyTest extends MavenImportingTestCase {
     public void testApplicationConfigurationFromClasspath() throws Exception {
         Module module = createMavenModule("application-configuration", new File("projects/maven/application-configuration"));
         List<ExtendedConfigDescriptionBuildItem> items = PSIQuarkusManager.INSTANCE.getConfigItems(module, QuarkusPropertiesScope.classpath, false);

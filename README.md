@@ -60,6 +60,41 @@ When editing `application.properties` files, you have access to:
 
 This is an open source project open to anyone. Contributions are extremely welcome!
 
+### Building
+
+Project is managed by Gradle. So building is quite easy.
+
+#### Building the plugin distribution file
+
+Run the following command:
+
+```sh
+./gradlew buildPlugin
+```
+The plugin distribution file is located in ```build/distributions```.
+
+#### Testing
+
+You can also easily test the plugin. Just run the following command:
+
+```sh
+./gradlew runIde
+```
+
+#### Unit test infrastructure
+
+The IntelliJ SDK does not provide helpers to create Maven or Gradle based project.
+But the Maven and Gradle plugins have some test class helpers but they are not part
+of the IntelliJ SDK or the respective plugin distributions.
+
+So we extracted these classes into the ```intellij-community``` folder. But as these
+classes are highly linked to the version of the IntelliJ SDK used to build, there is
+a script to copy them from the GitHub intellij-community repository.
+
+This script is ```pulltest.sh```
+
+If the version of the IntelliJ SDK used to build is changed (see gradle.properties), you must
+update the branch in ```pulltest.sh``` and run the script again.
 
 ## Feedback
 

@@ -19,6 +19,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -58,8 +59,53 @@ public interface ToolDelegate  {
         return p.getProperty(QUARKUS_DEPLOYMENT_PROPERTY_NAME);
     }
 
+    /**
+     * Checks if this delegate is valid for the module.
+     *
+     * @param module the module to process
+     * @return true if delegate is in charge, false otherwise
+     */
     boolean isValid(Module module);
+
+    /**
+     * Return the list of additional deployment JARs for the module.
+     *
+     * @param module the module to process
+     * @return the list of additional deployment JARs for the module
+     */
     List<VirtualFile> getDeploymentFiles(Module module);
+
+    /**
+     * Returns the displayable string for the delegate.
+     *
+     * @return the displayable string for the delegate
+     */
+    String getDisplay();
+
+    /**
+     * Use to sort the list in the module builder.
+     *
+     * @return the display order, lower values are displayed first
+     */
+    default int getOrder() {
+        return 0;
+    }
+
+    /**
+     * Return the value of the parameter build to be given to code.quarkus.io.
+     *
+     * @return the build tool parameter value
+     */
+    default String asParameter() {
+        return getDisplay().toUpperCase();
+    }
+
+    /**
+     * Process tool specific module initialization.
+     *
+     * @param module the module to process
+     */
+    void processImport(Module module);
 
     static final ExtensionPointName<ToolDelegate> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.toolDelegate");
 
@@ -70,5 +116,11 @@ public interface ToolDelegate  {
             }
         }
         return Collections.emptyList();
+    }
+
+    public static ToolDelegate[] getDelegates() {
+        ToolDelegate[] delegates = EP_NAME.getExtensions();
+        Arrays.sort(delegates, (a,b) -> a.getOrder() - b.getOrder());
+        return delegates;
     }
 }

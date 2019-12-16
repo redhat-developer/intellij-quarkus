@@ -110,31 +110,14 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
     public Module createModule(@NotNull ModifiableModuleModel moduleModel) throws InvalidDataException, IOException, ModuleWithNameAlreadyExists, JDOMException, ConfigurationException {
         processDownload();
         Module module = super.createModule(moduleModel);
-        processMaven(module);
+        wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).processImport(module);
         return module;
-    }
-
-    private void processMaven(Module module) {
-        Project project = module.getProject();
-        VirtualFile pomFile = null;
-        VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-        for(VirtualFile contentRoot : contentRoots) {
-            VirtualFile child = contentRoot.findChild("pom.xml");
-            if (child != null) {
-                pomFile = child;
-                break;
-            }
-        }
-
-        if (pomFile != null) {
-            MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
-            mavenProjectsManager.addManagedFiles(Collections.singletonList(pomFile));
-        }
     }
 
     private void processDownload() throws IOException {
         Url url = Urls.newFromEncoded(wizardContext.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY) + "/api/download");
         Map<String, String> parameters = new HashMap<>();
+        parameters.put("b", wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).asParameter());
         parameters.put("g", wizardContext.getUserData(QuarkusConstants.WIZARD_GROUPID_KEY));
         parameters.put("a", wizardContext.getUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY));
         parameters.put("v", wizardContext.getUserData(QuarkusConstants.WIZARD_VERSION_KEY));

@@ -8,51 +8,50 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.module;
+package com.redhat.devtools.intellij.quarkus.gradle;
 
-import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.quarkus.MavenImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.search.PSIQuarkusManager;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
-import org.jetbrains.idea.maven.model.MavenId;
-import org.jetbrains.idea.maven.utils.MavenArtifactUtil;
+import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static com.redhat.devtools.intellij.quarkus.module.QuarkusAssert.assertProperties;
 import static com.redhat.devtools.intellij.quarkus.module.QuarkusAssert.p;
 import static com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem.CONFIG_PHASE_BUILD_TIME;
 
-public class PSIQuarkusManagerTest extends MavenImportingTestCase {
-    private static final String XML = "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" xmlns=\"http://maven.apache.org/POM/4.0.0\"" +
-            "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
-            "  <modelVersion>4.0.0</modelVersion>" +
-            "<groupId>com.redhat.devtools.intellij.quarkus</groupId>" +
-            "<artifactId>sample-core-deployment</artifactId>" +
-            "<version>0.0.1-SNAPSHOT</version>" +
-            "<dependencies>" +
-            "<dependency>" +
-            "<groupId>io.quarkus</groupId>" +
-            "<artifactId>quarkus-core-deployment</artifactId>" +
-            "<version>0.24.0</version>" +
-            "</dependency>" +
-            "</dependencies>" +
-            "</project>";
+public class GradlePSIQuarkusManagerTest extends GradleTestCase {
+    private static final String CONFIG =
+    "plugins {\n" +
+    "    id 'java'\n" +
+    "}\n" +
 
-    private Module module;
+    "repositories {\n" +
+    "    mavenLocal()\n" +
+    "    mavenCentral()\n" +
+    "}\n" +
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        module = super.createMavenModule("core-deployment", XML);
-    }
+    "dependencies {\n" +
+    "    implementation 'io.quarkus:quarkus-core-deployment:1.0.1.Final'\n" +
+    "}\n" +
 
-    public void testQuarkusCoreDeploymentProperties() {
-        List<ExtendedConfigDescriptionBuildItem> items = PSIQuarkusManager.INSTANCE.getConfigItems(module, QuarkusPropertiesScope.classpath, false);
-        File quarkusCoreJARFile = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:0.24.0"), "jar");
-        assertNotNull("Test existing of quarkus-mongodb-client*.jar", quarkusCoreJARFile);
+    "group 'org.acme'\n" +
+    "version '1.0.0-SNAPSHOT'\n" +
+
+    "java {\n" +
+    "    sourceCompatibility = JavaVersion.VERSION_1_8\n" +
+    "    targetCompatibility = JavaVersion.VERSION_1_8\n" +
+    "}";
+
+    @Test
+    public void testQuarkusCoreDeploymentProperties() throws IOException {
+        importProject(CONFIG);
+        List<ExtendedConfigDescriptionBuildItem> items = PSIQuarkusManager.INSTANCE.getConfigItems(getModule("project.main"), QuarkusPropertiesScope.classpath, false);
+        File quarkusCoreJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-core-deployment", "1.0.1.Final");
+        assertNotNull("Test existing of quarkus-core-deployment.jar", quarkusCoreJARFile);
 
         assertProperties(items,
 
@@ -94,4 +93,5 @@ public class PSIQuarkusManagerTest extends MavenImportingTestCase {
 
 
     }
+
 }

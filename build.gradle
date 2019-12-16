@@ -2,17 +2,16 @@
 plugins {
     id "org.jetbrains.intellij" version "0.4.10"
     id "com.adarshr.test-logger" version "1.7.0"
+    id 'idea'
+    id 'java'
+    id 'jacoco'
 }
 
 
-apply plugin: 'idea'
-apply plugin: 'org.jetbrains.intellij'
-apply plugin: 'java'
-apply plugin: 'jacoco'
 
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    plugins 'maven', 'properties', 'com.github.gtache.lsp:1.5.4'
+    plugins 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.5.4'
     pluginName 'com.redhat.devtools.intellij.quarkus'
     updateSinceUntilBuild false
 }
@@ -37,6 +36,21 @@ configurations {
         exclude group: 'org.eclipse.lsp4j'
     }
     lsp
+}
+
+sourceSets {
+    test {
+        java.srcDir 'src/test/java'
+        java.srcDir 'intellij-community/java/compiler/tests'
+        java.srcDir 'intellij-community/platform/external-system-impl/testSrc'
+        java.srcDir 'intellij-community/plugins/gradle/testSources'
+        java.srcDir 'intellij-community/plugins/gradle/tooling-extension-impl/testSources'
+        resources.srcDir file('src/test/resources')
+    }
+}
+
+tasks.withType(Test) {
+    environment 'GRADLE_RELEASE_REPOSITORY','https://services.gradle.org/distributions'
 }
 
 dependencies {

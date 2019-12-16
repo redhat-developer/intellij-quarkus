@@ -8,10 +8,9 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.module;
+package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.quarkus.MavenImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.search.PSIQuarkusManager;
 import com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem;
 import com.redhat.quarkus.commons.QuarkusPropertiesScope;
@@ -26,7 +25,7 @@ import static com.redhat.devtools.intellij.quarkus.module.QuarkusAssert.p;
 import static com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem.CONFIG_PHASE_BUILD_TIME;
 import static com.redhat.quarkus.commons.ExtendedConfigDescriptionBuildItem.CONFIG_PHASE_RUN_TIME;
 
-public class PSIQuarkusManagerConfigRootTest extends MavenImportingTestCase {
+public class MavenPSIQuarkusManagerConfigRootTest extends MavenImportingTestCase {
     public void testHibernateOrmResteasy() throws Exception {
         Module module = createMavenModule("hibernate-orm-resteasy", new File("projects/maven/hibernate-orm-resteasy"));
         List<ExtendedConfigDescriptionBuildItem> items = PSIQuarkusManager.INSTANCE.getConfigItems(module, QuarkusPropertiesScope.classpath, false);
