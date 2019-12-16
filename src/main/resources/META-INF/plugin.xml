@@ -29,6 +29,7 @@
   <depends>com.intellij.modules.java</depends>
   <depends>com.github.gtache.lsp</depends>
   <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
+  <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <preloadingActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPreloadActivity"/>

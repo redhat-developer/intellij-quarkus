@@ -11,6 +11,8 @@
 package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MavenToolDelegate implements ToolDelegate {
@@ -46,6 +49,30 @@ public class MavenToolDelegate implements ToolDelegate {
         List<VirtualFile> result = new ArrayList<>();
         getDeploymentFiles(module, mavenProject, result);
         return result;
+    }
+
+    @Override
+    public String getDisplay() {
+        return "Maven";
+    }
+
+    @Override
+    public void processImport(Module module) {
+        Project project = module.getProject();
+        VirtualFile pomFile = null;
+        VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+        for(VirtualFile contentRoot : contentRoots) {
+            VirtualFile child = contentRoot.findChild("pom.xml");
+            if (child != null) {
+                pomFile = child;
+                break;
+            }
+        }
+
+        if (pomFile != null) {
+            MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
+            mavenProjectsManager.addManagedFiles(Collections.singletonList(pomFile));
+        }
     }
 
     private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile> result) {

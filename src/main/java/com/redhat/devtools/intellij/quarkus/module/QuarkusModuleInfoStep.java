@@ -16,23 +16,32 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposable {
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleInfoStep.class);
 
     private final JBLoadingPanel panel = new JBLoadingPanel(new BorderLayout(), this, 300);
+
+    private ComboBox<ToolDelegate> toolComboBox;
 
     private JBTextField groupIdField;
 
@@ -57,6 +66,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
     @Override
     public void updateDataModel() {
+        context.putUserData(QuarkusConstants.WIZARD_TOOL_KEY, (ToolDelegate)toolComboBox.getModel().getSelectedItem());
         context.putUserData(QuarkusConstants.WIZARD_GROUPID_KEY, groupIdField.getText());
         context.putUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY, artifactIdField.getText());
         context.putUserData(QuarkusConstants.WIZARD_VERSION_KEY, versionField.getText());
@@ -81,6 +91,15 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
             QuarkusModel model = QuarkusModelRegistry.INSTANCE.load(context.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY), indicator);
             context.putUserData(QuarkusConstants.WIZARD_MODEL_KEY, model);
             final FormBuilder formBuilder = new FormBuilder();
+            final CollectionComboBoxModel<ToolDelegate> toolModel = new CollectionComboBoxModel<>(Arrays.asList(ToolDelegate.getDelegates()));
+            toolComboBox = new ComboBox<>(toolModel);
+            toolComboBox.setRenderer(new ColoredListCellRenderer<ToolDelegate>() {
+                @Override
+                protected void customizeCellRenderer(@NotNull JList<? extends ToolDelegate> list, ToolDelegate toolDelegate, int index, boolean selected, boolean hasFocus) {
+                    this.append(toolDelegate.getDisplay());
+                }
+            });
+            formBuilder.addLabeledComponent("Tool:", toolComboBox);
             groupIdField = new JBTextField("org.acme");
             formBuilder.addLabeledComponent("Group:", groupIdField);
             artifactIdField = new JBTextField("code-with-quarkus");
