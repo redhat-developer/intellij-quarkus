@@ -12,7 +12,7 @@ plugins {
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
     plugins 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.5.4'
-    pluginName 'com.redhat.devtools.intellij.quarkus'
+    pluginName 'Quarkus Tools'
     updateSinceUntilBuild false
 }
 

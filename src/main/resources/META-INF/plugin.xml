@@ -1,6 +1,6 @@
 <idea-plugin>
   <id>com.redhat.devtools.intellij.quarkus</id>
-  <name>Quarkus</name>
+  <name>Quarkus Tools</name>
   <version>1.0</version>
   <vendor email="support@redhat.com" url="http://www.redhat.com">Red Hat</vendor>
 

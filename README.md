@@ -1,4 +1,4 @@
-# Quarkus plugin for IntelliJ platform
+# Quarkus Tools for IntelliJ
 [plugin-repo]: https://plugins.jetbrains.com/plugin/13234-quarkus
 [plugin-version-svg]: https://img.shields.io/jetbrains/plugin/v/13234-quarkus.svg
 [plugin-downloads-svg]: https://img.shields.io/jetbrains/plugin/d/13234-quarkus.svg
