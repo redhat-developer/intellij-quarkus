@@ -99,7 +99,7 @@ public class GradleToolDelegate implements ToolDelegate {
      * @return the File object
      */
     public static File getDeploymentFile(String artifactId) {
-        String path = toPath(artifactId);
+        String path = toPath(artifactId, File.separatorChar);
         if (path != null) {
             return new File(M2_REPO, path);
         }
@@ -107,7 +107,7 @@ public class GradleToolDelegate implements ToolDelegate {
     }
 
     private void processDownload(File file, String artifactId) throws IOException {
-        String url = CENTRAL_URL + toPath(artifactId);
+        String url = CENTRAL_URL + toPath(artifactId, '/');
         file.getParentFile().mkdirs();
         try (OutputStream stream = new FileOutputStream(file)) {
             HttpRequests.request(url).connect(request -> {
@@ -117,11 +117,11 @@ public class GradleToolDelegate implements ToolDelegate {
         }
     }
 
-    private static String toPath(String artifactId) {
+    private static String toPath(String artifactId, char separator) {
         String[] comps = artifactId.split(":");
         if (comps.length == 3) {
-            StringBuffer buffer = new StringBuffer(comps[0].replace('.', File.separatorChar));
-            buffer.append(File.separatorChar).append(comps[1]).append(File.separatorChar).append(comps[2]).append(File.separatorChar).append(comps[1]).append('-').append(comps[2]).append(".jar");
+            StringBuffer buffer = new StringBuffer(comps[0].replace('.', separator));
+            buffer.append(separator).append(comps[1]).append(separator).append(comps[2]).append(separator).append(comps[1]).append('-').append(comps[2]).append(".jar");
             return buffer.toString();
         }
         return null;
