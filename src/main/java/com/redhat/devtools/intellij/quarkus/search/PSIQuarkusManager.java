@@ -20,7 +20,10 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.ProjectRootModificationTracker;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -70,13 +73,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_GROUP_ANNOTATION;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_ITEM_ANNOTATION;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_ROOT_ANNOTATION;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_JAVADOC_PROPERTIES;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_PREFIX;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
@@ -118,28 +119,7 @@ public class PSIQuarkusManager {
 
     @NotNull
     private static GlobalSearchScope getPSIScope(Module module, QuarkusPropertiesScope scope, boolean isTest, List<VirtualFile> deploymentFiles) {
-        return  scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope());
-    }
-
-    private static void addQuarkusDeploymentJARsLibrary(Module module, List<VirtualFile> deploymentFiles) {
-        List<String> classesURLs = deploymentFiles.stream().map(f -> f.getUrl()).collect(Collectors.toList());
-        Application app = ApplicationManager.getApplication();
-        app.invokeAndWait(() -> app.runWriteAction(() -> ModuleRootModificationUtil.addModuleLibrary(module, QUARKUS_DEPLOYMENT_LIBRARY_NAME, classesURLs, Collections.emptyList(), DependencyScope.PROVIDED)));
-    }
-
-    private static void removeQuarkusDeploymentJARsLibrary(Module module) {
-        ModuleRootManager.getInstance(module).orderEntries().forEachLibrary(library -> {
-            if (library.getName().equals(QUARKUS_DEPLOYMENT_LIBRARY_NAME)) {
-                ModuleRootModificationUtil.updateModel(module, model -> {
-                    LibraryTable.ModifiableModel libModel = model.getModuleLibraryTable().getModifiableModel();
-                    libModel.removeLibrary(library);
-                    Application app = ApplicationManager.getApplication();
-                    app.invokeAndWait(() -> app.runWriteAction(libModel::commit));
-                });
-                return false;
-            }
-            return true;
-        });
+        return scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope()).union(GlobalSearchScope.allScope(module.getProject()));
     }
 
     public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
@@ -162,7 +142,6 @@ public class PSIQuarkusManager {
         Map<VirtualFile, Properties> javaDocCache = new HashMap<>();
         if (module != null) {
             List<VirtualFile> deploymentFiles = ToolDelegate.scanDeploymentFiles(module);
-            addQuarkusDeploymentJARsLibrary(module, deploymentFiles);
 
             DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
                 Query<PsiMember> query = new MergeQuery<>(getQuery(CONFIG_ROOT_ANNOTATION, module, scope, isTest, deploymentFiles),
@@ -171,7 +150,6 @@ public class PSIQuarkusManager {
                     process(psiMember, javaDocCache, configItems);
                 });
             });
-            removeQuarkusDeploymentJARsLibrary(module);
         }
         return configItems;
     }

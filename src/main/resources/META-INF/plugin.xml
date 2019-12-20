@@ -42,6 +42,7 @@
     <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.module.QuarkusModuleBuilder"/>
 
     <fileTypeFactory implementation="com.redhat.devtools.intellij.quarkus.lang.ApplicationPropertiesFileTypeFactory"/>
+    <additionalLibraryRootsProvider implementation="com.redhat.devtools.intellij.quarkus.search.QuarkusDeploymentLibraryProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.github.gtache.lsp">
     <lspIconProvider implementation="com.redhat.devtools.intellij.quarkus.lsp.IconProvider"/>
