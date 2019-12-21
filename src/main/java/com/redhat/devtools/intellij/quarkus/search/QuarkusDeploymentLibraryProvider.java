@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class QuarkusDeploymentLibraryProvider extends AdditionalLibraryRootsProvider {
@@ -45,7 +46,7 @@ public class QuarkusDeploymentLibraryProvider extends AdditionalLibraryRootsProv
                 }
             }
         }
-        List<VirtualFile> deploymentFiles = files.stream().flatMap(list -> list.stream()).collect(Collectors.toList());
+        Set<VirtualFile> deploymentFiles = files.stream().flatMap(list -> list.stream()).collect(Collectors.toSet());
         LOGGER.info("Created Quarkus deployment synthetic library duration=" + (System.currentTimeMillis() - start) + " size=" + deploymentFiles.size());
         return Collections.singletonList(SyntheticLibrary.newImmutableLibrary(Collections.emptyList(), deploymentFiles, Collections.emptySet(), null));
     }
