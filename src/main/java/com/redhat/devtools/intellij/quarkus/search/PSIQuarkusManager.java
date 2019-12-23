@@ -119,7 +119,7 @@ public class PSIQuarkusManager {
 
     @NotNull
     private static GlobalSearchScope getPSIScope(Module module, QuarkusPropertiesScope scope, boolean isTest, List<VirtualFile> deploymentFiles) {
-        return scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope()).union(GlobalSearchScope.allScope(module.getProject()));
+        return scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope()).union(GlobalSearchScope.allScope(module.getProject()).intersectWith(GlobalSearchScope.filesScope(module.getProject(), deploymentFiles)));
     }
 
     public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
