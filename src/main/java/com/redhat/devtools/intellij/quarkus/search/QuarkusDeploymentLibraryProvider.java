@@ -48,6 +48,7 @@ public class QuarkusDeploymentLibraryProvider extends AdditionalLibraryRootsProv
         }
         Set<VirtualFile> deploymentFiles = files.stream().flatMap(list -> list.stream()).collect(Collectors.toSet());
         LOGGER.info("Created Quarkus deployment synthetic library duration=" + (System.currentTimeMillis() - start) + " size=" + deploymentFiles.size());
+        deploymentFiles.forEach(file -> System.out.println("Added file to Quarkus lib:" + file));
         return Collections.singletonList(SyntheticLibrary.newImmutableLibrary(Collections.emptyList(), deploymentFiles, Collections.emptySet(), null));
     }
 }
