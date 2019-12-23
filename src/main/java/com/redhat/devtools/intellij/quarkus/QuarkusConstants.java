@@ -34,6 +34,8 @@ public class QuarkusConstants {
     public static final String QUARKUS_EXTENSION_PROPERTIES = "META-INF/quarkus-extension.properties";
     public static final String QUARKUS_DEPLOYMENT_PROPERTY_NAME = "deployment-artifact";
 
+    public static final String QUARKUS_DEPLOYMENT_LIBRARY_NAME = "Quarkus (deployment)";
+
     public static final String LSP_PLUGIN_ID = "com.github.gtache.lsp";
     public static final String DISPLAY_CHECK_NOTIFACTION_PROPERTY_NAME = QuarkusConstants.class.getPackage().getName() + ".displayCheckNotification";
     public static final String NOTIFICATION_GROUP = "Quarkus Tools";

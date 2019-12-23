@@ -10,20 +10,12 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.roots.ProjectRootModificationTracker;
-import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -119,7 +111,7 @@ public class PSIQuarkusManager {
 
     @NotNull
     private static GlobalSearchScope getPSIScope(Module module, QuarkusPropertiesScope scope, boolean isTest, List<VirtualFile> deploymentFiles) {
-        return scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope()).union(GlobalSearchScope.allScope(module.getProject()).intersectWith(GlobalSearchScope.filesWithLibrariesScope(module.getProject(), deploymentFiles)));
+        return scope== QuarkusPropertiesScope.sources?module.getModuleScope(isTest):module.getModuleScope(isTest).union(module.getModuleWithLibrariesScope());
     }
 
     public List<ExtendedConfigDescriptionBuildItem> getConfigItems(QuarkusProjectInfoParams request) {
