@@ -34,7 +34,7 @@ public class GradlePSIQuarkusManagerConfigPropertyTest extends GradleTestCase {
     @Test
     public void testApplicationConfigurationFromClasspath() throws Exception {
         List<ExtendedConfigDescriptionBuildItem> items = PSIQuarkusManager.INSTANCE.getConfigItems(getModule("application-configuration.main"), QuarkusPropertiesScope.classpath, false);
-        items.stream().map(item -> item.getPropertyName()).sorted().forEach(name -> System.out.println("Name:" + name));
+        items.stream().sorted((item1, item2) -> item1.getPropertyName().compareTo(item2.getExtensionName())).forEach(item -> System.out.println("Name:" + item.getPropertyName() + " source:" + item.getLocation()));
 
         assertProperties(items, 183 /* properties from JAR */ + 3 /* properties from Java sources */,
                 // GreetingResource
