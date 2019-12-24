@@ -128,7 +128,7 @@ public class GradleToolDelegate implements ToolDelegate {
     }
 
     private boolean isDependency(ModuleRootManager manager, String deploymentIdStr) {
-        return Stream.of(manager.getOrderEntries()).filter(entry -> entry instanceof LibraryOrderEntry && ((LibraryOrderEntry)entry).getLibraryName().equals(GRADLE_LIBRARY_PREFIX + deploymentIdStr)).findFirst().isPresent();
+        return Stream.of(manager.getOrderEntries()).filter(entry -> entry instanceof LibraryOrderEntry && (GRADLE_LIBRARY_PREFIX + deploymentIdStr).equals(((LibraryOrderEntry)entry).getLibraryName())).findFirst().isPresent();
     }
 
     @Override
