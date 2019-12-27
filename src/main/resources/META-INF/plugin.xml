@@ -11,6 +11,12 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>0.0.2</b></p>
+    <ul>
+      <li>Add support for Gradle projects</li>
+      <li>Fix issue in wizard causing incorrect version</li>
+      <li>Plugin renamed to Quarkus Tools</li>
+    </ul>
     <p><b>0.0.1</b></p>
     <p>Initial release</p>
     <ul>
