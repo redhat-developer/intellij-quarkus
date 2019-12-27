@@ -6,6 +6,7 @@
 [![Build Status](https://travis-ci.com/redhat-developer/intellij-openshift-connector.svg?branch=master)](https://travis-ci.com/redhat-developer/intellij-quarkus)
 [![JetBrains plugins][plugin-version-svg]][plugin-repo]
 [![JetBrains plugins][plugin-downloads-svg]][plugin-repo]
+[![codecov](https://codecov.io/gh/redhat-developer/intellij-quarkus/branch/master/graph/badge.svg)](https://codecov.io/gh/redhat-developer/intellij-quarkus)
 
 
 ## Description
