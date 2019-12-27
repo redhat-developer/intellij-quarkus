@@ -38,10 +38,10 @@ public class QuarkusConstants {
 
     public static final String LSP_PLUGIN_ID = "com.github.gtache.lsp";
     public static final String DISPLAY_CHECK_NOTIFACTION_PROPERTY_NAME = QuarkusConstants.class.getPackage().getName() + ".displayCheckNotification";
-    public static final String NOTIFICATION_GROUP = "Quarkus";
+    public static final String NOTIFICATION_GROUP = "Quarkus Tools";
 
     public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME = "Client-Name";
-    public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE = "IntelliJ Quarkus";
+    public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE = "IntelliJ Quarkus Tools";
     public static final String CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME = "Client-Contact-Email";
     public static final String CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE = "tools@jboss.org";
     public static final String QUARKUS_CODE_URL = "https://code.quarkus.io";

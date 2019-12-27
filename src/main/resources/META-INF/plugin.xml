@@ -57,4 +57,9 @@
       <implementation-class>com.redhat.devtools.intellij.quarkus.lsp.QuarkusLSPInitializer</implementation-class>
     </component>
   </application-components>
+  <module-components>
+    <component>
+      <implementation-class>com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent</implementation-class>
+    </component>
+  </module-components>
 </idea-plugin>

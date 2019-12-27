@@ -59,6 +59,15 @@ public interface ToolDelegate  {
         return p.getProperty(QUARKUS_DEPLOYMENT_PROPERTY_NAME);
     }
 
+    public static ToolDelegate getDelegate(Module module) {
+        for(ToolDelegate toolDelegate : getDelegates()) {
+            if (toolDelegate.isValid(module)) {
+                return toolDelegate;
+            }
+        }
+        return null;
+    }
+
     /**
      * Checks if this delegate is valid for the module.
      *

@@ -45,8 +45,8 @@ public class QuarkusLSPInitializer implements BaseComponent {
         Map<Timeouts, Integer> timeouts = new HashMap<>(Timeout.getTimeoutsJava());
         timeouts.putAll(LSPState.getInstance().getTimeouts());
         Integer completionTimeout = timeouts.get(Timeouts.COMPLETION);
-        if (completionTimeout == null || completionTimeout < 200000) {
-            timeouts.put(Timeouts.COMPLETION, 200000);
+        if (completionTimeout == null || completionTimeout < 10_000) {
+            timeouts.put(Timeouts.COMPLETION, 10_000);
         }
         LSPState.getInstance().setTimeouts(timeouts);
         Timeout.setTimeouts(timeouts);
