@@ -27,10 +27,18 @@ public class QuarkusConstants {
     public static final String CONFIG_ROOT_ANNOTATION = "io.quarkus.runtime.annotations.ConfigRoot";
     public static final String CONFIG_GROUP_ANNOTATION = "io.quarkus.runtime.annotations.ConfigGroup";
     public static final String CONFIG_ITEM_ANNOTATION = "io.quarkus.runtime.annotations.ConfigItem";
+    public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
+
+    public static final String CONFIG_ANNOTATION_NAME = "name";
+    public static final String CONFIG_ROOT_ANNOTATION_PHASE = "phase";
+    public static final String CONFIG_ITEM_ANNOTATION_DEFAULT_VALUE = "defaultValue";
+
     public static final String CONFIG_PROPERTY_ANNOTATION = "org.eclipse.microprofile.config.inject.ConfigProperty";
+    public static final String CONFIG_PROPERTY_ANNOTATION_NAME = "name";
+    public static final String CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE = "defaultValue";
 
     public static final String QUARKUS_PREFIX = "quarkus.";
-    public static final String QUARKUS_JAVADOC_PROPERTIES = "quarkus-javadoc.properties";
+    public static final String QUARKUS_JAVADOC_PROPERTIES_FILE = "quarkus-javadoc.properties";
     public static final String QUARKUS_EXTENSION_PROPERTIES = "META-INF/quarkus-extension.properties";
     public static final String QUARKUS_DEPLOYMENT_PROPERTY_NAME = "deployment-artifact";
 
