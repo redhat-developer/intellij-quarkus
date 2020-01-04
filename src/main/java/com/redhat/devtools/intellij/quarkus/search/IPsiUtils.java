@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -11,6 +11,8 @@
 package com.redhat.devtools.intellij.quarkus.search;
 
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiMethod;
+import com.redhat.microprofile.commons.DocumentFormat;
 
 import java.net.URISyntaxException;
 
@@ -22,4 +24,6 @@ import java.net.URISyntaxException;
  */
 public interface IPsiUtils {
     VirtualFile findFile(String uri) throws URISyntaxException;
+
+    String getJavadoc(PsiMethod method, DocumentFormat documentFormat);
 }

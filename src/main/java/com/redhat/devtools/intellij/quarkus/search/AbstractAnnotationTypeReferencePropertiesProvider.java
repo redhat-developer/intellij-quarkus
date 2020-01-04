@@ -11,7 +11,6 @@ package com.redhat.devtools.intellij.quarkus.search;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.util.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

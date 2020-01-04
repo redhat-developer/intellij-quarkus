@@ -67,6 +67,7 @@
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.MicroProfileRegisterRestClientProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.QuarkusConfigPropertiesProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.QuarkusConfigRootProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.QuarkusKubernetesProvider"/>
   </extensions>
 
   <application-components>

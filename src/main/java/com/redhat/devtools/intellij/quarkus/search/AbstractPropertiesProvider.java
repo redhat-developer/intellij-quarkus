@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
+* Copyright (c) 2019-2020 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * http://www.eclipse.org/legal/epl-v20.html
@@ -92,10 +92,14 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @param annotationName the class name to search.
 	 * @return a search pattern for the given <code>className</code> class name.
 	 */
-	protected static Query<PsiClass> createAnnotationTypeDeclarationSearchPattern(SearchContext context, String annotationName) {
+	protected static Query<PsiMember> createAnnotationTypeDeclarationSearchPattern(SearchContext context, String annotationName) {
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(context.getModule().getProject());
 		PsiClass annotationClass = javaPsiFacade.findClass(annotationName, GlobalSearchScope.allScope(context.getModule().getProject()));
-		return new ArrayQuery<>(annotationClass);
+		if (annotationClass != null) {
+			return new ArrayQuery<>(annotationClass);
+		} else {
+			return new EmptyQuery<>();
+		}
 	}
 
 	/**

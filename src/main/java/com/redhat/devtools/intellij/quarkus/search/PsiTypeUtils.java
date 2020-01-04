@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -17,16 +17,22 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiAnnotationMethod;
+import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLiteral;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
-import com.intellij.psi.PsiSubstitutor;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -55,8 +61,37 @@ public class PsiTypeUtils {
     }
 
     public static String getResolvedResultTypeName(PsiMethod method) {
-        return method.getReturnType().getCanonicalText();
+        //return method.getReturnType().getCanonicalText();
+        PsiType type = method.getReturnType();
+        while (type instanceof PsiArrayType) {
+            type = ((PsiArrayType)type).getComponentType();
+        }
+        return type.getCanonicalText();
     }
+
+    public static String getDefaultValue(PsiMethod method) {
+        String value = null;
+        if (method instanceof PsiAnnotationMethod) {
+            PsiAnnotationMemberValue defaultValue = ((PsiAnnotationMethod)method).getDefaultValue();
+            if (defaultValue instanceof PsiAnnotation) {
+                value = ((PsiAnnotation)defaultValue).getQualifiedName();
+                int index = value.lastIndexOf('.');
+                if (index != (-1)) {
+                    value = value.substring(index + 1, value.length());
+                }
+            } else if (defaultValue instanceof PsiLiteral) {
+                value = ((PsiLiteral)defaultValue).getValue().toString();
+            } else if (defaultValue instanceof PsiReference) {
+                value = ((PsiReference)defaultValue).getCanonicalText();
+                int index = value.lastIndexOf('.');
+                if (index != (-1)) {
+                    value = value.substring(index + 1, value.length());
+                }
+            }
+        }
+        return value == null || value.isEmpty()? null : value;
+    }
+
 
     public static String getPropertyType(PsiClass psiClass, String typeName) {
         return psiClass != null ? psiClass.getQualifiedName() : typeName;
@@ -68,7 +103,7 @@ public class PsiTypeUtils {
 
     public static String getSourceMethod(PsiMethod method) {
         //TODO: check method signature
-        return method.getName() + method.getSignature(PsiSubstitutor.EMPTY);
+        return method.getName() + ClassUtil.getAsmMethodSignature(method);
     }
 
 

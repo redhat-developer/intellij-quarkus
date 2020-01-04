@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -15,14 +15,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.JarEntry;
@@ -78,13 +79,20 @@ public interface ToolDelegate  {
      */
     boolean isValid(Module module);
 
+    public static final int BINARY = 0;
+
+    public static final int SOURCES = 1;
+
     /**
-     * Return the list of additional deployment JARs for the module.
+     * Return the list of additional deployment JARs for the module. The array should have 2 elements, the first
+     * one being for binary JARs, the second one for sources JARs.
      *
      * @param module the module to process
      * @return the list of additional deployment JARs for the module
+     * @see #BINARY
+     * @see #SOURCES
      */
-    List<VirtualFile> getDeploymentFiles(Module module);
+    List<VirtualFile>[] getDeploymentFiles(Module module);
 
     /**
      * Returns the displayable string for the delegate.
@@ -129,13 +137,21 @@ public interface ToolDelegate  {
 
     static final ExtensionPointName<ToolDelegate> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.toolDelegate");
 
-    public static List<VirtualFile> scanDeploymentFiles(Module module) {
+    @NotNull
+    static List<VirtualFile>[] initDeploymentFiles() {
+        List<VirtualFile>[] result = new List[2];
+        result[0] = new ArrayList<>();
+        result[1] = new ArrayList<>();
+        return result;
+    }
+
+    public static List<VirtualFile>[] scanDeploymentFiles(Module module) {
         for(ToolDelegate delegate : EP_NAME.getExtensions()) {
             if (delegate.isValid(module)) {
                 return delegate.getDeploymentFiles(module);
             }
         }
-        return Collections.emptyList();
+        return initDeploymentFiles();
     }
 
     public static ToolDelegate[] getDelegates() {

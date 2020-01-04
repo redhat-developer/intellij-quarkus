@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -38,7 +38,7 @@ public class MavenMicroProfileConfigPropertyTest extends MavenImportingTestCase 
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar");
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
-        assertProperties(infoFromClasspath, 201 /* properties from JAR */ + //
+        assertProperties(infoFromClasspath, 203 /* properties from JAR */ + //
                         3 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */,
 
