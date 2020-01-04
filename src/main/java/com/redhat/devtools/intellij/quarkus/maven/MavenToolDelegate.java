@@ -47,7 +47,9 @@ public class MavenToolDelegate implements ToolDelegate {
     public List<VirtualFile> getDeploymentFiles(Module module) {
         MavenProject mavenProject = MavenProjectsManager.getInstance(module.getProject()).findProject(module);
         List<VirtualFile> result = new ArrayList<>();
-        getDeploymentFiles(module, mavenProject, result);
+        if (mavenProject != null) {
+            getDeploymentFiles(module, mavenProject, result);
+        }
         return result;
     }
 
