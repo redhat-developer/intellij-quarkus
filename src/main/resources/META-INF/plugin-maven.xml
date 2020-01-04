@@ -6,6 +6,7 @@
   <extensions defaultExtensionNs="org.jetbrains.idea.maven">
     <!-- Add your extensions here -->
     <importer implementation="com.redhat.devtools.intellij.quarkus.maven.QuarkusFacetMavenImporter"/>
+    <importer implementation="com.redhat.devtools.intellij.quarkus.maven.QuarkusMavenLibraryImporter"/>
   </extensions>
 
 
