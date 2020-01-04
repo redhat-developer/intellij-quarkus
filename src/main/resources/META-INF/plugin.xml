@@ -39,6 +39,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <preloadingActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPreloadActivity"/>
+    <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>
     <!-- Add your extensions here -->
     <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
     <frameworkSupport implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkSupportProvider"/>
