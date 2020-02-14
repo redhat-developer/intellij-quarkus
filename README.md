@@ -12,7 +12,7 @@
 ## Description
 
 This JetBrains IntelliJ plugin provides support for Quarkus development via a 
-[Quarkus language server](https://github.com/redhat-developer/quarkus-ls/tree/master/quarkus.ls).
+[Quarkus language server](https://github.com/redhat-developer/quarkus-ls).
 
 ![](images/propertiesSupport.png)
 
