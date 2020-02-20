@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MavenToolDelegate implements ToolDelegate {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenToolDelegate.class);
@@ -78,22 +80,16 @@ public class MavenToolDelegate implements ToolDelegate {
     }
 
     private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile> result) {
+        Set<MavenArtifact> downloaded = new HashSet<>();
         for(MavenArtifact artifact : mavenProject.getDependencies()) {
             if (artifact.getFile() != null) {
                 String deploymentIdStr = ToolDelegate.getDeploymentJarId(artifact.getFile());
                 if (deploymentIdStr != null) {
                     MavenId deploymentId = new MavenId(deploymentIdStr);
                     if (mavenProject.findDependencies(deploymentId).isEmpty()) {
-                        File artifactFile = MavenArtifactUtil.getArtifactFile(mavenProject.getLocalRepository(), deploymentId,"jar");
-                        if (!artifactFile.exists()) {
-                            processDownload(module, mavenProject, deploymentId);
-                        }
-                        VirtualFile f = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(artifactFile);
-                        if (f != null) {
-                            VirtualFile jarRoot = JarFileSystem.getInstance().getJarRootForLocalFile(f);
-                            result.add(jarRoot);
-                        } else {
-                            LOGGER.error("Error processing file " + artifactFile.getAbsolutePath());
+                        List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, deploymentId, null);
+                        for(MavenArtifact binaryDependency : binaryDependencies) {
+                            processDependency(mavenProject, result, downloaded, binaryDependency);
                         }
                     }
                 }
@@ -101,14 +97,32 @@ public class MavenToolDelegate implements ToolDelegate {
         }
     }
 
-    private void processDownload(Module module, MavenProject mavenProject, MavenId deploymentId) {
-        try {
-            MavenEmbedderWrapper serverWrapper = MavenServerManager.getInstance().createEmbedder(module.getProject(), false, null, null);
-            MavenArtifactInfo info = new MavenArtifactInfo(deploymentId, "jar", null);
-            serverWrapper.resolve(info, mavenProject.getRemoteRepositories());
-        } catch (MavenProcessCanceledException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+    private boolean processDependency(MavenProject mavenProject, List<VirtualFile> result, Set<MavenArtifact> downloaded, MavenArtifact dependency) {
+        boolean added = false;
+
+        if (mavenProject.findDependencies(dependency.getMavenId()).isEmpty() && !downloaded.contains(dependency)) {
+            downloaded.add(dependency);
+            VirtualFile jarRoot = getJarFile(dependency.getFile());
+            if (jarRoot != null) {
+                result.add(jarRoot);
+                added = true;
+            }
         }
+        return added;
     }
 
+    private List<MavenArtifact> ensureDownloaded(Module module, MavenProject mavenProject, MavenId deploymentId, String classifier) {
+        try {
+            MavenEmbedderWrapper serverWrapper = MavenServerManager.getInstance().createEmbedder(module.getProject(), false, null, null);
+            MavenArtifactInfo info = new MavenArtifactInfo(deploymentId, "jar", classifier);
+            if (classifier != null) {
+                return Collections.singletonList(serverWrapper.resolve(info, mavenProject.getRemoteRepositories()));
+            } else {
+                return serverWrapper.resolveTransitively(Collections.singletonList(info), mavenProject.getRemoteRepositories());
+            }
+        } catch (MavenProcessCanceledException e) {
+            LOGGER.error(e.getLocalizedMessage(), e);
+            return Collections.emptyList();
+        }
+    }
 }

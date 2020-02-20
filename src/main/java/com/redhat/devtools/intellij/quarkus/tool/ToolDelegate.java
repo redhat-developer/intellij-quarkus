@@ -12,6 +12,8 @@ package com.redhat.devtools.intellij.quarkus.tool;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.io.File;
@@ -115,6 +117,15 @@ public interface ToolDelegate  {
      * @param module the module to process
      */
     void processImport(Module module);
+
+    default VirtualFile getJarFile(String path) {
+        return getJarFile(new File(path));
+    }
+
+    default VirtualFile getJarFile(File file) {
+        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+        return virtualFile != null? JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile):null;
+    }
 
     static final ExtensionPointName<ToolDelegate> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.toolDelegate");
 
