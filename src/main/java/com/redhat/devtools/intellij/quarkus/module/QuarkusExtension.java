@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij.quarkus.module;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,10 +118,11 @@ public class QuarkusExtension {
     }
 
     public String asLabel() {
-        StringBuffer buffer = new StringBuffer(getName());
-        if ("preview".equalsIgnoreCase(getStatus())) {
-            buffer.append(" (Preview)");
+        StringBuilder builder = new StringBuilder(getName());
+        String st = getStatus();
+        if (StringUtils.isNotBlank(st) && !"stable".equalsIgnoreCase(st)) {
+            builder.append(" (").append(Character.toUpperCase(st.charAt(0))).append(st.substring(1)).append(')');
         }
-        return buffer.toString();
+        return builder.toString();
     }
 }
