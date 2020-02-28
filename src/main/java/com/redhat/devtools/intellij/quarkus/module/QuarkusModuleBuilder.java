@@ -132,7 +132,7 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
                 }
             }
         }
-        RequestBuilder builder = HttpRequests.request(url.toString()).tuner(connection -> {
+        RequestBuilder builder = HttpRequests.request(url.toString()).userAgent(QuarkusModelRegistry.USER_AGENT).tuner(connection -> {
             connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
             connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
         });
