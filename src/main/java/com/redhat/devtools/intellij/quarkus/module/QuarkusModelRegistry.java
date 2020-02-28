@@ -12,10 +12,10 @@ package com.redhat.devtools.intellij.quarkus.module;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.util.io.HttpRequests;
-import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -38,13 +38,25 @@ public class QuarkusModelRegistry {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    static final String USER_AGENT = computeUserAgent();
+
+    private static String computeUserAgent() {
+        StringBuilder builder = new StringBuilder(ApplicationInfo.getInstance().getBuild().getProductCode());
+        builder.append('/').append(ApplicationInfo.getInstance().getBuild().asStringWithoutProductCodeAndSnapshot());
+        builder.append(" (").append(System.getProperty("os.name")).append("; ");
+        builder.append(System.getProperty("os.version")).append("; ");
+        builder.append(System.getProperty("os.arch")).append("; ");
+        builder.append("Java ").append(System.getProperty("java.version")).append(')');
+        return builder.toString();
+    }
+
     public QuarkusModel load(String endPointURL, ProgressIndicator indicator) throws IOException {
         indicator.setText("Looking up Quarkus model from endpoint " + endPointURL);
         QuarkusModel model = models.get(endPointURL);
         if (model == null) {
             indicator.setText("Loading Quarkus model from endpoint " + endPointURL);
             try {
-                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(endPointURL + EXTENSIONS_SUFFIX).tuner(request -> {
+                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(endPointURL + EXTENSIONS_SUFFIX).userAgent(USER_AGENT).tuner(request -> {
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
                 }).connect(request -> {
