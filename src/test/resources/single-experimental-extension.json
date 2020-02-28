@@ -18,5 +18,5 @@
     ],
     "name": "Amazon DynamoDB client",
     "order": 20,
-    "status": "preview"
+    "status": "experimental"
 }]
