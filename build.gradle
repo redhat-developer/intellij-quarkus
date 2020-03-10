@@ -11,7 +11,7 @@ plugins {
 
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    plugins 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.5.4'
+    plugins 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.6.1'
     pluginName 'Quarkus Tools'
     updateSinceUntilBuild false
 }
