@@ -1,0 +1,75 @@
+/*******************************************************************************
+* Copyright (c) 2019 Red Hat Inc. and others.
+* All rights reserved. This program and the accompanying materials
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v20.html
+*
+* Contributors:
+*     Red Hat Inc. - initial API and implementation
+*******************************************************************************/
+package com.redhat.devtools.intellij.quarkus.maven;
+
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHints;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHintsDuplicate;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertProperties;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertPropertiesDuplicate;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.h;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.vh;
+
+import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.microprofile.commons.ClasspathKind;
+import com.redhat.microprofile.commons.DocumentFormat;
+import org.junit.Test;
+
+import com.redhat.microprofile.commons.MicroProfileProjectInfo;
+import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+
+import java.io.File;
+
+/**
+ * Test collect MicroProfile properties from @RegisterRestClient
+ * 
+ * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/MicroProfileRegisterRestClientTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/MicroProfileRegisterRestClientTest.java</a>
+ *
+ */
+public class MavenMicroProfileRegisterRestClientTest extends MavenImportingTestCase {
+
+	@Test
+	public void testRestClientQuickstart() throws Exception {
+
+		Module module = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+
+		// mp-rest Properties
+		assertProperties(infoFromClasspath, 3,
+
+				p(null, "${mp.register.rest.client.class}/mp-rest/url", "java.lang.String",
+						"The base URL to use for this service, the equivalent of the `baseUrl` method.\r\n"
+								+ "This property is considered required, however implementations may have other ways to define these URLs.",
+						false, null, null, null, 0, null),
+
+				p(null, "${mp.register.rest.client.class}/mp-rest/scope", "java.lang.String",
+						"The fully qualified classname to a CDI scope to use for injection, defaults to "
+								+ "`javax.enterprise.context.Dependent`.",
+						false, null, null, null, 0, null),
+
+				p(null, "${mp.register.rest.client.class}/mp-rest/providers", "java.lang.String",
+						"A comma separated list of fully-qualified provider classnames to include in the client, "
+								+ "the equivalent of the `register` method or the `@RegisterProvider` annotation.",
+						false, null, null, null, 0, null));
+
+		assertPropertiesDuplicate(infoFromClasspath);
+
+		// mp-rest Hints
+		assertHints(infoFromClasspath, 1,
+
+				h("${mp.register.rest.client.class}", null, false, null,
+						vh("org.acme.restclient.CountriesService", null, "org.acme.restclient.CountriesService"), //
+						vh("configKey", null, "org.acme.restclient.CountiesServiceWithConfigKey")));
+
+		assertHintsDuplicate(infoFromClasspath);
+	}
+}

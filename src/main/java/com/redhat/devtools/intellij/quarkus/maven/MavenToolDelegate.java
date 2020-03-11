@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -13,8 +13,6 @@ package com.redhat.devtools.intellij.quarkus.maven;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.idea.maven.model.MavenArtifact;
@@ -24,14 +22,11 @@ import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
 import org.jetbrains.idea.maven.server.MavenServerManager;
-import org.jetbrains.idea.maven.utils.MavenArtifactUtil;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -46,14 +41,15 @@ public class MavenToolDelegate implements ToolDelegate {
     }
 
     @Override
-    public List<VirtualFile> getDeploymentFiles(Module module) {
+    public List<VirtualFile>[] getDeploymentFiles(Module module) {
         MavenProject mavenProject = MavenProjectsManager.getInstance(module.getProject()).findProject(module);
-        List<VirtualFile> result = new ArrayList<>();
+        List<VirtualFile>[] result = ToolDelegate.initDeploymentFiles();
         if (mavenProject != null) {
             getDeploymentFiles(module, mavenProject, result);
         }
         return result;
     }
+
 
     @Override
     public String getDisplay() {
@@ -79,7 +75,7 @@ public class MavenToolDelegate implements ToolDelegate {
         }
     }
 
-    private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile> result) {
+    private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile>[] result) {
         Set<MavenArtifact> downloaded = new HashSet<>();
         for(MavenArtifact artifact : mavenProject.getDependencies()) {
             if (artifact.getFile() != null) {
@@ -87,24 +83,29 @@ public class MavenToolDelegate implements ToolDelegate {
                 if (deploymentIdStr != null) {
                     MavenId deploymentId = new MavenId(deploymentIdStr);
                     if (mavenProject.findDependencies(deploymentId).isEmpty()) {
-                        List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, deploymentId, null);
-                        for(MavenArtifact binaryDependency : binaryDependencies) {
-                            processDependency(mavenProject, result, downloaded, binaryDependency);
-                        }
+                            List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, deploymentId, null);
+                            for(MavenArtifact binaryDependency : binaryDependencies) {
+                                if (processDependency(mavenProject, result, downloaded, binaryDependency, BINARY)) {
+                                    List<MavenArtifact> sourcesDependencies = ensureDownloaded(module, mavenProject, binaryDependency.getMavenId(), "sources");
+                                    for(MavenArtifact sourceDependency : sourcesDependencies) {
+                                        processDependency(mavenProject, result, downloaded, sourceDependency, SOURCES);
+                                    }
+                                }
+                            }
                     }
                 }
             }
         }
     }
 
-    private boolean processDependency(MavenProject mavenProject, List<VirtualFile> result, Set<MavenArtifact> downloaded, MavenArtifact dependency) {
+    private boolean processDependency(MavenProject mavenProject, List<VirtualFile>[] result, Set<MavenArtifact> downloaded, MavenArtifact dependency, int type) {
         boolean added = false;
 
         if (mavenProject.findDependencies(dependency.getMavenId()).isEmpty() && !downloaded.contains(dependency)) {
             downloaded.add(dependency);
             VirtualFile jarRoot = getJarFile(dependency.getFile());
             if (jarRoot != null) {
-                result.add(jarRoot);
+                result[type].add(jarRoot);
                 added = true;
             }
         }
