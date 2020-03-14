@@ -10,7 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp;
 
-import com.github.gtache.lsp.client.LanguageClientImpl;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageClientImpl;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;

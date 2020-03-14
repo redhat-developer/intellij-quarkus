@@ -1,0 +1,23 @@
+<idea-plugin>
+  <extensionPoints>
+    <extensionPoint name="server" beanClass="com.redhat.devtools.intellij.quarkus.lsp4ij.ServerExtensionPointBean"/>
+    <extensionPoint name="contentTypeMapping" beanClass="com.redhat.devtools.intellij.quarkus.lsp4ij.ContentTypeMappingExtensionPointBean"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
+    <server id="quarkus" class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer" clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient"/>
+    <contentTypeMapping contentType="Quarkus properties" languageId="quarkus"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <lang.documentationProvider id="LSPTextHover" language="TEXT" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <completion.contributor id="LSPCompletionContributor" language="any" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.completion.LSContentAssistProcessor"/>
+  </extensions>
+
+
+  <project-components>
+    <component>
+      <implementation-class>com.redhat.devtools.intellij.quarkus.lsp4ij.ConnectDocumentToLanguageServerSetupParticipant
+      </implementation-class>
+    </component>
+  </project-components>
+</idea-plugin>

@@ -37,7 +37,6 @@
        on how to target different products -->
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.java</depends>
-  <depends>com.github.gtache.lsp</depends>
   <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
 
@@ -72,14 +71,12 @@
   </extensions>
 
   <application-components>
-    <component>
-      <interface-class>com.redhat.devtools.intellij.quarkus.lsp.QuarkusLSPInitializer</interface-class>
-      <implementation-class>com.redhat.devtools.intellij.quarkus.lsp.QuarkusLSPInitializer</implementation-class>
-    </component>
   </application-components>
   <module-components>
     <component>
       <implementation-class>com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent</implementation-class>
     </component>
   </module-components>
+
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
