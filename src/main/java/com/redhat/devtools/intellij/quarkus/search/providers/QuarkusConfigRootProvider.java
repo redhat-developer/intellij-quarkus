@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
@@ -30,9 +30,13 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.devtools.intellij.quarkus.search.AnnotationUtils;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
+import com.redhat.devtools.intellij.quarkus.search.PsiQuarkusUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 
 import io.quarkus.runtime.annotations.ConfigItem;
@@ -61,7 +65,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	}
 
 	@Override
-	public void begin(SearchContext context) {
+	public void beginSearch(SearchContext context) {
 		Map<VirtualFile, Properties> javadocCache = new HashMap();
 		context.put(JAVADOC_CACHE_KEY, javadocCache);
 	}
@@ -310,6 +314,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		if (item != null) {
 			item.setPhase(getPhase(configPhase));
 		}
+		PsiQuarkusUtils.updateConverterKinds(item, field, fieldClass);
 	}
 
 	private static String[] getRawTypeParameters(String fieldTypeName) {

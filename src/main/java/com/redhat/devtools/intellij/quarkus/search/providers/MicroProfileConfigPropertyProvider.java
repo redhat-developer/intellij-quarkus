@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
@@ -15,9 +15,13 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.devtools.intellij.quarkus.search.AnnotationUtils;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
+import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.devtools.intellij.quarkus.search.providers.AbstractAnnotationTypeReferencePropertiesProvider;
 import org.apache.commons.lang3.StringUtils;
 
 /**

@@ -7,12 +7,16 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
 
+import com.redhat.devtools.intellij.quarkus.search.AnnotationUtils;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
+import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 

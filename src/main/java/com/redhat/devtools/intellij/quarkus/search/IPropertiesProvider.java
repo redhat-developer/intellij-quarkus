@@ -26,7 +26,7 @@ public interface IPropertiesProvider {
 	 * 
 	 * @param context the search context
 	 */
-	default void begin(SearchContext context) {
+	default void beginSearch(SearchContext context) {
 	}
 
 	/**
@@ -34,7 +34,7 @@ public interface IPropertiesProvider {
 	 * 
 	 * @param context the search context
 	 */
-	default void end(SearchContext context) {
+	default void endSearch(SearchContext context) {
 	}
 
 	/**
@@ -42,7 +42,7 @@ public interface IPropertiesProvider {
 	 * 
 	 * @return the search query.
 	 */
-	Query<PsiMember> createSearchQuery(SearchContext context);
+	Query<PsiMember> createSearchPattern(SearchContext context);
 
 	/**
 	 * Collect properties from the given Java search match.

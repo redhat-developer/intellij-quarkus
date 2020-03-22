@@ -11,10 +11,12 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover;
 
 import com.intellij.lang.documentation.DocumentationProvider;
+import com.intellij.lang.documentation.DocumentationProviderEx;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
@@ -24,6 +26,7 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +41,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class LSPTextHover implements DocumentationProvider {
+public class LSPTextHover extends DocumentationProviderEx {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPTextHover.class);
 
     private static final String HEAD = "<head>"; //$NON-NLS-1$
@@ -47,6 +50,7 @@ public class LSPTextHover implements DocumentationProvider {
     private static final HtmlRenderer RENDERER = HtmlRenderer.builder().build();
 
     private PsiElement lastElement;
+    private int        lastOffset = -1;
     private CompletableFuture<List<Hover>> request;
 
     public LSPTextHover() {
@@ -60,16 +64,19 @@ public class LSPTextHover implements DocumentationProvider {
         Color background = editor.getColorsScheme().getDefaultBackground();
         Color foreground = editor.getColorsScheme().getDefaultForeground();
         // put CSS styling to match Eclipse style
-        String style = "<style TYPE='text/css'>html { " + //$NON-NLS-1$
+        String style = "<html><head><style TYPE='text/css'>html { " + //$NON-NLS-1$
                 (background != null ? "background-color: " + toHTMLrgb(background) + "; " : "") + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                 (foreground != null ? "color: " + toHTMLrgb(foreground) + "; " : "") + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                " }</style>"; //$NON-NLS-1$
+                " }</style></head><body>"; //$NON-NLS-1$
 
-        int headIndex = html.indexOf(HEAD);
+        /*int headIndex = html.indexOf(HEAD);
         StringBuilder builder = new StringBuilder(html.length() + style.length());
         builder.append(html.substring(0, headIndex + HEAD.length()));
         builder.append(style);
         builder.append(html.substring(headIndex + HEAD.length()));
+        return builder.toString();*/
+        StringBuilder builder = new StringBuilder(style);
+        builder.append(html).append("</body></html>");
         return builder.toString();
     }
 
@@ -107,7 +114,7 @@ public class LSPTextHover implements DocumentationProvider {
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
         Editor editor = LSPIJUtils.editorForFile(element.getContainingFile().getVirtualFile());
         if (editor != null) {
-            if (this.request == null || !element.equals(this.lastElement)) {
+            if (this.request == null || !element.equals(this.lastElement) || lastOffset != editor.getCaretModel().getCurrentCaret().getOffset()) {
                 initiateHoverRequest(element, editor.getCaretModel().getCurrentCaret().getOffset());
             }
             try {
@@ -175,6 +182,7 @@ public class LSPTextHover implements DocumentationProvider {
         PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
         final Document document = manager.getDocument(element.getContainingFile());
         this.lastElement = element;
+        this.lastOffset = offset;
         this.request = LanguageServiceAccessor
                 .getLanguageServers(document, capabilities -> Boolean.TRUE.equals(capabilities.getHoverProvider()))
                 .thenApplyAsync(languageServers -> // Async is very important here, otherwise the LS Client thread is in
@@ -206,5 +214,11 @@ public class LSPTextHover implements DocumentationProvider {
     @Override
     public PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
         return null;
+    }
+
+    @Nullable
+    @Override
+    public PsiElement getCustomDocumentationElement(@NotNull Editor editor, @NotNull PsiFile file, @Nullable PsiElement contextElement) {
+        return file.getFirstChild();
     }
 }

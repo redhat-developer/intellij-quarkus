@@ -7,11 +7,12 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiMember;
 import com.intellij.util.Query;
+import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public abstract class AbstractAnnotationTypeReferencePropertiesProvider extends 
 	protected abstract String[] getAnnotationNames();
 
 	@Override
-	protected Query<PsiMember> createSearchQuery(SearchContext context, String annotationName) {
+	protected Query<PsiMember> createSearchPattern(SearchContext context, String annotationName) {
 		return createAnnotationTypeReferenceSearchPattern(context, annotationName);
 	}
 

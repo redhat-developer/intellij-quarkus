@@ -18,8 +18,15 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URI;
 
 public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectComponent, FileEditorManagerListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectDocumentToLanguageServerSetupParticipant.class);
+
     private Project project;
 
     public ConnectDocumentToLanguageServerSetupParticipant(Project project) {
@@ -41,6 +48,14 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectC
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        URI uri = LSPIJUtils.toUri(file);
+        if (file != null) {
+            try {
+                LanguageServiceAccessor.getLSWrappers(file, capabilities -> true).forEach(wrapper -> wrapper.disconnect(uri));
+            } catch (IOException e) {
+                LOGGER.warn(e.getLocalizedMessage(), e);
+            }
+        }
 
     }
 

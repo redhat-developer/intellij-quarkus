@@ -95,13 +95,13 @@ public class PropertiesManager {
 
     private void beginSearch(SearchContext context) {
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
-            provider.begin(context);
+            provider.beginSearch(context);
         }
     }
 
     private void endSearch(SearchContext context) {
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
-            provider.end(context);
+            provider.endSearch(context);
         }
     }
 
@@ -149,11 +149,13 @@ public class PropertiesManager {
         Query<PsiMember> query = null;
 
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
-          Query<PsiMember> providerQuery = provider.createSearchQuery(context);
-          if (query == null) {
-              query = providerQuery;
-          } else {
-              query = new MergeQuery<>(query, providerQuery);
+          Query<PsiMember> providerQuery = provider.createSearchPattern(context);
+          if (providerQuery != null) {
+              if (query == null) {
+                  query = providerQuery;
+              } else {
+                  query = new MergeQuery<>(query, providerQuery);
+              }
           }
         }
         return query;

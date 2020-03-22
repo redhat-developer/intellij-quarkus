@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.providers;
 
 
 import com.intellij.psi.PsiClass;
@@ -15,6 +15,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.util.Query;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
+import com.redhat.devtools.intellij.quarkus.search.IPsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.devtools.intellij.quarkus.search.providers.AbstractTypeDeclarationPropertiesProvider;
 import com.redhat.microprofile.commons.DocumentFormat;
 
 import io.quarkus.runtime.util.StringUtil;
@@ -65,7 +70,7 @@ public class QuarkusKubernetesProvider extends AbstractTypeDeclarationProperties
 	}
 
 	@Override
-	protected Query<PsiMember> createSearchQuery(SearchContext context, String annotationName) {
+	protected Query<PsiMember> createSearchPattern(SearchContext context, String annotationName) {
 		return createAnnotationTypeDeclarationSearchPattern(context, annotationName);
 	}
 

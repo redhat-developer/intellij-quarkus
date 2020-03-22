@@ -659,6 +659,7 @@ public class LanguageServerWrapper {
                     ProgressManager.getInstance().run(new Task.WithResult<Void, Exception>(null, Messages.initializeLanguageServer_job, false) {
                         @Override
                         protected Void compute(@NotNull ProgressIndicator indicator) throws Exception {
+                            indicator.setText("Waiting for server " + LanguageServerWrapper.this.serverDefinition.id + " to be started");
                             initializeFuture.join();
                             return null;
                         }

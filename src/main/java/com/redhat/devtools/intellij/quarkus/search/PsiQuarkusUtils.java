@@ -10,6 +10,14 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMember;
+import com.redhat.microprofile.commons.metadata.ConverterKind;
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
+
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * JDT Quarkus utilities.
  *
@@ -17,6 +25,9 @@ package com.redhat.devtools.intellij.quarkus.search;
  *
  */
 public class PsiQuarkusUtils {
+    private static final List<ConverterKind> DEFAULT_QUARKUS_CONVERTERS = Arrays.asList(ConverterKind.KEBAB_CASE,
+            ConverterKind.VERBATIM);
+
     public static String getExtensionName(String location) {
         if (location == null) {
             return null;
@@ -38,5 +49,13 @@ public class PsiQuarkusUtils {
             extensionName = extensionName.substring(0, extensionName.length() - "-deployment".length());
         }
         return extensionName;
+    }
+
+    public static void updateConverterKinds(ItemMetadata metadata, PsiMember member, PsiClass enclosedType) {
+        if (enclosedType == null || !enclosedType.isEnum()) {
+            return;
+        }
+        // By default Quarkus set the enum values as kebab and verbatim
+        metadata.setConverterKinds(DEFAULT_QUARKUS_CONVERTERS);
     }
 }

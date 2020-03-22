@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.providers;
 
 
 import com.intellij.psi.JavaPsiFacade;
@@ -18,11 +18,13 @@ import com.intellij.psi.PsiMember;
 import com.intellij.psi.impl.source.PsiClassImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
-import com.intellij.psi.util.ClassUtil;
 import com.intellij.util.ArrayQuery;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.MergeQuery;
 import com.intellij.util.Query;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesProvider;
+import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
@@ -44,14 +46,18 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	/**
 	 * Return an instance of search pattern.
 	 */
-	public Query<PsiMember> createSearchQuery(SearchContext context) {
+	public Query<PsiMember> createSearchPattern(SearchContext context) {
 		Query<PsiMember> query = null;
 		String[] patterns = getPatterns();
+		if (patterns == null) {
+			return null;
+		}
+
 		for (String pattern : patterns) {
 			if (query == null) {
-				query = createSearchQuery(context, pattern);
+				query = createSearchPattern(context, pattern);
 			} else {
-				Query<PsiMember> rightQuery = createSearchQuery(context, pattern);
+				Query<PsiMember> rightQuery = createSearchPattern(context, pattern);
 				if (rightQuery != null) {
 					query = new MergeQuery<>(query, rightQuery);
 				}
@@ -66,7 +72,7 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @param pattern the search pattern
 	 * @return an instance of search pattern with the given <code>pattern</code>.
 	 */
-	protected abstract Query<PsiMember> createSearchQuery(SearchContext context, String pattern);
+	protected abstract Query<PsiMember> createSearchPattern(SearchContext context, String pattern);
 
 	/**
 	 * Create a search pattern for the given <code>annotationName</code> annotation
@@ -120,8 +126,8 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @return the item metadata.
 	 */
 	protected ItemMetadata addItemMetadata(IPropertiesCollector collector, String name, String type, String description,
-			String sourceType, String sourceField, String sourceMethod, String defaultValue, String extensionName,
-			boolean binary, int phase) {
+										   String sourceType, String sourceField, String sourceMethod, String defaultValue, String extensionName,
+										   boolean binary, int phase) {
 		return collector.addItemMetadata(name, type, description, sourceType, sourceField, sourceMethod, defaultValue,
 				extensionName, binary, phase);
 	}
@@ -162,7 +168,8 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 		}
 		if (type.isEnum()) {
 			// Register Enumeration in "hints" section
-			String hint = ClassUtil.getJVMClassName(type);
+			//String hint = ClassUtil.getJVMClassName(type);
+			String hint = type.getQualifiedName();
 			if (!collector.hasItemHint(hint)) {
 				ItemHint itemHint = collector.getItemHint(hint);
 				itemHint.setSourceType(hint);

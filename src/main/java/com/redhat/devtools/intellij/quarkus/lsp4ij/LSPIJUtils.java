@@ -1,8 +1,10 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
@@ -16,6 +18,7 @@ import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
+import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.WorkspaceFolder;
 import org.slf4j.Logger;
@@ -141,6 +144,10 @@ public class LSPIJUtils {
         return LocalFileSystem.getInstance().findFileByIoFile(Paths.get(uri).toFile());
     }
 
+    public static VirtualFile findResourceFor(String uri) {
+        return LocalFileSystem.getInstance().findFileByIoFile(Paths.get(uri).toFile());
+    }
+
     public static Editor[] editorsForFile(VirtualFile file) {
         Editor[] editors = new Editor[0];
         Document document = FileDocumentManager.getInstance().getDocument(file);
@@ -169,5 +176,28 @@ public class LSPIJUtils {
         id.setUri(fileUri.toString());
         param.setTextDocument(id);
         return param;
+    }
+
+    public static void applyEdit(Editor editor, TextEdit textEdit, Document document) {
+        RangeMarker marker = document.createRangeMarker(LSPIJUtils.toOffset(textEdit.getRange().getStart(), document), LSPIJUtils.toOffset(textEdit.getRange().getEnd(), document));
+        int startOffset = marker.getStartOffset();
+        int endOffset = marker.getEndOffset();
+        String text = textEdit.getNewText();
+        if (text == null || "".equals(text)) {
+            document.deleteString(startOffset, endOffset);
+        } else if (endOffset - startOffset <= 0) {
+            document.insertString(startOffset, text);
+        } else {
+            document.replaceString(startOffset, endOffset, text);
+        }
+        if (text != null && !"".equals(text)) {
+            editor.getCaretModel().moveCaretRelatively(text.length(), 0, false, false, true);
+        }
+        marker.dispose();
+    }
+
+
+    public static void applyEdits(Editor editor, Document document, List<TextEdit> edits) {
+        ApplicationManager.getApplication().runWriteAction(() -> edits.forEach(edit -> applyEdit(editor, edit, document)));
     }
 }

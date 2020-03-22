@@ -21,7 +21,7 @@ import java.util.Arrays;
 public class QuarkusServer extends ProcessStreamConnectionProvider {
     public QuarkusServer() {
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
-        File serverPath = new File(descriptor.getPath(), "lib/server/com.redhat.microprofile.ls-0.0.5-SNAPSHOT-uber.jar");
+        File serverPath = new File(descriptor.getPath(), "lib/server/com.redhat.microprofile.ls-0.0.6-SNAPSHOT-uber.jar");
         String javaHome = System.getProperty("java.home");
         setCommands(Arrays.asList(javaHome + File.separator + "bin" + File.separator + "java", "-jar", serverPath.getAbsolutePath().toString()));
     }

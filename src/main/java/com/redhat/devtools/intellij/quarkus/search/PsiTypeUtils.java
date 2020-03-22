@@ -112,6 +112,10 @@ public class PsiTypeUtils {
         return facade.findClass(name, GlobalSearchScope.allScope(manager.getProject()));
     }
 
+    public static PsiClass findType(Module module, String name) {
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
+        return facade.findClass(name, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module));
+    }
 
     public static String getSourceField(PsiMember psiMember) {
         return psiMember.getName();

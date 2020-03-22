@@ -77,21 +77,23 @@ public class MavenToolDelegate implements ToolDelegate {
 
     private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile>[] result) {
         Set<MavenArtifact> downloaded = new HashSet<>();
-        for(MavenArtifact artifact : mavenProject.getDependencies()) {
+        for (MavenArtifact artifact : mavenProject.getDependencies()) {
             if (artifact.getFile() != null) {
                 String deploymentIdStr = ToolDelegate.getDeploymentJarId(artifact.getFile());
                 if (deploymentIdStr != null) {
                     MavenId deploymentId = new MavenId(deploymentIdStr);
                     if (mavenProject.findDependencies(deploymentId).isEmpty()) {
-                            List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, deploymentId, null);
-                            for(MavenArtifact binaryDependency : binaryDependencies) {
+                        List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, deploymentId, null);
+                        for (MavenArtifact binaryDependency : binaryDependencies) {
+                            if (!"test".equals(binaryDependency.getScope())) {
                                 if (processDependency(mavenProject, result, downloaded, binaryDependency, BINARY)) {
                                     List<MavenArtifact> sourcesDependencies = ensureDownloaded(module, mavenProject, binaryDependency.getMavenId(), "sources");
-                                    for(MavenArtifact sourceDependency : sourcesDependencies) {
+                                    for (MavenArtifact sourceDependency : sourcesDependencies) {
                                         processDependency(mavenProject, result, downloaded, sourceDependency, SOURCES);
                                     }
                                 }
                             }
+                        }
                     }
                 }
             }

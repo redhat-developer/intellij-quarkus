@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiAnnotation;
@@ -20,6 +20,12 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiType;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.devtools.intellij.quarkus.search.AnnotationUtils;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
+import com.redhat.devtools.intellij.quarkus.search.PsiQuarkusUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
 import io.quarkus.arc.config.ConfigProperties;
 import io.quarkus.deployment.bean.JavaBeanUtil;
 import org.slf4j.Logger;
@@ -139,8 +145,9 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 						super.updateHint(collector, returnType);
 
 						if (PsiTypeUtils.isSimpleFieldType(returnType, methodResultTypeName)) {
-							super.addItemMetadata(collector, propertyName, type, description, sourceType, null,
+							ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description, sourceType, null,
 									sourceMethod, defaultValue, extensionName, PsiTypeUtils.isBinary(method));
+							PsiQuarkusUtils.updateConverterKinds(metadata, method, returnType);
 						} else {
 							populateConfigObject(returnType, propertyName, extensionName, new HashSet(), collector);
 						}
@@ -216,8 +223,9 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 					// Enumerations
 					super.updateHint(collector, fieldClass);
 
-					super.addItemMetadata(collector, propertyName, type, description, sourceType, sourceField, null,
+					ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description, sourceType, sourceField, null,
 							defaultValue, extensionName, PsiTypeUtils.isBinary(field));
+					PsiQuarkusUtils.updateConverterKinds(metadata, field, fieldClass);
 				} else {
 					populateConfigObject(fieldClass, propertyName, extensionName, typesAlreadyProcessed, collector);
 				}
