@@ -49,11 +49,17 @@ public class GradleMicroProfileRegisterRestClientTest extends GradleTestCase {
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("rest-client-quickstart.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
 
 		// mp-rest Properties
-		assertProperties(infoFromClasspath, 3,
+		assertProperties(infoFromClasspath, 7,
 
 				p(null, "${mp.register.rest.client.class}/mp-rest/url", "java.lang.String",
 						"The base URL to use for this service, the equivalent of the `baseUrl` method.\r\n"
-								+ "This property is considered required, however implementations may have other ways to define these URLs.",
+								+ "This property (or */mp-rest/uri) is considered required, however implementations may have other ways to define these URLs/URIs.",
+						false, null, null, null, 0, null),
+
+				p(null, "${mp.register.rest.client.class}/mp-rest/uri", "java.lang.String",
+						"The base URI to use for this service, the equivalent of the baseUri method.\r\n"
+								+ "This property (or */mp-rest/url) is considered required, however implementations may have other ways to define these URLs/URIs."
+								+ "This property will override any `baseUri` value specified in the `@RegisterRestClient` annotation.",
 						false, null, null, null, 0, null),
 
 				p(null, "${mp.register.rest.client.class}/mp-rest/scope", "java.lang.String",
@@ -64,7 +70,19 @@ public class GradleMicroProfileRegisterRestClientTest extends GradleTestCase {
 				p(null, "${mp.register.rest.client.class}/mp-rest/providers", "java.lang.String",
 						"A comma separated list of fully-qualified provider classnames to include in the client, "
 								+ "the equivalent of the `register` method or the `@RegisterProvider` annotation.",
-						false, null, null, null, 0, null));
+						false, null, null, null, 0, null),
+
+				p(null, "${mp.register.rest.client.class}/mp-rest/connectTimeout", "long",
+						"Timeout specified in milliseconds to wait to connect to the remote endpoint.", false, null,
+						null, null, 0, null),
+
+				p(null, "${mp.register.rest.client.class}/mp-rest/readTimeout", "long",
+						"Timeout specified in milliseconds to wait for a response from the remote endpoint.", false,
+						null, null, null, 0, null),
+
+				p(null, "${mp.register.rest.client.class}/mp-rest/providers/{*}/priority", "int",
+						"Override the priority of the provider for the given interface.", false, null, null, null, 0,
+						null));
 
 		assertPropertiesDuplicate(infoFromClasspath);
 
