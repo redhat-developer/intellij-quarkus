@@ -3,6 +3,7 @@
 [plugin-version-svg]: https://img.shields.io/jetbrains/plugin/v/13234-quarkus.svg
 [plugin-downloads-svg]: https://img.shields.io/jetbrains/plugin/d/13234-quarkus.svg
 
+![Java CI with Gradle](https://github.com/redhat-developer/intellij-quarkus/workflows/Java%20CI%20with%20Gradle/badge.svg)
 [![Build Status](https://travis-ci.com/redhat-developer/intellij-openshift-connector.svg?branch=master)](https://travis-ci.com/redhat-developer/intellij-quarkus)
 [![JetBrains plugins][plugin-version-svg]][plugin-repo]
 [![JetBrains plugins][plugin-downloads-svg]][plugin-repo]
