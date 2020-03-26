@@ -129,6 +129,43 @@ public class PsiTypeUtils {
         return fieldTypeName.startsWith("java.util.Optional<");
     }
 
+    /**
+     * Returns the enclosed type declared in the given <code>typeName</code> and
+     * null otherwise.
+     *
+     * @param typeName
+     * @return
+     */
+    public static String getOptionalTypeParameter(String typeName) {
+        if (!isOptional(typeName)) {
+            return null;
+        }
+        int start = typeName.indexOf('<');
+        if (start == -1) {
+            return null;
+        }
+        // the type name follows the signature java.util.Optional<MyType>
+        // extract the enclosed type MyType.
+        int end = typeName.lastIndexOf('>');
+        return typeName.substring(start + 1, end);
+    }
+
+    public static PsiClass getEnclosedType(PsiClass type, String typeName, PsiManager javaProject) {
+        // type name is the string of the JDT type (which could be null if type is not
+        // retrieved)
+        String enclosedType = typeName;
+        if (type == null) {
+            // JDT type is null, in some case it's because type is optional (ex :
+            // java.util.Optional<MyType>)
+            // try to extract the enclosed type from the optional type (to get 'MyType' )
+            enclosedType = getOptionalTypeParameter(typeName);
+            if (enclosedType != null) {
+                type = findType(javaProject, enclosedType);
+            }
+        }
+        return type;
+    }
+
     public static boolean isList(String valueClass) {
         return valueClass.startsWith("java.util.List<");
     }

@@ -191,7 +191,7 @@ public class LSPTextHover extends DocumentationProviderEx {
                                 .map(languageServer -> {
                                     try {
                                         return languageServer.getTextDocumentService()
-                                                .hover(LSPIJUtils.toTextDocumentPosistionParams(offset, document)).get();
+                                                .hover(LSPIJUtils.toHoverParams(offset, document)).get();
                                     } catch (ExecutionException e) {
                                         LOGGER.warn(e.getLocalizedMessage(), e);
                                         return null;

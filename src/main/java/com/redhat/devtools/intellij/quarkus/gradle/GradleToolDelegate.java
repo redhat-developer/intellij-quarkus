@@ -99,7 +99,9 @@ public class GradleToolDelegate implements ToolDelegate {
                 processLibrary(library, manager, deploymentIds);
                 return true;
             });
-            processDownload(module, deploymentIds, result);
+            if (!deploymentIds.isEmpty()) {
+                processDownload(module, deploymentIds, result);
+            }
         } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage(), e);
         }

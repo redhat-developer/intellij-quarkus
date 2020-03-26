@@ -70,6 +70,7 @@
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.QuarkusKubernetesProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileMetricsProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileFaultToleranceProvider"/>
   </extensions>
 
   <application-components>

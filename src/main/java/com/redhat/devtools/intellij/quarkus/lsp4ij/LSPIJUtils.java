@@ -15,6 +15,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
@@ -57,6 +58,9 @@ public class LSPIJUtils {
         return toTextDocumentPositionParamsCommon(new TextDocumentPositionParams(), offset, document);
     }
 
+    public static HoverParams toHoverParams(int offset, Document document) {
+        return toTextDocumentPositionParamsCommon(new HoverParams(), offset, document);
+    }
 
     public static URI toUri(File file) {
         // URI scheme specified by language server protocol and LSP
