@@ -11,7 +11,7 @@ package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -21,12 +21,9 @@ import org.junit.Test;
 import java.io.File;
 
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHints;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHintsDuplicate;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertProperties;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.h;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.vh;
 
 /**
  * Test the availability of the MicroProfile Metrics properties
@@ -42,7 +39,7 @@ public class MavenMicroProfileMetricsTest extends MavenImportingTestCase {
 	public void testMicroprofileMetrics() throws Exception {
 
 		Module module = createMavenModule("microprofile-metrics", new File("projects/maven/microprofile-metrics"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 

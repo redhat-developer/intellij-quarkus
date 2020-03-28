@@ -18,7 +18,7 @@ import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.vh;
 
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
@@ -46,7 +46,7 @@ public class GradleQuarkusKubernetesTest extends GradleTestCase {
 
 	@Test
 	public void testKubernetes() throws Exception {
-		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kubernetes.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.Markdown);
+		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kubernetes.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.Markdown);
 
 		assertProperties(info,
 
@@ -105,7 +105,7 @@ public class GradleQuarkusKubernetesTest extends GradleTestCase {
 
 	@Test
 	public void testOpenshift() throws Exception {
-		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kubernetes.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.Markdown);
+		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kubernetes.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.Markdown);
 
 		assertProperties(info,
 

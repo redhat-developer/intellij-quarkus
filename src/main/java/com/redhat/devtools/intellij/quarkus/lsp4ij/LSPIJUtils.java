@@ -162,7 +162,8 @@ public class LSPIJUtils {
     }
 
     public static Editor[] editorsForFile(VirtualFile file, Document document) {
-        return EditorFactory.getInstance().getEditors(document, LSPIJUtils.getProject(file).getProject());
+        Module module = LSPIJUtils.getProject(file);
+        return module!=null?EditorFactory.getInstance().getEditors(document, module.getProject()):new Editor[0];
     }
 
     public static Editor editorForFile(VirtualFile file) {

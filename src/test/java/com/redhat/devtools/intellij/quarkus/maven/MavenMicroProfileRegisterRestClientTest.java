@@ -19,7 +19,7 @@ import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.vh;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class MavenMicroProfileRegisterRestClientTest extends MavenImportingTestC
 	public void testRestClientQuickstart() throws Exception {
 
 		Module module = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
 
 		// mp-rest Properties
 		assertProperties(infoFromClasspath, 7,

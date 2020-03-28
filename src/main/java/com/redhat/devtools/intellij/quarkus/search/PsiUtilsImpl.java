@@ -10,14 +10,24 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.quarkus.javadoc.JavadocContentAccess;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4j.Range;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Reader;
 import java.net.URI;
@@ -30,14 +40,27 @@ import java.util.Scanner;
  *
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/internal/core/ls/JDTUtilsLSImpl.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/internal/core/ls/JDTUtilsLSImpl.java</a>
  */
-public class PsiUtils implements IPsiUtils {
-    private static final IPsiUtils INSTANCE = new PsiUtils();
+public class PsiUtilsImpl implements IPsiUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PsiUtilsImpl.class);
+
+    private static final IPsiUtils INSTANCE = new PsiUtilsImpl();
 
     public static IPsiUtils getInstance() {
         return INSTANCE;
     }
 
-    private PsiUtils() {
+    private PsiUtilsImpl() {
+    }
+
+    @Override
+    public Module getModule(VirtualFile file) {
+        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+            Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
+            if (module != null) {
+                return module;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -58,6 +81,29 @@ public class PsiUtils implements IPsiUtils {
             s.useDelimiter("\\A");
             return s.hasNext() ? s.next() : "";
         }
+    }
+
+    @Override
+    public Range toRange(PsiElement element, int offset, int length) {
+        return PsiUtils.toRange(element, offset, length);
+    }
+
+    @Override
+    public int toOffset(Document document, int line, int character) {
+        return JsonRpcHelpers.toOffset(document, line, character);
+    }
+
+    @Override
+    public PsiFile resolveCompilationUnit(String uri) {
+        try {
+            VirtualFile file = findFile(uri);
+            if (file != null) {
+                return PsiManager.getInstance(getModule(file).getProject()).findFile(file);
+            }
+        } catch (URISyntaxException e) {
+            LOGGER.error(e.getLocalizedMessage(), e);
+        }
+        return null;
     }
 
     public static ClasspathKind getClasspathKind(VirtualFile file, Module module) {

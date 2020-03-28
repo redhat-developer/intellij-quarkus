@@ -10,7 +10,7 @@
 package com.redhat.devtools.intellij.quarkus.gradle;
 
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileFaultToleranceConstants;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
@@ -47,7 +47,7 @@ public class GradleMicroProfileFaultToleranceTest extends GradleTestCase {
 	@Test
 	public void testMicroprofileFaultTolerance() throws Exception {
 
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-fault-tolerance.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.Markdown);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-fault-tolerance.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.Markdown);
 		assertProperties(infoFromClasspath,
 
 				// <classname>/<annotation>/<parameter>

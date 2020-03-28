@@ -12,9 +12,6 @@ package com.redhat.devtools.intellij.quarkus.search;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -68,8 +65,8 @@ public class PropertiesManager {
     }
 
     public MicroProfileProjectInfo getMicroProfileProjectInfo(VirtualFile file, List<MicroProfilePropertiesScope> scopes, IPsiUtils utils, DocumentFormat documentFormat) {
-        Module module = getModule(file);
-        ClasspathKind classpathKind = PsiUtils.getClasspathKind(file, module);
+        Module module = utils.getModule(file);
+        ClasspathKind classpathKind = PsiUtilsImpl.getClasspathKind(file, module);
         return getMicroProfileProjectInfo(module, scopes, classpathKind, utils, documentFormat);
     }
 
@@ -113,7 +110,7 @@ public class PropertiesManager {
 
     private static MicroProfileProjectInfo createInfo(Module module, ClasspathKind classpathKind) {
         MicroProfileProjectInfo info = new MicroProfileProjectInfo();
-        info.setProjectURI(PsiUtils.getProjectURI(module));
+        info.setProjectURI(PsiUtilsImpl.getProjectURI(module));
         info.setClasspathKind(classpathKind);
         return info;
     }
@@ -133,16 +130,6 @@ public class PropertiesManager {
             }
         }
         return searchScope;
-    }
-
-    private static Module getModule(VirtualFile file) {
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
-            if (module != null) {
-                return module;
-            }
-        }
-        return null;
     }
 
     private Query<PsiMember> createSearchQuery(SearchContext context) {

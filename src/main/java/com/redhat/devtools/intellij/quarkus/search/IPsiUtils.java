@@ -10,9 +10,14 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4j.Range;
 
 import java.net.URISyntaxException;
 
@@ -26,4 +31,12 @@ public interface IPsiUtils {
     VirtualFile findFile(String uri) throws URISyntaxException;
 
     String getJavadoc(PsiMethod method, DocumentFormat documentFormat);
+
+    Range toRange(PsiElement element, int offset, int length);
+
+    PsiFile resolveCompilationUnit(String uri);
+
+    int toOffset(Document document, int line, int character);
+
+    Module getModule(VirtualFile file);
 }

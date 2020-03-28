@@ -10,7 +10,7 @@
 package com.redhat.devtools.intellij.quarkus.gradle;
 
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -21,12 +21,9 @@ import org.junit.Test;
 import java.io.File;
 
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHints;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHintsDuplicate;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertProperties;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.h;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.vh;
 
 /**
  * Test collect MicroProfile properties from @RegisterRestClient
@@ -46,7 +43,7 @@ public class GradleMicroProfileMetricsTest extends GradleTestCase {
 	@Test
 	public void testMicroprofileMetrics() throws Exception {
 
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-metrics.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-metrics.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 
