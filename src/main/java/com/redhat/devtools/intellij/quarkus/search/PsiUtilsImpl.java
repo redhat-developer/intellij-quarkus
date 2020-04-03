@@ -18,11 +18,13 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.quarkus.javadoc.JavadocContentAccess;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import org.eclipse.lsp4j.Range;
@@ -64,6 +66,12 @@ public class PsiUtilsImpl implements IPsiUtils {
     }
 
     @Override
+    public Module getModule(String uri) throws URISyntaxException {
+        VirtualFile file = findFile(uri);
+        return file!=null?getModule(file):null;
+    }
+
+    @Override
     public VirtualFile findFile(String uri) throws URISyntaxException {
         return LocalFileSystem.getInstance().findFileByIoFile(Paths.get(new URI(uri)).toFile());
     }
@@ -91,6 +99,12 @@ public class PsiUtilsImpl implements IPsiUtils {
     @Override
     public int toOffset(Document document, int line, int character) {
         return JsonRpcHelpers.toOffset(document, line, character);
+    }
+
+    @Override
+    public int toOffset(PsiFile file, int line, int character) {
+        Document document = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
+        return document!=null?toOffset(document, line, character):0;
     }
 
     @Override

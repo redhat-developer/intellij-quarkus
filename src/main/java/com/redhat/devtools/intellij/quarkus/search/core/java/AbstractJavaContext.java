@@ -15,9 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.redhat.devtools.intellij.quarkus.search.IPsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 
 /**
  * Abstract class for Java context for a given compilation unit.

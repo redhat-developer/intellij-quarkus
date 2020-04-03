@@ -62,6 +62,7 @@
     <extensionPoint name="toolDelegate" interface="com.redhat.devtools.intellij.quarkus.tool.ToolDelegate"/>
     <extensionPoint name="propertiesProvider" interface="com.redhat.devtools.intellij.quarkus.search.IPropertiesProvider"/>
     <extensionPoint name="javaHoverParticipant" interface="com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant"/>
+    <extensionPoint name="javaDiagnosticsParticipant" interface="com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaDiagnosticsParticipant"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileConfigPropertyProvider"/>
@@ -74,6 +75,8 @@
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileFaultToleranceProvider"/>
     
     <javaHoverParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant"/>
+
+    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.health.java.MicroProfileHealthDiagnosticsParticipant"/>
   </extensions>
 
   <application-components>

@@ -18,18 +18,24 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.redhat.devtools.intellij.quarkus.search.IPsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaDiagnosticsParticipant;
+import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.JavaHoverContext;
 import com.redhat.microprofile.commons.DocumentFormat;
+import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +53,63 @@ public class PropertiesManagerForJava {
 
     public static PropertiesManagerForJava getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Returns diagnostics for the given uris list.
+     *
+     * @param params the diagnostics parameters
+     * @param utils  the utilities class
+     * @return diagnostics for the given uris list.
+     */
+    public List<PublishDiagnosticsParams> diagnostics(MicroProfileJavaDiagnosticsParams params, IPsiUtils utils) {
+        return ApplicationManager.getApplication().runReadAction((Computable<List<PublishDiagnosticsParams>>)() -> {
+            List<String> uris = params.getUris();
+            if (uris == null) {
+                return Collections.emptyList();
+            }
+            DocumentFormat documentFormat = params.getDocumentFormat();
+            List<PublishDiagnosticsParams> publishDiagnostics = new ArrayList<PublishDiagnosticsParams>();
+            for (String uri : uris) {
+                List<Diagnostic> diagnostics = new ArrayList<>();
+                PublishDiagnosticsParams publishDiagnostic = new PublishDiagnosticsParams(uri, diagnostics);
+                publishDiagnostics.add(publishDiagnostic);
+                collectDiagnostics(uri, utils, documentFormat, diagnostics);
+            }
+            return publishDiagnostics;
+        });
+    }
+
+    private void collectDiagnostics(String uri, IPsiUtils utils, DocumentFormat documentFormat,
+                                    List<Diagnostic> diagnostics) {
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return;
+        }
+
+        try {
+            Module module = utils.getModule(uri);
+            // Collect all adapted diagnostics participant
+            JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, module, documentFormat);
+            List<IJavaDiagnosticsParticipant> definitions = IJavaDiagnosticsParticipant.EP_NAME.extensions()
+                    .filter(definition -> definition.isAdaptedForDiagnostics(context))
+                    .collect(Collectors.toList());
+            if (definitions.isEmpty()) {
+                return;
+            }
+
+            // Begin, collect, end participants
+            definitions.forEach(definition -> definition.beginDiagnostics(context));
+            definitions.forEach(definition -> {
+                List<Diagnostic> collectedDiagnostics = definition.collectDiagnostics(context);
+                if (collectedDiagnostics != null && !collectedDiagnostics.isEmpty()) {
+                    diagnostics.addAll(collectedDiagnostics);
+                }
+            });
+            definitions.forEach(definition -> definition.endDiagnostics(context));
+        } catch (URISyntaxException e) {
+            LOGGER.error(e.getLocalizedMessage(), e);
+        }
     }
 
     /**

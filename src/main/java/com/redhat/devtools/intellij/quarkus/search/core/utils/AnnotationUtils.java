@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.core.utils;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
@@ -20,6 +20,11 @@ import com.intellij.psi.PsiMember;
  *
  */
 public class AnnotationUtils {
+
+	public static boolean hasAnnotation(PsiMember annotatable, String annotationName) {
+		return getAnnotation(annotatable, annotationName) != null;
+	}
+
 
 	/**
 	 * Returns the annotation from the given <code>annotatable</code> element with

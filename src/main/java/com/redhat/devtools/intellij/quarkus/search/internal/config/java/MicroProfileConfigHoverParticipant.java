@@ -14,13 +14,12 @@ package com.redhat.devtools.intellij.quarkus.search.internal.config.java;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.redhat.devtools.intellij.quarkus.search.IPsiUtils;
-import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.JavaHoverContext;
 import com.redhat.devtools.intellij.quarkus.search.core.project.PsiMicroProfileProjectManager;
@@ -35,8 +34,8 @@ import org.eclipse.lsp4j.util.Ranges;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CONFIG_PROPERTY_ANNOTATION_NAME;
-import static com.redhat.devtools.intellij.quarkus.search.AnnotationUtils.getAnnotation;
-import static com.redhat.devtools.intellij.quarkus.search.AnnotationUtils.getAnnotationMemberValue;
+import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils.getAnnotation;
+import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils.getAnnotationMemberValue;
 
 /**
  *

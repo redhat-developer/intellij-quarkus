@@ -16,7 +16,7 @@ import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.redhat.devtools.intellij.quarkus.search.AnnotationUtils.isMatchAnnotation;
+import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils.isMatchAnnotation;
 
 /**
  * Abstract class for properties provider based on annotation search.

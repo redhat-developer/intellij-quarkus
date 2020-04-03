@@ -8,7 +8,7 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.search;
+package com.redhat.devtools.intellij.quarkus.search.core.utils;
 
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
@@ -38,5 +38,9 @@ public interface IPsiUtils {
 
     int toOffset(Document document, int line, int character);
 
+    int toOffset(PsiFile file, int line, int character);
+
     Module getModule(VirtualFile file);
+
+    Module getModule(String uri) throws URISyntaxException;
 }

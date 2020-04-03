@@ -17,7 +17,7 @@ import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfile
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
-import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 
 import com.redhat.microprofile.commons.metadata.ItemHint;

@@ -12,9 +12,8 @@
 package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
-import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 
 import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileMetricsConstants.APPLICATION_NAME_VARIABLE;

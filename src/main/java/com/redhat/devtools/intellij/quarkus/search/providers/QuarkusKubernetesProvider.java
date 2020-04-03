@@ -16,17 +16,16 @@ import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
-import com.redhat.devtools.intellij.quarkus.search.IPsiUtils;
-import com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
-import com.redhat.devtools.intellij.quarkus.search.providers.AbstractTypeDeclarationPropertiesProvider;
 import com.redhat.microprofile.commons.DocumentFormat;
 
 import io.quarkus.runtime.util.StringUtil;
 
-import static com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils.getPropertyType;
-import static com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils.getSourceMethod;
-import static com.redhat.devtools.intellij.quarkus.search.PsiTypeUtils.isSimpleFieldType;
+import static com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils.getPropertyType;
+import static com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils.getSourceMethod;
+import static com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils.isSimpleFieldType;
 
 /**
  * Properties provider to collect Quarkus properties from the io dekorate config
