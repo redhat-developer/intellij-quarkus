@@ -77,6 +77,7 @@
     <javaHoverParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant"/>
 
     <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.health.java.MicroProfileHealthDiagnosticsParticipant"/>
+    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant"/>
   </extensions>
 
   <application-components>
