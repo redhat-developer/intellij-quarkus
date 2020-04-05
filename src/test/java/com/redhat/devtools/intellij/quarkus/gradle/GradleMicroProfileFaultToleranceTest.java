@@ -17,6 +17,7 @@ import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -35,6 +36,7 @@ import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.vh;
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/faulttolerance/MicroProfileOpenTracingTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/faulttolerance/MicroProfileFaultToleranceTest.java</a>
  *
  */
+@Ignore("Skipped because dependencies on the classpath may not have sources")
 public class GradleMicroProfileFaultToleranceTest extends GradleTestCase {
 
 	@Override
