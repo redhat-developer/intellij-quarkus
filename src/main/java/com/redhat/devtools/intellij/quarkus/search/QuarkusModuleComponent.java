@@ -10,22 +10,32 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleComponent;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME;
-import static com.redhat.devtools.intellij.quarkus.tool.ToolDelegate.BINARY;
-import static com.redhat.devtools.intellij.quarkus.tool.ToolDelegate.SOURCES;
-
-public class QuarkusModuleComponent implements ModuleComponent {
+@State(name="Quarkus Tools")
+public class QuarkusModuleComponent implements ModuleComponent, PersistentStateComponent<QuarkusModuleComponent.State> {
     private final Module module;
+    private State state;
+
+    public static final class State {
+        private Integer hash;
+
+        public State() {}
+
+        public Integer getHash() {
+            return hash;
+        }
+
+        public void setHash(Integer hash) {
+            this.hash = hash;
+        }
+    }
 
     public QuarkusModuleComponent(Module module) {
         this.module = module;
@@ -33,12 +43,28 @@ public class QuarkusModuleComponent implements ModuleComponent {
 
     @Override
     public void moduleAdded() {
-        ToolDelegate toolDelegate = ToolDelegate.getDelegate(module);
-        if (toolDelegate != null) {
-            List<VirtualFile>[] deploymentFiles = toolDelegate.getDeploymentFiles(module);
-            if (!deploymentFiles[BINARY].isEmpty()) {
-                ModuleRootModificationUtil.addModuleLibrary(module, QUARKUS_DEPLOYMENT_LIBRARY_NAME, deploymentFiles[BINARY].stream().map(file -> file.getUrl()).collect(Collectors.toList()), deploymentFiles[SOURCES].stream().map(file -> file.getUrl()).collect(Collectors.toList()), DependencyScope.PROVIDED);
-            }
+        QuarkusModuleUtil.ensureQuarkusLibrary(module);
+    }
+
+    @Nullable
+    @Override
+    public State getState() {
+        return state;
+    }
+
+    @Override
+    public void loadState(@NotNull State state) {
+        this.state = state;
+    }
+
+    public Integer getHash() {
+        return state != null ? state.getHash():null;
+    }
+
+    public void setHash(Integer hash) {
+        if (state == null) {
+            state = new State();
         }
+        state.setHash(hash);
     }
 }
