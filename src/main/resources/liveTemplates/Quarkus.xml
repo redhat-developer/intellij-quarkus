@@ -1,0 +1,109 @@
+<templateSet group="Quarkus">
+
+  <!-- Quarkus datasource-->
+  <template name="qds" value="quarkus.datasource.db-kind=postgresql&#10;quarkus.datasource.url=jdbc:postgresql://$HOST$:5432/$DATABASE$&#10;quarkus.datasource.username=$USERNAME$&#10;quarkus.datasource.password=$PASSWORD$&#10;" description="JDBC datasource" toReformat="false" toShortenFQNames="false">
+    <variable name="HOST" expression="&quot;localhost&quot;" defaultValue="" alwaysStopAt="true" />
+    <variable name="DATABASE" expression="&quot;postgres&quot;" defaultValue="" alwaysStopAt="true" />
+    <variable name="USERNAME" expression="&quot;postgres&quot;" defaultValue="" alwaysStopAt="true" />
+    <variable name="PASSWORD" expression="&quot;postgres&quot;" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="QUARKUS_APPLICATION_PROPERTIES" value="true" />
+    </context>
+  </template>
+
+  <!-- @Inject -->
+  <template name="ijt" value="@javax.inject.Inject&#10;$END$" description="Inject a CDI bean" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @ConfigProperty -->
+  <template name="conf" value="@org.eclipse.microprofile.config.inject.ConfigProperty(name = &quot;$NAME$&quot;)&#10;$END$" description="Inject a config property" toReformat="true" toShortenFQNames="true">
+    <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @Produces method -->
+  <template name="pdm" value="@javax.enterprise.inject.Produces&#10;public $RETURN_TYPE$ $NAME$() {&#10;    $END$&#10;}" description="Create a CDI producer method" toReformat="true" toShortenFQNames="true">
+    <variable name="RETURN_TYPE" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @ApplicationScoped -->
+  <template name="asd" value="@javax.enterprise.context.ApplicationScoped" description="@ApplicationScoped" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @RequestScoped -->
+  <template name="rsd" value="@javax.enterprise.context.RequestScoped" description="@RequestScoped" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @Dependent -->
+  <template name="dep" value="@javax.enterprise.context.Dependent" description="@Dependent" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @PostConstruct -->
+  <template name="pct" value="@javax.annotation.PostConstruct&#10;private void init$END$() {&#10;}" description="Create an initializer method" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @PreDestroy -->
+  <template name="pds" value="@javax.annotation.PreDestroy&#10;private void close$END$() {&#10;}" description="Create an pre-destroy method" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @Transactional -->
+  <template name="tn" value="@javax.transaction.Transactional" description="@Transactional" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @Path -->
+  <template name="ph" value="@javax.ws.rs.Path(&quot;$END$&quot;)" description="@Path" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @Produces(MediaType.APPLICATION_JSON) -->
+  <template name="projson" value="@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)" description="@Produces(MediaType.APPLICATION_JSON)" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @Consumes(MediaType.APPLICATION_JSON) -->
+  <template name="conjson" value="@javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)" description="@Consumes(MediaType.APPLICATION_JSON)" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+
+  <!-- @GET resource method -->
+  <template name="getm" value="@javax.ws.rs.GET&#10;public $RETURN_TYPE$ $NAME$() {&#10;    $END$&#10;}" description="@GET method" toReformat="true" toShortenFQNames="true">
+    <variable name="RETURN_TYPE" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+</templateSet>
