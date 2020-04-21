@@ -11,14 +11,11 @@
 package com.redhat.devtools.intellij.quarkus.lang;
 
 import com.intellij.lang.Language;
-import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
-import com.intellij.properties.PropertiesSyntaxHighlighterFactory;
 
 public class ApplicationPropertiesLanguage extends Language {
     public static final ApplicationPropertiesLanguage INSTANCE = new ApplicationPropertiesLanguage();
 
     protected ApplicationPropertiesLanguage() {
         super("Quarkus properties", "text/properties");
-        SyntaxHighlighterFactory.LANGUAGE_FACTORY.addExplicitExtension(this, new PropertiesSyntaxHighlighterFactory());
     }
 }

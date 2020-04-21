@@ -15,7 +15,7 @@ import com.intellij.openapi.util.IconLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 public class ApplicationPropertiesFileType extends LanguageFileType {
     public static final String EXTENSION = "properties";
