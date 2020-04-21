@@ -13,16 +13,26 @@ package com.redhat.devtools.intellij.quarkus.facet;
 import com.intellij.facet.ui.FacetBasedFrameworkSupportProvider;
 import com.intellij.framework.library.DownloadableLibraryType;
 import com.intellij.openapi.util.IconLoader;
+import org.jetbrains.annotations.NotNull;
 
-import java.net.URL;
+import javax.swing.*;
 
 public class QuarkusLibraryType extends DownloadableLibraryType {
+
     public QuarkusLibraryType() {
-        super("Quarkus", "quarkus", "quarkus", IconLoader.findIcon("/quarkus_icon_rgb_16px_default.png", QuarkusLibraryType.class), new URL[]{QuarkusLibraryType.class.getResource("/quarkus.xml")});
+        super("Quarkus", "quarkus", "quarkus", QuarkusLibraryType.class.getResource("/quarkus.xml"));
     }
+
+    @NotNull
     @Override
     protected String[] getDetectionClassNames() {
-        return new String[] {"io.quarkus.runtime.Quarkus"};
+        return new String[]{"io.quarkus.runtime.Quarkus"};
+    }
+
+    @NotNull
+    @Override
+    public Icon getLibraryTypeIcon() {
+        return IconLoader.getIcon("/quarkus_icon_rgb_16px_default.png", QuarkusLibraryType.class);
     }
 
     public final String getUnderlyingFrameworkTypeId() {

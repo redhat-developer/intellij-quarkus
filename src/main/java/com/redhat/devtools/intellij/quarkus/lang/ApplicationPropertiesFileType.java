@@ -11,10 +11,11 @@
 package com.redhat.devtools.intellij.quarkus.lang;
 
 import com.intellij.openapi.fileTypes.LanguageFileType;
+import com.intellij.openapi.util.IconLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.Icon;
+import javax.swing.*;
 
 public class ApplicationPropertiesFileType extends LanguageFileType {
     public static final String EXTENSION = "properties";
@@ -24,6 +25,7 @@ public class ApplicationPropertiesFileType extends LanguageFileType {
     private ApplicationPropertiesFileType() {
         super(ApplicationPropertiesLanguage.INSTANCE);
     }
+
     @NotNull
     @Override
     public String getName() {
@@ -45,6 +47,6 @@ public class ApplicationPropertiesFileType extends LanguageFileType {
     @Nullable
     @Override
     public Icon getIcon() {
-        return null;
+        return IconLoader.getIcon("/quarkus_icon_rgb_16px_default.png", ApplicationPropertiesFileType.class);
     }
 }
