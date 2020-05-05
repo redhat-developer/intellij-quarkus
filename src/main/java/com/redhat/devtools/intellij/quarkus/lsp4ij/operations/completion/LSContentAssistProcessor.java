@@ -55,7 +55,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
         Editor editor = parameters.getEditor();
         Project project = parameters.getOriginalFile().getProject();
         int offset = parameters.getOffset();
-        initiateLanguageServers(document);
+        initiateLanguageServers(project, document);
         CompletionParams param;
         try {
             param = LSPIJUtils.toCompletionParams(LSPIJUtils.toUri(document), offset, document);
@@ -90,7 +90,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
         return LookupElementBuilder.create("Error while computing completion", "");
     }
 
-    private void initiateLanguageServers(Document document) {
+    private void initiateLanguageServers(Project project, Document document) {
         if (this.completionLanguageServersFuture != null) {
             try {
                 this.completionLanguageServersFuture.cancel(true);
@@ -100,7 +100,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
         }
         this.completionTriggerChars = new char[0];
 
-        this.completionLanguageServersFuture = LanguageServiceAccessor.getLanguageServers(document,
+        this.completionLanguageServersFuture = LanguageServiceAccessor.getInstance(project).getLanguageServers(document,
                 capabilities -> {
                     CompletionOptions provider = capabilities.getCompletionProvider();
                     if (provider != null) {

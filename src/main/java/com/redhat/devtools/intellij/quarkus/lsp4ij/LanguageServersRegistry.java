@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
 import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
@@ -45,8 +46,8 @@ public class LanguageServersRegistry {
 
         public abstract StreamConnectionProvider createConnectionProvider();
 
-        public LanguageClientImpl createLanguageClient() {
-            return new LanguageClientImpl();
+        public LanguageClientImpl createLanguageClient(Project project) {
+            return new LanguageClientImpl(project);
         }
 
         public Class<? extends LanguageServer> getServerInterface() {
@@ -74,16 +75,16 @@ public class LanguageServersRegistry {
         }
 
         @Override
-        public LanguageClientImpl createLanguageClient() {
+        public LanguageClientImpl createLanguageClient(Project project) {
             String clientImpl = extension.clientImpl;
             if (clientImpl != null && !clientImpl.isEmpty()) {
                 try {
-                    return (LanguageClientImpl) extension.instantiate(clientImpl, ApplicationManager.getApplication().getPicoContainer());
+                    return (LanguageClientImpl) extension.instantiate(clientImpl, project.getPicoContainer());
                 } catch (ClassNotFoundException e) {
                     LOGGER.error(e.getLocalizedMessage(), e);
                 }
             }
-            return super.createLanguageClient();
+            return super.createLanguageClient(project);
         }
 
         @SuppressWarnings("unchecked")

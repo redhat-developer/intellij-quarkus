@@ -199,7 +199,7 @@ public class LanguageServerWrapper {
             }
             this.lspStreamProvider.start();
 
-            LanguageClientImpl client = serverDefinition.createLanguageClient();
+            LanguageClientImpl client = serverDefinition.createLanguageClient(initialProject.getProject());
             ExecutorService executorService = Executors.newCachedThreadPool();
             final InitializeParams initParams = new InitializeParams();
             initParams.setProcessId(getCurrentProcessId());

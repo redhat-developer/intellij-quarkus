@@ -183,7 +183,7 @@ public class LSPTextHover extends DocumentationProviderEx {
         final Document document = manager.getDocument(element.getContainingFile());
         this.lastElement = element;
         this.lastOffset = offset;
-        this.request = LanguageServiceAccessor
+        this.request = LanguageServiceAccessor.getInstance(element.getProject())
                 .getLanguageServers(document, capabilities -> Boolean.TRUE.equals(capabilities.getHoverProvider()))
                 .thenApplyAsync(languageServers -> // Async is very important here, otherwise the LS Client thread is in
                         // deadlock and doesn't read bytes from LS

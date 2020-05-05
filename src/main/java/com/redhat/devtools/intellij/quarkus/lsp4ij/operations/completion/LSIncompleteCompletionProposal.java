@@ -242,13 +242,13 @@ public class LSIncompleteCompletionProposal extends LookupElement {
                 LSPIJUtils.applyEdits(editor, document, Collections.singletonList(textEdit));
             }
 
-            LanguageServiceAccessor.resolveServerDefinition(languageServer).map(definition -> definition.id)
+            LanguageServiceAccessor.getInstance(editor.getProject()).resolveServerDefinition(languageServer).map(definition -> definition.id)
                     .ifPresent(id -> {
                         Command command = item.getCommand();
                         if (command == null) {
                             return;
                         }
-                        CommandExecutor.executeCommand(command, document, id);
+                        CommandExecutor.executeCommand(editor.getProject(), command, document, id);
                     });
         } catch (RuntimeException ex) {
             LOGGER.warn(ex.getLocalizedMessage(), ex);

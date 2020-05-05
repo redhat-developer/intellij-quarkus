@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServersRegistry;
@@ -76,12 +77,12 @@ public class CommandExecutor {
      *            applicable. If {@code null}, the command will not be executed on
      *            the language server.
      */
-    public static void executeCommand(Command command, Document document,
+    public static void executeCommand(Project project, Command command, Document document,
                                       String languageServerId) {
         if (command == null) {
             return;
         }
-        if (executeCommandServerSide(command, languageServerId, document)) {
+        if (executeCommandServerSide(project, command, languageServerId, document)) {
             return;
         }
         if (executeCommandClientSide(command, document)) {
@@ -94,7 +95,7 @@ public class CommandExecutor {
         }
     }
 
-    private static boolean executeCommandServerSide(Command command, String languageServerId,
+    private static boolean executeCommandServerSide(Project project, Command command, String languageServerId,
                                                     Document document) {
         if (languageServerId == null) {
             return false;
@@ -106,7 +107,7 @@ public class CommandExecutor {
         }
 
         try {
-            CompletableFuture<LanguageServer> languageServerFuture = getLanguageServerForCommand(command, document,
+            CompletableFuture<LanguageServer> languageServerFuture = getLanguageServerForCommand(project, command, document,
                     languageServerDefinition);
             if (languageServerFuture == null) {
                 return false;
@@ -127,9 +128,10 @@ public class CommandExecutor {
 
     }
 
-    private static CompletableFuture<LanguageServer> getLanguageServerForCommand(Command command,
+    private static CompletableFuture<LanguageServer> getLanguageServerForCommand(Project project,
+                                                                                 Command command,
                                                                                  Document document, LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) throws IOException {
-        CompletableFuture<LanguageServer> languageServerFuture = LanguageServiceAccessor
+        CompletableFuture<LanguageServer> languageServerFuture = LanguageServiceAccessor.getInstance(project)
                 .getInitializedLanguageServer(document, languageServerDefinition, serverCapabilities -> {
                     ExecuteCommandOptions provider = serverCapabilities.getExecuteCommandProvider();
                     return provider != null && provider.getCommands().contains(command.getCommand());

@@ -67,7 +67,7 @@ public class LSPLocalInspectionTool extends LocalInspectionTool {
             if (editor != null) {
                 List<ProblemDescriptor> problemDescriptors = new ArrayList<>();
                 try {
-                    for(LanguageServerWrapper wrapper : LanguageServiceAccessor.getLSWrappers(virtualFile, capabilities -> true)) {
+                    for(LanguageServerWrapper wrapper : LanguageServiceAccessor.getInstance(file.getProject()).getLSWrappers(virtualFile, capabilities -> true)) {
                         RangeHighlighter[] highlighters = LSPDiagnosticsToMarkers.getMarkers(editor, wrapper.serverDefinition.id);
                         if (highlighters != null) {
                             for(RangeHighlighter highlighter : highlighters) {

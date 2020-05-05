@@ -42,7 +42,7 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectC
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
         Document document = FileDocumentManager.getInstance().getDocument(file);
         if (document != null) {
-            LanguageServiceAccessor.getLanguageServers(document, capabilities -> true);
+            LanguageServiceAccessor.getInstance(source.getProject()).getLanguageServers(document, capabilities -> true);
         }
     }
 
@@ -51,7 +51,7 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectC
         URI uri = LSPIJUtils.toUri(file);
         if (file != null) {
             try {
-                LanguageServiceAccessor.getLSWrappers(file, capabilities -> true).forEach(wrapper -> wrapper.disconnect(uri));
+                LanguageServiceAccessor.getInstance(source.getProject()).getLSWrappers(file, capabilities -> true).forEach(wrapper -> wrapper.disconnect(uri));
             } catch (IOException e) {
                 LOGGER.warn(e.getLocalizedMessage(), e);
             }
