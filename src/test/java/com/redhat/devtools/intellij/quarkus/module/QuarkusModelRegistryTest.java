@@ -18,12 +18,14 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TempDirTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl;
+import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
 
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.*;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_CODE_URL;
 import static org.junit.Assert.assertNotNull;
 
@@ -33,6 +35,7 @@ public class QuarkusModelRegistryTest  {
 
     @BeforeClass
     public static void init() throws Exception {
+        System.setProperty(QUARKUS_CODE_URL_PROPERTY_NAME, QUARKUS_CODE_URL_TEST);
         IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
         TestFixtureBuilder<IdeaProjectTestFixture> fixtureBuilder = factory.createLightFixtureBuilder();
         IdeaProjectTestFixture fixture = fixtureBuilder.getFixture();
