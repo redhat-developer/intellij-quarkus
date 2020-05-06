@@ -6,6 +6,8 @@ name: Validate against IJ versions
 on:
   push:
     branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   validate:
