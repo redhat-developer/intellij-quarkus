@@ -11,7 +11,12 @@ plugins {
 
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    plugins 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.6.1'
+    if (ideaVersion.substring(3) != "2019.1") {
+        plugins 'java', 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.6.1'
+    } else {
+        plugins 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.6.1'
+
+    }
     pluginName 'Quarkus Tools'
     updateSinceUntilBuild false
 }
