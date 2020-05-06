@@ -10,8 +10,10 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -66,7 +68,7 @@ public class PropertiesManager {
     }
 
     public MicroProfileProjectInfo getMicroProfileProjectInfo(VirtualFile file, List<MicroProfilePropertiesScope> scopes, IPsiUtils utils, DocumentFormat documentFormat) {
-        Module module = utils.getModule(file);
+        Module module = ApplicationManager.getApplication().runReadAction((Computable<Module>) () -> utils.getModule(file));
         ClasspathKind classpathKind = PsiUtilsImpl.getClasspathKind(file, module);
         return getMicroProfileProjectInfo(module, scopes, classpathKind, utils, documentFormat);
     }
