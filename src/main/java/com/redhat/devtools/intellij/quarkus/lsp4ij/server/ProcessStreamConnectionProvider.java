@@ -41,7 +41,6 @@ public abstract class ProcessStreamConnectionProvider implements StreamConnectio
 
     protected ProcessBuilder createProcessBuilder() {
         ProcessBuilder builder = new ProcessBuilder(getCommands());
-        builder.environment().put("RUST_LOG", "rls=debug");
         if (getWorkingDirectory() != null) {
             builder.directory(new File(getWorkingDirectory()));
         }
