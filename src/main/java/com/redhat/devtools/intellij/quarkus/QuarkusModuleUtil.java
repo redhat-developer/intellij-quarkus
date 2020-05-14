@@ -14,10 +14,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -25,13 +22,12 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.RootPolicy;
 import com.intellij.openapi.roots.impl.libraries.LibraryEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
@@ -40,9 +36,24 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.StreamSupport;
 
 public class QuarkusModuleUtil {
+
+    public static boolean isQuarkusExtensionWithDeploymentArtifact(Library library) {
+        boolean result = false;
+        VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+
+        for(int i=0; !result && i < files.length;++i) {
+            if (files[i].isDirectory()) {
+                VirtualFile properties = files[i].findFileByRelativePath(QuarkusConstants.QUARKUS_EXTENSION_PROPERTIES);
+                if (properties != null) {
+                    result = ToolDelegate.getDeploymentJarId(VfsUtilCore.virtualToIoFile(properties)) != null;
+                }
+            }
+        }
+        return result;
+    }
+
     /**
      * Check if the Quarkus library needs to be recomputed and update it if required.
      *
@@ -100,7 +111,7 @@ public class QuarkusModuleUtil {
         Set<String> files = manager.processOrder(new RootPolicy<Set<String>>() {
             @Override
             public Set<String> visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Set<String> value) {
-                if (libraryOrderEntry.getLibraryName().startsWith("Maven:") || libraryOrderEntry.getLibraryName().startsWith("Gradle:")) {
+                if (!libraryOrderEntry.getLibraryName().equalsIgnoreCase(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME) && isQuarkusExtensionWithDeploymentArtifact(libraryOrderEntry.getLibrary())) {
                     for(VirtualFile file : libraryOrderEntry.getFiles(OrderRootType.CLASSES)) {
                         value.add(file.getPath());
                     }
