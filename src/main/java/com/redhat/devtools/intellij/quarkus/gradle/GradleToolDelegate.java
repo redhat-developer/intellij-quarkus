@@ -10,17 +10,15 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.gradle;
 
-import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.ExternalSystemExecutionSettings;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager;
 import com.intellij.openapi.externalSystem.service.RemoteExternalSystemFacade;
-import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
+import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager;
 import com.intellij.openapi.externalSystem.service.remote.RemoteExternalSystemTaskManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -28,14 +26,11 @@ import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.projectImport.ProjectImportProvider;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder;
-import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportProvider;
+import org.jetbrains.plugins.gradle.settings.GradleExtensionsSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -267,13 +262,7 @@ public class GradleToolDelegate implements ToolDelegate {
         }
 
         if (gradleFile != null) {
-            ProjectDataManager projectDataManager = (ProjectDataManager) ServiceManager.getService(ProjectDataManager.class);
-            GradleProjectImportBuilder gradleProjectImportBuilder = new GradleProjectImportBuilder(projectDataManager);
-            GradleProjectImportProvider gradleProjectImportProvider = new GradleProjectImportProvider(gradleProjectImportBuilder);
-            AddModuleWizard wizard = new AddModuleWizard(project, gradleFile.getPath(), new ProjectImportProvider[]{gradleProjectImportProvider});
-            if (wizard.getStepCount() == 0 || wizard.showAndGet()) {
-                gradleProjectImportBuilder.commit(project, (ModifiableModuleModel)null, (ModulesProvider)null);
-            }
+            ExternalProjectsManager.getInstance(project).runWhenInitialized(() -> GradleExtensionsSettings.load(project));
         }
     }
 }
