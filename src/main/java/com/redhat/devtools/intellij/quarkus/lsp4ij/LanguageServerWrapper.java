@@ -654,7 +654,7 @@ public class LanguageServerWrapper {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         }
         if (initializeFuture != null && !this.initializeFuture.isDone()) {
-            if (ApplicationManager.getApplication().isDispatchThread()) { // UI Thread
+            /*if (ApplicationManager.getApplication().isDispatchThread()) { // UI Thread
                 try {
                     ProgressManager.getInstance().run(new Task.WithResult<Void, Exception>(null, Messages.initializeLanguageServer_job, false) {
                         @Override
@@ -667,7 +667,7 @@ public class LanguageServerWrapper {
                 } catch (Exception e) {
                     LOGGER.error(e.getLocalizedMessage(), e);
                 }
-            }
+            }*/
             return initializeFuture.thenApply(r -> this.languageServer);
         }
         return CompletableFuture.completedFuture(this.languageServer);
