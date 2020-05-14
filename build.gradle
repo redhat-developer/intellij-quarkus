@@ -65,10 +65,10 @@ dependencies {
     compile 'io.quarkus:quarkus-core:1.0.1.Final'
     compile 'io.quarkus:quarkus-core-deployment:1.0.1.Final'
     compile 'io.quarkus:quarkus-arc:1.0.1.Final'
-    compile 'com.redhat.microprofile:com.redhat.microprofile.ls:0.0.6-SNAPSHOT'
+    compile 'com.redhat.microprofile:com.redhat.microprofile.ls:0.7.0-SNAPSHOT'
     compile 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.8.1'
     compile 'com.vladsch.flexmark:flexmark:0.50.50'
-    lsp 'com.redhat.microprofile:com.redhat.microprofile.ls:0.0.6-SNAPSHOT:uber'
+    lsp 'com.redhat.microprofile:com.redhat.microprofile.ls:0.7.0-SNAPSHOT:uber'
     compile files(new File(buildDir, 'server')) {
         builtBy 'copyDeps'
     }
