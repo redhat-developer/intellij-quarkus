@@ -31,11 +31,11 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.projectImport.ProjectImportBuilder;
 import com.intellij.projectImport.ProjectImportProvider;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder;
-import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportProvider;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -267,13 +268,33 @@ public class GradleToolDelegate implements ToolDelegate {
         }
 
         if (gradleFile != null) {
-            ProjectDataManager projectDataManager = (ProjectDataManager) ServiceManager.getService(ProjectDataManager.class);
-            GradleProjectImportBuilder gradleProjectImportBuilder = new GradleProjectImportBuilder(projectDataManager);
-            GradleProjectImportProvider gradleProjectImportProvider = new GradleProjectImportProvider(gradleProjectImportBuilder);
+            ProjectImportProvider gradleProjectImportProvider = getGradleProjectImportProvider();
+            ProjectImportBuilder gradleProjectImportBuilder = gradleProjectImportProvider.getBuilder();
             AddModuleWizard wizard = new AddModuleWizard(project, gradleFile.getPath(), new ProjectImportProvider[]{gradleProjectImportProvider});
             if (wizard.getStepCount() == 0 || wizard.showAndGet()) {
                 gradleProjectImportBuilder.commit(project, (ModifiableModuleModel)null, (ModulesProvider)null);
             }
+        }
+    }
+
+    private static final String LEGACY_IMPORT_PROVIDER_CLASS_NAME = "org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportProvider";
+    private static final String LEGACY_IMPORT_BUILDER_CLASS_NAME = "org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder";
+
+    private static final String NEW_IMPORT_PROVIDER_CLASS_NAME = "org.jetbrains.plugins.gradle.service.project.wizard.JavaGradleProjectImportProvider";
+    @NotNull
+    private ProjectImportProvider getGradleProjectImportProvider() {
+        try {
+            return (ProjectImportProvider) Class.forName(NEW_IMPORT_PROVIDER_CLASS_NAME).newInstance();
+        } catch (ClassNotFoundException e) {
+            try {
+                Class<ProjectImportBuilder> clazz = (Class<ProjectImportBuilder>) Class.forName(LEGACY_IMPORT_BUILDER_CLASS_NAME);
+                ProjectImportBuilder builder = clazz.getConstructor(ProjectDataManager.class).newInstance(ProjectDataManager.getInstance());
+                return (ProjectImportProvider) Class.forName(LEGACY_IMPORT_PROVIDER_CLASS_NAME).getConstructor(clazz).newInstance(builder);
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e1) {
+                throw new RuntimeException(e1);
+            }
+        } catch (IllegalAccessException | InstantiationException e) {
+            throw new RuntimeException(e);
         }
     }
 }
