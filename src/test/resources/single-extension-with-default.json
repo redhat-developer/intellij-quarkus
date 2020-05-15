@@ -1,0 +1,1 @@
+[{"category":"Web","default":true,"description":"REST framework implementing JAX-RS and more","guide":"https://quarkus.io/guides/rest-json","id":"io.quarkus:quarkus-resteasy","keywords":["resteasy","jaxrs","web","rest"],"labels":["resteasy","jaxrs","web","rest"],"name":"RESTEasy JAX-RS","order":0,"shortName":"jax-rs","status":"stable"}]

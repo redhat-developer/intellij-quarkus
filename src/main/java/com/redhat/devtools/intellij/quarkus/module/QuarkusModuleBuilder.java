@@ -127,7 +127,7 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         QuarkusModel model = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY);
         for(QuarkusCategory category : model.getCategories()) {
             for(QuarkusExtension extension : category.getExtensions()) {
-                if (extension.isSelected()) {
+                if (extension.isSelected() || extension.isDefaultExtension()) {
                     url = url.addParameters(Collections.singletonMap("e", extension.getId()));
                 }
             }
