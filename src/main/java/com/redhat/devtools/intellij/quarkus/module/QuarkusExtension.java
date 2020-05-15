@@ -43,6 +43,9 @@ public class QuarkusExtension {
     @JsonProperty("status")
     private String status;
 
+    @JsonProperty("default")
+    private boolean defaultExtension;
+
     private boolean selected;
 
     public String getCategory() {
@@ -115,6 +118,14 @@ public class QuarkusExtension {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public boolean isDefaultExtension() {
+        return defaultExtension;
+    }
+
+    public void setDefaultExtension(boolean defaultExtension) {
+        this.defaultExtension = defaultExtension;
     }
 
     public String asLabel() {

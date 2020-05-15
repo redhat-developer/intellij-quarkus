@@ -56,14 +56,15 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             public Object getValueAt(int rowIndex, int columnIndex) {
                 QuarkusExtension extension = extensions.get(rowIndex);
                 if (columnIndex == 0) {
-                    return extension.isSelected();
+                    return extension.isDefaultExtension() || extension.isSelected();
                 } else {
                     return extension.asLabel();
                 }
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return columnIndex == 0;
+                QuarkusExtension extension = extensions.get(rowIndex);
+                return columnIndex == 0 && !extension.isDefaultExtension();
             }
 
             @Override
