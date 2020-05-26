@@ -102,7 +102,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class LanguageServerWrapper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServerWrapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServerWrapper.class);//$NON-NLS-1$
+    private static final String CLIENT_NAME = "IntelliJ";
 
     class Listener implements DocumentListener, FileDocumentManagerListener {
         @Override
@@ -242,10 +243,6 @@ public class LanguageServerWrapper {
             client.connect(languageServer, this);
             this.launcherFuture = launcher.startListening();
 
-            String name = "IntelliJ"; //$NON-NLS-1$
-            if (ApplicationManager.getApplication() instanceof ApplicationEx) {
-                name = ((ApplicationEx)ApplicationManager.getApplication()).getName();
-            }
             WorkspaceClientCapabilities workspaceClientCapabilities = new WorkspaceClientCapabilities();
             workspaceClientCapabilities.setApplyEdit(Boolean.TRUE);
             workspaceClientCapabilities.setExecuteCommand(new ExecuteCommandCapabilities(Boolean.TRUE));
@@ -304,7 +301,7 @@ public class LanguageServerWrapper {
                     .setSynchronization(new SynchronizationCapabilities(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
             initParams.setCapabilities(
                     new ClientCapabilities(workspaceClientCapabilities, textDocumentClientCapabilities, lspStreamProvider.getExperimentalFeaturesPOJO()));
-            initParams.setClientName(name);
+            initParams.setClientName(CLIENT_NAME);
 
             initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
             initParams.setTrace(this.lspStreamProvider.getTrace(rootURI));
