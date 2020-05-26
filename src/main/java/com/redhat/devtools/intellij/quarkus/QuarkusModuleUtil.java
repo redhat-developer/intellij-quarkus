@@ -32,12 +32,15 @@ import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class QuarkusModuleUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleUtil.class);
 
     public static boolean isQuarkusExtensionWithDeploymentArtifact(Library library) {
         boolean result = false;
@@ -45,10 +48,7 @@ public class QuarkusModuleUtil {
 
         for(int i=0; !result && i < files.length;++i) {
             if (files[i].isDirectory()) {
-                VirtualFile properties = files[i].findFileByRelativePath(QuarkusConstants.QUARKUS_EXTENSION_PROPERTIES);
-                if (properties != null) {
-                    result = ToolDelegate.getDeploymentJarId(VfsUtilCore.virtualToIoFile(properties)) != null;
-                }
+                result = ToolDelegate.getDeploymentJarId(VfsUtilCore.virtualToIoFile(files[i])) != null;
             }
         }
         return result;
@@ -60,13 +60,13 @@ public class QuarkusModuleUtil {
      * @param module the module to check
      */
     public static void ensureQuarkusLibrary(Module module) {
-        System.out.println("Ensuring library to " + module.getName());
+        LOGGER.info("Ensuring library to " + module.getName());
         long start = System.currentTimeMillis();
         ToolDelegate toolDelegate = ToolDelegate.getDelegate(module);
         if (toolDelegate != null) {
-            System.out.println("Tool delegate found for " + module.getName());
+            LOGGER.info("Tool delegate found for " + module.getName());
             if (isQuarkusModule(module)) {
-                System.out.println("isQuarkus module " + module.getName());
+                LOGGER.info("isQuarkus module " + module.getName());
                 Integer previousHash = module.getComponent(QuarkusModuleComponent.class).getHash();
                 Integer actualHash = computeHash(module);
                 if (actualHash != null && !actualHash.equals(previousHash)) {
@@ -78,14 +78,14 @@ public class QuarkusModuleUtil {
                             library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         }
                         List<VirtualFile>[] files = toolDelegate.getDeploymentFiles(module);
-                        System.out.println("Adding library to " + module.getName() + "previousHash=" + previousHash + " newHash=" + actualHash);
+                        LOGGER.info("Adding library to " + module.getName() + "previousHash=" + previousHash + " newHash=" + actualHash);
                         addLibrary(model, files);
                     });
                     module.getComponent(QuarkusModuleComponent.class).setHash(actualHash);
                 }
             }
         }
-        System.out.println("ensureQuarkusLibrary ran in " + (System.currentTimeMillis() - start));
+        LOGGER.info("ensureQuarkusLibrary ran in " + (System.currentTimeMillis() - start));
     }
 
     private static void addLibrary(ModifiableRootModel model, List<VirtualFile>[] files) {
