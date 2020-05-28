@@ -10,6 +10,19 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.microprofile.commons.metadata.ConverterKind;
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
+
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * JDT Quarkus utilities.
  *
@@ -17,6 +30,9 @@ package com.redhat.devtools.intellij.quarkus.search;
  *
  */
 public class PsiQuarkusUtils {
+    private static final List<ConverterKind> DEFAULT_QUARKUS_CONVERTERS = Arrays.asList(ConverterKind.KEBAB_CASE,
+            ConverterKind.VERBATIM);
+
     public static String getExtensionName(String location) {
         if (location == null) {
             return null;
@@ -39,4 +55,17 @@ public class PsiQuarkusUtils {
         }
         return extensionName;
     }
-}
+
+    public static void updateConverterKinds(ItemMetadata metadata, PsiMember member, PsiClass enclosedType) {
+        if (enclosedType == null || !enclosedType.isEnum()) {
+            return;
+        }
+        // By default Quarkus set the enum values as kebab and verbatim
+        metadata.setConverterKinds(DEFAULT_QUARKUS_CONVERTERS);
+    }
+
+    public static boolean isSupportNamingStrategy(Module javaProject) {
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(javaProject.getProject());
+        return facade.findClass(QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM, GlobalSearchScope.moduleWithLibrariesScope(javaProject)) != null;
+    }
+    }

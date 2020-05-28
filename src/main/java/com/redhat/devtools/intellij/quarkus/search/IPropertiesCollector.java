@@ -9,6 +9,7 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemMetadata;
 
@@ -60,4 +61,12 @@ public interface IPropertiesCollector {
 	 * @return the item hint for the given hint name.
 	 */
 	ItemHint getItemHint(String hint);
+
+	/**
+	 * Merges the properties and hints from <code>metadata</code>
+	 * to the current <code>ConfigurationMetadata</code> instance
+	 *
+	 * @param metadata the metadata to merge
+	 */
+	void merge(ConfigurationMetadata metadata);
 }

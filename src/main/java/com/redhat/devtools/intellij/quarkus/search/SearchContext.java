@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij.quarkus.search;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.search.SearchScope;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.microprofile.commons.DocumentFormat;
 
 import java.util.HashMap;

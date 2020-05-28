@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -25,6 +25,7 @@ import java.io.File;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertProperties;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertPropertiesDuplicate;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;
+import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
 import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
 
 /**
@@ -33,23 +34,26 @@ import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE
 public class MavenMicroProfileConfigPropertyTest extends MavenImportingTestCase {
     public void testConfigQuickstartFromClasspath() throws Exception {
         Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
-        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
 
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar");
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
-        assertProperties(infoFromClasspath, 203 /* properties from JAR */ + //
-                        3 /* properties from Java sources with ConfigProperty */ + //
-                        2 /* properties from Java sources with ConfigRoot */,
+        assertProperties(infoFromClasspath, 254 /*257*/ /* properties from JAR */ + //
+                        9 /* properties from Java sources with ConfigProperty */ + //
+                        2 /* properties from Java sources with ConfigRoot */ + //
+                        7 /* static properties from microprofile-context-propagation-api */,
 
                 // io.quarkus.deployment.ApplicationConfig
                 p("quarkus-core", "quarkus.application.name", "java.util.Optional<java.lang.String>",
-                        "The name of the application.\nIf not set, defaults to the name of the project.", true,
-                        "io.quarkus.deployment.ApplicationConfig", "name", null, CONFIG_PHASE_BUILD_TIME, null),
+                        "The name of the application.\nIf not set, defaults to the name of the project (except for tests where it is not set at all).",
+                        true, "io.quarkus.runtime.ApplicationConfig", "name", null,
+                        CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
 
                 p("quarkus-core", "quarkus.application.version", "java.util.Optional<java.lang.String>",
-                        "The version of the application.\nIf not set, defaults to the version of the project", true,
-                        "io.quarkus.deployment.ApplicationConfig", "version", null, CONFIG_PHASE_BUILD_TIME, null),
+                        "The version of the application.\nIf not set, defaults to the version of the project (except for tests where it is not set at all).",
+                        true, "io.quarkus.runtime.ApplicationConfig", "version", null,
+                        CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED, null),
 
                 // GreetingResource
                 // @ConfigProperty(name = "greeting.message")
@@ -66,6 +70,36 @@ public class MavenMicroProfileConfigPropertyTest extends MavenImportingTestCase 
                 // Optional<String> name;
                 p(null, "greeting.name", "java.util.Optional<java.lang.String>", null, false, "org.acme.config.GreetingResource", "name",
                         null, 0, null),
+
+                // GreetingConstructorResource(
+                // @ConfigProperty(name = "greeting.constructor.message") String message,
+                // @ConfigProperty(name = "greeting.constructor.suffix" , defaultValue="!")
+                // String suffix,
+                // @ConfigProperty(name = "greeting.constructor.name") Optional<String> name)
+                p(null, "greeting.constructor.message", "java.lang.String", null, false,
+                        "org.acme.config.GreetingConstructorResource", null,
+                        "GreetingConstructorResource(Ljava/lang/String;Ljava/lang/String;Ljava/util/Optional;)V", 0, null),
+
+                p(null, "greeting.constructor.suffix", "java.lang.String", null, false,
+                        "org.acme.config.GreetingConstructorResource", null,
+                        "GreetingConstructorResource(Ljava/lang/String;Ljava/lang/String;Ljava/util/Optional;)V", 0, "!"),
+
+                p(null, "greeting.constructor.name", "java.util.Optional<java.lang.String>", null, false,
+                        "org.acme.config.GreetingConstructorResource", null,
+                        "GreetingConstructorResource(Ljava/lang/String;Ljava/lang/String;Ljava/util/Optional;)V", 0, null),
+
+                // setMessage(@ConfigProperty(name = "greeting.method.message") String message)
+                p(null, "greeting.method.message", "java.lang.String", null, false,
+                        "org.acme.config.GreetingMethodResource", null, "setMessage(Ljava/lang/String;)V", 0, null),
+
+                // setSuffix(@ConfigProperty(name = "greeting.method.suffix" , defaultValue="!")
+                // String suffix)
+                p(null, "greeting.method.suffix", "java.lang.String", null, false,
+                        "org.acme.config.GreetingMethodResource", null, "setSuffix(Ljava/lang/String;)V", 0, "!"),
+
+                // setName(@ConfigProperty(name = "greeting.method.name") Optional<String> name)
+                p(null, "greeting.method.name", "java.util.Optional<java.lang.String>", null, false,
+                        "org.acme.config.GreetingMethodResource", null, "setName(Ljava/util/Optional;)V", 0, null),
 
                 // @ConfigRoot / CustomExtensionConfig / property1
                 p(null, "quarkus.custom-extension.property1", "java.lang.String", null, false,
@@ -80,9 +114,9 @@ public class MavenMicroProfileConfigPropertyTest extends MavenImportingTestCase 
 
     public void testConfigQuickstartFromJavaSources() throws Exception {
         Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
 
-        assertProperties(infoFromJavaSources, 3 /* properties from Java sources with ConfigProperty */ + //
+        assertProperties(infoFromJavaSources, 9 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */,
 
                 // GreetingResource
@@ -100,6 +134,36 @@ public class MavenMicroProfileConfigPropertyTest extends MavenImportingTestCase 
                 // Optional<String> name;
                 p(null, "greeting.name", "java.util.Optional<java.lang.String>", null, false, "org.acme.config.GreetingResource", "name",
                         null, 0, null),
+
+                // GreetingConstructorResource(
+                // @ConfigProperty(name = "greeting.constructor.message") String message,
+                // @ConfigProperty(name = "greeting.constructor.suffix" , defaultValue="!")
+                // String suffix,
+                // @ConfigProperty(name = "greeting.constructor.name") Optional<String> name)
+                p(null, "greeting.constructor.message", "java.lang.String", null, false,
+                        "org.acme.config.GreetingConstructorResource", null,
+                        "GreetingConstructorResource(Ljava/lang/String;Ljava/lang/String;Ljava/util/Optional;)V", 0, null),
+
+                p(null, "greeting.constructor.suffix", "java.lang.String", null, false,
+                        "org.acme.config.GreetingConstructorResource", null,
+                        "GreetingConstructorResource(Ljava/lang/String;Ljava/lang/String;Ljava/util/Optional;)V", 0, "!"),
+
+                p(null, "greeting.constructor.name", "java.util.Optional<java.lang.String>", null, false,
+                        "org.acme.config.GreetingConstructorResource", null,
+                        "GreetingConstructorResource(Ljava/lang/String;Ljava/lang/String;Ljava/util/Optional;)V", 0, null),
+
+                // setMessage(@ConfigProperty(name = "greeting.method.message") String message)
+                p(null, "greeting.method.message", "java.lang.String", null, false,
+                        "org.acme.config.GreetingMethodResource", null, "setMessage(Ljava/lang/String;)V", 0, null),
+
+                // setSuffix(@ConfigProperty(name = "greeting.method.suffix" , defaultValue="!")
+                // String suffix)
+                p(null, "greeting.method.suffix", "java.lang.String", null, false,
+                        "org.acme.config.GreetingMethodResource", null, "setSuffix(Ljava/lang/String;)V", 0, "!"),
+
+                // setName(@ConfigProperty(name = "greeting.method.name") Optional<String> name)
+                p(null, "greeting.method.name", "java.util.Optional<java.lang.String>", null, false,
+                        "org.acme.config.GreetingMethodResource", null, "setName(Ljava/util/Optional;)V", 0, null),
 
                 // @ConfigRoot / CustomExtensionConfig / property1
                 p(null, "quarkus.custom-extension.property1", "java.lang.String", null, false,

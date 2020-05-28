@@ -13,10 +13,9 @@ targetCompatibility = '1.8'
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
     if (ideaVersion.substring(3) != "2019.1") {
-        plugins 'java', 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.6.1'
+        plugins 'java', 'maven', 'gradle', 'properties'
     } else {
-        plugins 'maven', 'gradle', 'properties', 'com.github.gtache.lsp:1.6.1'
-
+        plugins 'maven', 'gradle', 'properties'
     }
     pluginName 'Quarkus Tools'
     updateSinceUntilBuild false
@@ -39,7 +38,6 @@ repositories {
 configurations {
     compile {
         exclude group: 'org.slf4j', module: 'slf4j-api'
-        exclude group: 'org.eclipse.lsp4j'
     }
     lsp
 }
@@ -67,8 +65,10 @@ dependencies {
     compile 'io.quarkus:quarkus-core:1.0.1.Final'
     compile 'io.quarkus:quarkus-core-deployment:1.0.1.Final'
     compile 'io.quarkus:quarkus-arc:1.0.1.Final'
-    compile 'com.redhat.microprofile:com.redhat.microprofile.ls:0.0.5-SNAPSHOT'
-    lsp 'com.redhat.microprofile:com.redhat.microprofile.ls:0.0.5-SNAPSHOT:uber'
+    compile 'com.redhat.microprofile:com.redhat.microprofile.ls:0.7.0-SNAPSHOT'
+    compile 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.8.1'
+    compile 'com.vladsch.flexmark:flexmark:0.50.50'
+    lsp 'com.redhat.microprofile:com.redhat.microprofile.ls:0.7.0-SNAPSHOT:uber'
     compile files(new File(buildDir, 'server')) {
         builtBy 'copyDeps'
     }

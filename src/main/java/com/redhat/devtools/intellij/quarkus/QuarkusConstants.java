@@ -37,6 +37,27 @@ public class QuarkusConstants {
     public static final String CONFIG_PROPERTY_ANNOTATION_NAME = "name";
     public static final String CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE = "defaultValue";
 
+    /**
+     * The Quarkus @ConfigProperties annotation
+     */
+    public static final String CONFIG_PROPERTIES_ANNOTATION_NAMING_STRATEGY = "namingStrategy";
+
+    public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM = CONFIG_PROPERTIES_ANNOTATION
+            + ".NamingStrategy";
+
+    public static final String NAMING_STRATEGY_PREFIX = "NamingStrategy.";
+
+    public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_FROM_CONFIG = NAMING_STRATEGY_PREFIX
+            + "FROM_CONFIG";
+
+    public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_VERBATIM = NAMING_STRATEGY_PREFIX + "VERBATIM";
+
+    public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_KEBAB_CASE = NAMING_STRATEGY_PREFIX
+            + "KEBAB_CASE";
+
+    public static final String QUARKUS_ARC_CONFIG_PROPERTIES_DEFAULT_NAMING_STRATEGY = "quarkus.arc.config-properties-default-naming-strategy";
+
+
     public static final String QUARKUS_PREFIX = "quarkus.";
     public static final String QUARKUS_JAVADOC_PROPERTIES_FILE = "quarkus-javadoc.properties";
     public static final String QUARKUS_EXTENSION_PROPERTIES = "META-INF/quarkus-extension.properties";

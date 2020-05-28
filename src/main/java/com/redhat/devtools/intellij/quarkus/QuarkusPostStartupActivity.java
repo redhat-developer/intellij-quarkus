@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij.quarkus;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
@@ -27,17 +28,11 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPL
 import static com.redhat.devtools.intellij.quarkus.tool.ToolDelegate.BINARY;
 import static com.redhat.devtools.intellij.quarkus.tool.ToolDelegate.SOURCES;
 
-public class QuarkusPostStartupActivity implements StartupActivity {
+public class QuarkusPostStartupActivity implements StartupActivity, DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
-        for(Module module : ModuleManager.getInstance(project).getModules()) {
-            ToolDelegate toolDelegate = ToolDelegate.getDelegate(module);
-            if (toolDelegate != null) {
-                List<VirtualFile>[] deploymentFiles = toolDelegate.getDeploymentFiles(module);
-                if (!deploymentFiles[BINARY].isEmpty()) {
-                    ModuleRootModificationUtil.addModuleLibrary(module, QUARKUS_DEPLOYMENT_LIBRARY_NAME, deploymentFiles[BINARY].stream().map(file -> file.getUrl()).collect(Collectors.toList()), deploymentFiles[SOURCES].stream().map(file -> file.getUrl()).collect(Collectors.toList()), DependencyScope.PROVIDED);
-                }
-            }
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
+            QuarkusModuleUtil.ensureQuarkusLibrary(module);
         }
     }
 }

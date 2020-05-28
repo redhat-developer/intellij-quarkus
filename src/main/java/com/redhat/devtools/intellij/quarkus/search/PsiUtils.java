@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Red Hat, Inc.
+ * Copyright (c) 2020 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -10,61 +10,48 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiMethod;
-import com.redhat.devtools.intellij.quarkus.javadoc.JavadocContentAccess;
-import com.redhat.microprofile.commons.ClasspathKind;
-import com.redhat.microprofile.commons.DocumentFormat;
+import com.intellij.openapi.editor.Document;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 
-import java.io.Reader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
-import java.util.Scanner;
-
-/**
- * {@link IPsiUtils} implementation.
- *
- * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/internal/core/ls/JDTUtilsLSImpl.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/internal/core/ls/JDTUtilsLSImpl.java</a>
- */
-public class PsiUtils implements IPsiUtils {
-    private static final IPsiUtils INSTANCE = new PsiUtils();
-
-    public static IPsiUtils getInstance() {
-        return INSTANCE;
-    }
-
-    private PsiUtils() {
-    }
-
-    @Override
-    public VirtualFile findFile(String uri) throws URISyntaxException {
-        return LocalFileSystem.getInstance().findFileByIoFile(Paths.get(new URI(uri)).toFile());
-    }
-
-    @Override
-    public String getJavadoc(PsiMethod method, DocumentFormat documentFormat) {
-        boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
-        Reader reader = markdown ? JavadocContentAccess.getMarkdownContentReader(method)
-                : JavadocContentAccess.getPlainTextContentReader(method);
-        return reader != null ? toString(reader) : null;
-    }
-
-    private static String toString(Reader reader) {
-        try (Scanner s = new Scanner(reader)) {
-            s.useDelimiter("\\A");
-            return s.hasNext() ? s.next() : "";
+public class PsiUtils {
+    public static Range toRange(PsiElement element, int offset, int length) {
+        Range range = newRange();
+        if (offset > 0 || length > 0) {
+            int[] loc = null;
+            int[] endLoc = null;
+            Document buffer = PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
+            if (buffer != null) {
+                loc = JsonRpcHelpers.toLine(buffer, offset);
+                endLoc = JsonRpcHelpers.toLine(buffer, offset + length);
+            }
+            if (loc == null) {
+                loc = new int[2];
+            }
+            if (endLoc == null) {
+                endLoc = new int[2];
+            }
+            setPosition(range.getStart(), loc);
+            setPosition(range.getEnd(), endLoc);
         }
+        return range;
     }
 
-    public static ClasspathKind getClasspathKind(VirtualFile file, Module module) {
-        return ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(file)?ClasspathKind.TEST:ClasspathKind.SRC;
+    /**
+     * Creates a new {@link Range} with its start and end {@link Position}s set to line=0, character=0
+     *
+     * @return a new {@link Range};
+     */
+    public static Range newRange() {
+        return new Range(new Position(), new Position());
     }
 
-    public static String getProjectURI(Module module) {
-        return module.getModuleFilePath();
+    private static void setPosition(Position position, int[] coords) {
+        assert coords.length == 2;
+        position.setLine(coords[0]);
+        position.setCharacter(coords[1]);
     }
+
 }

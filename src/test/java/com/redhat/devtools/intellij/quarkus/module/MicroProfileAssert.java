@@ -9,12 +9,25 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.module;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant;
+import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 import org.junit.Assert;
 
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -245,4 +258,29 @@ public class MicroProfileAssert {
 				0, result.size());
 	}
 
+    public static void saveFile(String name, String content, Module javaProject) throws IOException {
+        String modulePath = ModuleUtilCore.getModuleDirPath(javaProject);
+        VirtualFile file = LocalFileSystem.getInstance().refreshAndFindFileByPath(modulePath + "/src/main/resources/" + name);
+        Application application = ApplicationManager.getApplication();
+        application.invokeAndWait(() -> application.runWriteAction(() -> {
+            try {
+                file.setBinaryContent(content.getBytes(file.getCharset()));
+            } catch (IOException e) {}
+        }));
+    }
+
+	public static void assertHover(String expectedKey, String expectedValue, int expectedLine, int expectedStartOffset,
+								   int expectedEndOffset, Hover actualInfo) {
+		Assert.assertNotNull(actualInfo);
+
+		Position expectedStart = new Position(expectedLine, expectedStartOffset);
+		Position expectedEnd = new Position(expectedLine, expectedEndOffset);
+		Range expectedRange = new Range(expectedStart, expectedEnd);
+
+		MarkupContent expectedContent = MicroProfileConfigHoverParticipant.getDocumentation(expectedKey, expectedValue,
+				DocumentFormat.Markdown, true);
+
+		Assert.assertEquals(expectedContent, actualInfo.getContents().getRight());
+		Assert.assertEquals(expectedRange, actualInfo.getRange());
+	}
 }

@@ -31,13 +31,12 @@
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="183"/>
+  <idea-version since-build="183.3647.12"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products -->
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.java</depends>
-  <depends>com.github.gtache.lsp</depends>
   <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
 
@@ -62,24 +61,37 @@
   <extensionPoints>
     <extensionPoint name="toolDelegate" interface="com.redhat.devtools.intellij.quarkus.tool.ToolDelegate"/>
     <extensionPoint name="propertiesProvider" interface="com.redhat.devtools.intellij.quarkus.search.IPropertiesProvider"/>
+    <extensionPoint name="javaHoverParticipant" interface="com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant"/>
+    <extensionPoint name="javaDiagnosticsParticipant" interface="com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaDiagnosticsParticipant"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
-    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.MicroProfileConfigPropertyProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.MicroProfileRegisterRestClientProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.QuarkusConfigPropertiesProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.QuarkusConfigRootProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.QuarkusKubernetesProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileConfigPropertyProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileRegisterRestClientProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.QuarkusConfigPropertiesProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.QuarkusConfigRootProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.QuarkusKubernetesProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileFaultToleranceProvider"/>
+
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileContextPropagationProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileLRAProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileMetricsProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenAPIProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingProvider"/>
+
+
+    <javaHoverParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant"/>
+
+    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.health.java.MicroProfileHealthDiagnosticsParticipant"/>
+    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant"/>
   </extensions>
 
   <application-components>
-    <component>
-      <interface-class>com.redhat.devtools.intellij.quarkus.lsp.QuarkusLSPInitializer</interface-class>
-      <implementation-class>com.redhat.devtools.intellij.quarkus.lsp.QuarkusLSPInitializer</implementation-class>
-    </component>
   </application-components>
   <module-components>
     <component>
       <implementation-class>com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent</implementation-class>
     </component>
   </module-components>
+
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

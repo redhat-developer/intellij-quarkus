@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -33,7 +33,7 @@ import static com.redhat.microprofile.commons.metadata.ItemMetadata.CONFIG_PHASE
 public class MavenQuarkusConfigRootTest extends MavenImportingTestCase {
     public void testHibernateOrmResteasy() throws Exception {
         Module module = createMavenModule("hibernate-orm-resteasy", new File("projects/maven/hibernate-orm-resteasy"));
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-hibernate-orm-deployment:0.19.1"), "jar");
         assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", f);
         assertProperties(info,
@@ -47,7 +47,7 @@ public class MavenQuarkusConfigRootTest extends MavenImportingTestCase {
 
     public void testAllQuarkusExtensions() throws Exception {
         Module module = createMavenModule("all-quarkus-extensions", new File("projects/maven/all-quarkus-extensions"));
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
         File keycloakJARFile = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-keycloak-deployment:0.21.1"), "jar");
         assertNotNull("Test existing of quarkus-keycloak-deployment*.jar", keycloakJARFile);
         File hibernateJARFile = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-hibernate-orm-deployment:0.21.1"), "jar");

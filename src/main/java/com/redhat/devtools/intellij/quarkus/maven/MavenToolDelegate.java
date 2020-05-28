@@ -27,10 +27,12 @@ import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MavenToolDelegate implements ToolDelegate {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenToolDelegate.class);
@@ -77,24 +79,30 @@ public class MavenToolDelegate implements ToolDelegate {
 
     private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile>[] result) {
         Set<MavenArtifact> downloaded = new HashSet<>();
-        for(MavenArtifact artifact : mavenProject.getDependencies()) {
+        Set<MavenId> toDownload = new HashSet<>();
+        for (MavenArtifact artifact : mavenProject.getDependencies()) {
             if (artifact.getFile() != null) {
                 String deploymentIdStr = ToolDelegate.getDeploymentJarId(artifact.getFile());
                 if (deploymentIdStr != null) {
                     MavenId deploymentId = new MavenId(deploymentIdStr);
                     if (mavenProject.findDependencies(deploymentId).isEmpty()) {
-                            List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, deploymentId, null);
-                            for(MavenArtifact binaryDependency : binaryDependencies) {
-                                if (processDependency(mavenProject, result, downloaded, binaryDependency, BINARY)) {
-                                    List<MavenArtifact> sourcesDependencies = ensureDownloaded(module, mavenProject, binaryDependency.getMavenId(), "sources");
-                                    for(MavenArtifact sourceDependency : sourcesDependencies) {
-                                        processDependency(mavenProject, result, downloaded, sourceDependency, SOURCES);
-                                    }
-                                }
-                            }
+                        toDownload.add(deploymentId);
                     }
                 }
             }
+        }
+        List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, toDownload, null);
+        toDownload.clear();
+        for (MavenArtifact binaryDependency : binaryDependencies) {
+            if (!"test".equals(binaryDependency.getScope())) {
+                if (processDependency(mavenProject, result, downloaded, binaryDependency, BINARY)) {
+                    toDownload.add(binaryDependency.getMavenId());
+                }
+            }
+        }
+        List<MavenArtifact> sourcesDependencies = ensureDownloaded(module, mavenProject, toDownload, "sources");
+        for (MavenArtifact sourceDependency : sourcesDependencies) {
+            processDependency(mavenProject, result, downloaded, sourceDependency, SOURCES);
         }
     }
 
@@ -112,18 +120,24 @@ public class MavenToolDelegate implements ToolDelegate {
         return added;
     }
 
-    private List<MavenArtifact> ensureDownloaded(Module module, MavenProject mavenProject, MavenId deploymentId, String classifier) {
+    private List<MavenArtifact> ensureDownloaded(Module module, MavenProject mavenProject, Set<MavenId> deploymentIds, String classifier) {
+        System.out.println("ensureDownloaded id=" + deploymentIds.size() + " classifier=" + classifier);
+        List<MavenArtifact> result = new ArrayList<>();
+        long start = System.currentTimeMillis();
         try {
-            MavenEmbedderWrapper serverWrapper = MavenServerManager.getInstance().createEmbedder(module.getProject(), false, null, null);
-            MavenArtifactInfo info = new MavenArtifactInfo(deploymentId, "jar", classifier);
+            MavenEmbedderWrapper serverWrapper = MavenServerManager.getInstance().createEmbedder(module.getProject(), false, mavenProject.getDirectory(), mavenProject.getDirectory());
             if (classifier != null) {
-                return Collections.singletonList(serverWrapper.resolve(info, mavenProject.getRemoteRepositories()));
+                for(MavenId id : deploymentIds) {
+                    result.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));
+                }
             } else {
-                return serverWrapper.resolveTransitively(Collections.singletonList(info), mavenProject.getRemoteRepositories());
+                List<MavenArtifactInfo> infos = deploymentIds.stream().map(id -> new MavenArtifactInfo(id, "jar", classifier)).collect(Collectors.toList());
+                result = serverWrapper.resolveTransitively(infos, mavenProject.getRemoteRepositories());
             }
         } catch (MavenProcessCanceledException e) {
             LOGGER.error(e.getLocalizedMessage(), e);
-            return Collections.emptyList();
         }
+        System.out.println("ensureDownloaded took " + (System.currentTimeMillis() - start));
+        return result;
     }
 }

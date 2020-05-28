@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -54,7 +54,7 @@ public class MavenPropertiesManagerTest extends MavenImportingTestCase {
     }
 
     public void testQuarkusCoreDeploymentProperties() {
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
         File quarkusCoreJARFile = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:0.24.0"), "jar");
         assertNotNull("Test existing of quarkus-core*.jar", quarkusCoreJARFile);
 

@@ -11,7 +11,7 @@
 package com.redhat.devtools.intellij.quarkus.gradle;
 
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -54,7 +54,7 @@ public class GradlePropertiesManagerTest extends GradleTestCase {
     @Test
     public void testQuarkusCoreDeploymentProperties() throws IOException {
         importProject(CONFIG);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("project.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtils.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("project.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
         File quarkusCoreJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-core-deployment", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-core-deployment.jar", quarkusCoreJARFile);
 

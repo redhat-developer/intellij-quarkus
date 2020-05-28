@@ -10,17 +10,18 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.util.MergeQuery;
 import com.intellij.util.Query;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -68,8 +69,8 @@ public class PropertiesManager {
     }
 
     public MicroProfileProjectInfo getMicroProfileProjectInfo(VirtualFile file, List<MicroProfilePropertiesScope> scopes, IPsiUtils utils, DocumentFormat documentFormat) {
-        Module module = getModule(file);
-        ClasspathKind classpathKind = PsiUtils.getClasspathKind(file, module);
+        Module module = ApplicationManager.getApplication().runReadAction((Computable<Module>) () -> utils.getModule(file));
+        ClasspathKind classpathKind = PsiUtilsImpl.getClasspathKind(file, module);
         return getMicroProfileProjectInfo(module, scopes, classpathKind, utils, documentFormat);
     }
 
@@ -79,13 +80,13 @@ public class PropertiesManager {
         MicroProfileProjectInfo info = createInfo(module, classpathKind);
         long startTime = System.currentTimeMillis();
         boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
-        PropertiesCollector collector = new PropertiesCollector(info);
+        PropertiesCollector collector = new PropertiesCollector(info, scopes);
         SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
         SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat);
         DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
-            Query<PsiMember> query = createSearchQuery(context);
+            Query<PsiModifierListOwner> query = createSearchQuery(context);
             beginSearch(context);
-            query.forEach((Consumer<? super PsiMember>) psiMember -> collectProperties(psiMember, context));
+            query.forEach((Consumer<? super PsiModifierListOwner>) psiMember -> collectProperties(psiMember, context));
             endSearch(context);
         });
         LOGGER.info("End computing MicroProfile properties for '" + info.getProjectURI() + "' in "
@@ -95,17 +96,17 @@ public class PropertiesManager {
 
     private void beginSearch(SearchContext context) {
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
-            provider.begin(context);
+            provider.beginSearch(context);
         }
     }
 
     private void endSearch(SearchContext context) {
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
-            provider.end(context);
+            provider.endSearch(context);
         }
     }
 
-    private void collectProperties(PsiMember psiMember, SearchContext context) {
+    private void collectProperties(PsiModifierListOwner psiMember, SearchContext context) {
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
             provider.collectProperties(psiMember, context);
         }
@@ -113,7 +114,7 @@ public class PropertiesManager {
 
     private static MicroProfileProjectInfo createInfo(Module module, ClasspathKind classpathKind) {
         MicroProfileProjectInfo info = new MicroProfileProjectInfo();
-        info.setProjectURI(PsiUtils.getProjectURI(module));
+        info.setProjectURI(PsiUtilsImpl.getProjectURI(module));
         info.setClasspathKind(classpathKind);
         return info;
     }
@@ -135,25 +136,17 @@ public class PropertiesManager {
         return searchScope;
     }
 
-    private static Module getModule(VirtualFile file) {
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
-            if (module != null) {
-                return module;
-            }
-        }
-        return null;
-    }
-
-    private Query<PsiMember> createSearchQuery(SearchContext context) {
-        Query<PsiMember> query = null;
+    private Query<PsiModifierListOwner> createSearchQuery(SearchContext context) {
+        Query<PsiModifierListOwner> query = null;
 
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
-          Query<PsiMember> providerQuery = provider.createSearchQuery(context);
-          if (query == null) {
-              query = providerQuery;
-          } else {
-              query = new MergeQuery<>(query, providerQuery);
+          Query<PsiModifierListOwner> providerQuery = provider.createSearchPattern(context);
+          if (providerQuery != null) {
+              if (query == null) {
+                  query = providerQuery;
+              } else {
+                  query = new MergeQuery<>(query, providerQuery);
+              }
           }
         }
         return query;

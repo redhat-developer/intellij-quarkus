@@ -1,0 +1,11 @@
+{
+	"properties": [
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-lra-api",
+			"required": false,
+			"name": "mp.lra.propagation.active",
+			"description": "When a JAX-RS endpoint, or the containing class, is not annotated with `@LRA`, but it is called on a MicroProfile LRA compliant runtime, the system will propagate the LRA related HTTP headers when this parameter resolves to true.\r\n\r\nThe behaviour is similar to the `LRA.Type` `SUPPORTS` (when true) and `NOT_SUPPORTED` (when false) values but only defines the propagation aspect.\r\n\r\nIn other words the class does not have to be a participant in order for the LRA context to propagate, i.e. such propagation of the header does not imply that the LRA is in any particular state, and in fact the LRA may not even correspond to a valid LRA."
+		}
+	]
+}
