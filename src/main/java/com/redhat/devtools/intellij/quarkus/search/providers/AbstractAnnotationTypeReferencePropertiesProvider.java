@@ -10,7 +10,7 @@
 package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import org.slf4j.Logger;
@@ -40,16 +40,16 @@ public abstract class AbstractAnnotationTypeReferencePropertiesProvider extends 
 	protected abstract String[] getAnnotationNames();
 
 	@Override
-	protected Query<PsiMember> createSearchPattern(SearchContext context, String annotationName) {
+	protected Query<PsiModifierListOwner> createSearchPattern(SearchContext context, String annotationName) {
 		return createAnnotationTypeReferenceSearchPattern(context, annotationName);
 	}
 
 	@Override
-	public void collectProperties(PsiMember match, SearchContext context) {
+	public void collectProperties(PsiModifierListOwner match, SearchContext context) {
 		processAnnotation(match, context);
 	}
 
-	protected void processAnnotation(PsiMember psiElement, SearchContext context) {
+	protected void processAnnotation(PsiModifierListOwner psiElement, SearchContext context) {
 		try {
 			String[] names = getAnnotationNames();
 			PsiAnnotation[] annotations = psiElement.getAnnotations();
@@ -67,6 +67,6 @@ public abstract class AbstractAnnotationTypeReferencePropertiesProvider extends 
 		}
 	}
 
-	protected abstract void processAnnotation(PsiMember psiElement, PsiAnnotation annotation, String annotationName,
+	protected abstract void processAnnotation(PsiModifierListOwner psiElement, PsiAnnotation annotation, String annotationName,
 			SearchContext context);
 }

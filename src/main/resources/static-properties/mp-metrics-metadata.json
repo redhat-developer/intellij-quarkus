@@ -1,0 +1,18 @@
+{
+	"properties": [
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-metrics-api",
+			"required": false,
+			"name": "mp.metrics.tags",
+			"description": "List of tag values.\r\nTag values set through `mp.metrics.tags` MUST escape equal symbols `=` and commas `,` with a backslash `\\`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-metrics-api",
+			"required": false,
+			"name": "mp.metrics.appName",
+			"description": "The app name."
+		}
+	]
+}

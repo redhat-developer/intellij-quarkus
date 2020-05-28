@@ -42,17 +42,17 @@ public class MavenMicroProfileOpenTracingTest extends MavenImportingTestCase {
 	public void testMicroprofileOpenTracing() throws Exception {
 
 		Module module = createMavenModule("microprofile-opentracing", new File("projects/maven/microprofile-opentracing"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 
-				p(null, "mp.opentracing.server.skip-pattern", "java.util.Optional<java.util.regex.Pattern>",
+				p("microprofile-opentracing-api", "mp.opentracing.server.skip-pattern", "java.util.regex.Pattern",
 						"Specifies a skip pattern to avoid tracing of selected REST endpoints.",
-						false, null, null, null, 0, null),
+						true, null, null, null, 0, null),
 
-				p(null, "mp.opentracing.server.operation-name-provider", "\"http-path\" or \"class-method\"",
+				p("microprofile-opentracing-api", "mp.opentracing.server.operation-name-provider", "\"http-path\" or \"class-method\"",
 						"Specifies operation name provider for server spans. Possible values are `http-path` and `class-method`.",
-						false, null, null, null, 0, "class-method")
+						true, null, null, null, 0, "class-method")
 
 		);
 
@@ -64,8 +64,6 @@ public class MavenMicroProfileOpenTracingTest extends MavenImportingTestCase {
 						+ "For example if the class is annotated with `@Path(\"service\")` and method `@Path(\"endpoint/{id: \\\\d+}\")` "
 						+ "then the operation name is `GET:/service/endpoint/{id: \\\\d+}`.", null)) //
 		);
-
-
 
 		assertHintsDuplicate(infoFromClasspath);
 	}

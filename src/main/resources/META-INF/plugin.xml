@@ -70,10 +70,15 @@
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.QuarkusConfigPropertiesProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.QuarkusConfigRootProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.QuarkusKubernetesProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileMetricsProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileFaultToleranceProvider"/>
-    
+
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileContextPropagationProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileLRAProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileMetricsProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenAPIProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingProvider"/>
+
+
     <javaHoverParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant"/>
 
     <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.health.java.MicroProfileHealthDiagnosticsParticipant"/>

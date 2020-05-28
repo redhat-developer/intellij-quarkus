@@ -46,17 +46,17 @@ public class GradleMicroProfileOpenTracingTest extends GradleTestCase {
 	@Test
 	public void testMicroprofileMetrics() throws Exception {
 
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-opentracing.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-opentracing.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 
-				p(null, "mp.opentracing.server.skip-pattern", "java.util.Optional<java.util.regex.Pattern>",
+				p("microprofile-opentracing-api", "mp.opentracing.server.skip-pattern", "java.util.regex.Pattern",
 						"Specifies a skip pattern to avoid tracing of selected REST endpoints.",
-						false, null, null, null, 0, null),
+						true, null, null, null, 0, null),
 
-				p(null, "mp.opentracing.server.operation-name-provider", "\"http-path\" or \"class-method\"",
+				p("microprofile-opentracing-api", "mp.opentracing.server.operation-name-provider", "\"http-path\" or \"class-method\"",
 						"Specifies operation name provider for server spans. Possible values are `http-path` and `class-method`.",
-						false, null, null, null, 0, "class-method")
+						true, null, null, null, 0, "class-method")
 
 		);
 

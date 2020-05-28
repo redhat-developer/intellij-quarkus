@@ -14,7 +14,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiEnumConstant;
-import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.impl.source.PsiClassImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
@@ -46,8 +46,8 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	/**
 	 * Return an instance of search pattern.
 	 */
-	public Query<PsiMember> createSearchPattern(SearchContext context) {
-		Query<PsiMember> query = null;
+	public Query<PsiModifierListOwner> createSearchPattern(SearchContext context) {
+		Query<PsiModifierListOwner> query = null;
 		String[] patterns = getPatterns();
 		if (patterns == null) {
 			return null;
@@ -57,7 +57,7 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 			if (query == null) {
 				query = createSearchPattern(context, pattern);
 			} else {
-				Query<PsiMember> rightQuery = createSearchPattern(context, pattern);
+				Query<PsiModifierListOwner> rightQuery = createSearchPattern(context, pattern);
 				if (rightQuery != null) {
 					query = new MergeQuery<>(query, rightQuery);
 				}
@@ -72,7 +72,7 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @param pattern the search pattern
 	 * @return an instance of search pattern with the given <code>pattern</code>.
 	 */
-	protected abstract Query<PsiMember> createSearchPattern(SearchContext context, String pattern);
+	protected abstract Query<PsiModifierListOwner> createSearchPattern(SearchContext context, String pattern);
 
 	/**
 	 * Create a search pattern for the given <code>annotationName</code> annotation
@@ -82,11 +82,11 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @return a search pattern for the given <code>annotationName</code> annotation
 	 *         name.
 	 */
-	protected static Query<PsiMember> createAnnotationTypeReferenceSearchPattern(SearchContext context, String annotationName) {
+	protected static Query<PsiModifierListOwner> createAnnotationTypeReferenceSearchPattern(SearchContext context, String annotationName) {
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(context.getModule().getProject());
 		PsiClass annotationClass = javaPsiFacade.findClass(annotationName, GlobalSearchScope.allScope(context.getModule().getProject()));
 		if (annotationClass != null) {
-			return AnnotatedElementsSearch.searchElements(annotationClass, context.getScope(), PsiMember.class);
+			return AnnotatedElementsSearch.searchElements(annotationClass, context.getScope(), PsiModifierListOwner.class);
 		} else {
 			return new EmptyQuery<>();
 		}
@@ -98,7 +98,7 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @param annotationName the class name to search.
 	 * @return a search pattern for the given <code>className</code> class name.
 	 */
-	protected static Query<PsiMember> createAnnotationTypeDeclarationSearchPattern(SearchContext context, String annotationName) {
+	protected static Query<PsiModifierListOwner> createAnnotationTypeDeclarationSearchPattern(SearchContext context, String annotationName) {
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(context.getModule().getProject());
 		PsiClass annotationClass = javaPsiFacade.findClass(annotationName, GlobalSearchScope.allScope(context.getModule().getProject()));
 		if (annotationClass != null) {

@@ -16,6 +16,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.util.MergeQuery;
@@ -79,13 +80,13 @@ public class PropertiesManager {
         MicroProfileProjectInfo info = createInfo(module, classpathKind);
         long startTime = System.currentTimeMillis();
         boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
-        PropertiesCollector collector = new PropertiesCollector(info);
+        PropertiesCollector collector = new PropertiesCollector(info, scopes);
         SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
         SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat);
         DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
-            Query<PsiMember> query = createSearchQuery(context);
+            Query<PsiModifierListOwner> query = createSearchQuery(context);
             beginSearch(context);
-            query.forEach((Consumer<? super PsiMember>) psiMember -> collectProperties(psiMember, context));
+            query.forEach((Consumer<? super PsiModifierListOwner>) psiMember -> collectProperties(psiMember, context));
             endSearch(context);
         });
         LOGGER.info("End computing MicroProfile properties for '" + info.getProjectURI() + "' in "
@@ -105,7 +106,7 @@ public class PropertiesManager {
         }
     }
 
-    private void collectProperties(PsiMember psiMember, SearchContext context) {
+    private void collectProperties(PsiModifierListOwner psiMember, SearchContext context) {
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
             provider.collectProperties(psiMember, context);
         }
@@ -135,11 +136,11 @@ public class PropertiesManager {
         return searchScope;
     }
 
-    private Query<PsiMember> createSearchQuery(SearchContext context) {
-        Query<PsiMember> query = null;
+    private Query<PsiModifierListOwner> createSearchQuery(SearchContext context) {
+        Query<PsiModifierListOwner> query = null;
 
         for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
-          Query<PsiMember> providerQuery = provider.createSearchPattern(context);
+          Query<PsiModifierListOwner> providerQuery = provider.createSearchPattern(context);
           if (providerQuery != null) {
               if (query == null) {
                   query = providerQuery;

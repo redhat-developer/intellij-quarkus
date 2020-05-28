@@ -1,8 +1,21 @@
 package com.redhat.devtools.intellij.quarkus.search.providers;
 
-import com.intellij.psi.PsiMember;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
+import org.eclipse.lsp4j.jsonrpc.json.adapters.EnumTypeAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Abstract class for static properties provider.
@@ -15,6 +28,15 @@ import com.redhat.devtools.intellij.quarkus.search.SearchContext;
  *
  */
 public abstract class AbstractStaticPropertiesProvider extends AbstractPropertiesProvider {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStaticPropertiesProvider.class);
+
+	private final String path;
+
+	private ConfigurationMetadata metadata;
+
+	public AbstractStaticPropertiesProvider(String path) {
+		this.path = path;
+	}
 
 	@Override
 	public final void beginSearch(SearchContext context) {
@@ -37,10 +59,64 @@ public abstract class AbstractStaticPropertiesProvider extends AbstractPropertie
 	 * 
 	 * @param context the building scope context
 	 */
-	protected abstract void collectStaticProperties(SearchContext context);
+	/**
+	 * Collect static properties from the given context
+	 *
+	 * @param context the building scope context
+	 */
+	protected void collectStaticProperties(SearchContext context) {
+		if (metadata == null) {
+			try {
+				metadata = getMetadata();
+			} catch (IOException e) {
+				LOGGER.warn(e.getLocalizedMessage(), e);
+			}
+		}
+		if (metadata != null) {
+			context.getCollector().merge(metadata);
+		}
+	}
+
+	/**
+	 * Returns a <code>ConfigurationMetadata</code> instance from
+	 * the data stored from the json file located at <code>this.path</code>
+	 *
+	 * @return <code>ConfigurationMetadata</code> instance from
+	 * the data stored from the json file located at <code>this.path</code>
+	 * @throws IOException
+	 */
+	protected ConfigurationMetadata getMetadata() throws IOException {
+		InputStream in = getInputStream();
+		Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8.name());
+		return createGson().fromJson(reader, ConfigurationMetadata.class);
+	}
+
+	/**
+	 * Returns a <code>InputStream</code> instance that reads from the
+	 * file located at <code>this.path</code>
+	 *
+	 * @return a <code>InputStream</code> instance that reads from the
+	 * file located at <code>this.path</code>
+	 * @throws IOException
+	 */
+	protected InputStream getInputStream() throws IOException {
+		if (path == null || path.length() < 0) {
+			return null;
+		}
+		InputStream stream = AbstractStaticPropertiesProvider.class.getResourceAsStream(path);
+		if (stream == null) {
+			stream = new FileInputStream(path);
+		}
+		return stream;
+	}
+
+	private static Gson createGson() {
+		return new GsonBuilder().registerTypeAdapterFactory(new EnumTypeAdapter.Factory()).create();
+	}
+
 
 	@Override
-	public void collectProperties(PsiMember match, SearchContext context) {
+	public void collectProperties(PsiModifierListOwner match, SearchContext context) {
 		// Do nothing
 	}
 
@@ -50,7 +126,7 @@ public abstract class AbstractStaticPropertiesProvider extends AbstractPropertie
 	}
 
 	@Override
-	protected Query<PsiMember> createSearchPattern(SearchContext context, String pattern) {
+	protected Query<PsiModifierListOwner> createSearchPattern(SearchContext context, String pattern) {
 		return null;
 	}
 

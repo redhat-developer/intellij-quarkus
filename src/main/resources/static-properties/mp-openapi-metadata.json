@@ -1,0 +1,82 @@
+{
+	"properties": [
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.model.reader",
+			"description": "Configuration property to specify the fully qualified name of the OASModelReader implementation."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.filter",
+			"description": "Configuration property to specify the fully qualified name of the OASFilter implementation."
+		},
+		{
+			"type": "boolean",
+			"defaultValue": "false",
+			"extensionName": "microprofile-openapi-api",
+			"required": false,
+			"name": "mp.openapi.scan.disable",
+			"description": "Configuration property to disable annotation scanning. Default value is `false`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.scan.packages",
+			"description": "Configuration property to specify the list of packages to scan.\r\nFor example, `mp.openapi.scan.packages=com.xyz.PackageA,com.xyz.PackageB`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.scan.classes",
+			"description": "Configuration property to specify the list of classes to scan.\r\nFor example, `mp.openapi.scan.classes=com.xyz.MyClassA,com.xyz.MyClassB`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.scan.exclude.packages",
+			"description": "Configuration property to specify the list of packages to exclude from scans.\r\nFor example, `mp.openapi.scan.exclude.packages=com.xyz.PackageC,com.xyz.PackageD`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.scan.exclude.classes",
+			"description": "Configuration property to specify the list of classes to exclude from scans.\r\nFor example, `mp.openapi.scan.exclude.classes=com.xyz.MyClassC,com.xyz.MyClassD`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.servers",
+			"description": "Configuration property to specify the list of global servers that provide connectivity information.\r\nFor example, `mp.openapi.servers=https://xyz.com/v1,https://abc.com/v1`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.servers.path.{*}",
+			"description": "Prefix of the configuration property to specify an alternative list of servers to service all operations in a path.For example, `mp.openapi.servers.path./airlines/bookings/{id}=https://xyz.io/v1`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.servers.operation.{*}",
+			"description": "Prefix of the configuration property to specify an alternative list of servers to service an operation.Operations that want to specify an alternative list of servers must define an `operationId`, a unique string used to identify the operation.For example, `mp.openapi.servers.operation.getBooking=https://abc.io/v1`."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-openapi-api",
+			"required": true,
+			"name": "mp.openapi.schema.{*}",
+			"description": "Prefix of the configuration property to specify a schema for a specific class, in JSON format.The remainder of the property key must be the fully-qualified class name.The value must be a valid OpenAPI schema object, specified in the JSON format.The use of this property is functionally equivalent to the use of the `@Schema` annotationon a Java class, but may be used in cases where the application developer does not have access to the source code of a class."
+		}
+	]
+}

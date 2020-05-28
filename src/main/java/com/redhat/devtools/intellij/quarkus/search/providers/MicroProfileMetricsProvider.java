@@ -12,12 +12,9 @@
 package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
-import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 
-import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileMetricsConstants.APPLICATION_NAME_VARIABLE;
-import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileMetricsConstants.GLOBAL_TAGS_VARIABLE;
 import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileMetricsConstants.METRIC_ID;
 
 /**
@@ -31,23 +28,13 @@ import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfile
  */
 public class MicroProfileMetricsProvider extends AbstractStaticPropertiesProvider {
 
+	public MicroProfileMetricsProvider() {
+		super("/static-properties/mp-metrics-metadata.json");
+	}
+
 	@Override
 	protected boolean isAdaptedFor(SearchContext context) {
 		Module javaProject = context.getModule();
 		return (PsiTypeUtils.findType(javaProject, METRIC_ID) != null);
 	}
-
-	@Override
-	protected void collectStaticProperties(SearchContext context) {
-		IPropertiesCollector collector = context.getCollector();
-		String docs = "List of tag values.\r\n"
-				+ "Tag values set through `mp.metrics.tags` MUST escape equal symbols `=` and commas `,` with a backslash `\\`.";
-		super.addItemMetadata(collector, GLOBAL_TAGS_VARIABLE, "java.util.Optional<java.lang.String>", docs, null, null,
-				null, null, null, false);
-
-		docs = "The app name.";
-		super.addItemMetadata(collector, APPLICATION_NAME_VARIABLE, "java.util.Optional<java.lang.String>", docs, null,
-				null, null, null, null, false);
-	}
-
 }

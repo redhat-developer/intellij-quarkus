@@ -15,12 +15,15 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiVariable;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
-import com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
-import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -40,32 +43,41 @@ public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeRe
 	}
 
 	@Override
-	protected void processAnnotation(PsiMember psiElement, PsiAnnotation configPropertyAnnotation,
+	protected void processAnnotation(PsiModifierListOwner psiElement, PsiAnnotation configPropertyAnnotation,
 									 String annotationName, SearchContext context) {
-		if (psiElement instanceof PsiField || psiElement instanceof PsiMethod) {
+		if (psiElement instanceof PsiField || psiElement instanceof PsiMethod || psiElement instanceof PsiParameter) {
 			IPropertiesCollector collector = context.getCollector();
 			String name = AnnotationUtils.getAnnotationMemberValue(configPropertyAnnotation,
 					QuarkusConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
 			if (StringUtils.isNotEmpty(name)) {
-				String propertyTypeName;
+				String propertyTypeName = "";
 				if (psiElement instanceof PsiField) {
 					propertyTypeName = PsiTypeUtils.getResolvedTypeName((PsiField) psiElement);
-				} else {
+				} else if (psiElement instanceof PsiMethod) {
 					propertyTypeName = PsiTypeUtils.getResolvedResultTypeName((PsiMethod) psiElement);
+				} else if (psiElement instanceof PsiVariable) {
+					propertyTypeName = PsiTypeUtils.getResolvedTypeName((PsiVariable) psiElement);
 				}
 				PsiClass fieldClass = JavaPsiFacade.getInstance(psiElement.getProject()).findClass(propertyTypeName, GlobalSearchScope.allScope(psiElement.getProject()));
 
 				String type = PsiTypeUtils.getPropertyType(fieldClass, propertyTypeName);
 				String description = null;
-				String sourceType = PsiTypeUtils.getSourceType((PsiMember) psiElement);
-				String sourceField = PsiTypeUtils.getSourceField((PsiMember) psiElement);
+				String sourceType = PsiTypeUtils.getSourceType(psiElement);
+				String sourceField = null;
+				String sourceMethod = null;
+				if (psiElement instanceof PsiField || psiElement instanceof PsiMethod) {
+					sourceField = PsiTypeUtils.getSourceField((PsiMember) psiElement);
+				} else if (psiElement instanceof PsiParameter) {
+					PsiMethod method = (PsiMethod) ((PsiParameter)psiElement).getDeclarationScope();
+						sourceMethod = PsiTypeUtils.getSourceMethod(method);
+				}
 				String defaultValue = AnnotationUtils.getAnnotationMemberValue(configPropertyAnnotation,
 						QuarkusConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 				String extensionName = null;
 
 				super.updateHint(collector, fieldClass);
 
-				addItemMetadata(collector, name, type, description, sourceType, sourceField, null, defaultValue,
+				addItemMetadata(collector, name, type, description, sourceType, sourceField, sourceMethod, defaultValue,
 						extensionName, PsiTypeUtils.isBinary(psiElement));
 			}
 		}

@@ -18,6 +18,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierListOwner;
 import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
@@ -368,7 +369,7 @@ public class MicroProfileFaultToleranceProvider extends AbstractAnnotationTypeRe
 	}
 
 	@Override
-	protected void processAnnotation(PsiMember javaElement, PsiAnnotation mpftAnnotation, String annotationName,
+	protected void processAnnotation(PsiModifierListOwner javaElement, PsiAnnotation mpftAnnotation, String annotationName,
 									 SearchContext context) {
 		if (!(javaElement instanceof PsiMember)) {
 			return;

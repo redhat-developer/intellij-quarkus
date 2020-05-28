@@ -39,18 +39,18 @@ public class MavenMicroProfileMetricsTest extends MavenImportingTestCase {
 	public void testMicroprofileMetrics() throws Exception {
 
 		Module module = createMavenModule("microprofile-metrics", new File("projects/maven/microprofile-metrics"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 
-				p(null, "mp.metrics.tags", "java.util.Optional<java.lang.String>",
+				p("microprofile-metrics-api", "mp.metrics.tags", "java.lang.String",
 						"List of tag values.\r\n"
 								+ "Tag values set through `mp.metrics.tags` MUST escape equal symbols `=` and commas `,` with a backslash `\\`.",
-						false, null, null, null, 0, null),
+						true, null, null, null, 0, null),
 
-				p(null, "mp.metrics.appName", "java.util.Optional<java.lang.String>",
+				p("microprofile-metrics-api", "mp.metrics.appName", "java.lang.String",
 						"The app name.",
-						false, null, null, null, 0, null)
+						true, null, null, null, 0, null)
 
 		);
 

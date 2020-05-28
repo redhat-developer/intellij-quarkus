@@ -9,12 +9,28 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search.providers;
 
-import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
-import static io.quarkus.runtime.util.StringUtil.hyphenate;
-import static io.quarkus.runtime.util.StringUtil.join;
-import static io.quarkus.runtime.util.StringUtil.lowerCase;
-import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
-import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
+import com.intellij.navigation.NavigationItem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
+import com.redhat.devtools.intellij.quarkus.search.PsiQuarkusUtils;
+import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
+import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import io.quarkus.runtime.annotations.ConfigItem;
+import io.quarkus.runtime.annotations.ConfigPhase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -22,27 +38,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
-import com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils;
-import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
-import com.redhat.devtools.intellij.quarkus.search.PsiQuarkusUtils;
-import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
-import com.redhat.devtools.intellij.quarkus.search.SearchContext;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
-
-import io.quarkus.runtime.annotations.ConfigItem;
-import io.quarkus.runtime.annotations.ConfigPhase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
+import static io.quarkus.runtime.util.StringUtil.hyphenate;
+import static io.quarkus.runtime.util.StringUtil.join;
+import static io.quarkus.runtime.util.StringUtil.lowerCase;
+import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
+import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
 
 /**
  * Properties provider to collect Quarkus properties from the Java classes
@@ -72,7 +73,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 
 
 	@Override
-	protected void processAnnotation(PsiMember psiElement, PsiAnnotation annotation, String annotationName,
+	protected void processAnnotation(PsiModifierListOwner psiElement, PsiAnnotation annotation, String annotationName,
 									 SearchContext context) {
 		Map<VirtualFile, Properties> javadocCache = (Map<VirtualFile, Properties>) context
 				.get(JAVADOC_CACHE_KEY);
@@ -91,7 +92,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param javadocCache         the documentation cache
 	 * @param collector            the properties to fill
 	 */
-	private void processConfigRoot(PsiMember psiElement, PsiAnnotation configRootAnnotation,
+	private void processConfigRoot(PsiModifierListOwner psiElement, PsiAnnotation configRootAnnotation,
 			Map<VirtualFile, Properties> javadocCache, IPropertiesCollector collector) {
 		ConfigPhase configPhase = getConfigPhase(configRootAnnotation);
 		String configRootAnnotationName = getConfigRootName(configRootAnnotation);
@@ -150,8 +151,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param javaElement the Java class element
 	 * @return the simple name of the given <code>javaElement</code>
 	 */
-	private static String getSimpleName(PsiMember javaElement) {
-		String elementName = javaElement.getName();
+	private static String getSimpleName(PsiModifierListOwner javaElement) {
+		String elementName = javaElement instanceof NavigationItem?((NavigationItem)javaElement).getName():"";
 		int index = elementName.lastIndexOf('.');
 		return index != -1 ? elementName.substring(index + 1, elementName.length()) : elementName;
 	}
@@ -217,13 +218,16 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param javadocCache  the Javadoc cache
 	 * @param collector     the properties to fill.
 	 */
-	private void processConfigGroup(String extensionName, PsiMember psiElement, String baseKey,
+	private void processConfigGroup(String extensionName, PsiModifierListOwner psiElement, String baseKey,
 			ConfigPhase configPhase, Map<VirtualFile, Properties> javadocCache, IPropertiesCollector collector) {
 		if (psiElement instanceof PsiClass) {
 			PsiElement[] elements = psiElement.getChildren();
 			for (PsiElement child : elements) {
 				if (child instanceof PsiField) {
 					PsiField field = (PsiField) child;
+					if (!canProcess(field)) {
+						continue;
+					}
 					final PsiAnnotation configItemAnnotation = AnnotationUtils.getAnnotation(field,
 							QuarkusConstants.CONFIG_ITEM_ANNOTATION);
 					String name = configItemAnnotation == null ? hyphenate(field.getName())
@@ -259,6 +263,20 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			}
 		}
 	}
+
+	/**
+	 * Returns true if the given field can generate a Quarkus property and false
+	 * otherwise.
+	 *
+	 * @param field
+	 * @return true if the given field can generate a Quarkus property and false
+	 *         otherwise.
+	 */
+	private static boolean canProcess(PsiField field) {
+		PsiModifierList flags = field.getModifierList();
+		return !flags.hasModifierProperty(PsiModifier.STATIC) && !flags.hasModifierProperty(PsiModifier.PRIVATE);
+	}
+
 
 	private void addItemMetadata(String extensionName, PsiField field, String fieldTypeName, PsiClass fieldClass,
 			String name, String defaultValue, Map<VirtualFile, Properties> javadocCache,

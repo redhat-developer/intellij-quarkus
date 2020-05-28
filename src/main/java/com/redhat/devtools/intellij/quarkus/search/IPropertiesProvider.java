@@ -10,7 +10,7 @@
 package com.redhat.devtools.intellij.quarkus.search;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.util.Query;
 
 /**
@@ -42,7 +42,7 @@ public interface IPropertiesProvider {
 	 * 
 	 * @return the search query.
 	 */
-	Query<PsiMember> createSearchPattern(SearchContext context);
+	Query<PsiModifierListOwner> createSearchPattern(SearchContext context);
 
 	/**
 	 * Collect properties from the given Java search match.
@@ -50,5 +50,5 @@ public interface IPropertiesProvider {
 	 * @param match   the java search match.
 	 * @param context the search context.
 	 */
-	void collectProperties(PsiMember match, SearchContext context);
+	void collectProperties(PsiModifierListOwner match, SearchContext context);
 }

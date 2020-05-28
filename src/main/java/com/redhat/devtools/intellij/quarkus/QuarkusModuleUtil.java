@@ -78,7 +78,7 @@ public class QuarkusModuleUtil {
                             library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         }
                         List<VirtualFile>[] files = toolDelegate.getDeploymentFiles(module);
-                        LOGGER.info("Adding library to " + module.getName() + "previousHash=" + previousHash + " newHash=" + actualHash);
+                        LOGGER.info("Adding library to " + module.getName() + " previousHash=" + previousHash + " newHash=" + actualHash);
                         addLibrary(model, files);
                     });
                     module.getComponent(QuarkusModuleComponent.class).setHash(actualHash);

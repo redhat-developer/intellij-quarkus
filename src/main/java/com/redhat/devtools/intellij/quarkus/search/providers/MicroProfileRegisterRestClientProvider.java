@@ -11,12 +11,11 @@ package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMember;
-
-import com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils;
+import com.intellij.psi.PsiModifierListOwner;
 import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
-import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.microprofile.commons.metadata.ItemHint;
 import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
 
@@ -102,7 +101,7 @@ public class MicroProfileRegisterRestClientProvider extends AbstractAnnotationTy
 	}
 
 	@Override
-	protected void processAnnotation(PsiMember psiElement, PsiAnnotation registerRestClientAnnotation,
+	protected void processAnnotation(PsiModifierListOwner psiElement, PsiAnnotation registerRestClientAnnotation,
 									 String annotationName, SearchContext context) {
 		if (psiElement instanceof PsiClass) {
 

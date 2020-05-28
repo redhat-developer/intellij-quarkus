@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiModifierListOwner;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public abstract class AbstractTypeDeclarationPropertiesProvider extends Abstract
 	protected abstract String[] getTypeNames();
 
 	@Override
-	public void collectProperties(PsiMember match, SearchContext context) {
+	public void collectProperties(PsiModifierListOwner match, SearchContext context) {
 		if (match instanceof PsiClass) {
 			PsiClass type = (PsiClass) match;
 			String className = type.getQualifiedName();

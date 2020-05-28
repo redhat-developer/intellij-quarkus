@@ -14,6 +14,7 @@ import com.intellij.psi.PsiClass;
 
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
@@ -69,7 +70,7 @@ public class QuarkusKubernetesProvider extends AbstractTypeDeclarationProperties
 	}
 
 	@Override
-	protected Query<PsiMember> createSearchPattern(SearchContext context, String annotationName) {
+	protected Query<PsiModifierListOwner> createSearchPattern(SearchContext context, String annotationName) {
 		return createAnnotationTypeDeclarationSearchPattern(context, annotationName);
 	}
 

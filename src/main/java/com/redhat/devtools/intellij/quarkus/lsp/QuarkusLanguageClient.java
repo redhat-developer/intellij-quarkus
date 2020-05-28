@@ -108,7 +108,7 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
 
   private void filter(VFileEvent event, Set<String> uris) {
     VirtualFile file = event.getFile();
-    if (file != null && file.exists() && file.getExtension().equalsIgnoreCase("java")) {
+    if (file != null && file.exists() && "java".equalsIgnoreCase(file.getExtension())) {
       Module module = ProjectFileIndex.getInstance(getProject()).getModuleForFile(file);
       if (module != null && (event instanceof VFileCreateEvent || event instanceof VFileContentChangeEvent || event instanceof VFileDeleteEvent)) {
         uris.add(PsiUtilsImpl.getProjectURI(module));

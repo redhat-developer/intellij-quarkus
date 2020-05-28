@@ -31,8 +31,10 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiVariable;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -58,6 +60,10 @@ public class PsiTypeUtils {
 
     public static String getResolvedTypeName(PsiField field) {
         return field.getType().getCanonicalText();
+    }
+
+    public static String getResolvedTypeName(PsiVariable variable) {
+        return variable.getType().getCanonicalText();
     }
 
     public static String getResolvedResultTypeName(PsiMethod method) {
@@ -97,8 +103,13 @@ public class PsiTypeUtils {
         return psiClass != null ? psiClass.getQualifiedName() : typeName;
     }
 
-    public static String getSourceType(PsiMember psiMember) {
-        return ClassUtil.getJVMClassName(psiMember.getContainingClass());
+    public static String getSourceType(PsiModifierListOwner psiElement) {
+        if (psiElement instanceof PsiField || psiElement instanceof PsiMethod) {
+            return ClassUtil.getJVMClassName(((PsiMember)psiElement).getContainingClass());
+        } else if (psiElement instanceof PsiParameter) {
+            return ClassUtil.getJVMClassName(((PsiMethod)((PsiParameter)psiElement).getDeclarationScope()).getContainingClass());
+        }
+        return null;
     }
 
     public static String getSourceMethod(PsiMethod method) {
@@ -241,5 +252,4 @@ public class PsiTypeUtils {
         }
         return location;
     }
-
 }
