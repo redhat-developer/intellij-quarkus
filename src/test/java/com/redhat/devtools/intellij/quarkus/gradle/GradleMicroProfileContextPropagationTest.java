@@ -25,9 +25,11 @@ import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.ass
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;
 
 /**
- * Test collect MicroProfile properties from @RegisterRestClient
- * 
- * @see <a href="@see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/metrics/MicroProfileMetricsTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/metrics/MicroProfileMetricsTest.java</a>">@see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/metrics/MicroProfileMetricsTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/metrics/MicroProfileMetricsTest.java</a>
+ * Test the availability of the MicroProfile Context Propagation properties
+ *
+ * @author Ryan Zegray
+ *
+ * @see <a href"https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/contextpropagation/MicroProfileContextPropagationTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/contextpropagation/MicroProfileContextPropagationTest.java</a>
  *
  */
 public class GradleMicroProfileContextPropagationTest extends GradleTestCase {
