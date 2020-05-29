@@ -58,7 +58,7 @@ public class QuarkusConstants {
     public static final String QUARKUS_ARC_CONFIG_PROPERTIES_DEFAULT_NAMING_STRATEGY = "quarkus.arc.config-properties-default-naming-strategy";
 
 
-    public static final String QUARKUS_PREFIX = "quarkus.";
+    public static final String QUARKUS_PREFIX = "quarkus";
     public static final String QUARKUS_JAVADOC_PROPERTIES_FILE = "quarkus-javadoc.properties";
     public static final String QUARKUS_EXTENSION_PROPERTIES = "META-INF/quarkus-extension.properties";
     public static final String QUARKUS_DEPLOYMENT_PROPERTY_NAME = "deployment-artifact";
