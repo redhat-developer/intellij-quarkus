@@ -22,6 +22,8 @@ import com.intellij.openapi.externalSystem.service.remote.RemoteExternalSystemTa
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleGrouper;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -118,10 +120,24 @@ public class GradleToolDelegate implements ToolDelegate {
      */
     private void processDownload(Module module, Set<String> deploymentIds, List<VirtualFile>[] result) throws IOException {
         Path outputPath = Files.createTempFile(null, ".txt");
-        Path customPath = generateCustomGradleBuild(ModuleUtilCore.getModuleDirPath(module), outputPath, deploymentIds);
+        Path customPath = generateCustomGradleBuild(getModuleDirPath(module), outputPath, deploymentIds);
         collectDependencies(module, customPath, outputPath, result);
         Files.delete(outputPath);
         Files.delete(customPath);
+    }
+
+    @NotNull
+    private String getModuleDirPath(Module module) {
+        ModuleGrouper grouper = ModuleGrouper.instanceFor(module.getProject());
+        List<String> names = grouper.getGroupPath(module);
+        if (!names.isEmpty()) {
+            ModuleManager manager = ModuleManager.getInstance(module.getProject());
+            Module parentModule = manager.findModuleByName(names.get(0));
+            if (parentModule != null) {
+                return ModuleUtilCore.getModuleDirPath(parentModule);
+            }
+        }
+        return ModuleUtilCore.getModuleDirPath(module);
     }
 
     /**
@@ -141,14 +157,14 @@ public class GradleToolDelegate implements ToolDelegate {
                     module.getProject().getBasePath(),
                     GradleConstants.SYSTEM_ID);
 
-            RemoteExternalSystemFacade facade = manager.getFacade(module.getProject(), ModuleUtilCore.getModuleDirPath(module), GradleConstants.SYSTEM_ID);
+            RemoteExternalSystemFacade facade = manager.getFacade(module.getProject(), getModuleDirPath(module), GradleConstants.SYSTEM_ID);
 
             RemoteExternalSystemTaskManager taskManager = facade.getTaskManager();
             final List<String> arguments = Arrays.asList("-b", customPath.toString(), "-q", "--console", "plain");
             settings
                     .withArguments(arguments);
             ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, module.getProject());
-            taskManager.executeTasks(taskId, Arrays.asList("listQuarkusDependencies"), ModuleUtilCore.getModuleDirPath(module), settings, null);
+            taskManager.executeTasks(taskId, Arrays.asList("listQuarkusDependencies"), getModuleDirPath(module), settings, null);
             try (BufferedReader reader = Files.newBufferedReader(outputPath)) {
                 reader.lines().forEach(line -> {
                     VirtualFile jarFile = getJarFile(line);
