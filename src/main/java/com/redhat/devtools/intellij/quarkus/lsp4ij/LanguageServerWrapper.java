@@ -506,7 +506,7 @@ public class LanguageServerWrapper {
      * @since 0.5
      */
     public boolean canOperate(Module project) {
-        if (project.equals(this.initialProject) || this.allWatchedProjects.contains(project)) {
+        if (project != null && (project.equals(this.initialProject) || this.allWatchedProjects.contains(project))) {
             return true;
         }
 
