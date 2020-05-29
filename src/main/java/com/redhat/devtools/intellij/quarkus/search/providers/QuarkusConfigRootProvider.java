@@ -34,13 +34,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
-import static io.quarkus.runtime.util.StringUtil.join;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
 import static io.quarkus.runtime.util.StringUtil.lowerCaseFirst;
 import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
@@ -106,7 +108,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		// Quarkus Extension name
 		String extensionName = PsiQuarkusUtils.getExtensionName(location);
 
-		String baseKey = QuarkusConstants.QUARKUS_PREFIX + extension;
+		String baseKey = extension.isEmpty() ? QuarkusConstants.QUARKUS_PREFIX
+				: QuarkusConstants.QUARKUS_PREFIX + '.' + extension;
 		processConfigGroup(extensionName, psiElement, baseKey, configPhase, javadocCache, collector);
 	}
 
@@ -178,29 +181,41 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		// See
 		// https://github.com/quarkusio/quarkus/blob/master/core/deployment/src/main/java/io/quarkus/deployment/configuration/ConfigDefinition.java#L173
 		// registerConfigRoot
-		final String containingName;
+		String rootName = configRootAnnotationName;
+		final List<String> segments = toList(camelHumpsIterator(configRootClassSimpleName));
+		final List<String> trimmedSegments;
 		if (configPhase == ConfigPhase.RUN_TIME) {
-			containingName = join(withoutSuffix(lowerCaseFirst(camelHumpsIterator(configRootClassSimpleName)), "Config",
-					"Configuration", "RunTimeConfig", "RunTimeConfiguration"));
+			trimmedSegments = withoutSuffix(
+					withoutSuffix(
+							withoutSuffix(
+									withoutSuffix(withoutSuffix(withoutSuffix(segments, "Runtime", "Configuration"),
+											"Runtime", "Config"), "Run", "Time", "Configuration"),
+									"Run", "Time", "Config"),
+							"Configuration"),
+					"Config");
+		} else if (configPhase == ConfigPhase.BOOTSTRAP) {
+			trimmedSegments = withoutSuffix(withoutSuffix(
+					withoutSuffix(withoutSuffix(segments, "Bootstrap", "Configuration"), "Bootstrap", "Config"),
+					"Configuration"), "Config");
 		} else {
-			containingName = join(withoutSuffix(lowerCaseFirst(camelHumpsIterator(configRootClassSimpleName)), "Config",
-					"Configuration", "BuildTimeConfig", "BuildTimeConfiguration"));
+			trimmedSegments = withoutSuffix(withoutSuffix(
+					withoutSuffix(withoutSuffix(segments, "Build", "Time", "Configuration"), "Build", "Time", "Config"),
+					"Configuration"), "Config");
 		}
-		final String name = configRootAnnotationName;
-		final String rootName;
-		if (name.equals(ConfigItem.PARENT)) {
-			// throw reportError(configRoot, "Root cannot inherit parent name because it has
-			// no parent");
-			return null;
-		} else if (name.equals(ConfigItem.ELEMENT_NAME)) {
-			rootName = containingName;
-		} else if (name.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
-			rootName = join("-",
-					withoutSuffix(lowerCase(camelHumpsIterator(configRootClassSimpleName)), "config", "configuration"));
-		} else {
-			rootName = name;
+		if (rootName.equals(ConfigItem.PARENT)) {
+			rootName = "";
+		} else if (rootName.equals(ConfigItem.ELEMENT_NAME)) {
+			rootName = String.join("", (Iterable<String>) () -> lowerCaseFirst(trimmedSegments.iterator()));
+		} else if (rootName.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
+			rootName = String.join("-", (Iterable<String>) () -> lowerCase(trimmedSegments.iterator()));
 		}
 		return rootName;
+	}
+
+	private static <T> List<T> toList(Iterator<T> iterator) {
+		List<T> actualList = new ArrayList<>();
+		iterator.forEachRemaining(actualList::add);
+		return actualList;
 	}
 
 	// ------------- Process Quarkus ConfigGroup -------------
