@@ -372,10 +372,11 @@ public class LanguageServiceAccessor {
                         continue;
                     }
                     final Module fileProject = file != null ? LSPIJUtils.getProject(file) : null;
-                    LanguageServerWrapper wrapper = fileProject != null ? new LanguageServerWrapper(fileProject, serverDefinition) :
-                            new LanguageServerWrapper(serverDefinition, path);
-                    startedServers.add(wrapper);
-                    res.add(wrapper);
+                    if (fileProject != null) {
+                        LanguageServerWrapper wrapper = new LanguageServerWrapper(fileProject, serverDefinition);
+                        startedServers.add(wrapper);
+                        res.add(wrapper);
+                    }
                 }
                 processedContentTypes.add(contentType);
             }
