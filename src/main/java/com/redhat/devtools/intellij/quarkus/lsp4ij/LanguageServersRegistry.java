@@ -81,7 +81,7 @@ public class LanguageServersRegistry {
                 try {
                     return (LanguageClientImpl) extension.instantiate(clientImpl, project.getPicoContainer());
                 } catch (ClassNotFoundException e) {
-                    LOGGER.error(e.getLocalizedMessage(), e);
+                    LOGGER.warn(e.getLocalizedMessage(), e);
                 }
             }
             return super.createLanguageClient(project);
@@ -95,7 +95,7 @@ public class LanguageServersRegistry {
                     try {
                         return (Class<? extends LanguageServer>) (Class<?>)extension.findClass(serverInterface);
                     } catch (ClassNotFoundException exception) {
-                        LOGGER.error(exception.getLocalizedMessage(), exception);
+                        LOGGER.warn(exception.getLocalizedMessage(), exception);
                     }
                 }
             return super.getServerInterface();

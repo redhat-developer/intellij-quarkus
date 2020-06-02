@@ -13,12 +13,16 @@ package com.redhat.devtools.intellij.quarkus.search.core.utils;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 
 /**
@@ -28,7 +32,7 @@ import java.net.URISyntaxException;
  *
  */
 public interface IPsiUtils {
-    VirtualFile findFile(String uri) throws URISyntaxException;
+    VirtualFile findFile(String uri) throws IOException;
 
     String getJavadoc(PsiMethod method, DocumentFormat documentFormat);
 
@@ -42,5 +46,11 @@ public interface IPsiUtils {
 
     Module getModule(VirtualFile file);
 
-    Module getModule(String uri) throws URISyntaxException;
+    Module getModule(String uri) throws IOException;
+
+    PsiClass findClass(Module module, String className);
+
+    void discoverSource(PsiFile classFile);
+
+    Location toLocation(PsiMember fieldOrMethod);
 }

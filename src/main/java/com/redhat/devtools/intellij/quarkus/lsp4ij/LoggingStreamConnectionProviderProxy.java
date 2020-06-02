@@ -178,13 +178,13 @@ public class LoggingStreamConnectionProviderProxy implements StreamConnectionPro
                     throw new IOException(String.format("Failed to create file %s", logFile.toString())); //$NON-NLS-1$
                 }
             } catch (IOException e) {
-                LOGGER.error(e.getLocalizedMessage(), e);
+                LOGGER.warn(e.getLocalizedMessage(), e);
             }
         }
         try {
             Files.write(logFile.toPath(), string.getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
     }
 

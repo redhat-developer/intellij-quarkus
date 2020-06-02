@@ -67,7 +67,7 @@ public class LSPIJUtils {
         try {
             return new URI("file", "", file.getAbsoluteFile().toURI().getPath(), null); //$NON-NLS-1$ //$NON-NLS-2$
         } catch (URISyntaxException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
             return file.getAbsoluteFile().toURI();
         }
     }
@@ -81,7 +81,7 @@ public class LSPIJUtils {
 
             }
         } catch (URISyntaxException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
             return URI.create(file.getUrl());
         }
     }

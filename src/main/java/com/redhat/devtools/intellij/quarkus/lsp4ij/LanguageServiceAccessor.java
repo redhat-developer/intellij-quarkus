@@ -105,10 +105,10 @@ public class LanguageServiceAccessor {
             try {
                 return this.wrapper.getInitializedServer().get();
             } catch (ExecutionException e) {
-                LOGGER.error(e.getLocalizedMessage(), e);
+                LOGGER.warn(e.getLocalizedMessage(), e);
                 return this.wrapper.getServer();
             } catch (InterruptedException e) {
-                LOGGER.error(e.getLocalizedMessage(), e);
+                LOGGER.warn(e.getLocalizedMessage(), e);
                 Thread.currentThread().interrupt();
                 return this.wrapper.getServer();
             }
@@ -142,7 +142,7 @@ public class LanguageServiceAccessor {
                 try {
                     wrapper.connect(file, null);
                 } catch (IOException e) {
-                    LOGGER.error(e.getLocalizedMessage(), e);
+                    LOGGER.warn(e.getLocalizedMessage(), e);
                 }
                 return server;
             })).collect(Collectors.toList());
@@ -176,7 +176,7 @@ public class LanguageServiceAccessor {
                 try {
                     getInitializedLanguageServer(editorFile, lsDefinition, capabilities -> true);
                 } catch (IOException e) {
-                    LOGGER.error(e.getLocalizedMessage(), e);
+                    LOGGER.warn(e.getLocalizedMessage(), e);
                 }
             }
         }
@@ -345,7 +345,7 @@ public class LanguageServiceAccessor {
                         try {
                             return wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(document, wrapper.serverDefinition);
                         } catch (Exception e) {
-                            LOGGER.error(e.getLocalizedMessage(), e);
+                            LOGGER.warn(e.getLocalizedMessage(), e);
                             return false;
                         }
                     })
@@ -547,12 +547,12 @@ public class LanguageServiceAccessor {
                 try {
                     wrapper.connect(document);
                 } catch (IOException e) {
-                    LOGGER.error(e.getLocalizedMessage(), e);
+                    LOGGER.warn(e.getLocalizedMessage(), e);
                 }
                 res.add(new LSPDocumentInfo(fileUri, document, wrapper));
             });
         } catch (final Exception e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return res;
     }
@@ -578,7 +578,7 @@ public class LanguageServiceAccessor {
                             try {
                                 return wrapper.connect(document);
                             } catch (IOException ex) {
-                                LOGGER.error(ex.getLocalizedMessage(), ex);
+                                LOGGER.warn(ex.getLocalizedMessage(), ex);
                             }
                         }
                         return CompletableFuture.completedFuture(null);
@@ -588,7 +588,7 @@ public class LanguageServiceAccessor {
                         }
                     })).toArray(CompletableFuture[]::new)).thenApply(theVoid -> res);
         } catch (final Exception e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return CompletableFuture.completedFuture(Collections.emptyList());
 
