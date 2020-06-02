@@ -31,6 +31,7 @@ import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.quarkus.javadoc.JavadocContentAccess;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
@@ -95,7 +96,7 @@ public class PsiUtilsImpl implements IPsiUtils {
 
     @Override
     public Location toLocation(PsiMember psiMember) {
-        PsiElement sourceElement = psiMember.getSourceElement();
+        PsiElement sourceElement = psiMember.getNavigationElement();
         if (sourceElement != null) {
             PsiFile file = sourceElement.getContainingFile();
             Location location = new Location();
@@ -106,7 +107,7 @@ public class PsiUtilsImpl implements IPsiUtils {
             int startLineOffset = document.getLineStartOffset(startLine);
             int endLine = document.getLineNumber(range.getEndOffset());
             int endLineOffset = document.getLineStartOffset(endLine);
-            location.setRange(new Range(new Position(startLine + 1, range.getStartOffset() - startLineOffset + 1), new Position(endLine + 1, range.getEndOffset() - endLineOffset + 1)));
+            location.setRange(new Range(LSPIJUtils.toPosition(range.getStartOffset(), document), LSPIJUtils.toPosition(range.getEndOffset(), document)));
             return location;
         }
         return null;
