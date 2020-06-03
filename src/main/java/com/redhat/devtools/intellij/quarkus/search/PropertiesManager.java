@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -175,6 +174,10 @@ public class PropertiesManager {
     public Location findPropertyLocation(VirtualFile file, String sourceType, String sourceField, String sourceMethod,
                                          IPsiUtils utils) {
         Module module = utils.getModule(file);
+        return findPropertyLocation(module, sourceType, sourceField, sourceMethod, utils);
+    }
+
+    public Location findPropertyLocation(Module module, String sourceType, String sourceField, String sourceMethod, IPsiUtils utils) {
         return DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
             PsiMember fieldOrMethod = findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils);
             if (fieldOrMethod != null) {
