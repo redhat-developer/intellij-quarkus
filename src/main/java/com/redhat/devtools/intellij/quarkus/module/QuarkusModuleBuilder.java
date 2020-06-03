@@ -145,11 +145,23 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
                 });
                 return true;
             })).get();
+            updateWrapperPermissions(moduleFile);
         } catch (InterruptedException|ExecutionException e) {
             throw new IOException(e);
         }
         VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
         RefreshQueue.getInstance().refresh(true, true, (Runnable)null, new VirtualFile[]{vf});
+    }
+
+    private void updateWrapperPermissions(File moduleFile) {
+        File f = new File(moduleFile, "mvnw");
+        if (f.exists()) {
+            f.setExecutable(true, false);
+        }
+        f = new File(moduleFile, "gradlew");
+        if (f.exists()) {
+            f.setExecutable(true, false);
+        }
     }
 
     @Override
