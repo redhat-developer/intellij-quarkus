@@ -41,7 +41,6 @@
   <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <preloadingActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPreloadActivity"/>
     <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>
     <!-- Add your extensions here -->
     <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
@@ -53,9 +52,6 @@
 
     <fileTypeFactory implementation="com.redhat.devtools.intellij.quarkus.lang.ApplicationPropertiesFileTypeFactory"/>
     <lang.syntaxHighlighterFactory language="Quarkus properties" implementationClass="com.intellij.properties.PropertiesSyntaxHighlighterFactory"/>
-  </extensions>
-  <extensions defaultExtensionNs="com.github.gtache.lsp">
-    <lspIconProvider implementation="com.redhat.devtools.intellij.quarkus.lsp.IconProvider"/>
   </extensions>
 
   <extensionPoints>
