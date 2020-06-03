@@ -18,12 +18,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.util.ClassUtil;
 import com.intellij.util.MergeQuery;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
@@ -215,17 +218,18 @@ public class PropertiesManager {
         if (sourceField != null) {
             return type.findFieldByName(sourceField, true);
         }
-        /*if (sourceMethod != null) {
+        if (sourceMethod != null) {
              int startBracketIndex = sourceMethod.indexOf('(');
              String methodName = sourceMethod.substring(0, startBracketIndex);
-             // Method signature has been generated with JDT API, so we are sure that we have
-             // a ')' character.
-             int endBracketIndex = sourceMethod.indexOf(')');
-             String methodSignature = sourceMethod.substring(startBracketIndex + 1, endBracketIndex);
-             String[] paramTypes = methodSignature.isEmpty() ? CharOperation.NO_STRINGS
-                     : Signature.getParameterTypes(methodSignature);
-             return JavaModelUtil.findMethod(methodName, paramTypes, false, type);
-         }*/
+            // Method signature has been generated with PSI API, so we are sure that we have
+            // a ')' character.
+            for(PsiMethod method : type.findMethodsByName(methodName, true)) {
+                String signature = PsiTypeUtils.getSourceMethod(method);
+                if (signature.equals(sourceMethod)) {
+                    return method;
+                }
+            }
+         }
         return type;
      }
 }
