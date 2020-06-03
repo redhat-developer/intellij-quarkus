@@ -60,7 +60,7 @@ tasks.withType(Test) {
 dependencies {
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.9.9'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.3'
-    compile 'org.zeroturnaround:zt-zip:1.13'
+    compile 'org.zeroturnaround:zt-zip:1.14'
     compile 'com.kotcrab.remark:remark:1.2.0'
     compile 'io.quarkus:quarkus-core:1.4.2.Final'
     compile 'io.quarkus:quarkus-core-deployment:1.4.2.Final'
