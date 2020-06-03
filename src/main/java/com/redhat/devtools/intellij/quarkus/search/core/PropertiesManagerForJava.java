@@ -33,6 +33,7 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,7 +108,7 @@ public class PropertiesManagerForJava {
                 }
             });
             definitions.forEach(definition -> definition.endDiagnostics(context));
-        } catch (URISyntaxException e) {
+        } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage(), e);
         }
     }
@@ -175,7 +176,7 @@ public class PropertiesManagerForJava {
                     definitions.forEach(definition -> definition.endHover(context));
                 }
             }
-        } catch (URISyntaxException e) {
+        } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage(), e);
         }
     }

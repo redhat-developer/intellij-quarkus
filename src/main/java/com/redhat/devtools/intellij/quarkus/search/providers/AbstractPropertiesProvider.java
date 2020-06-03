@@ -83,8 +83,7 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 *         name.
 	 */
 	protected static Query<PsiModifierListOwner> createAnnotationTypeReferenceSearchPattern(SearchContext context, String annotationName) {
-		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(context.getModule().getProject());
-		PsiClass annotationClass = javaPsiFacade.findClass(annotationName, GlobalSearchScope.allScope(context.getModule().getProject()));
+		PsiClass annotationClass = context.getUtils().findClass(context.getModule(), annotationName);
 		if (annotationClass != null) {
 			return AnnotatedElementsSearch.searchElements(annotationClass, context.getScope(), PsiModifierListOwner.class);
 		} else {

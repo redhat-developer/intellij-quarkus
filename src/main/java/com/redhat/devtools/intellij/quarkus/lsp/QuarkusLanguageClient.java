@@ -40,9 +40,11 @@ import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI;
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -129,5 +131,10 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
   @Override
   public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(MicroProfileJavaDiagnosticsParams javaParams) {
     return CompletableFuture.completedFuture(PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsImpl.getInstance()));
+  }
+
+  @Override
+  public CompletableFuture<Location> getPropertyDefinition(MicroProfilePropertyDefinitionParams params) {
+    return CompletableFuture.completedFuture(PropertiesManager.getInstance().findPropertyLocation(params, PsiUtilsImpl.getInstance()));
   }
 }

@@ -324,7 +324,7 @@ public class LanguageServerWrapper {
                     try {
                         connect(fileToReconnect.getKey(), fileToReconnect.getValue());
                     } catch (IOException e) {
-                        LOGGER.error(e.getLocalizedMessage(), e);
+                        LOGGER.warn(e.getLocalizedMessage(), e);
                     }
                 }
             });
@@ -332,7 +332,7 @@ public class LanguageServerWrapper {
             messageBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
             messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, fileBufferListener);
         } catch (Exception ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
+            LOGGER.warn(ex.getLocalizedMessage(), ex);
             stop();
         }
     }
@@ -357,7 +357,7 @@ public class LanguageServerWrapper {
                 && ((ResponseMessage) message).getId()
                 .equals(Integer.toString(ResponseErrorCode.RequestCancelled.getValue()))) {
             ResponseMessage responseMessage = (ResponseMessage) message;
-            LOGGER.error("", new ResponseErrorException(responseMessage.getError()));
+            LOGGER.warn("", new ResponseErrorException(responseMessage.getError()));
         } else if (LOGGER.isDebugEnabled()) {
             LOGGER.info(message.getClass().getSimpleName() + '\n' + message.toString());
         }
@@ -523,9 +523,9 @@ public class LanguageServerWrapper {
             try {
                 this.initializeFuture.get(1, TimeUnit.SECONDS);
             } catch (ExecutionException | TimeoutException e) {
-                LOGGER.error(e.getLocalizedMessage(), e);
+                LOGGER.warn(e.getLocalizedMessage(), e);
             } catch (InterruptedException e) {
-                LOGGER.error(e.getLocalizedMessage(), e);
+                LOGGER.warn(e.getLocalizedMessage(), e);
                 Thread.currentThread().interrupt();
             }
         }
@@ -648,7 +648,7 @@ public class LanguageServerWrapper {
         try {
             start();
         } catch (IOException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
+            LOGGER.warn(ex.getLocalizedMessage(), ex);
         }
         if (initializeFuture != null && !this.initializeFuture.isDone()) {
             /*if (ApplicationManager.getApplication().isDispatchThread()) { // UI Thread
@@ -681,13 +681,13 @@ public class LanguageServerWrapper {
         try {
             getInitializedServer().get(10, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
-            LOGGER.error("LanguageServer not initialized after 10s", e); //$NON-NLS-1$
+            LOGGER.warn("LanguageServer not initialized after 10s", e); //$NON-NLS-1$
         } catch (ExecutionException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         } catch (CancellationException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         } catch (InterruptedException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
             Thread.currentThread().interrupt();
         }
 

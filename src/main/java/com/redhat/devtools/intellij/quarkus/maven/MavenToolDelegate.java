@@ -135,7 +135,7 @@ public class MavenToolDelegate implements ToolDelegate {
                 result = serverWrapper.resolveTransitively(infos, mavenProject.getRemoteRepositories());
             }
         } catch (MavenProcessCanceledException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
         System.out.println("ensureDownloaded took " + (System.currentTimeMillis() - start));
         return result;

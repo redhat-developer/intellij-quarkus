@@ -15,22 +15,29 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.util.ClassUtil;
 import com.intellij.util.MergeQuery;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.microprofile.commons.ClasspathKind;
 import com.redhat.microprofile.commons.DocumentFormat;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
+import org.eclipse.lsp4j.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URISyntaxException;
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -63,7 +70,7 @@ public class PropertiesManager {
                 throw new UnsupportedOperationException(String.format("Cannot find virtual file for '%s'", params.getUri()));
             }
             return getMicroProfileProjectInfo(file, params.getScopes(), utils, params.getDocumentFormat());
-        } catch (URISyntaxException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -151,4 +158,78 @@ public class PropertiesManager {
         }
         return query;
     }
+
+    // ---------------------------------- Properties definition
+
+    public Location findPropertyLocation(MicroProfilePropertyDefinitionParams params, IPsiUtils utils) {
+        try {
+            VirtualFile file = utils.findFile(params.getUri());
+                if (file == null) {
+                    throw new UnsupportedOperationException(String.format("Cannot find IFile for '%s'", params.getUri()));
+                }
+                return findPropertyLocation(file, params.getSourceType(), params.getSourceField(), params.getSourceMethod(),
+                    utils);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    public Location findPropertyLocation(VirtualFile file, String sourceType, String sourceField, String sourceMethod,
+                                         IPsiUtils utils) {
+        Module module = utils.getModule(file);
+        return findPropertyLocation(module, sourceType, sourceField, sourceMethod, utils);
+    }
+
+    public Location findPropertyLocation(Module module, String sourceType, String sourceField, String sourceMethod, IPsiUtils utils) {
+        return DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
+            PsiMember fieldOrMethod = findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils);
+            if (fieldOrMethod != null) {
+                PsiFile classFile = fieldOrMethod.getContainingFile();
+                if (classFile != null) {
+                    // Try to download source if required
+                    if (utils != null) {
+                        utils.discoverSource(classFile);
+                    }
+                }
+                return utils.toLocation(fieldOrMethod);
+            }
+            return null;
+        });
+    }
+
+    /** * Returns the Java field from the given property source
+     *
+     * @param module  the Java project
+     * @param sourceType   the source type (class or interface)
+     * @param sourceField  the source field and null otherwise.
+     * @param sourceMethod the source method and null otherwise.
+     * @return the Java field from the given property sources
+     */
+     public PsiMember findDeclaredProperty(Module module, String sourceType, String sourceField,
+                                         String sourceMethod, IPsiUtils utils) {
+        if (sourceType == null) {
+            return null;
+        }
+        // Try to find type with standard classpath
+        PsiClass type = utils.findClass(module, sourceType);
+        if (type == null) {
+            return null;
+        }
+        if (sourceField != null) {
+            return type.findFieldByName(sourceField, true);
+        }
+        if (sourceMethod != null) {
+             int startBracketIndex = sourceMethod.indexOf('(');
+             String methodName = sourceMethod.substring(0, startBracketIndex);
+            // Method signature has been generated with PSI API, so we are sure that we have
+            // a ')' character.
+            for(PsiMethod method : type.findMethodsByName(methodName, true)) {
+                String signature = PsiTypeUtils.getSourceMethod(method);
+                if (signature.equals(sourceMethod)) {
+                    return method;
+                }
+            }
+         }
+        return type;
+     }
 }
