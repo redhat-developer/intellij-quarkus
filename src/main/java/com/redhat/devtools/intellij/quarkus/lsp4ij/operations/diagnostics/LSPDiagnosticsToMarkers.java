@@ -70,6 +70,9 @@ public class LSPDiagnosticsToMarkers implements Consumer<PublishDiagnosticsParam
         for(Diagnostic diagnostic : diagnostics) {
             int startOffset = LSPIJUtils.toOffset(diagnostic.getRange().getStart(), document);
             int endOffset = LSPIJUtils.toOffset(diagnostic.getRange().getEnd(), document);
+            if (endOffset > document.getLineEndOffset(document.getLineCount() - 1)) {
+                endOffset = document.getLineEndOffset(document.getLineCount() - 1);
+            }
             int layer = getLayer(diagnostic.getSeverity());
             EffectType effectType = getEffectType(diagnostic.getSeverity());
             Color color = getColor(diagnostic.getSeverity());

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp4ij.operations.completion;
 
+import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
@@ -73,6 +74,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         this.initialOffset = offset;
         this.currentOffset = offset;
         this.bestOffset = getPrefixCompletionStart(editor.getDocument(), offset);
+        putUserData(CodeCompletionHandlerBase.DIRECT_INSERTION, true);
     }
 
     protected String getInsertText() {
@@ -328,7 +330,6 @@ public class LSIncompleteCompletionProposal extends LookupElement {
 
     @Override
     public void handleInsert(@NotNull InsertionContext context) {
-        ApplicationManager.getApplication().runWriteAction(() -> context.getDocument().deleteString(context.getStartOffset(), context.getTailOffset()));
         apply(context.getDocument(), context.getCompletionChar(), 0, context.getStartOffset());
     }
 }
