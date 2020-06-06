@@ -19,6 +19,7 @@ import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.jetbrains.annotations.NotNull;
@@ -86,6 +87,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             this.setCellSelectionEnabled(false);
             this.setRowSelectionAllowed(true);
             this.setSelectionMode(0);
+            this.setTableHeader(null);
         }
 
         public void setExtensions(List<QuarkusExtension> extensions) {
@@ -125,9 +127,9 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                 }
             };
             categoriesList.setCellRenderer(categoryRender);
-            panel.setFirstComponent(categoriesList);
+            panel.setFirstComponent(new JBScrollPane(categoriesList));
             ExtensionsTable extensionsTable = new ExtensionsTable();
-            panel.setSecondComponent(extensionsTable);
+            panel.setSecondComponent(new JBScrollPane(extensionsTable));
             categoriesList.addListSelectionListener(e -> extensionsTable.setExtensions(categoriesList.getSelectedValue().getExtensions()));
         }
         return panel;
