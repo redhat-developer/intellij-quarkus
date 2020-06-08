@@ -35,8 +35,8 @@ public class QuarkusExtensionsTest {
     }
 
     @Test
-    public void checkStableExtension() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-stable-extension.json"));
+    public void checkStableExtensionWithStatus() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-stable-extension-with-status.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -44,8 +44,8 @@ public class QuarkusExtensionsTest {
     }
 
     @Test
-    public void checkPreviewExtension() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-preview-extension.json"));
+    public void checkPreviewExtensionWithStatus() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-preview-extension-with-status.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -53,13 +53,50 @@ public class QuarkusExtensionsTest {
     }
 
     @Test
-    public void checkExperimentalExtension() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-experimental-extension.json"));
+    public void checkExperimentalExtensionWithStatus() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-experimental-extension-with-status.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXPERIMENTAL_LABEL, model.getCategories().get(0).getExtensions().get(0).asLabel());
     }
+
+    @Test
+    public void checkStableExtensionWithTags() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-stable-extension-with-tags.json"));
+        assertEquals(1, model.getCategories().size());
+        assertEquals(1, model.getCategories().get(0).getExtensions().size());
+        assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
+        assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).asLabel());
+    }
+
+    @Test
+    public void checkPreviewExtensionWithTags() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-preview-extension-with-tags.json"));
+        assertEquals(1, model.getCategories().size());
+        assertEquals(1, model.getCategories().get(0).getExtensions().size());
+        assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
+        assertEquals(AMAZON_DYNAMODB_CLIENT_PREVIEW_LABEL, model.getCategories().get(0).getExtensions().get(0).asLabel());
+    }
+
+    @Test
+    public void checkExperimentalExtensionWithTags() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-experimental-extension-with-tags.json"));
+        assertEquals(1, model.getCategories().size());
+        assertEquals(1, model.getCategories().get(0).getExtensions().size());
+        assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
+        assertEquals(AMAZON_DYNAMODB_CLIENT_EXPERIMENTAL_LABEL, model.getCategories().get(0).getExtensions().get(0).asLabel());
+    }
+
+    @Test
+    public void checkExtensionWithSeveralTags() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-extension-with-several-tags.json"));
+        assertEquals(1, model.getCategories().size());
+        assertEquals(1, model.getCategories().get(0).getExtensions().size());
+        assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
+        assertEquals("Amazon DynamoDB client (Preview,Experimental)", model.getCategories().get(0).getExtensions().get(0).asLabel());
+    }
+
 
     @Test
     public void checkExtensionWithDefault() throws IOException {
