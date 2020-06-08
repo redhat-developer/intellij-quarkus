@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class QuarkusExtension {
@@ -42,6 +43,9 @@ public class QuarkusExtension {
 
     @JsonProperty("status")
     private String status;
+
+    @JsonProperty("tags")
+    private List<String> tags = new ArrayList<String>();
 
     @JsonProperty("default")
     private boolean defaultExtension;
@@ -128,12 +132,35 @@ public class QuarkusExtension {
         this.defaultExtension = defaultExtension;
     }
 
-    public String asLabel() {
-        StringBuilder builder = new StringBuilder(getName());
-        String st = getStatus();
-        if (StringUtils.isNotBlank(st) && !"stable".equalsIgnoreCase(st)) {
-            builder.append(" (").append(Character.toUpperCase(st.charAt(0))).append(st.substring(1)).append(')');
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
+    public String asLabel(boolean withName) {
+        StringBuilder builder = new StringBuilder(withName?getName() + "":"");
+        List<String> tags = getTags();
+        if (!tags.isEmpty()) {
+            if (withName) {
+                builder.append(' ');
+            }
+            builder.append("(").append(tags.stream().map(tag -> Character.toUpperCase(tag.charAt(0)) + tag.substring(1)).collect(Collectors.joining(","))).append(')');
+        } else {
+            String st = getStatus();
+            if (StringUtils.isNotBlank(st) && !"stable".equalsIgnoreCase(st)) {
+                if (withName) {
+                    builder.append(' ');
+                }
+                builder.append("(").append(Character.toUpperCase(st.charAt(0))).append(st.substring(1)).append(')');
+            }
         }
         return builder.toString();
+    }
+
+    public String asLabel() {
+        return asLabel(true);
     }
 }

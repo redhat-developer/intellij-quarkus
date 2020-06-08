@@ -17,6 +17,7 @@ import com.intellij.ui.BooleanTableCellRenderer;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -59,7 +60,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                 if (columnIndex == 0) {
                     return extension.isDefaultExtension() || extension.isSelected();
                 } else {
-                    return extension.asLabel();
+                    return extension;
                 }
             }
 
@@ -100,7 +101,10 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
 
                 @Override
                 protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean b, boolean b1, int i, int i1) {
-                    append(value.toString());
+                    QuarkusExtension extension = (QuarkusExtension) value;
+                    append(extension.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, null));
+                    append(" ");
+                    append(extension.asLabel(false), new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
                 }
             });
         }

@@ -1,0 +1,22 @@
+[
+  {
+    "category": "Data",
+    "default": false,
+    "description": "A client for the Amazon DynamoDB datastore",
+    "id": "io.quarkus:quarkus-amazon-dynamodb",
+    "keywords": [
+      "dynamodb",
+      "dynamo",
+      "aws",
+      "amazon"
+    ],
+    "labels": [
+      "dynamodb",
+      "dynamo",
+      "aws",
+      "amazon"
+    ],
+    "name": "Amazon DynamoDB client",
+    "order": 20,
+    "tags": ["preview","experimental"]
+}]
