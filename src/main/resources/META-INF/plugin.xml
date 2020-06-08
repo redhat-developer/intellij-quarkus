@@ -52,7 +52,7 @@
     <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.module.QuarkusModuleBuilder"/>
 
     <fileTypeFactory implementation="com.redhat.devtools.intellij.quarkus.lang.ApplicationPropertiesFileTypeFactory"/>
-    <lang.syntaxHighlighterFactory language="Quarkus properties" implementationClass="com.intellij.properties.PropertiesSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="Quarkus properties" implementationClass="com.redhat.devtools.intellij.quarkus.lang.QuarkusPropertiesSyntaxHighlighterFactory"/>
   </extensions>
 
   <extensionPoints>
