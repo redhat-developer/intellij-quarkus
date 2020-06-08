@@ -11,6 +11,7 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij.operations.completion;
 
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
+import com.intellij.codeInsight.completion.CompletionInitializationContext;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
@@ -330,6 +331,6 @@ public class LSIncompleteCompletionProposal extends LookupElement {
 
     @Override
     public void handleInsert(@NotNull InsertionContext context) {
-        apply(context.getDocument(), context.getCompletionChar(), 0, context.getStartOffset());
+        apply(context.getDocument(), context.getCompletionChar(), 0, context.getOffset(CompletionInitializationContext.SELECTION_END_OFFSET));
     }
 }
