@@ -141,13 +141,19 @@ public class QuarkusExtension {
     }
 
     public String asLabel(boolean withName) {
-        StringBuilder builder = new StringBuilder(withName?getName() + " ":"");
+        StringBuilder builder = new StringBuilder(withName?getName() + "":"");
         List<String> tags = getTags();
         if (!tags.isEmpty()) {
+            if (withName) {
+                builder.append(' ');
+            }
             builder.append("(").append(tags.stream().map(tag -> Character.toUpperCase(tag.charAt(0)) + tag.substring(1)).collect(Collectors.joining(","))).append(')');
         } else {
             String st = getStatus();
             if (StringUtils.isNotBlank(st) && !"stable".equalsIgnoreCase(st)) {
+                if (withName) {
+                    builder.append(' ');
+                }
                 builder.append("(").append(Character.toUpperCase(st.charAt(0))).append(st.substring(1)).append(')');
             }
         }
