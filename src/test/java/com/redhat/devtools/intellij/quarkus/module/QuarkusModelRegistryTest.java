@@ -21,17 +21,24 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.IOException;
 
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.*;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_CODE_URL;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class QuarkusModelRegistryTest  {
     private final QuarkusModelRegistry registry = QuarkusModelRegistry.INSTANCE;
     private static CodeInsightTestFixture myFixture;
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void init() throws Exception {
@@ -57,5 +64,49 @@ public class QuarkusModelRegistryTest  {
     @Test(expected = IOException.class)
     public void checkThatIOExceptionIsReturnedWithInvalidURL() throws IOException {
         registry.load("https://invalid.org", new EmptyProgressIndicator());
+    }
+
+    @Test
+    public void checkBaseMavenProject() throws IOException {
+        File folder = temporaryFolder.newFolder();
+        QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "MAVEN", "org.acme", "code-with-quarkus",
+                "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example",
+                registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator()), folder);
+        assertTrue(new File(folder, "pom.xml").exists());
+    }
+
+    private void enableAllExtensions(QuarkusModel model) {
+        model.getCategories().forEach(category -> category.getExtensions().forEach(extension -> extension.setSelected(true)));
+    }
+
+    @Test
+    public void checkAllExtensionsMavenProject() throws IOException {
+        File folder = temporaryFolder.newFolder();
+        QuarkusModel model = registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator());
+        enableAllExtensions(model);
+        QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "MAVEN", "org.acme", "code-with-quarkus",
+                "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example", model,
+                folder);
+        assertTrue(new File(folder, "pom.xml").exists());
+    }
+
+    @Test
+    public void checkBaseGradleProject() throws IOException {
+        File folder = temporaryFolder.newFolder();
+        QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "GRADLE", "org.acme", "code-with-quarkus",
+                "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example",
+                registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator()), folder);
+        assertTrue(new File(folder, "build.gradle").exists());
+    }
+
+    @Test
+    public void checkAllExtensionsGradleProject() throws IOException {
+        File folder = temporaryFolder.newFolder();
+        QuarkusModel model = registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator());
+        enableAllExtensions(model);
+        QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "GRADLE", "org.acme", "code-with-quarkus",
+                "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example", model,
+                folder);
+        assertTrue(new File(folder, "build.gradle").exists());
     }
 }

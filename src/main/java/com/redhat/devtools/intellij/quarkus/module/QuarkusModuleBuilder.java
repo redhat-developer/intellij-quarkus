@@ -49,10 +49,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_ARTIFACT_ID_PARAMETER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_CLASSNAME_PARAMETER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_GROUP_ID_PARAMETER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_PATH_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_TOOL_PARAMETER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_VERSION_PARAMETER_NAME;
 
 public class QuarkusModuleBuilder extends JavaModuleBuilder {
 
@@ -115,42 +121,19 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
     }
 
     private void processDownload() throws IOException {
-        Url url = Urls.newFromEncoded(wizardContext.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY) + "/api/download");
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("b", wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).asParameter());
-        parameters.put("g", wizardContext.getUserData(QuarkusConstants.WIZARD_GROUPID_KEY));
-        parameters.put("a", wizardContext.getUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY));
-        parameters.put("v", wizardContext.getUserData(QuarkusConstants.WIZARD_VERSION_KEY));
-        parameters.put("c", wizardContext.getUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY));
-        parameters.put("p", wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY));
-        url = url.addParameters(parameters);
-        QuarkusModel model = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY);
-        for(QuarkusCategory category : model.getCategories()) {
-            for(QuarkusExtension extension : category.getExtensions()) {
-                if (extension.isSelected() || extension.isDefaultExtension()) {
-                    url = url.addParameters(Collections.singletonMap("e", extension.getId()));
-                }
-            }
-        }
-        RequestBuilder builder = HttpRequests.request(url.toString()).userAgent(QuarkusModelRegistry.USER_AGENT).tuner(connection -> {
-            connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
-            connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
-        });
         File moduleFile = new File(getContentEntryPath());
-        try {
-            ApplicationManager.getApplication().executeOnPooledThread(() -> builder.connect(request -> {
-                ZipUtil.unpack(request.getInputStream(), moduleFile, name -> {
-                    int index = name.indexOf('/');
-                    return name.substring(index);
-                });
-                return true;
-            })).get();
-            updateWrapperPermissions(moduleFile);
-        } catch (InterruptedException|ExecutionException e) {
-            throw new IOException(e);
-        }
+        QuarkusModelRegistry.zip(wizardContext.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY),
+                wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).asParameter(),
+                wizardContext.getUserData(QuarkusConstants.WIZARD_GROUPID_KEY),
+                wizardContext.getUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY),
+                wizardContext.getUserData(QuarkusConstants.WIZARD_VERSION_KEY),
+                wizardContext.getUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY),
+                wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY),
+                wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY),
+                moduleFile);
+        updateWrapperPermissions(moduleFile);
         VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-        RefreshQueue.getInstance().refresh(true, true, (Runnable)null, new VirtualFile[]{vf});
+        RefreshQueue.getInstance().refresh(true, true, (Runnable) null, new VirtualFile[]{vf});
     }
 
     private void updateWrapperPermissions(File moduleFile) {
