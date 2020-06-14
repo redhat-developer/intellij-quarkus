@@ -123,7 +123,8 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             modelTree.setCellRenderer(new ModelCellRenderer());
             modelTree.setCellEditor(new ModelCellEditor(modelTree, (DefaultTreeCellRenderer) modelTree.getCellRenderer()));
             panel.setFirstComponent(new JBScrollPane(modelTree));*/
-            JBList<QuarkusCategory> categoriesList = new JBList<>(wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY).getCategories());
+            List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY).getCategories();
+            JBList<QuarkusCategory> categoriesList = new JBList<>(categories);
             ColoredListCellRenderer<QuarkusCategory> categoryRender = new ColoredListCellRenderer<QuarkusCategory>() {
                 @Override
                 protected void customizeCellRenderer(@NotNull JList<? extends QuarkusCategory> list, QuarkusCategory category, int index, boolean selected, boolean hasFocus) {
@@ -135,6 +136,9 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             ExtensionsTable extensionsTable = new ExtensionsTable();
             panel.setSecondComponent(new JBScrollPane(extensionsTable));
             categoriesList.addListSelectionListener(e -> extensionsTable.setExtensions(categoriesList.getSelectedValue().getExtensions()));
+            if (!categories.isEmpty()) {
+                categoriesList.setSelectedIndex(0);
+            }
         }
         return panel;
     }
