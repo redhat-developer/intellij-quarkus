@@ -35,6 +35,15 @@ public class QuarkusExtensionsTest {
     }
 
     @Test
+    public void checkExtensionWithShortId() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-extension.json"));
+        assertEquals(1, model.getCategories().size());
+        assertEquals(1, model.getCategories().get(0).getExtensions().size());
+        assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
+        assertEquals("98e", model.getCategories().get(0).getExtensions().get(0).getShortId());
+    }
+
+    @Test
     public void checkStableExtensionWithStatus() throws IOException {
         QuarkusModel model = new QuarkusModel(load("/single-stable-extension-with-status.json"));
         assertEquals(1, model.getCategories().size());

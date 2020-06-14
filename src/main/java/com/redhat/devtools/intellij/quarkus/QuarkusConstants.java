@@ -69,6 +69,25 @@ public class QuarkusConstants {
     public static final String DISPLAY_CHECK_NOTIFACTION_PROPERTY_NAME = QuarkusConstants.class.getPackage().getName() + ".displayCheckNotification";
     public static final String NOTIFICATION_GROUP = "Quarkus Tools";
 
+    /*
+     * Parameter names for the download request. See
+     * http://editor.swagger.io/?url=https://code.quarkus.io/openapi for reference.
+     */
+    public static final String CODE_TOOL_PARAMETER_NAME = "b";
+
+    public static final String CODE_GROUP_ID_PARAMETER_NAME = "g";
+
+    public static final String CODE_ARTIFACT_ID_PARAMETER_NAME = "a";
+
+    public static final String CODE_VERSION_PARAMETER_NAME = "v";
+
+    public static final String CODE_CLASSNAME_PARAMETER_NAME = "c";
+
+    public static final String CODE_PATH_PARAMETER_NAME = "p";
+
+    public static final String CODE_EXTENSIONS_PARAMETER_NAME = "e";
+    public static final String CODE_EXTENSIONS_SHORT_PARAMETER_NAME = "s";
+
     public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME = "Client-Name";
     public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE = "IntelliJ Quarkus Tools";
     public static final String CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME = "Client-Contact-Email";
