@@ -26,7 +26,7 @@ public class QuarkusLibraryType extends DownloadableLibraryType {
     @NotNull
     @Override
     protected String[] getDetectionClassNames() {
-        return new String[]{"io.quarkus.runtime.Quarkus"};
+        return new String[]{"io.quarkus.runtime.LaunchMode", "io.quarkus.runtime.Quarkus"};
     }
 
     @NotNull

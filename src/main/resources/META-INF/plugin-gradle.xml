@@ -3,5 +3,8 @@
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.gradle.GradleToolDelegate"/>
   </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <externalProjectDataService implementation="com.redhat.devtools.intellij.quarkus.gradle.QuarkusProjectDataService"/>
+  </extensions>
 
 </idea-plugin>
