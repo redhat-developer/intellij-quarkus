@@ -188,6 +188,9 @@ public class LSPIJUtils {
         int startOffset = marker.getStartOffset();
         int endOffset = marker.getEndOffset();
         String text = textEdit.getNewText();
+        if (text != null) {
+            text = text.replaceAll("\r", "");
+        }
         if (text == null || "".equals(text)) {
             document.deleteString(startOffset, endOffset);
         } else if (endOffset - startOffset <= 0) {
