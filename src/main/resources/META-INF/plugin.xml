@@ -42,6 +42,7 @@
   <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <preloadingActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPreLoadingActivity"/>
     <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>
     <!-- Add your extensions here -->
     <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
