@@ -13,18 +13,27 @@ package com.redhat.devtools.intellij.quarkus;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.util.Version;
+
+import java.util.stream.Stream;
 
 public class PluginHelper {
     static IdeaPluginDescriptor getLSPPluginDescriptor() {
         return PluginManager.getPlugin(PluginId.getId(QuarkusConstants.LSP_PLUGIN_ID));
     }
 
-    static boolean isLSPPluginPre154(IdeaPluginDescriptor pluginDescriptor) {
-        return Version.parseVersion(pluginDescriptor.getVersion()).lessThan(1, 5, 5);
-    }
-
-    public static boolean isLSPPluginPre154() {
-        return isLSPPluginPre154(getLSPPluginDescriptor());
+    public static boolean isLSPPluginInstalledAndNotUsed() {
+        int users = 0;
+        IdeaPluginDescriptor lspDescriptor = getLSPPluginDescriptor();
+        if (lspDescriptor != null && lspDescriptor.isEnabled()) {
+            for(IdeaPluginDescriptor descriptor : PluginManager.getPlugins()) {
+                if (descriptor.isEnabled()) {
+                    users += Stream.of(descriptor.getDependentPluginIds()).filter(id -> id.equals(PluginId.getId(QuarkusConstants.LSP_PLUGIN_ID))).count();
+                    users += Stream.of(descriptor.getOptionalDependentPluginIds()).filter(id -> id.equals(PluginId.getId(QuarkusConstants.LSP_PLUGIN_ID))).count();
+                }
+            }
+        } else {
+            users = -1;
+        }
+        return users == 0;
     }
 }
