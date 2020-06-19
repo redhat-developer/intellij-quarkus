@@ -77,7 +77,7 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @Override
     public String getDescription() {
-        return "Quarkus module";
+        return "Create <b>Quarkus</b> projects using code.quarkus.io provided by Quarkus Tools";
     }
 
     @Override
