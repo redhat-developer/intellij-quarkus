@@ -97,4 +97,6 @@ public class QuarkusConstants {
     public static final String QUARKUS_CODE_URL_PRODUCTION = "https://code.quarkus.io";
     public static final String QUARKUS_CODE_URL_TEST = "https://stage.code.quarkus.io";
     public static final String QUARKUS_CODE_URL = System.getProperty(QUARKUS_CODE_URL_PROPERTY_NAME, QUARKUS_CODE_URL_PRODUCTION);
+
+    public static final String QUARKUS_RUNTIME_CLASS_NAME = "io.quarkus.runtime.LaunchMode";
 }

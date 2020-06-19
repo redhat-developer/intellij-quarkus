@@ -121,7 +121,6 @@ public class MavenToolDelegate implements ToolDelegate {
     }
 
     private List<MavenArtifact> ensureDownloaded(Module module, MavenProject mavenProject, Set<MavenId> deploymentIds, String classifier) {
-        System.out.println("ensureDownloaded id=" + deploymentIds.size() + " classifier=" + classifier);
         List<MavenArtifact> result = new ArrayList<>();
         long start = System.currentTimeMillis();
         try {
@@ -137,7 +136,6 @@ public class MavenToolDelegate implements ToolDelegate {
         } catch (MavenProcessCanceledException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
-        System.out.println("ensureDownloaded took " + (System.currentTimeMillis() - start));
         return result;
     }
 }

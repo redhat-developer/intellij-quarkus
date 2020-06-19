@@ -31,16 +31,19 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageClientImpl;
+import com.redhat.devtools.intellij.quarkus.search.ProjectLabelManager;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
 import com.redhat.devtools.intellij.quarkus.search.core.PropertiesManagerForJava;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import com.redhat.microprofile.commons.MicroProfileJavaProjectLabelsParams;
 import com.redhat.microprofile.commons.MicroProfileProjectInfo;
 import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
 import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
 import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
+import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI;
 import org.eclipse.lsp4j.Hover;
@@ -136,5 +139,10 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
   @Override
   public CompletableFuture<Location> getPropertyDefinition(MicroProfilePropertyDefinitionParams params) {
     return CompletableFuture.completedFuture(PropertiesManager.getInstance().findPropertyLocation(params, PsiUtilsImpl.getInstance()));
+  }
+
+  @Override
+  public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectlabels(MicroProfileJavaProjectLabelsParams javaParams) {
+    return CompletableFuture.completedFuture(ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsImpl.getInstance()));
   }
 }
