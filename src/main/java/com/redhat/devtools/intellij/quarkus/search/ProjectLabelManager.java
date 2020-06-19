@@ -70,11 +70,13 @@ public class ProjectLabelManager {
 				// The uri doesn't belong to an Eclipse project
 				return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 			}
-			Module module = utils.getModule(file);
-			if (module == null) {
-				return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
-			}
-			return ApplicationManager.getApplication().runReadAction((Computable<ProjectLabelInfoEntry>) () -> getProjectLabelInfo(module, params.getTypes(), utils));
+			return ApplicationManager.getApplication().runReadAction((Computable<ProjectLabelInfoEntry>) () -> {
+				Module module = utils.getModule(file);
+				if (module == null) {
+					return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
+				}
+				return getProjectLabelInfo(module, params.getTypes(), utils);
+			});
 		} catch (IOException e) {
 			return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 		}
