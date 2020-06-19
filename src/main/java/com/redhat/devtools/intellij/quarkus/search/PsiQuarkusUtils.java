@@ -68,4 +68,16 @@ public class PsiQuarkusUtils {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(javaProject.getProject());
         return facade.findClass(QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM, GlobalSearchScope.moduleWithLibrariesScope(javaProject)) != null;
     }
+
+    /**
+     * Returns true if <code>javaProject</code> is a Quarkus project. Returns false
+     * otherwise.
+     *
+     * @param javaProject the Java project to check
+     * @return true only if <code>javaProject</code> is a Quarkus project.
+     */
+    public static boolean isQuarkusProject(Module javaProject) {
+            return PsiUtilsImpl.getInstance().findClass(javaProject, QuarkusConstants.QUARKUS_RUNTIME_CLASS_NAME) != null;
     }
+
+}
