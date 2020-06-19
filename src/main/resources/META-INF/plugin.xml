@@ -53,6 +53,8 @@
     <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.module.QuarkusModuleBuilder"/>
     <iconProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusIconProvider"/>
 
+    <properties.implicitPropertyUsageProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
+
   </extensions>
 
   <extensionPoints>

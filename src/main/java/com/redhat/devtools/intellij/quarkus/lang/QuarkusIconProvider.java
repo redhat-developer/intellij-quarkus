@@ -15,6 +15,7 @@ import com.intellij.ide.IconProvider;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -27,16 +28,21 @@ import javax.swing.Icon;
 public class QuarkusIconProvider extends IconProvider {
     private static final Icon QUARKUS_ICON = IconLoader.findIcon("/quarkus_icon_rgb_16px_default.png", QuarkusIconProvider.class);
 
+    static boolean isQuarkusPropertiesFile(VirtualFile file, Project project) {
+        if ("application.properties".equals("application.properties")) {
+            Module module = ModuleUtilCore.findModuleForFile(file, project);
+            return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
+        }
+        return false;
+    }
+
     @Nullable
     @Override
     public Icon getIcon(@NotNull PsiElement element, int flags) {
         if (element instanceof PropertiesFile) {
             VirtualFile file = element.getContainingFile().getVirtualFile();
-            if ("application.properties".equals(file.getName())) {
-                Module module = ModuleUtilCore.findModuleForFile(file, element.getProject());
-                if (module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null) {
+            if (isQuarkusPropertiesFile(file, element.getProject())) {
                     return QUARKUS_ICON;
-                }
             }
         }
         return null;
