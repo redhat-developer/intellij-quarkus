@@ -26,12 +26,22 @@ import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.AbstractListModel;
+import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposable {
     private JBSplitter panel;
@@ -39,7 +49,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
 
     private class ExtensionsTable extends JBTable {
         private class Model extends AbstractTableModel {
-            private final List<QuarkusExtension> extensions;
+            private List<QuarkusExtension> extensions;
 
             private Model(List<QuarkusExtension> extensions) {
                 this.extensions = extensions;
@@ -80,6 +90,11 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             public Class<?> getColumnClass(int columnIndex) {
                 return columnIndex == 0?Boolean.class:String.class;
             }
+
+            public void setExtensions(List<QuarkusExtension> extensions) {
+                this.extensions = extensions;
+                fireTableDataChanged();
+            }
         }
 
         private ExtensionsTable() {
@@ -89,10 +104,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             this.setRowSelectionAllowed(true);
             this.setSelectionMode(0);
             this.setTableHeader(null);
-        }
-
-        public void setExtensions(List<QuarkusExtension> extensions) {
-            setModel(new Model(extensions));
+            setModel(new Model(new ArrayList<>()));
             TableColumn selectedColumn = columnModel.getColumn(0);
             TableUtil.setupCheckboxColumn(this, 0);
             selectedColumn.setCellRenderer(new BooleanTableCellRenderer());
@@ -108,6 +120,35 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                 }
             });
         }
+
+        public void setExtensions(List<QuarkusExtension> extensions) {
+            ((Model)getModel()).setExtensions(extensions);
+        }
+    }
+
+    private class SelectedExtensionsModel extends AbstractListModel<QuarkusExtension> {
+
+        private final List<QuarkusExtension> extensions = new ArrayList<>();
+
+        private SelectedExtensionsModel(List<QuarkusCategory> categories) {
+            Set<String> ids = new HashSet<>();
+            categories.stream().flatMap(category -> category.getExtensions().stream()).filter(extension -> extension.isDefaultExtension() || extension.isSelected()).forEach(extension -> {
+                if (!ids.contains(extension.getId())) {
+                    ids.add(extension.getId());
+                    extensions.add(extension);
+                }
+            });
+        }
+
+        @Override
+        public int getSize() {
+            return extensions.size();
+        }
+
+        @Override
+        public QuarkusExtension getElementAt(int index) {
+            return extensions.get(index);
+        }
     }
 
     public QuarkusExtensionsStep(WizardContext wizardContext) {
@@ -118,11 +159,6 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
     public JComponent getComponent() {
         if (panel == null && wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY) != null) {
             panel = new JBSplitter(false, 0.8f);
-            /*Tree modelTree = new Tree();
-            modelTree.setModel(new ModelTreeModel(wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY)));
-            modelTree.setCellRenderer(new ModelCellRenderer());
-            modelTree.setCellEditor(new ModelCellEditor(modelTree, (DefaultTreeCellRenderer) modelTree.getCellRenderer()));
-            panel.setFirstComponent(new JBScrollPane(modelTree));*/
             List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY).getCategories();
             JBList<QuarkusCategory> categoriesList = new JBList<>(categories);
             ColoredListCellRenderer<QuarkusCategory> categoryRender = new ColoredListCellRenderer<QuarkusCategory>() {
@@ -132,13 +168,39 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                 }
             };
             categoriesList.setCellRenderer(categoryRender);
-            panel.setFirstComponent(new JBScrollPane(categoriesList));
+            JBSplitter leftPanel = new JBSplitter(false, 0.5f);
+            leftPanel.setFirstComponent(new JBScrollPane(categoriesList));
             ExtensionsTable extensionsTable = new ExtensionsTable();
-            panel.setSecondComponent(new JBScrollPane(extensionsTable));
+            leftPanel.setSecondComponent(new JBScrollPane(extensionsTable));
             categoriesList.addListSelectionListener(e -> extensionsTable.setExtensions(categoriesList.getSelectedValue().getExtensions()));
             if (!categories.isEmpty()) {
                 categoriesList.setSelectedIndex(0);
             }
+            panel.setFirstComponent(leftPanel);
+            JBList<QuarkusExtension> selectedExtensions = new JBList<>();
+            selectedExtensions.setModel(new SelectedExtensionsModel(categories));
+            ColoredListCellRenderer<QuarkusExtension> selectedExtensionRenderer = new ColoredListCellRenderer<QuarkusExtension>() {
+                @Override
+                protected void customizeCellRenderer(@NotNull JList<? extends QuarkusExtension> list, QuarkusExtension extension, int index, boolean selected, boolean hasFocus) {
+                    append(extension.getName());
+                }
+            };
+            selectedExtensions.setCellRenderer(selectedExtensionRenderer);
+            JPanel selectedExtensionsPanel = new JPanel();
+            selectedExtensionsPanel.setLayout(new BoxLayout(selectedExtensionsPanel, BoxLayout.Y_AXIS));
+            JLabel label = new JLabel("Selected extensions");
+            label.setFont(label.getFont().deriveFont(label.getFont().getStyle() | Font.BOLD));
+            selectedExtensionsPanel.add(label);
+            selectedExtensionsPanel.add(selectedExtensions);
+            panel.setSecondComponent(selectedExtensionsPanel);
+            extensionsTable.getModel().addTableModelListener(new TableModelListener() {
+                @Override
+                public void tableChanged(TableModelEvent e) {
+                    if (e.getType() == TableModelEvent.UPDATE) {
+                        selectedExtensions.setModel(new SelectedExtensionsModel(categories));
+                    }
+                }
+            });
         }
         return panel;
     }
