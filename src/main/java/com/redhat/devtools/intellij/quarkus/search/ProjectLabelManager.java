@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.quarkus.search;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
@@ -70,11 +71,13 @@ public class ProjectLabelManager {
 				// The uri doesn't belong to an Eclipse project
 				return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 			}
-			Module module = utils.getModule(file);
+			Module module = ApplicationManager.getApplication().runReadAction((Computable<Module>) () -> {
+				return utils.getModule(file);
+			});
 			if (module == null) {
 				return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 			}
-			return ApplicationManager.getApplication().runReadAction((Computable<ProjectLabelInfoEntry>) () -> getProjectLabelInfo(module, params.getTypes(), utils));
+			return DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> getProjectLabelInfo(module, params.getTypes(), utils));
 		} catch (IOException e) {
 			return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 		}
