@@ -11,6 +11,20 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.0.0</b></p>
+    <ul>
+      <li>Based on microprofile-ls</li>
+      <li>Removed dependency on LSP Support plugin</li>
+      <li>Added Goto property definition</li>
+      <li>MicroProfile Health support: validation of Java source</li>
+      <li>MicroProfile Fault Tolerance support: new property keys if Microprofile Fault Tolerance used in Java sources</li>
+      <li>MicroProfile Rest Client support: proper injection points are checked</li>
+      <li>MicroProfile LRA support: new property keys if Microprofile LRA dependency is present</li>
+      <li>MicroProfile OpenAPI support: new property keys if Microprofile OpenAPI dependency is present</li>
+      <li>MicroProfile Metrics support: new property keys if Microprofile Metrics dependency is present</li>
+      <li>MicroProfile OpenTracing support: new property keys if Microprofile OpenTracing dependency is present</li>
+      <li>The Quarkus project/module wizard has been enhanced</li>
+    </ul>
     <p><b>0.0.3</b></p>
     <ul>
       <li>Fix issue in newly created Maven projects causing incomplete completion in application.properties</li>
