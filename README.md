@@ -20,26 +20,26 @@ This JetBrains IntelliJ plugin provides support for Quarkus development via a
 
 ### Code completion (Ctrl + ENTER)
 
-![](images/quarkus tools.png)
+![](images/quarkus-tools.png)
 
 ### Property documentation
 
 Select a property and press Ctrl+Q
 
-![](images/quarkus tools1.png)
+![](images/quarkus-tools1.png)
 
 ### Goto property definition
 
 Select a property and press Ctrl+B
 
-![](images/quarkus tools2.gif)
+![](images/quarkus-tools2.gif)
 
 ### Syntax validation
 
 Wrong property key names or values are reported
 
-![](images/quarkus tools3.png)
-![](images/quarkus tools4.png)
+![](images/quarkus-tools3.png)
+![](images/quarkus-tools4.png)
 
 ### Property hover in Java files
 
@@ -47,13 +47,13 @@ Property managed in your code through @ConfigProperty:
   * code completion in application.properties is adjusted accordingly if you define new properties
   * hover over the property field will display the current value
 
-![](images/quarkus tools5.gif)
+![](images/quarkus-tools5.gif)
   
 ### MicroProfile Health 
 
 Syntax validation is being performed for Java files using the MicroProfile Health assets:
 
-![](images/quarkus tools6.gif)
+![](images/quarkus-tools6.gif)
 
 ### MicroProfile Fault Tolerance
 
@@ -61,41 +61,41 @@ MicroProfile Health related properties are supported in `application.properties`
 and syntax validation as soon as you use MicroProfile related annotation in your Java
 source files
 
-![](images/quarkus tools7.gif)
+![](images/quarkus-tools7.gif)
 
 ### MicroProfile Rest Client
 
 MicroProfile Rest Client references are checked against valid injections
 
-![](images/quarkus tools8.gif)
+![](images/quarkus-tools8.gif)
 
 ### MicroProfile LRA
 
 MicroProfile LRA related properties references are supported in `application.properties` completion
 and syntax validation as soon as you use MicroProfile LRA in your Quarkus application
 
-![](images/quarkus tools9.png)
+![](images/quarkus-tools9.png)
 
 ### MicroProfile OpenAPI
 
 MicroProfile OpenAPI related properties references are supported in `application.properties` completion
 and syntax validation as soon as you use MicroProfile OpenAPI in your Quarkus application
 
-![](images/quarkus tools10.png)
+![](images/quarkus-tools10.png)
 
 ### MicroProfile Metrics
 
 MicroProfile Metrics related properties references are supported in `application.properties` completion
 and syntax validation as soon as you use MicroProfile Metrics in your Quarkus application
 
-![](images/quarkus tools10.png)
+![](images/quarkus-tools10.png)
 
 ### MicroProfile OpenTracing
 
 MicroProfile OpenTracing related properties references are supported in `application.properties` completion
 and syntax validation as soon as you use MicroProfile OpenTracing in your Quarkus application
 
-![](images/quarkus tools11.png)
+![](images/quarkus-tools11.png)
 
 ## Quarkus project wizards
   * Generate a Quarkus Maven project, based on https://code.quarkus.io/
