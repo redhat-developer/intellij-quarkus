@@ -11,6 +11,10 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.0.1</b></p>
+    <ul>
+      <li>Java quickdoc was not displayed anymore if Quarkus Tools is installed</li>
+    </ul>
     <p><b>1.0.0</b></p>
     <ul>
       <li>Based on microprofile-ls</li>
