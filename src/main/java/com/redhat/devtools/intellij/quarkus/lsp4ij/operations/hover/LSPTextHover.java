@@ -219,6 +219,6 @@ public class LSPTextHover extends DocumentationProviderEx {
     @Nullable
     @Override
     public PsiElement getCustomDocumentationElement(@NotNull Editor editor, @NotNull PsiFile file, @Nullable PsiElement contextElement) {
-        return file.getFirstChild();
+        return null;
     }
 }
