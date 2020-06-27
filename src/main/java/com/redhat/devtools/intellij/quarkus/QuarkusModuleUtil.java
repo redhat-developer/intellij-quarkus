@@ -135,9 +135,15 @@ public class QuarkusModuleUtil {
         return libraries.process(new RootPolicy<Boolean>() {
             @Override
             public Boolean visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Boolean value) {
-                return value | libraryOrderEntry.getLibraryName().contains("io.quarkus:quarkus-core:");
+                return value | isQuarkusLibrary(libraryOrderEntry);
             }
         }, false);
+    }
+
+    public static boolean isQuarkusLibrary(@NotNull LibraryOrderEntry libraryOrderEntry) {
+        return libraryOrderEntry != null &&
+                libraryOrderEntry.getLibraryName() != null &&
+                libraryOrderEntry.getLibraryName().contains("io.quarkus:quarkus-core:");
     }
 
     public static Set<String> getModulesURIs(Project project) {
