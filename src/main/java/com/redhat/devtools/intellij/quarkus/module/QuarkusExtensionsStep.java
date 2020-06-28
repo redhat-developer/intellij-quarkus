@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.module;
 
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
@@ -22,9 +23,13 @@ import com.intellij.ui.TableUtil;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.UIUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BoxLayout;
@@ -33,10 +38,17 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.JTextPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.text.EditorKit;
+import javax.swing.text.html.HTMLEditorKit;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,6 +56,8 @@ import java.util.List;
 import java.util.Set;
 
 public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusExtensionsStep.class);
+
     private JBSplitter panel;
     private final WizardContext wizardContext;
 
@@ -94,6 +108,10 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             public void setExtensions(List<QuarkusExtension> extensions) {
                 this.extensions = extensions;
                 fireTableDataChanged();
+            }
+
+            public QuarkusExtension getElementAt(int index) {
+                return extensions.get(index);
             }
         }
 
@@ -159,6 +177,8 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
     public JComponent getComponent() {
         if (panel == null && wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY) != null) {
             panel = new JBSplitter(false, 0.8f);
+
+            //categories component
             List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY).getCategories();
             JBList<QuarkusCategory> categoriesList = new JBList<>(categories);
             ColoredListCellRenderer<QuarkusCategory> categoryRender = new ColoredListCellRenderer<QuarkusCategory>() {
@@ -170,8 +190,24 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             categoriesList.setCellRenderer(categoryRender);
             JBSplitter leftPanel = new JBSplitter(false, 0.5f);
             leftPanel.setFirstComponent(new JBScrollPane(categoriesList));
+
+            //extensions component
             ExtensionsTable extensionsTable = new ExtensionsTable();
-            leftPanel.setSecondComponent(new JBScrollPane(extensionsTable));
+            JTextPane extensionDetailTextPane = new JTextPane();
+            extensionDetailTextPane.setEditorKit(getHtmlEditorKit());
+            extensionDetailTextPane.addHyperlinkListener(new HyperlinkListener() {
+                @Override
+                public void hyperlinkUpdate(HyperlinkEvent e) {
+                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                        BrowserUtil.browse(e.getURL());
+                    }
+                }
+            });
+            extensionDetailTextPane.setEditable(false);
+            JBSplitter extensionsSplitter = new JBSplitter(true, 0.8f);
+            extensionsSplitter.setFirstComponent(new JBScrollPane(extensionsTable));
+            extensionsSplitter.setSecondComponent(extensionDetailTextPane);
+            leftPanel.setSecondComponent(extensionsSplitter);
             categoriesList.addListSelectionListener(e -> extensionsTable.setExtensions(categoriesList.getSelectedValue().getExtensions()));
             if (!categories.isEmpty()) {
                 categoriesList.setSelectedIndex(0);
@@ -201,8 +237,39 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                     }
                 }
             });
+            extensionsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    QuarkusExtension extension = ((ExtensionsTable.Model)extensionsTable.getModel()).getElementAt(extensionsTable.getSelectedRow());
+                    StringBuilder builder = new StringBuilder("<html><body>" + extension.getDescription() + ".");
+                    if (StringUtils.isNotBlank(extension.getGuide())) {
+                        builder.append(" <a href=\"" + extension.getGuide() + "\">Click to open guide</a>");
+                    }
+                    builder.append("</body></html>");
+                    extensionDetailTextPane.setText(builder.toString());
+                }
+            });
         }
         return panel;
+    }
+
+    /**
+     * Use reflection to get IntelliJ specific HTML editor kit as it has moved in 2020.1
+     *
+     * @return the HTML editor kit to use
+     */
+    @NotNull
+    private EditorKit getHtmlEditorKit() {
+        try {
+            return (EditorKit) Class.forName("com.intellij.util.ui.JBHtmlEditorKit").newInstance();
+        } catch (IllegalAccessException | ClassNotFoundException | InstantiationException e) {
+            try {
+                return (EditorKit) Class.forName("com.intellij.util.ui.UIUtil$JBHtmlEditorKit").newInstance();
+            } catch (InstantiationException | ClassNotFoundException | IllegalAccessException e1) {
+                LOGGER.warn("Can't create IntelliJ specific editor kit", e1);
+                return new HTMLEditorKit();
+            }
+        }
     }
 
     @Override
