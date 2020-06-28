@@ -28,6 +28,8 @@ import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BoxLayout;
@@ -45,6 +47,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.text.EditorKit;
+import javax.swing.text.html.HTMLEditorKit;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,6 +56,8 @@ import java.util.List;
 import java.util.Set;
 
 public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusExtensionsStep.class);
+
     private JBSplitter panel;
     private final WizardContext wizardContext;
 
@@ -188,7 +194,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             //extensions component
             ExtensionsTable extensionsTable = new ExtensionsTable();
             JTextPane extensionDetailTextPane = new JTextPane();
-            extensionDetailTextPane.setEditorKit(new UIUtil.JBHtmlEditorKit());
+            extensionDetailTextPane.setEditorKit(getHtmlEditorKit());
             extensionDetailTextPane.addHyperlinkListener(new HyperlinkListener() {
                 @Override
                 public void hyperlinkUpdate(HyperlinkEvent e) {
@@ -245,6 +251,25 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             });
         }
         return panel;
+    }
+
+    /**
+     * Use reflection to get IntelliJ specific HTML editor kit as it has moved in 2020.1
+     *
+     * @return the HTML editor kit to use
+     */
+    @NotNull
+    private EditorKit getHtmlEditorKit() {
+        try {
+            return (EditorKit) Class.forName("com.intellij.util.ui.JBHtmlEditorKit").newInstance();
+        } catch (IllegalAccessException | ClassNotFoundException | InstantiationException e) {
+            try {
+                return (EditorKit) Class.forName("com.intellij.util.ui.UIUtil$JBHtmlEditorKit").newInstance();
+            } catch (InstantiationException | ClassNotFoundException | IllegalAccessException e1) {
+                LOGGER.warn("Can't create IntelliJ specific editor kit", e1);
+                return new HTMLEditorKit();
+            }
+        }
     }
 
     @Override
