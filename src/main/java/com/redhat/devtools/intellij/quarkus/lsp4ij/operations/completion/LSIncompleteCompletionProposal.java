@@ -18,6 +18,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.util.TextRange;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
@@ -61,12 +62,16 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     /** The full file path of the current document */
     private static final String TM_FILEPATH = "TM_FILEPATH"; //$NON-NLS-1$
 
-    private final CompletionItem item;
-    private final Editor editor;
-    private final LanguageServer languageServer;
-    private final int initialOffset;
-    private final int currentOffset;
-    private       int bestOffset;
+    protected final CompletionItem item;
+    protected final int initialOffset;
+    protected       int currentOffset;
+    protected       int bestOffset;
+    protected final Editor editor;
+    private Integer rankCategory;
+    private Integer rankScore;
+    private String documentFilter;
+    private String documentFilterAddition = ""; //$NON-NLS-1$
+    protected final LanguageServer languageServer;
 
     public LSIncompleteCompletionProposal(Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
         this.item = item;
@@ -75,8 +80,46 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         this.initialOffset = offset;
         this.currentOffset = offset;
         this.bestOffset = getPrefixCompletionStart(editor.getDocument(), offset);
+        //this.bestOffset = offset;
         putUserData(CodeCompletionHandlerBase.DIRECT_INSERTION, true);
     }
+
+    /**
+     * See {@link CompletionProposalTools.getFilterFromDocument} for filter
+     * generation logic
+     *
+     * @return The document filter for the given offset
+     */
+    public String getDocumentFilter(int offset) throws StringIndexOutOfBoundsException {
+        if (documentFilter != null) {
+            if (offset != currentOffset) {
+                documentFilterAddition = editor.getDocument().getText(new TextRange(initialOffset, offset));
+                rankScore = null;
+                rankCategory = null;
+                currentOffset = offset;
+            }
+            return documentFilter + documentFilterAddition;
+        }
+        currentOffset = offset;
+        return getDocumentFilter();
+    }
+
+    /**
+     * See {@link CompletionProposalTools.getFilterFromDocument} for filter
+     * generation logic
+     *
+     * @return The document filter for the last given offset
+     */
+    public String getDocumentFilter() {
+        if (documentFilter != null) {
+            return documentFilter + documentFilterAddition;
+        }
+        documentFilter = CompletionProposalTools.getFilterFromDocument(editor.getDocument(), currentOffset,
+                getFilterString(), bestOffset);
+        documentFilterAddition = ""; //$NON-NLS-1$
+        return documentFilter;
+    }
+
 
     protected String getInsertText() {
         String insertText = this.item.getInsertText();
@@ -118,6 +161,9 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     @NotNull
     @Override
     public String getLookupString() {
+        if (item.getLabel().charAt(0) == '@') {
+            return item.getLabel().substring(1);
+        }
         return item.getLabel();
     }
 
@@ -328,9 +374,19 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         }
     }
 
+    public String getFilterString() {
+        if (item.getFilterText() != null && !item.getFilterText().isEmpty()) {
+            return item.getFilterText();
+        }
+        return item.getLabel();
+    }
 
     @Override
     public void handleInsert(@NotNull InsertionContext context) {
         apply(context.getDocument(), context.getCompletionChar(), 0, context.getOffset(CompletionInitializationContext.SELECTION_END_OFFSET));
+    }
+
+    public boolean validate(Document document, int offset, DocumentEvent event) {
+        return true;
     }
 }

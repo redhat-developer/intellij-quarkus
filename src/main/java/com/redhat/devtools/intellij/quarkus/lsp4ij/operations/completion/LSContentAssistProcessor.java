@@ -77,12 +77,17 @@ public class LSContentAssistProcessor extends CompletionContributor {
 
     private Collection<? extends LookupElement> toProposals(Project project, Editor editor, Document document, int offset, Either<List<CompletionItem>, CompletionList> completion, LanguageServer languageServer) {
         List<CompletionItem> items = completion.isLeft()?completion.getLeft():completion.getRight().getItems();
-        return items.stream().map(item -> createLookupItem(project, editor, offset, item, languageServer)).collect(Collectors.toList());
-        //return Collections.singletonList(LookupElementBuilder.create("quarkus.application.name=").withPresentableText("quarkus.application.name="));
+        boolean isIncomplete = completion.isLeft()?false:completion.getRight().isIncomplete();
+        return items.stream().map(item -> createLookupItem(project, editor, offset, item, isIncomplete, languageServer)).
+                filter(item -> item.validate(document, offset, null)).
+                collect(Collectors.toList());
     }
 
-    private LookupElement createLookupItem(Project project, Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
-        return new LSIncompleteCompletionProposal(editor, offset, item, languageServer);
+    private LSIncompleteCompletionProposal createLookupItem(Project project, Editor editor, int offset,
+                                                            CompletionItem item, boolean isIncomplete,
+                                                            LanguageServer languageServer) {
+        return isIncomplete?new LSIncompleteCompletionProposal(editor, offset, item, languageServer):
+                new LSCompletionProposal(editor, offset, item, languageServer);
     }
 
 
