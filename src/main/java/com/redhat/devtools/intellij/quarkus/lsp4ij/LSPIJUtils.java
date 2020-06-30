@@ -13,6 +13,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.HoverParams;
@@ -73,17 +74,7 @@ public class LSPIJUtils {
     }
 
     public static URI toUri(VirtualFile file) {
-        try {
-            if (file.getPath().startsWith("/")) {
-                return new URI(file.getFileSystem().getProtocol() + ':' + file.getPath());
-            } else {
-                return new URI(file.getFileSystem().getProtocol() + ":/" + file.getPath());
-
-            }
-        } catch (URISyntaxException e) {
-            LOGGER.warn(e.getLocalizedMessage(), e);
-            return URI.create(file.getUrl());
-        }
+        return toUri(VfsUtilCore.virtualToIoFile(file));
     }
 
     public static URI toUri(Document document) {
