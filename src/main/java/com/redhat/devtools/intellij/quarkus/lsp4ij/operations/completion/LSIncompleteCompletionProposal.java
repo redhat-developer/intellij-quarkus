@@ -23,6 +23,7 @@ import com.intellij.openapi.util.TextRange;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.command.internal.CommandExecutor;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.InsertTextFormat;
@@ -161,10 +162,11 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     @NotNull
     @Override
     public String getLookupString() {
-        if (item.getLabel().charAt(0) == '@') {
-            return item.getLabel().substring(1);
+        String lookup = StringUtils.isNotBlank(item.getFilterText())?item.getFilterText():item.getLabel();
+        if (lookup.charAt(0) == '@') {
+            return lookup.substring(1);
         }
-        return item.getLabel();
+        return lookup;
     }
 
     private boolean isDeprecated() {
