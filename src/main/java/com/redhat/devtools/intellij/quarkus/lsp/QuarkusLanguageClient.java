@@ -13,10 +13,7 @@ package com.redhat.devtools.intellij.quarkus.lsp;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.roots.ProjectRootUtil;
 import com.intellij.openapi.roots.impl.libraries.LibraryTableBase;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -32,8 +29,8 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageClientImpl;
 import com.redhat.devtools.intellij.quarkus.search.ProjectLabelManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
+import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.core.PropertiesManagerForJava;
 import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
 import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
@@ -123,26 +120,26 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
 
   @Override
   public CompletableFuture<MicroProfileProjectInfo> getProjectInfo(MicroProfileProjectInfoParams params) {
-    return CompletableFuture.completedFuture(PropertiesManager.getInstance().getMicroProfileProjectInfo(params, PsiUtilsImpl.getInstance()));
+    return CompletableFuture.supplyAsync(() -> PropertiesManager.getInstance().getMicroProfileProjectInfo(params, PsiUtilsImpl.getInstance()));
   }
 
   @Override
   public CompletableFuture<Hover> getJavaHover(MicroProfileJavaHoverParams javaParams) {
-    return CompletableFuture.completedFuture(PropertiesManagerForJava.getInstance().hover(javaParams, PsiUtilsImpl.getInstance()));
+    return CompletableFuture.supplyAsync(() -> PropertiesManagerForJava.getInstance().hover(javaParams, PsiUtilsImpl.getInstance()));
   }
 
   @Override
   public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(MicroProfileJavaDiagnosticsParams javaParams) {
-    return CompletableFuture.completedFuture(PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsImpl.getInstance()));
+    return CompletableFuture.supplyAsync(() -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsImpl.getInstance()));
   }
 
   @Override
   public CompletableFuture<Location> getPropertyDefinition(MicroProfilePropertyDefinitionParams params) {
-    return CompletableFuture.completedFuture(PropertiesManager.getInstance().findPropertyLocation(params, PsiUtilsImpl.getInstance()));
+    return CompletableFuture.supplyAsync(() -> PropertiesManager.getInstance().findPropertyLocation(params, PsiUtilsImpl.getInstance()));
   }
 
   @Override
   public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectlabels(MicroProfileJavaProjectLabelsParams javaParams) {
-    return CompletableFuture.completedFuture(ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsImpl.getInstance()));
+    return CompletableFuture.supplyAsync(() -> ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsImpl.getInstance()));
   }
 }
