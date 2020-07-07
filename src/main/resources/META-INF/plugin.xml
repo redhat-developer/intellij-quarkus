@@ -11,6 +11,12 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.0.2</b></p>
+    <ul>
+      <li>Extension details and link to guide are now available in the Quarkus wizard</li>
+      <li>Java code assist was polluted by snippets (see <a href="https://github.com/redhat-developer/intellij-quarkus/issues/152">#152</a>)</li>
+      <li>Various bug fixes</li>
+    </ul>
     <p><b>1.0.1</b></p>
     <ul>
       <li>Java quickdoc was not displayed anymore if Quarkus Tools is installed</li>
