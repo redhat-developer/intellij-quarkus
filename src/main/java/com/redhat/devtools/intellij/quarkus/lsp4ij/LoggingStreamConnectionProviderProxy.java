@@ -38,7 +38,7 @@ public class LoggingStreamConnectionProviderProxy implements StreamConnectionPro
      * @return If connections should be logged
      */
     public static boolean shouldLog(String serverId) {
-        return true;
+        return Boolean.getBoolean("com.redhat.devtools.intellij.quarkus.trace");
     }
 
     public LoggingStreamConnectionProviderProxy(StreamConnectionProvider provider, String serverId) {
