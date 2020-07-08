@@ -73,6 +73,7 @@
   <depends>com.intellij.properties</depends>
   <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
+  <depends optional="true" config-file="plugin-json.xml">com.intellij.modules.json</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <preloadingActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPreLoadingActivity"/>
@@ -91,7 +92,7 @@
             implementationClass="com.redhat.devtools.intellij.quarkus.lang.QuarkusPropertyClassNameCompletionRemover"/>
 
     <properties.implicitPropertyUsageProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
-
+    <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusProjectService"/>
   </extensions>
 
   <extensionPoints>

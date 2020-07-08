@@ -10,23 +10,13 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.impl.libraries.LibraryTableBase;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageClientImpl;
 import com.redhat.devtools.intellij.quarkus.search.ProjectLabelManager;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
@@ -43,32 +33,30 @@ import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
 import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
 import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 
-public class QuarkusLanguageClient extends LanguageClientImpl implements MicroProfileLanguageClientAPI, LibraryTable.Listener, BulkFileListener {
+public class QuarkusLanguageClient extends LanguageClientImpl implements MicroProfileLanguageClientAPI, QuarkusProjectService.Listener {
   private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusLanguageClient.class);
-
-  private long lastModification = (-1);
 
   private final MessageBusConnection connection;
 
   public QuarkusLanguageClient(Project project) {
     super(project);
-    LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(this, project);
-    connection = ApplicationManager.getApplication().getMessageBus().connect(project);
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, this);
+    connection = project.getMessageBus().connect(project);
+    connection.subscribe(QuarkusProjectService.TOPIC, this);
+    QuarkusProjectService.getInstance(project);
   }
 
   private void sendPropertiesChangeEvent(MicroProfilePropertiesScope scope, Set<String> uris) {
@@ -78,43 +66,18 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
     ((MicroProfileLanguageServerAPI)getLanguageServer()).propertiesChanged(event);
   }
 
-  private void handleLibraryUpdate(Library library) {
-    if (library.getTable() instanceof LibraryTableBase) {
-      long modif = ((LibraryTableBase)library.getTable()).getStateModificationCount();
-      if (modif > lastModification) {
-        sendPropertiesChangeEvent(MicroProfilePropertiesScope.dependencies, QuarkusModuleUtil.getModulesURIs(getProject()));
-        lastModification = modif;
-      }
-    }
-  }
-
-
   @Override
-  public void afterLibraryAdded(@NotNull Library newLibrary) {
-    handleLibraryUpdate(newLibrary);
+  public void libraryUpdated(Library library) {
+    sendPropertiesChangeEvent(MicroProfilePropertiesScope.dependencies, QuarkusModuleUtil.getModulesURIs(getProject()));
   }
 
   @Override
-  public void afterLibraryRemoved(@NotNull Library library) {
-    handleLibraryUpdate(library);
-  }
-
-  @Override
-  public void after(@NotNull List<? extends VFileEvent> events) {
-    Set<String> uris = new HashSet<>();
-    events.forEach(event -> filter(event, uris));
+  public void sourceUpdated(List<Pair<Module, VirtualFile>> sources) {
+    Set<String> uris = sources.stream().map(pair -> pair.getLeft()).
+            map(module -> PsiUtilsImpl.getProjectURI(module)).
+            collect(Collectors.toSet());
     if (!uris.isEmpty()) {
       sendPropertiesChangeEvent(MicroProfilePropertiesScope.sources, uris);
-    }
-  }
-
-  private void filter(VFileEvent event, Set<String> uris) {
-    VirtualFile file = event.getFile();
-    if (file != null && file.exists() && "java".equalsIgnoreCase(file.getExtension())) {
-      Module module = ProjectFileIndex.getInstance(getProject()).getModuleForFile(file);
-      if (module != null && (event instanceof VFileCreateEvent || event instanceof VFileContentChangeEvent || event instanceof VFileDeleteEvent)) {
-        uris.add(PsiUtilsImpl.getProjectURI(module));
-      }
     }
   }
 

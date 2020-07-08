@@ -13,11 +13,11 @@ targetCompatibility = '1.8'
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
     if (ideaVersion.substring(3) == "2020.2") {
-        plugins 'java', 'maven', 'maven-model', 'gradle', 'properties'
+        plugins 'java', 'maven', 'maven-model', 'gradle', 'properties', 'yaml'
     } else if (ideaVersion.substring(3) != "2019.1") {
-        plugins 'java', 'maven', 'gradle', 'properties'
+        plugins 'java', 'maven', 'gradle', 'properties', 'yaml'
     } else {
-        plugins 'maven', 'gradle', 'properties'
+        plugins 'maven', 'gradle', 'properties', 'yaml'
     }
     pluginName 'Quarkus Tools'
     updateSinceUntilBuild false
