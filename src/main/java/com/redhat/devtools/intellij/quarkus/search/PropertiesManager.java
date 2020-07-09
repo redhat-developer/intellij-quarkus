@@ -138,6 +138,9 @@ public class PropertiesManager {
                 case dependencies:
                     searchScope = searchScope.union(module.getModuleWithLibrariesScope());
                     break;
+                /*added missing default case */
+                default:
+                    break;
             }
         }
         return searchScope;
