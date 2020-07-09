@@ -112,7 +112,7 @@ public class LSPTextHover extends DocumentationProviderEx {
     @Nullable
     @Override
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-        Editor editor = LSPIJUtils.editorForFile(element.getContainingFile().getVirtualFile());
+        Editor editor = LSPIJUtils.editorForElement(element);
         if (editor != null) {
             if (this.request == null || !element.equals(this.lastElement) || lastOffset != editor.getCaretModel().getCurrentCaret().getOffset()) {
                 initiateHoverRequest(element, editor.getCaretModel().getCurrentCaret().getOffset());

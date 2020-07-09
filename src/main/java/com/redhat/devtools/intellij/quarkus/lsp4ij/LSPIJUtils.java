@@ -15,6 +15,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.Position;
@@ -162,6 +163,12 @@ public class LSPIJUtils {
         return editors.length > 0 ? editors[0] : null;
     }
 
+    public static Editor editorForElement(PsiElement element) {
+        if (element.getContainingFile() != null && element.getContainingFile().getVirtualFile() != null) {
+            return editorForFile(element.getContainingFile().getVirtualFile());
+        }
+        return null;
+    }
 
     public static CompletionParams toCompletionParams(URI fileUri, int offset, Document document) {
         Position start = toPosition(offset, document);
