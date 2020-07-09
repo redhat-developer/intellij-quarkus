@@ -74,6 +74,11 @@ public class JavaDoc2HTMLTextReader extends SubstitutionTextReader {
                         case '\n':
                         case '\r':
                             return c;
+                       //missing default case
+                        default:
+                            // add default case
+                            break;
+      
                     }
                     if (index <= 0) {
                         return c;
