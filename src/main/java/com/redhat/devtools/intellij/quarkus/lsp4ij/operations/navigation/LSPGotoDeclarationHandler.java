@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -55,7 +56,7 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
             if (uri != null) {
                 DefinitionParams parms = new DefinitionParams(new TextDocumentIdentifier(uri.toString()), LSPIJUtils.toPosition(offset, editor.getDocument()));
                 Set<PsiElement> targets = new HashSet<>();
-                LanguageServiceAccessor.getInstance(sourceElement.getProject()).getLanguageServers(editor.getDocument(), capabilities -> capabilities.getDefinitionProvider()).thenComposeAsync(servers ->
+                LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(editor.getDocument(), capabilities -> capabilities.getDefinitionProvider()).thenComposeAsync(servers ->
 
                     CompletableFuture.allOf(servers.stream().map(server -> server.getTextDocumentService().definition(parms).thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
                     .toArray(CompletableFuture[]::new))).get();
@@ -68,7 +69,7 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
     }
 
     private List<PsiElement> toElements(Project project, Either<List<? extends Location>, List<? extends LocationLink>> definitions) {
-        List<? extends Location> locations = toLocation(definitions);
+        List<? extends Location> locations = definitions!=null?toLocation(definitions): Collections.emptyList();
         return locations.stream().map(location -> toElement(project, location)).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
