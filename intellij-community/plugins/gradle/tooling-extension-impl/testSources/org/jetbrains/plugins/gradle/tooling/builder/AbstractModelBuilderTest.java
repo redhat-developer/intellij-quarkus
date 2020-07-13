@@ -243,11 +243,11 @@ public abstract class AbstractModelBuilderTest {
     private static final String RELEASE_REPOSITORY_ENV = "GRADLE_RELEASE_REPOSITORY";
     private static final String SNAPSHOT_REPOSITORY_ENV = "GRADLE_SNAPSHOT_REPOSITORY";
     private static final String INTELLIJ_LABS_GRADLE_RELEASE_MIRROR =
-      "https://services.gradle.org-mirror.labs.intellij.net/distributions";
+      "http://services.gradle.org-mirror.labs.intellij.net/distributions";
     private static final String INTELLIJ_LABS_GRADLE_SNAPSHOT_MIRROR =
-      "https://services.gradle.org-mirror.labs.intellij.net/distributions-snapshots";
-    private static final String GRADLE_RELEASE_REPO = "https://services.gradle.org/distributions";
-    private static final String GRADLE_SNAPSHOT_REPO = "https://services.gradle.org/distributions-snapshots";
+      "http://services.gradle.org-mirror.labs.intellij.net/distributions-snapshots";
+    private static final String GRADLE_RELEASE_REPO = "http://services.gradle.org/distributions";
+    private static final String GRADLE_SNAPSHOT_REPO = "http://services.gradle.org/distributions-snapshots";
 
     @NotNull private final String myReleaseRepoUrl;
     @NotNull private final String mySnapshotRepoUrl;
