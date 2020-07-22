@@ -90,7 +90,7 @@ public class PropertiesManager {
         PropertiesCollector collector = new PropertiesCollector(info, scopes);
         SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
         SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat);
-        DumbService.getInstance(module.getProject()).runWhenSmart(() -> {
+        DumbService.getInstance(module.getProject()).repeatUntilPassesInSmartMode(() -> {
             ApplicationManager.getApplication().runReadAction(() -> {
             Query<PsiModifierListOwner> query = createSearchQuery(context);
             beginSearch(context);
