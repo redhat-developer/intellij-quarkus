@@ -90,13 +90,11 @@ public class PropertiesManager {
         PropertiesCollector collector = new PropertiesCollector(info, scopes);
         SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
         SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat);
-        DumbService.getInstance(module.getProject()).repeatUntilPassesInSmartMode(() -> {
-            ApplicationManager.getApplication().runReadAction(() -> {
+        DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
             Query<PsiModifierListOwner> query = createSearchQuery(context);
             beginSearch(context);
             query.forEach((Consumer<? super PsiModifierListOwner>) psiMember -> collectProperties(psiMember, context));
             endSearch(context);
-            });
         });
         LOGGER.info("End computing MicroProfile properties for '" + info.getProjectURI() + "' in "
                 + (System.currentTimeMillis() - startTime) + "ms.");
