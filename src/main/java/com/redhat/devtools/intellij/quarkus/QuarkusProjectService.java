@@ -145,7 +145,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
             MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module,
                     MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.TEST, PsiUtilsImpl.getInstance(),
                     DocumentFormat.Markdown);
-            String schema = JSONSchemaUtils.toJSONSchema(info, true);
+            String schema = JSONSchemaUtils.toJSONSchema(info, false);
             VirtualFile file = createTempFile(module.getName() + "schema" + counter.getAndIncrement() + ".json", schema);
             if (!info.getProperties().isEmpty()) {
                 schemas.put(module, file);
