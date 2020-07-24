@@ -111,7 +111,7 @@ public class QuarkusModuleUtil {
         Set<String> files = manager.processOrder(new RootPolicy<Set<String>>() {
             @Override
             public Set<String> visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Set<String> value) {
-                if (!libraryOrderEntry.getLibraryName().equalsIgnoreCase(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME) && isQuarkusExtensionWithDeploymentArtifact(libraryOrderEntry.getLibrary())) {
+                if (!isQuarkusDeploymentLibrary(libraryOrderEntry) && isQuarkusExtensionWithDeploymentArtifact(libraryOrderEntry.getLibrary())) {
                     for(VirtualFile file : libraryOrderEntry.getFiles(OrderRootType.CLASSES)) {
                         value.add(file.getPath());
                     }
@@ -144,6 +144,12 @@ public class QuarkusModuleUtil {
         return libraryOrderEntry != null &&
                 libraryOrderEntry.getLibraryName() != null &&
                 libraryOrderEntry.getLibraryName().contains("io.quarkus:quarkus-core:");
+    }
+
+    public static boolean isQuarkusDeploymentLibrary(@NotNull LibraryOrderEntry libraryOrderEntry) {
+        return libraryOrderEntry != null &&
+                libraryOrderEntry.getLibraryName() != null &&
+                libraryOrderEntry.getLibraryName().equalsIgnoreCase(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
     }
 
     public static Set<String> getModulesURIs(Project project) {
