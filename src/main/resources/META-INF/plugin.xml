@@ -11,6 +11,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.0.3</b></p>
+    <ul>
+      <li>Fix whole IDE deadlock while completion proposals were computed</li>
+      <li>Various bug fixes</li>
+    </ul>
     <p><b>1.0.2</b></p>
     <ul>
       <li>Extension details and link to guide are now available in the Quarkus wizard</li>
