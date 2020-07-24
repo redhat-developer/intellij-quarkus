@@ -166,7 +166,15 @@ public class QuarkusModuleUtil {
     }
 
     public static boolean isQuarkusPropertiesFile(VirtualFile file, Project project) {
-        if ("application.properties".equals("application.properties")) {
+        if ("application.properties".equals(file.getName())) {
+            Module module = ModuleUtilCore.findModuleForFile(file, project);
+            return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
+        }
+        return false;
+    }
+
+    public static boolean isQuarkusYAMLFile(VirtualFile file, Project project) {
+        if ("application.yaml".equals(file.getName()) || "application.yml".equals(file.getName())) {
             Module module = ModuleUtilCore.findModuleForFile(file, project);
             return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
         }

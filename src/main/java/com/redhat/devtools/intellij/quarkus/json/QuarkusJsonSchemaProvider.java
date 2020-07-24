@@ -15,6 +15,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider;
 import com.jetbrains.jsonSchema.extension.SchemaType;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,7 @@ public class QuarkusJsonSchemaProvider implements JsonSchemaFileProvider {
     }
 
     private boolean isApplicationYAMLFile(VirtualFile file) {
-        return file.getName().equals("application.yaml") || file.getName().equals("application.yml");
+        return QuarkusModuleUtil.isQuarkusYAMLFile(file, module.getProject());
     }
 
     @NotNull
