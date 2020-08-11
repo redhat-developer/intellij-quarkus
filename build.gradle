@@ -12,7 +12,9 @@ targetCompatibility = '1.8'
 
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    if (ideaVersion.substring(3) != "2019.1") {
+    if (ideaVersion.substring(3) == "2020.2") {
+        plugins 'java', 'maven', 'maven-model', 'gradle', 'properties'
+    } else if (ideaVersion.substring(3) != "2019.1") {
         plugins 'java', 'maven', 'gradle', 'properties'
     } else {
         plugins 'maven', 'gradle', 'properties'
