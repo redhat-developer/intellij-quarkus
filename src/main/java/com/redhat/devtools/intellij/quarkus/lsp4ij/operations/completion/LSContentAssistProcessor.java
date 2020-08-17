@@ -18,6 +18,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
 import org.eclipse.lsp4j.CompletionItem;
@@ -50,16 +51,20 @@ public class LSContentAssistProcessor extends CompletionContributor {
         CompletableFuture<List<LanguageServer>> completionLanguageServersFuture = initiateLanguageServers(project, document);
         CompletionParams param;
         try {
+            /*
+             process the responses out of the completable loop as it may cause deadlock if user is typing
+             more characters as toProposals will require as read lock that this thread already have and
+             async processing is occuring on a separate thread.
+             */
             param = LSPIJUtils.toCompletionParams(LSPIJUtils.toUri(document), offset, document);
-            List<LookupElement> proposals = Collections.synchronizedList(new ArrayList<>());
+            List<Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer>> proposals = Collections.synchronizedList(new ArrayList<>());
             completionLanguageServersFuture
                     .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
                             .map(languageServer -> languageServer.getTextDocumentService().completion(param)
-                                    .thenAcceptAsync(completion -> proposals
-                                            .addAll(toProposals(project, editor, document, offset, completion, languageServer))))
+                                    .thenAcceptAsync(completion -> proposals.add(new Pair<>(completion, languageServer))))
                             .toArray(CompletableFuture[]::new)))
                     .get();
-            result.addAllElements(proposals);
+            proposals.forEach(pair -> result.addAllElements(toProposals(project, editor, document, offset, pair.getFirst(), pair.getSecond())));
         } catch (RuntimeException | InterruptedException | ExecutionException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
             result.addElement(createErrorProposal(offset, e));
