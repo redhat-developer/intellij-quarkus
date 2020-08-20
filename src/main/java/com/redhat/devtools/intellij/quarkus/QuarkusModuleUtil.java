@@ -44,11 +44,13 @@ public class QuarkusModuleUtil {
 
     public static boolean isQuarkusExtensionWithDeploymentArtifact(Library library) {
         boolean result = false;
-        VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+        if (library != null) {
+            VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
 
-        for(int i=0; !result && i < files.length;++i) {
-            if (files[i].isDirectory()) {
-                result = ToolDelegate.getDeploymentJarId(VfsUtilCore.virtualToIoFile(files[i])) != null;
+            for(int i=0; !result && i < files.length;++i) {
+                if (files[i].isDirectory()) {
+                    result = ToolDelegate.getDeploymentJarId(VfsUtilCore.virtualToIoFile(files[i])) != null;
+                }
             }
         }
         return result;
