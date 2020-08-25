@@ -10,10 +10,12 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus;
 
+import com.intellij.facet.FacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -28,6 +30,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
@@ -160,5 +163,13 @@ public class QuarkusModuleUtil {
             uris.add(PsiUtilsImpl.getProjectURI(module));
         }
         return uris;
+    }
+
+    public static boolean isQuarkusPropertiesFile(VirtualFile file, Project project) {
+        if ("application.properties".equals("application.properties")) {
+            Module module = ModuleUtilCore.findModuleForFile(file, project);
+            return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
+        }
+        return false;
     }
 }
