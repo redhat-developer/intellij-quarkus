@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="JavaScript.JsonSchema">
+        <ProviderFactory implementation="com.redhat.devtools.intellij.quarkus.json.QuarkusSchemasProviderFactory"/>
+    </extensions>
+</idea-plugin>
