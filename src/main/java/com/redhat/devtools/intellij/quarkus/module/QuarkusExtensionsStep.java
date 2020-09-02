@@ -228,7 +228,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             label.setFont(label.getFont().deriveFont(label.getFont().getStyle() | Font.BOLD));
             selectedExtensionsPanel.add(label);
             selectedExtensionsPanel.add(selectedExtensions);
-            panel.setSecondComponent(selectedExtensionsPanel);
+            panel.setSecondComponent(new JBScrollPane(selectedExtensionsPanel));
             extensionsTable.getModel().addTableModelListener(new TableModelListener() {
                 @Override
                 public void tableChanged(TableModelEvent e) {
