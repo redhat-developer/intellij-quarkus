@@ -100,7 +100,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
         List<Pair<Module, VirtualFile>> pairs = events.stream().map(event -> toPair(event)).filter(Objects::nonNull).collect(Collectors.toList());
         if (!pairs.isEmpty()) {
             pairs.forEach(pair -> schemas.computeIfPresent(pair.getLeft(), (m, p) -> {
-                p.setRight(Boolean.TRUE);
+                p.setRight(Boolean.FALSE);
                 return p;
             }));
             project.getMessageBus().syncPublisher(TOPIC).sourceUpdated(pairs);
