@@ -213,6 +213,7 @@ public class GradleToolDelegate implements ToolDelegate {
      */
     private String appendQuarkusResolution(String content, Path outputPath, Set<String> deploymentIds) {
         StringBuffer buffer = new StringBuffer(content);
+        buffer.append(System.lineSeparator());
         buffer.append("configurations {quarkusDeployment}").append(System.lineSeparator());
         buffer.append("dependencies {").append(System.lineSeparator());
         deploymentIds.forEach(id -> buffer.append("quarkusDeployment '").append(id).append('\'').append(System.lineSeparator()));
