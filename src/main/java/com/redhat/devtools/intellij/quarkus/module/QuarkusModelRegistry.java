@@ -67,12 +67,13 @@ public class QuarkusModelRegistry {
     }
 
     public QuarkusModel load(String endPointURL, ProgressIndicator indicator) throws IOException {
+        String normalizedEndPointURL = normalizeURL(endPointURL);
         indicator.setText("Looking up Quarkus model from endpoint " + endPointURL);
         QuarkusModel model = models.get(endPointURL);
         if (model == null) {
             indicator.setText("Loading Quarkus model from endpoint " + endPointURL);
             try {
-                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(endPointURL + EXTENSIONS_SUFFIX).userAgent(USER_AGENT).tuner(request -> {
+                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(normalizedEndPointURL + EXTENSIONS_SUFFIX).userAgent(USER_AGENT).tuner(request -> {
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
                 }).connect(request -> {
@@ -93,9 +94,16 @@ public class QuarkusModelRegistry {
         return model;
     }
 
+    private static String normalizeURL(String endPointURL) {
+        while (endPointURL.endsWith("/")) {
+            endPointURL = endPointURL.substring(0, endPointURL.length() - 1);
+        }
+        return endPointURL;
+    }
+
     public static void zip(String endpoint, String tool, String groupId, String artifactId, String version,
                            String className, String path, QuarkusModel model, File output) throws IOException {
-        Url url = Urls.newFromEncoded(endpoint + "/api/download");
+        Url url = Urls.newFromEncoded(normalizeURL(endpoint) + "/api/download");
         Map<String, String> parameters = new HashMap<>();
         parameters.put(CODE_TOOL_PARAMETER_NAME, tool);
         parameters.put(CODE_GROUP_ID_PARAMETER_NAME, groupId);

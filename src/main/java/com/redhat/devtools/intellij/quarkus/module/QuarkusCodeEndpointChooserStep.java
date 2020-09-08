@@ -16,6 +16,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
@@ -34,6 +35,7 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -126,9 +128,9 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep {
                 throw new ConfigurationException("Invalid custom Quarkus Code endpoint URL");
             } else {
                 try {
-                    new URL(serviceUrl);
+                    QuarkusModelRegistry.INSTANCE.load(serviceUrl, new EmptyProgressIndicator());
                     return true;
-                } catch (MalformedURLException var3) {
+                } catch (IOException var3) {
                     throw new ConfigurationException("Invalid Custom Quarkus Code endpoint URL");
                 }
             }
