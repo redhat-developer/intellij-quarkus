@@ -47,7 +47,7 @@ Property managed in your code through @ConfigProperty:
   * hover over the property field will display the current value
 
 ![](images/quarkus-tools5.gif)
-  
+
 ### MicroProfile Health 
 
 Syntax validation is being performed for Java files using the MicroProfile Health assets:
@@ -96,6 +96,25 @@ and syntax validation as soon as you use MicroProfile OpenTracing in your Quarku
 
 ![](images/quarkus-tools11.png)
 
+### application.yaml
+
+### Code completion (Ctrl+ENTER)
+
+![](images/quarkus-tools12.png)
+
+### Property documentation
+
+Select a property and press Ctrl+Q
+
+![](images/quarkus-tools13.png)
+
+### Syntax validation
+
+Wrong property key names or values are reported
+
+![](images/quarkus-tools14.png)
+
+
 ## Quarkus project wizards
   * Generate a Quarkus Maven project, based on https://code.quarkus.io/
     - Call `File -> New -> Module -> Quarkus`
@@ -111,11 +130,11 @@ and syntax validation as soon as you use MicroProfile OpenTracing in your Quarku
 
 ## ~~Quarkus debug command~~
   NYI
-  
+
   Launches the Maven quarkus:dev plugin and automatically attaches a debugger
 
   TBD
-  
+
 ## Quarkus code snippets
 
 This plugin provides several code snippets, available when editing Java files:
@@ -135,7 +154,7 @@ When editing `application.properties` files, you have access to:
 
   * Java JDK (or JRE) 8 or more recent
 
-        
+    ​    
 ## Contributing
 
 This is an open source project open to anyone. Contributions are extremely welcome!

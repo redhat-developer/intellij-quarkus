@@ -11,6 +11,10 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.1.0</b></p>
+    <ul>
+      <li>Support YAML configuration files (code assist, syntax validation)</li>
+    </ul>
     <p><b>1.0.4</b></p>
     <ul>
       <li>Fix whole IDE deadlock while completion proposals were computed</li>
