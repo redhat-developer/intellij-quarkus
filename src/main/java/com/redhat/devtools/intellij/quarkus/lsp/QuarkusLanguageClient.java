@@ -11,6 +11,9 @@
 package com.redhat.devtools.intellij.quarkus.lsp;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,6 +47,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
@@ -81,28 +85,43 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
     }
   }
 
+  <R> CompletableFuture<R> runAsBackground(String title, Supplier<R> supplier) {
+    CompletableFuture<R> future = new CompletableFuture<>();
+    ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
+      @Override
+      public void run(ProgressIndicator indicator) {
+        try {
+          future.complete(supplier.get());
+        } catch (Throwable t) {
+          future.completeExceptionally(t);
+        }
+      }
+    });
+    return future;
+  }
+
   @Override
   public CompletableFuture<MicroProfileProjectInfo> getProjectInfo(MicroProfileProjectInfoParams params) {
-    return CompletableFuture.supplyAsync(() -> PropertiesManager.getInstance().getMicroProfileProjectInfo(params, PsiUtilsImpl.getInstance()));
+    return runAsBackground("Computing project information", () -> PropertiesManager.getInstance().getMicroProfileProjectInfo(params, PsiUtilsImpl.getInstance()));
   }
 
   @Override
   public CompletableFuture<Hover> getJavaHover(MicroProfileJavaHoverParams javaParams) {
-    return CompletableFuture.supplyAsync(() -> PropertiesManagerForJava.getInstance().hover(javaParams, PsiUtilsImpl.getInstance()));
+    return runAsBackground("Computing Java hover", () -> PropertiesManagerForJava.getInstance().hover(javaParams, PsiUtilsImpl.getInstance()));
   }
 
   @Override
   public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(MicroProfileJavaDiagnosticsParams javaParams) {
-    return CompletableFuture.supplyAsync(() -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsImpl.getInstance()));
+    return runAsBackground("Computing Java diagnostics", () -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsImpl.getInstance()));
   }
 
   @Override
   public CompletableFuture<Location> getPropertyDefinition(MicroProfilePropertyDefinitionParams params) {
-    return CompletableFuture.supplyAsync(() -> PropertiesManager.getInstance().findPropertyLocation(params, PsiUtilsImpl.getInstance()));
+    return runAsBackground("Computing property definition", () -> PropertiesManager.getInstance().findPropertyLocation(params, PsiUtilsImpl.getInstance()));
   }
 
   @Override
   public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectlabels(MicroProfileJavaProjectLabelsParams javaParams) {
-    return CompletableFuture.supplyAsync(() -> ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsImpl.getInstance()));
+    return runAsBackground("Computing Java projects labels", () -> ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsImpl.getInstance()));
   }
 }
