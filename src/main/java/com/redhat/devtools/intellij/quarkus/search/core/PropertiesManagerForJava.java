@@ -25,9 +25,9 @@ import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaDi
 import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.JavaHoverContext;
-import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
-import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;

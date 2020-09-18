@@ -13,12 +13,11 @@ package com.redhat.devtools.intellij.quarkus.search;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
-import com.redhat.microprofile.commons.metadata.ConverterKind;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.commons.metadata.ConverterKind;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 
 import java.util.Arrays;
 import java.util.List;

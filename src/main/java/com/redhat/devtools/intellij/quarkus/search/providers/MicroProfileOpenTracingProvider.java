@@ -11,17 +11,11 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search.providers;
 
-import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingConstants.OPERATION_NAME_PROVIDER;
-import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingConstants.SKIP_PATTERN;
-import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingConstants.TRACED_ANNOTATION;
-
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
-import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 
-import com.redhat.microprofile.commons.metadata.ItemHint;
-import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
+import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingConstants.TRACED_ANNOTATION;
 
 /**
  * Properties provider that provides static MicroProfile Metrics properties

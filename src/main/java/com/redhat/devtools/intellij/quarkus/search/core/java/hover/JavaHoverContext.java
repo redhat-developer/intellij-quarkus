@@ -16,7 +16,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.java.AbstractJavaContext;
-import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4j.Position;
 
 /**

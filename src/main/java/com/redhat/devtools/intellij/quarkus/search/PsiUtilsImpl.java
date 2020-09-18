@@ -17,7 +17,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -33,20 +32,16 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.quarkus.javadoc.JavadocContentAccess;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
-import com.redhat.microprofile.commons.ClasspathKind;
-import com.redhat.microprofile.commons.DocumentFormat;
 import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4mp.commons.ClasspathKind;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.Scanner;
 
 /**

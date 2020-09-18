@@ -23,7 +23,7 @@ import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.JavaHoverContext;
 import com.redhat.devtools.intellij.quarkus.search.core.project.PsiMicroProfileProjectManager;
-import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;

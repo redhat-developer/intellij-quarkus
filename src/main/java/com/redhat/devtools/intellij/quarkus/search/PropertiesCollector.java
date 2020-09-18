@@ -14,10 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
-import com.redhat.microprofile.commons.metadata.ItemHint;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
+import org.eclipse.lsp4mp.commons.metadata.ConfigurationMetadata;
+import org.eclipse.lsp4mp.commons.metadata.ItemHint;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 
 /**
  * Properties collector implementation.

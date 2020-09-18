@@ -26,7 +26,7 @@ import com.redhat.devtools.intellij.quarkus.search.PsiQuarkusUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import org.slf4j.Logger;

@@ -18,12 +18,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
-import com.redhat.microprofile.commons.DocumentFormat;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 /**
  * PSI utils provides some helpful utilities.

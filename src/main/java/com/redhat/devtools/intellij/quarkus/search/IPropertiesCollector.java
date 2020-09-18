@@ -9,9 +9,9 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search;
 
-import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
-import com.redhat.microprofile.commons.metadata.ItemHint;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.commons.metadata.ConfigurationMetadata;
+import org.eclipse.lsp4mp.commons.metadata.ItemHint;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 
 /**
  * Properties collector API.

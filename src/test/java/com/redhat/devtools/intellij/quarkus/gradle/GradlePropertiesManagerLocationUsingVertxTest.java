@@ -12,20 +12,12 @@ package com.redhat.devtools.intellij.quarkus.gradle;
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
-import com.redhat.microprofile.commons.ClasspathKind;
-import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.lsp4j.Location;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertProperties;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;
 
 /**
  * Test with find MicroProfile definition.

@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
-import com.redhat.microprofile.commons.metadata.ConfigurationMetadata;
+import org.eclipse.lsp4mp.commons.metadata.ConfigurationMetadata;
 import org.eclipse.lsp4j.jsonrpc.json.adapters.EnumTypeAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

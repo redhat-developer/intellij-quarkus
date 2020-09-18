@@ -17,8 +17,8 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
-import com.redhat.microprofile.commons.MicroProfileJavaProjectLabelsParams;
-import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaProjectLabelsParams;
+import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
 
 import java.io.IOException;
 import java.util.ArrayList;

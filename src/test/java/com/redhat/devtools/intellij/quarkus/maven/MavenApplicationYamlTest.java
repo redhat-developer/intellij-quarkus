@@ -11,20 +11,11 @@ package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
-import com.redhat.devtools.intellij.quarkus.search.ProjectLabelManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
-import com.redhat.microprofile.commons.MicroProfileJavaProjectLabelsParams;
-import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
 import org.jetbrains.yaml.schema.YamlJsonSchemaHighlightingInspection;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Project label tests

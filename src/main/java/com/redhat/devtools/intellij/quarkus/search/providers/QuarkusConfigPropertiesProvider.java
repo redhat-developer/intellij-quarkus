@@ -27,7 +27,7 @@ import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
 import com.redhat.devtools.intellij.quarkus.search.PsiQuarkusUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import io.quarkus.arc.config.ConfigProperties;
 import io.quarkus.deployment.bean.JavaBeanUtil;
 import org.slf4j.Logger;
