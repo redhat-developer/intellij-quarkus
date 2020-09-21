@@ -7,11 +7,12 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.maven;
+package com.redhat.devtools.intellij.quarkus.completion;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
+import com.redhat.devtools.intellij.quarkus.maven.MavenImportingTestCase;
 import org.jetbrains.yaml.schema.YamlJsonSchemaHighlightingInspection;
 import org.junit.Test;
 
@@ -21,7 +22,7 @@ import java.io.File;
  * Project label tests
  *
  */
-public class MavenApplicationYamlTest extends MavenImportingTestCase {
+public class MavenApplicationYamlCompletionTest extends MavenImportingTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -35,5 +36,4 @@ public class MavenApplicationYamlTest extends MavenImportingTestCase {
 		((CodeInsightTestFixture)myTestFixture).configureByFile("src/main/resources/application.yaml");
 		((CodeInsightTestFixture)myTestFixture).checkHighlighting();
 	}
-
 }

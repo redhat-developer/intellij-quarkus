@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.maven;
+package com.redhat.devtools.intellij.quarkus.completion;
 
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -16,6 +16,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.quarkus.maven.MavenEditorTest;
 import org.junit.Test;
 
 import java.io.File;
@@ -25,10 +26,10 @@ import java.io.File;
  *
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/ProjectLabelTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/ProjectLabelTest.java</a>
  */
-public class MavenCompletionTest extends MavenEditorTest {
+public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 
 	@Test
-	public void testGetProjectLabelQuarkusMaven() throws Exception {
+	public void testBooleanCompletion() throws Exception {
 		Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
 		VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/application.properties");
 		codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);

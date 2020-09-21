@@ -87,15 +87,17 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
 
   <R> CompletableFuture<R> runAsBackground(String title, Supplier<R> supplier) {
     CompletableFuture<R> future = new CompletableFuture<>();
-    ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
-      @Override
-      public void run(ProgressIndicator indicator) {
-        try {
-          future.complete(supplier.get());
-        } catch (Throwable t) {
-          future.completeExceptionally(t);
+    CompletableFuture.runAsync(() -> {
+      ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
+        @Override
+        public void run(ProgressIndicator indicator) {
+          try {
+            future.complete(supplier.get());
+          } catch (Throwable t) {
+            future.completeExceptionally(t);
+          }
         }
-      }
+      });
     });
     return future;
   }
