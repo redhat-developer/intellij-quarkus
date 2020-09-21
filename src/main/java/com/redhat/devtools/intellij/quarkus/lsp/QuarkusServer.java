@@ -21,7 +21,7 @@ import java.util.Arrays;
 public class QuarkusServer extends ProcessStreamConnectionProvider {
     public QuarkusServer() {
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
-        File lsp4mpServerPath = new File(descriptor.getPath(), "lib/server/org.eclipse.lsp4mp.ls-0.9.0-SNAPSHOT-uber.jar");
+        File lsp4mpServerPath = new File(descriptor.getPath(), "lib/server/org.eclipse.lsp4mp.ls-0.1.0-SNAPSHOT-uber.jar");
         File quarkusServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls-0.9.0-SNAPSHOT.jar");
         String javaHome = System.getProperty("java.home");
         setCommands(Arrays.asList(javaHome + File.separator + "bin" + File.separator + "java", "-jar",
