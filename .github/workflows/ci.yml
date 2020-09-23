@@ -27,7 +27,7 @@ jobs:
       with:
         name: test-reports
         path: build/reports
-      if: succeeded() || failed()
+      if: success() || failure()
 
   build-macos:
     runs-on: macos-latest
@@ -46,7 +46,7 @@ jobs:
       with:
         name: test-reports
         path: build/reports
-      if: succeeded() || failed()
+      if: success() || failure()
 
   build-windows:
     runs-on: windows-latest
@@ -65,5 +65,5 @@ jobs:
       with:
         name: test-reports
         path: build/reports
-      if: succeeded() || failed()
+      if: success() || failure()
 
