@@ -85,6 +85,9 @@ public class QuarkusConstants {
 
     public static final String CODE_PATH_PARAMETER_NAME = "p";
 
+    public static final String CODE_NO_EXAMPLES_NAME = "ne";
+    public static final String CODE_NO_EXAMPLES_DEFAULT = "true";
+
     public static final String CODE_EXTENSIONS_PARAMETER_NAME = "e";
     public static final String CODE_EXTENSIONS_SHORT_PARAMETER_NAME = "s";
 

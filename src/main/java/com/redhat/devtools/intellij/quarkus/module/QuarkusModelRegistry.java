@@ -37,6 +37,8 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_ARTIFAC
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_CLASSNAME_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_EXTENSIONS_SHORT_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_GROUP_ID_PARAMETER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_NO_EXAMPLES_DEFAULT;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_NO_EXAMPLES_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_PATH_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE;
@@ -111,6 +113,7 @@ public class QuarkusModelRegistry {
         parameters.put(CODE_VERSION_PARAMETER_NAME, version);
         parameters.put(CODE_CLASSNAME_PARAMETER_NAME, className);
         parameters.put(CODE_PATH_PARAMETER_NAME, path);
+        parameters.put(CODE_NO_EXAMPLES_NAME, CODE_NO_EXAMPLES_DEFAULT);
         parameters.put(CODE_EXTENSIONS_SHORT_PARAMETER_NAME, model.getCategories().stream().flatMap(category -> category.getExtensions().stream()).
                 filter(extension -> extension.isSelected() || extension.isDefaultExtension()).
                 map(extension -> extension.getShortId()).
