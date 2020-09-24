@@ -76,7 +76,8 @@ public class QuarkusModelRegistryTest  {
     }
 
     private void enableAllExtensions(QuarkusModel model) {
-        model.getCategories().forEach(category -> category.getExtensions().forEach(extension -> extension.setSelected(true)));
+        model.getCategories().stream().filter(category -> !category.getName().equals("Alternative languages")).
+                forEach(category -> category.getExtensions().forEach(extension -> extension.setSelected(true)));
     }
 
     @Test
@@ -86,7 +87,7 @@ public class QuarkusModelRegistryTest  {
         enableAllExtensions(model);
         QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "MAVEN", "org.acme", "code-with-quarkus",
                 "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example", model,
-                folder);
+                folder, false);
         assertTrue(new File(folder, "pom.xml").exists());
     }
 
@@ -106,7 +107,7 @@ public class QuarkusModelRegistryTest  {
         enableAllExtensions(model);
         QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "GRADLE", "org.acme", "code-with-quarkus",
                 "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example", model,
-                folder);
+                folder, false);
         assertTrue(new File(folder, "build.gradle").exists());
     }
 }
