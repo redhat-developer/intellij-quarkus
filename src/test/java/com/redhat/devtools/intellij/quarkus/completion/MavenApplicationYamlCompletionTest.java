@@ -34,6 +34,7 @@ public class MavenApplicationYamlCompletionTest extends MavenImportingTestCase {
 		Module module = createMavenModule("hibernate-orm-resteasy-yaml", new File("projects/maven/hibernate-orm-resteasy-yaml"));
 		((CodeInsightTestFixture)myTestFixture).setTestDataPath(ModuleUtilCore.getModuleDirPath(module));
 		((CodeInsightTestFixture)myTestFixture).configureByFile("src/main/resources/application.yaml");
+		Thread.sleep(1000);
 		((CodeInsightTestFixture)myTestFixture).checkHighlighting();
 	}
 }
