@@ -15,16 +15,13 @@ import com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.quarkus.search.core.project.PsiMicroProfileProject;
-import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
 import org.junit.Test;
 
 import java.io.File;
-
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHints;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertProperties;
 
 /**
  * JDT Quarkus manager test for hover in Java file.

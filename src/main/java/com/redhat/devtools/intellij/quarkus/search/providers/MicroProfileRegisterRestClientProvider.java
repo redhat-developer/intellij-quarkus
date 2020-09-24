@@ -16,8 +16,8 @@ import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
-import com.redhat.microprofile.commons.metadata.ItemHint;
-import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
+import org.eclipse.lsp4mp.commons.metadata.ItemHint;
+import org.eclipse.lsp4mp.commons.metadata.ItemHint.ValueHint;
 
 /**
  * Properties provider to collect MicroProfile REST client properties from the

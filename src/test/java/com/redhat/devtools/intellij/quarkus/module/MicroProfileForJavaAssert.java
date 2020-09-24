@@ -11,29 +11,21 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.module;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.redhat.devtools.intellij.quarkus.search.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaErrorCode;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
-import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.TextDocumentEdit;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
-import org.eclipse.lsp4j.WorkspaceEdit;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.junit.Assert;
 
-import com.redhat.microprofile.commons.MicroProfileJavaCodeActionParams;
-import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * MicroProfile assert for java files for JUnit tests.

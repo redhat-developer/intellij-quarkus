@@ -20,7 +20,7 @@ import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
-import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 
 import io.quarkus.runtime.util.StringUtil;
 

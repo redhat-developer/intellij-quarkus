@@ -22,7 +22,7 @@ import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaDi
 import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.PositionUtils;
 import com.redhat.devtools.intellij.quarkus.search.internal.health.MicroProfileHealthConstants;
-import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Range;
 

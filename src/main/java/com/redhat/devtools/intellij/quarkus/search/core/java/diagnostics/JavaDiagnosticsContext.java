@@ -18,7 +18,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 
-import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 import com.redhat.devtools.intellij.quarkus.search.core.java.AbstractJavaContext;
 
 /**

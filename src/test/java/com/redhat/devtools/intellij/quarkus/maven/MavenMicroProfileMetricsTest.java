@@ -12,15 +12,14 @@ package com.redhat.devtools.intellij.quarkus.maven;
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
-import com.redhat.microprofile.commons.ClasspathKind;
-import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
+import org.eclipse.lsp4mp.commons.ClasspathKind;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.junit.Test;
 
 import java.io.File;
 
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHints;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertProperties;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertPropertiesDuplicate;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;

@@ -14,32 +14,20 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.search.internal.health.MicroProfileHealthConstants;
 import com.redhat.devtools.intellij.quarkus.search.internal.health.java.MicroProfileHealthErrorCode;
-import com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileFaultToleranceConstants;
-import com.redhat.microprofile.commons.ClasspathKind;
-import com.redhat.microprofile.commons.DocumentFormat;
-import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
 
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHints;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHintsDuplicate;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertProperties;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.h;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.p;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.vh;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileForJavaAssert.assertJavaDiagnostics;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileForJavaAssert.d;
 

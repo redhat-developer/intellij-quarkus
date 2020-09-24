@@ -23,17 +23,17 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant;
-import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.junit.Assert;
 
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.metadata.ItemHint;
-import com.redhat.microprofile.commons.metadata.ItemHint.ValueHint;
-import com.redhat.microprofile.commons.metadata.ItemMetadata;
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.metadata.ItemHint;
+import org.eclipse.lsp4mp.commons.metadata.ItemHint.ValueHint;
+import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 
 /**
  * MicroProfile assert for JUnit tests.

@@ -28,7 +28,7 @@ import com.redhat.devtools.intellij.quarkus.search.core.utils.PositionUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.quarkus.search.internal.restclient.MicroProfileRestClientConstants;
 import com.redhat.devtools.intellij.quarkus.search.internal.restclient.MicroProfileRestClientErrorCode;
-import com.redhat.microprofile.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Range;
 

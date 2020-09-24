@@ -25,17 +25,17 @@ import com.redhat.devtools.intellij.quarkus.search.ProjectLabelManager;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.core.PropertiesManagerForJava;
-import com.redhat.microprofile.commons.MicroProfileJavaDiagnosticsParams;
-import com.redhat.microprofile.commons.MicroProfileJavaHoverParams;
-import com.redhat.microprofile.commons.MicroProfileJavaProjectLabelsParams;
-import com.redhat.microprofile.commons.MicroProfileProjectInfo;
-import com.redhat.microprofile.commons.MicroProfileProjectInfoParams;
-import com.redhat.microprofile.commons.MicroProfilePropertiesChangeEvent;
-import com.redhat.microprofile.commons.MicroProfilePropertiesScope;
-import com.redhat.microprofile.commons.MicroProfilePropertyDefinitionParams;
-import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
-import com.redhat.microprofile.ls.api.MicroProfileLanguageClientAPI;
-import com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaProjectLabelsParams;
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.MicroProfileProjectInfoParams;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesChangeEvent;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
+import org.eclipse.lsp4mp.commons.MicroProfilePropertyDefinitionParams;
+import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
+import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageClientAPI;
+import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
@@ -87,15 +87,17 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
 
   <R> CompletableFuture<R> runAsBackground(String title, Supplier<R> supplier) {
     CompletableFuture<R> future = new CompletableFuture<>();
-    ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
-      @Override
-      public void run(ProgressIndicator indicator) {
-        try {
-          future.complete(supplier.get());
-        } catch (Throwable t) {
-          future.completeExceptionally(t);
+    CompletableFuture.runAsync(() -> {
+      ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
+        @Override
+        public void run(ProgressIndicator indicator) {
+          try {
+            future.complete(supplier.get());
+          } catch (Throwable t) {
+            future.completeExceptionally(t);
+          }
         }
-      }
+      });
     });
     return future;
   }

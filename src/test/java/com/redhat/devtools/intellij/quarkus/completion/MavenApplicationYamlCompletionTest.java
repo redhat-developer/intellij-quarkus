@@ -7,30 +7,22 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.maven;
+package com.redhat.devtools.intellij.quarkus.completion;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
-import com.redhat.devtools.intellij.quarkus.search.ProjectLabelManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
-import com.redhat.microprofile.commons.MicroProfileJavaProjectLabelsParams;
-import com.redhat.microprofile.commons.ProjectLabelInfoEntry;
+import com.redhat.devtools.intellij.quarkus.maven.MavenImportingTestCase;
 import org.jetbrains.yaml.schema.YamlJsonSchemaHighlightingInspection;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Project label tests
  *
  */
-public class MavenApplicationYamlTest extends MavenImportingTestCase {
+public class MavenApplicationYamlCompletionTest extends MavenImportingTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -42,7 +34,7 @@ public class MavenApplicationYamlTest extends MavenImportingTestCase {
 		Module module = createMavenModule("hibernate-orm-resteasy-yaml", new File("projects/maven/hibernate-orm-resteasy-yaml"));
 		((CodeInsightTestFixture)myTestFixture).setTestDataPath(ModuleUtilCore.getModuleDirPath(module));
 		((CodeInsightTestFixture)myTestFixture).configureByFile("src/main/resources/application.yaml");
+		Thread.sleep(1000);
 		((CodeInsightTestFixture)myTestFixture).checkHighlighting();
 	}
-
 }
