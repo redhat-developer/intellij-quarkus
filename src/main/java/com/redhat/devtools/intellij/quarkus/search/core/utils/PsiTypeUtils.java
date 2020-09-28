@@ -108,6 +108,8 @@ public class PsiTypeUtils {
             return ClassUtil.getJVMClassName(((PsiMember)psiElement).getContainingClass());
         } else if (psiElement instanceof PsiParameter) {
             return ClassUtil.getJVMClassName(((PsiMethod)((PsiParameter)psiElement).getDeclarationScope()).getContainingClass());
+        } if (psiElement instanceof PsiClass) {
+            return getPropertyType((PsiClass) psiElement, null);
         }
         return null;
     }
