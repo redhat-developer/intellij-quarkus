@@ -24,6 +24,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.util.MergeQuery;
 import com.intellij.util.Query;
+import com.intellij.util.UniqueResultsQuery;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import org.eclipse.lsp4j.Location;
@@ -158,7 +159,7 @@ public class PropertiesManager {
               }
           }
         }
-        return query;
+        return new UniqueResultsQuery<>(query);
     }
 
     // ---------------------------------- Properties definition
