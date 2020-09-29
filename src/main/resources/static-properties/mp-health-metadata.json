@@ -1,0 +1,11 @@
+{
+  "properties": [
+    {
+      "type": "boolean",
+      "extensionName": "microprofile-health-api",
+      "required": false,
+      "name": "mp.health.disable-default-procedures",
+      "description": "Disable all default vendor procedures and display only the user-defined health check procedures."
+    }
+  ]
+}
