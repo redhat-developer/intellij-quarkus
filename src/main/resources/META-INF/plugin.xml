@@ -120,7 +120,7 @@
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenAPIProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileOpenTracingProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileReactiveMessageProvider"/>
-
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileGraphQLProvider"/>
 
     <javaHoverParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant"/>
 

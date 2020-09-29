@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.util.Query;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
+import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector.MergingStrategy;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import org.eclipse.lsp4mp.commons.metadata.ConfigurationMetadata;
 import org.eclipse.lsp4j.jsonrpc.json.adapters.EnumTypeAdapter;
@@ -39,7 +41,7 @@ public abstract class AbstractStaticPropertiesProvider extends AbstractPropertie
 	}
 
 	@Override
-	public final void beginSearch(SearchContext context) {
+	public final void endSearch(SearchContext context) {
 		if (isAdaptedFor(context)) {
 			collectStaticProperties(context);
 		}
@@ -73,7 +75,7 @@ public abstract class AbstractStaticPropertiesProvider extends AbstractPropertie
 			}
 		}
 		if (metadata != null) {
-			context.getCollector().merge(metadata);
+			context.getCollector().merge(metadata, MergingStrategy.IGNORE_IF_EXISTS);
 		}
 	}
 
