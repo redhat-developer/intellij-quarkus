@@ -1,0 +1,61 @@
+{
+	"properties": [
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-jwt-api",
+			"required": false,
+			"name": "mp.jwt.verify.publickey",
+			"description": "Configuration property to specify the embedded key material of the verification public key for the MP-JWT signer in PKCS8 PEM or JWK(S) format. `mp.jwt.verify.publickey` will override other standard means to supply the Public Key."
+        },
+        {
+			"type": "java.lang.String",
+			"extensionName": "microprofile-jwt-api",
+			"required": false,
+			"name": "mp.jwt.verify.publickey.location",
+			"description": "Configuration property to specify the relative path or full URL of the verification public key."
+        },
+        {
+			"type": "java.lang.String",
+			"extensionName": "microprofile-jwt-api",
+			"required": false,
+			"name": "mp.jwt.verify.publickey.algorithm",
+			"description": "Configuration property to specify the Public Key Signature Algorithm property. The value can be set to either `RS256` or `ES256`, `RS256` is the default value."
+        },
+        {
+			"type": "java.lang.String",
+			"extensionName": "microprofile-jwt-api",
+			"required": false,
+			"name": "mp.jwt.decrypt.key.location",
+            "description": "Configuration property to specify the relative path or full URL of the decryption key."
+        },
+        {
+			"type": "java.lang.String",
+			"extensionName": "microprofile-jwt-api",
+			"required": false,
+			"name": "mp.jwt.verify.issuer",
+            "description": "Configuration property to specify the expected value of the `iss` claim."
+        },
+        {
+			"type": "java.lang.String",
+			"extensionName": "microprofile-jwt-api",
+			"required": false,
+			"name": "mp.jwt.token.header",
+            "description": "Configuration property to specify the `HTTP` header name expected to contain the JWT token."
+        },
+        {
+			"type": "java.lang.String",
+			"extensionName": "microprofile-jwt-api",
+			"required": false,
+			"name": "mp.jwt.token.cookie",
+            "description": "Configuration property to specify the Cookie name (default is `Bearer`) expected to contain the JWT token. This configuration will be ignored unless `mp.jwt.token.header` is set to `Cookie`."
+        },
+        {
+			"type": "java.lang.String",
+			"extensionName": "microprofile-jwt-api",
+			"required": false,
+			"name": "mp.jwt.verify.audiences",
+            "description": "Configuration property to specify the list of allowable value(s) for the `aud` claim, separated by commas. If specified, MP-JWT claim must be present and match one of the values."
+        }
+        
+    ]
+}
