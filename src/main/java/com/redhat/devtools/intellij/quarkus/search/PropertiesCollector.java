@@ -1,8 +1,12 @@
 /*******************************************************************************
 * Copyright (c) 2019 Red Hat Inc. and others.
-* All rights reserved. This program and the accompanying materials
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v20.html
+*
+* This program and the accompanying materials are made available under the
+* terms of the Eclipse Public License v. 2.0 which is available at
+* http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+* which is available at https://www.apache.org/licenses/LICENSE-2.0.
+*
+* SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
 *
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
@@ -13,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.eclipse.lsp4mp.commons.metadata.ConfigurationMetadata;
@@ -22,7 +27,8 @@ import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 /**
  * Properties collector implementation.
  *
- * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/internal/core/PropertiesCollector.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/internal/core/PropertiesCollector.java</a>
+ * @author Angelo ZERR
+ *
  */
 public class PropertiesCollector implements IPropertiesCollector {
 
@@ -90,21 +96,13 @@ public class PropertiesCollector implements IPropertiesCollector {
 	}
 
 	@Override
-	public void merge(ConfigurationMetadata metadata) {
+	public void merge(ConfigurationMetadata metadata, MergingStrategy mergingStrategy) {
 		List<ItemMetadata> properties = metadata.getProperties();
-		if (properties != null) {
-			if (!onlySources) {
-				configuration.getProperties().addAll(properties);
-			} else {
-				for (ItemMetadata property : properties) {
-					// In the case of the scopes is only sources, the property which is a binary
-					// property must not be added.
-					if (property.getSource() != null && property.getSource()) {
-						configuration.getProperties().add(property);
-					}
-				}
-			}
-
+		if (properties == null) {
+			return;
+		}
+		for (ItemMetadata property: properties) {
+			merge(property, mergingStrategy);
 		}
 		List<ItemHint> hints = metadata.getHints();
 		if (hints != null) {
@@ -112,5 +110,51 @@ public class PropertiesCollector implements IPropertiesCollector {
 				addItemHint(itemHint);
 			}
 		}
+	}
+
+	public void merge(ItemMetadata property, MergingStrategy mergingStrategy) {
+		if (onlySources && (property.getSource() == null || !property.getSource())) {
+			// In the case of the scopes is only sources, the property which is a binary
+			// property must not be added.
+			return;
+		}
+		switch (mergingStrategy) {
+			case IGNORE_IF_EXISTS:
+				mergeWithIgnoreIfExists(property);
+				break;
+			case REPLACE:
+				mergeWithReplace(property);
+				break;
+			default:
+				addProperty(property);
+				break;
+		}
+	}
+
+	private void mergeWithIgnoreIfExists(ItemMetadata property) {
+		Optional<ItemMetadata> configProperty = getExistingProperty(property);
+		if (configProperty.isPresent()) {
+			return;
+		}
+		addProperty(property);
+	}
+
+	private Optional<ItemMetadata> getExistingProperty(ItemMetadata property) {
+		List<ItemMetadata> configProperties = configuration.getProperties();
+		Optional<ItemMetadata> configProperty = configProperties.stream()
+				.filter(cp -> cp.getName().equals(property.getName())).findFirst();
+		return configProperty;
+	}
+
+	private void mergeWithReplace(ItemMetadata property) {
+		Optional<ItemMetadata> configProperty = getExistingProperty(property);
+		if (configProperty.isPresent()) {
+			configuration.getProperties().remove(configProperty.get());
+		}
+		addProperty(property);
+	}
+
+	private void addProperty(ItemMetadata property) {
+		configuration.getProperties().add(property);
 	}
 }

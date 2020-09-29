@@ -1,0 +1,25 @@
+{
+	"properties": [
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-graphql-api",
+			"required": false,
+			"name": "mp.graphql.defaultErrorMessage",
+			"description": "Configured default message displayed when an unchecked exception is thrown from the user application. By default this value is set to \"Server Error\"."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-graphql-api",
+			"required": false,
+			"name": "mp.graphql.hideErrorMessage",
+			"description": "Hide exception error messages when checked exceptions are thrown from the user application. Separate multiple exceptions with a comma. By default all unchecked exceptions are on the `hideErrorMessage` list."
+		},
+		{
+			"type": "java.lang.String",
+			"extensionName": "microprofile-graphql-api",
+			"required": false,
+			"name": "mp.graphql.showErrorMessage",
+			"description": "Show exception error messages when unchecked exceptions are thrown from the user application. Separate multiple exceptions with a comma. By default all checked exceptions are on the `showErrorMessage` list."
+		}
+	]
+}
