@@ -5,7 +5,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
-    <server id="quarkus" class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer" clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient" serverInterface="com.redhat.microprofile.ls.api.MicroProfileLanguageServerAPI"/>
+    <server id="quarkus" class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer" clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient" serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"/>
     <contentTypeMapping contentType="Properties" languageId="quarkus"/>
     <contentTypeMapping contentType="JAVA" languageId="quarkus"/>
   </extensions>
