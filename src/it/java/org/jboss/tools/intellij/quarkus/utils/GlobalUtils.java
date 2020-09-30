@@ -25,6 +25,7 @@ import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
+import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
 
 /**
  * Static utilities that assist and simplify manipulation with the IDE and with the project
@@ -44,17 +45,7 @@ public class GlobalUtils {
 
     public static void waitUntilTheProjectImportIsComplete(RemoteRobot remoteRobot) {
         step("Wait until the project import is complete", () -> {
-            while (true) {
-                try {
-                    ComponentFixture cf = remoteRobot.find(ComponentFixture.class, byXpath("//div[@class='EngravedLabel']"));
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (WaitForConditionTimeoutException e) {
-                    // the importing of the project has finished -> exit the loop
-                    return;
-                }
-            }
+            waitFor(Duration.ofSeconds(300), Duration.ofSeconds(5), "The project import did not finish in 5 minutes.", () -> didTheProjectImportFinish(remoteRobot));
         });
     }
 
@@ -68,28 +59,7 @@ public class GlobalUtils {
 
     public static void waitUntilAllTheBgTasksFinish(RemoteRobot remoteRobot) {
         step("Wait until all the background tasks finish", () -> {
-            final IdeStatusBarFixture ideStatusBarFixture = remoteRobot.find(IdeStatusBarFixture.class);
-
-            byte numberOfSecondsWithNoBgTask = 0;
-            final byte BREAK_WAITING_AFTER_SECONDS = 5;
-
-            do {
-                try {
-                    while (true) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        ideStatusBarFixture.bgTasksIcon();
-
-                        numberOfSecondsWithNoBgTask = 0;
-                    }
-                } catch (WaitForConditionTimeoutException e) {
-                    numberOfSecondsWithNoBgTask++;
-                }
-            } while (numberOfSecondsWithNoBgTask < BREAK_WAITING_AFTER_SECONDS);
+            waitFor(Duration.ofSeconds(300), Duration.ofSeconds(15), "The background tasks did not finish in 5 minutes.", () -> didAllTheBgTasksFinish(remoteRobot));
         });
     }
 
@@ -141,16 +111,12 @@ public class GlobalUtils {
     public static void clearTheWorkspace(RemoteRobot remoteRobot) {
         step("Delete all the projects in the workspace", () -> {
             // delete all the projects' links from the 'Welcome to IntelliJ IDEA' dialog
-            final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class, Duration.ofSeconds(10));
-
-            while (true) {
-                try {
-                    ComponentFixture cf = welcomeFrameDialogFixture.find(ComponentFixture.class, byXpath("//div[@accessiblename='Recent Projects' and @class='MyList']"));
-                    cf.runJs("const horizontal_offset = component.getWidth()-22;\n" +
-                            "robot.click(component, new Point(horizontal_offset, 22), MouseButton.LEFT_BUTTON, 1);");
-                } catch (WaitForConditionTimeoutException e) {
-                    break;
-                }
+            int numberOfLinks = getNumberOfProjectLinks(remoteRobot);
+            for (int i = 0; i < numberOfLinks; i++) {
+                final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class, Duration.ofSeconds(10));
+                ComponentFixture cf = welcomeFrameDialogFixture.find(ComponentFixture.class, byXpath("//div[@accessiblename='Recent Projects' and @class='MyList']"));
+                cf.runJs("const horizontal_offset = component.getWidth()-22;\n" +
+                        "robot.click(component, new Point(horizontal_offset, 22), MouseButton.LEFT_BUTTON, 1);");
             }
 
             // delete all the files and folders in the IdeaProjects folder
@@ -176,5 +142,44 @@ public class GlobalUtils {
                         "robot.click(component, new Point(horizontal_offset, 18), MouseButton.LEFT_BUTTON, 1);");
             }
         });
+    }
+
+    private static boolean didTheProjectImportFinish(RemoteRobot remoteRobot) {
+        try {
+            remoteRobot.find(ComponentFixture.class, byXpath("//div[@class='EngravedLabel']"));
+        } catch (WaitForConditionTimeoutException e) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean didAllTheBgTasksFinish(RemoteRobot remoteRobot) {
+        for (int i = 0; i < 5; i++) {
+            final IdeStatusBarFixture ideStatusBarFixture = remoteRobot.find(IdeStatusBarFixture.class);
+
+            try {
+                ideStatusBarFixture.bgTasksIcon();
+                return false;
+            } catch (WaitForConditionTimeoutException timeoutException) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return true;
+    }
+
+    private static int getNumberOfProjectLinks(RemoteRobot remoteRobot) {
+        final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class, Duration.ofSeconds(10));
+        try {
+            ComponentFixture cf = welcomeFrameDialogFixture.find(ComponentFixture.class, byXpath("//div[@accessiblename='Recent Projects' and @class='MyList']"));
+            int numberOfProjectsLinks = cf.findAllText().size() / 2;    // 2 items per 1 project link (project path and project name)
+            return numberOfProjectsLinks;
+        } catch (WaitForConditionTimeoutException e) {
+            // the list with accessible name 'Recent Projects' is not available -> 0 links in the 'Welcome to IntelliJ IDEA' dialog
+            return 0;
+        }
     }
 }
