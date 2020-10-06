@@ -13,7 +13,10 @@ package org.jboss.tools.intellij.quarkus.utils;
 import com.intellij.remoterobot.RemoteRobot;
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.ToolWindowsPaneFixture;
 
+import java.time.Duration;
+
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
+import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -22,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author zcervink@redhat.com
  */
 public class BuildUtils {
+
+    private static String lastBuildStatusTreeText;
 
     public static void buildTheProject(RemoteRobot remoteRobot, ToolToBuildTheProject toolToBuildTheProject) {
         step("Build the project", () -> {
@@ -61,24 +66,20 @@ public class BuildUtils {
 
     private static void waitUntilTheBuildHasFinished(RemoteRobot remoteRobot, int timeoutInSeconds) {
         step("Wait until the build has finished", () -> {
-            final int SLEEP_SECONDS = 3;
-            String buildStatusTreeText;
-            int buildTimeElapsed = 0;
-
-            do {
-                buildStatusTreeText = getBuildStatusTreeText(remoteRobot);
-
-                try {
-                    Thread.sleep(SLEEP_SECONDS * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                buildTimeElapsed += SLEEP_SECONDS;
-                assertTrue(buildTimeElapsed <= timeoutInSeconds, "The build timeout is up.");
-
-            } while (!buildStatusTreeText.equals(getBuildStatusTreeText(remoteRobot)));
+            waitFor(Duration.ofSeconds(300), Duration.ofSeconds(3), "The build did not finish in 5 minutes.", () -> didTheBuildStatusTreeTextStopChanging(remoteRobot));
         });
+    }
+
+    private static boolean didTheBuildStatusTreeTextStopChanging(RemoteRobot remoteRobot) {
+        String updatedBuildStatusTreeText = getBuildStatusTreeText(remoteRobot);
+
+        if (lastBuildStatusTreeText != null && lastBuildStatusTreeText.equals(updatedBuildStatusTreeText)) {
+            lastBuildStatusTreeText = null;
+            return true;
+        } else {
+            lastBuildStatusTreeText = updatedBuildStatusTreeText;
+            return false;
+        }
     }
 
     private static String getBuildStatusTreeText(RemoteRobot remoteRobot) {
