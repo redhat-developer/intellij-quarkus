@@ -108,7 +108,7 @@ dependencies {
     integrationTestImplementation("com.intellij.remoterobot:remote-robot:$remoteRobotVersion")
     integrationTestImplementation("com.intellij.remoterobot:remote-fixtures:$fixturesVersion")
     integrationTestImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    integrationTestRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
     lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.1.0:uber') {
         transitive = false
     }
