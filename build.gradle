@@ -147,10 +147,5 @@ integrationTest {
     useJUnitPlatform()
 }
 
-wrapper {
-    gradleVersion = '6.3'
-    distributionUrl = "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
-}
-
 group 'com.redhat.devtools.intellij'
 version projectVersion // Plugin version
