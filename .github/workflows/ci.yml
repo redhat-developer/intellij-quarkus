@@ -27,7 +27,31 @@ jobs:
       with:
         name: test-reports
         path: build/reports
-      if: success() || failure()
+      if: always()
+    - name: Run integration tests
+      run: |
+        dir=~/.java/.userPrefs/jetbrains/_\!\(\!\!cg\"p\!\(\}\!\}@\"j\!\(k\!\|w\"w\!\'8\!b\!\"p\!\':\!e@==
+        mkdir -p "$dir"
+        cp .github/workflows/prefs.xml $dir
+        mkdir -p build/idea-sandbox/system/consentOptions
+        cp .github/workflows/accepted build/idea-sandbox/system/consentOptions
+        xvfb-run --auto-servernum ./gradlew runIdeForUiTests &
+        set +e
+        curl -s http://localhost:8082 >/dev/null
+        started=$?
+        echo "started='$started'"
+        while [ $started -ne 0 ]; do
+          curl -s http://localhost:8082 >/dev/null
+          started=$?
+          sleep 1s
+        done
+        date
+        ./gradlew integrationTest
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{ runner.os }}-integration-test-reports
+        path: build/reports/tests/integrationTest
+      if: always()
 
   build-macos:
     runs-on: macos-latest
