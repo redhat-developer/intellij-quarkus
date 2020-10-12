@@ -11,6 +11,12 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.2.0</b></p>
+    <ul>
+      <li>LSP4MP 1.0 based</li>
+      <li>Better Eclipse Microprofile support: JWT, Health, GraphQL and Reactive Messagging
+      properties added</li>
+    </ul>
     <p><b>1.1.0</b></p>
     <ul>
       <li>Support YAML configuration files (code assist, syntax validation)</li>
