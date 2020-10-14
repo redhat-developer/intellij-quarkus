@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.util.Url;
 import com.intellij.util.Urls;
@@ -84,6 +85,8 @@ public class QuarkusModelRegistry {
                             });
                             QuarkusModel newModel = new QuarkusModel(extensions);
                             return newModel;
+                        } catch (IOException e) {
+                            throw new ProcessCanceledException(e);
                         }
                 })).get();
             } catch (InterruptedException|ExecutionException e) {
