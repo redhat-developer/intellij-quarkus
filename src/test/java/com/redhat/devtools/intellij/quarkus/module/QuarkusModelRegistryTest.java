@@ -61,6 +61,16 @@ public class QuarkusModelRegistryTest  {
         assertNotNull(registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator()));
     }
 
+    @Test
+    public void checkThatModelCanLoadWithCodeQuarkusIOAndSpaceInHost() throws IOException {
+        assertNotNull(registry.load(QUARKUS_CODE_URL + ' ', new EmptyProgressIndicator()));
+    }
+
+    @Test
+    public void checkThatModelCanLoadWithCodeQuarkusIOAndSpaceInPath() throws IOException {
+        assertNotNull(registry.load(QUARKUS_CODE_URL + "/ ", new EmptyProgressIndicator()));
+    }
+
     @Test(expected = IOException.class)
     public void checkThatIOExceptionIsReturnedWithInvalidURL() throws IOException {
         registry.load("https://invalid.org", new EmptyProgressIndicator());

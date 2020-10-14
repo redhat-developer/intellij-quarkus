@@ -97,6 +97,7 @@ public class QuarkusModelRegistry {
     }
 
     private static String normalizeURL(String endPointURL) {
+        endPointURL = endPointURL.trim();
         while (endPointURL.endsWith("/")) {
             endPointURL = endPointURL.substring(0, endPointURL.length() - 1);
         }
