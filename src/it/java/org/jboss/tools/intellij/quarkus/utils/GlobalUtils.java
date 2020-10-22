@@ -21,6 +21,9 @@ import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.IdeStatusBarFixtu
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -181,5 +184,25 @@ public class GlobalUtils {
             // the list with accessible name 'Recent Projects' is not available -> 0 links in the 'Welcome to IntelliJ IDEA' dialog
             return 0;
         }
+    }
+
+    public static void waitUntilIntelliJStarts() {
+        waitFor(Duration.ofSeconds(300), Duration.ofSeconds(3), "The IntelliJ Idea did not start in 5 minutes.", () -> isIntelliJUIVisible());
+    }
+
+    private static boolean isIntelliJUIVisible() {
+        return isHostOnIpAndPortAccessible("127.0.0.1", 8082);
+    }
+
+    private static boolean isHostOnIpAndPortAccessible(String ip, int port) {
+        SocketAddress sockaddr = new InetSocketAddress(ip, port);
+        Socket socket = new Socket();
+
+        try {
+            socket.connect(sockaddr, 10000);
+        } catch (IOException IOException) {
+            return false;
+        }
+        return true;
     }
 }
