@@ -30,7 +30,7 @@ jobs:
         if [ $last_quarkus_version != $plugin_quarkus_version ]; then
           echo "Versions differ"
           branch_name="switch_${plugin_quarkus_version}_${last_quarkus_version}"
-          branch_exits=`git branch | grep "${branch_name}"`
+          branch_exists=`git branch | grep "${branch_name}"`
           if [ "${branch_name}" != "${branch_exists}" ]; then
             git checkout -b "${branch_name}"
             git config user.email devstudio-release@redhat.com
