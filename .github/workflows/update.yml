@@ -29,7 +29,7 @@ jobs:
         echo "version=$plugin_quarkus_version"
         if [ $last_quarkus_version != $plugin_quarkus_version ]; then
           echo "Versions differ"
-          find . -type f -print0 | xargs -0 sed -i '' -e "s/$plugin_quarkus_version/$last_quarkus_version/g"
+          find . -type f -exec sed -i '' -e "s/$plugin_quarkus_version/$last_quarkus_version/g" {} \;
           git diff
         fi
 
