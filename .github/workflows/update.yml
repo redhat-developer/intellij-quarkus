@@ -30,6 +30,7 @@ jobs:
           git branch -a
           echo "branch with grep"
           git branch -a | grep ${branch_name}
+          echo "branch with grep"
           branch_exists=`git branch -a | grep ${branch_name}`
           echo "after git branch"
           if [ "${branch_name}" != "${branch_exists}" ]; then
