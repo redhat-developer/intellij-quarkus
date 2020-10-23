@@ -34,8 +34,9 @@ jobs:
           git branch -a | grep -c "${branch_name}" || true
           echo "branch with grep1"
           branch_exists=$(git branch -a | grep "${branch_name}"  || true)
+          echo "branch_exists=${branch_exists)"
           echo "after git branch"
-          if [ "${branch_exists}" != "${branch_exists}" ]; then
+          if [ "${branch_exists}" != "${branch_name}" ]; then
             git checkout -b "${branch_name}"
             git config user.email devstudio-release@redhat.com
             git config user.name "devstudio-release Bot"
