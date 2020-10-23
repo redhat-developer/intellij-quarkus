@@ -27,9 +27,11 @@ jobs:
           echo "Versions differ"
           branch_name="switch_${plugin_quarkus_version}_${last_quarkus_version}"
           echo "before git branch"
+          git fetch origin
           git branch -a
           echo "branch with grep"
-          git branch -a | grep ${branch_name}
+          echo "branch_name=${branch_name}"
+          git branch -a | grep "${branch_name}"
           echo "branch with grep"
           branch_exists=`git branch -a | grep ${branch_name}`
           echo "after git branch"
