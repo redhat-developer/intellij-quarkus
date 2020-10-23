@@ -26,9 +26,9 @@ jobs:
           branch_name="switch_${plugin_quarkus_version}_${last_quarkus_version}"
           git fetch origin
           git branch -a | grep "${branch_name}" || true
-          branch_exists=$(git branch -a | grep "${branch_name}"  || true)
+          branch_exists=$(git branch -a --format='%(refname)' | grep "${branch_name}"  || true)
           echo "branch_exists=${branch_exists}"
-          if [ "${branch_exists}" != "${branch_name}" ]; then
+          if [ "${branch_exists}" != "refs/remotes/origin/${branch_name}" ]; then
             git checkout -b "${branch_name}"
             git config user.email devstudio-release@redhat.com
             git config user.name "devstudio-release Bot"
