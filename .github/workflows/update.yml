@@ -29,8 +29,10 @@ jobs:
         echo "version=$plugin_quarkus_version"
         if [ $last_quarkus_version != $plugin_quarkus_version ]; then
           echo "Versions differ"
+          git checkout -b "switch_$plugin_quarkus_version_$last_quarkus_version
           find . -type f -exec sed -i '' -e "s/$plugin_quarkus_version/$last_quarkus_version/g" {} \;
-          git diff
+          git add -A
+          git commit -m "Switch Quarkus runtime to $last_quarkus_version"
         fi
 
 
