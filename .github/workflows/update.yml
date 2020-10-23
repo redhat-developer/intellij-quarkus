@@ -20,22 +20,13 @@ jobs:
     - name: Update source tree
       run: |
         last_quarkus_version=`curl -s https://repo1.maven.org/maven2/io/quarkus/quarkus-core/maven-metadata.xml | grep '<release>' | head -1 | sed -e "s#.*<release>\(.\+\)</release>.*#\1#"`
-        echo "version=$last_quarkus_version"
         plugin_quarkus_version=`grep 'artifact ' src/main/resources/quarkus.xml | head -1 | sed -e "s#.*version=\"\(.\+\)\" .*#\1#"`
-        echo "version=$plugin_quarkus_version"
         if [ $last_quarkus_version != $plugin_quarkus_version ]; then
           echo "Versions differ"
           branch_name="switch_${plugin_quarkus_version}_${last_quarkus_version}"
-          echo "before git branch"
           git fetch origin
-          git branch -a
-          echo "branch with grep"
-          echo "branch_name=${branch_name}"
           git branch -a | grep -c "${branch_name}" || true
-          echo "branch with grep1"
           branch_exists=$(git branch -a | grep "${branch_name}"  || true)
-          echo "branch_exists=${branch_exists}"
-          echo "after git branch"
           if [ "${branch_exists}" != "${branch_name}" ]; then
             git checkout -b "${branch_name}"
             git config user.email devstudio-release@redhat.com
