@@ -27,5 +27,10 @@ jobs:
         echo "version=$last_quarkus_version"
         plugin_quarkus_version=`grep 'artifact ' src/main/resources/quarkus.xml | head -1 | sed -e "s#.*version=\"\(.\+\)\" .*#\1#"`
         echo "version=$plugin_quarkus_version"
+        if [ $last_quarkus_version != $plugin_quarkus_version ]; then
+          echo "Versions differ"
+          find . -type f -exec sed "s/$plugin_quarkus_version/$last_quarkus_version/g" {} \;
+          git status
+        fi
 
 
