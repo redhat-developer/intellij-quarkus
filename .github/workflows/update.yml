@@ -28,8 +28,8 @@ jobs:
           branch_name="switch_${plugin_quarkus_version}_${last_quarkus_version}"
           echo "before git branch"
           git fetch origin
-          git branch
-          branch_exists=`git branch | grep ${branch_name}`
+          git branch -a
+          branch_exists=`git branch -a | grep ${branch_name}`
           echo "after git branch"
           if [ "${branch_name}" != "${branch_exists}" ]; then
             git checkout -b "${branch_name}"
