@@ -31,11 +31,11 @@ jobs:
           git branch -a
           echo "branch with grep"
           echo "branch_name=${branch_name}"
-          git branch -a | grep "${branch_name}"
+          git branch -a | grep -c "${branch_name}"
           echo "branch with grep"
-          branch_exists=`git branch -a | grep ${branch_name}`
+          branch_exists=`git branch -a | grep -c "${branch_name}"`
           echo "after git branch"
-          if [ "${branch_name}" != "${branch_exists}" ]; then
+          if [ "${branch_exists}" == "0" ]; then
             git checkout -b "${branch_name}"
             git config user.email devstudio-release@redhat.com
             git config user.name "devstudio-release Bot"
