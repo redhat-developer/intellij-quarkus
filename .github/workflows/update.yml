@@ -23,6 +23,9 @@ jobs:
       run: chmod +x gradlew
     - name: Get Quarkus latest version
       run: |
-        version=`curl -s https://repo1.maven.org/maven2/io/quarkus/quarkus-core/maven-metadata.xml | grep '<release>' | head -1 | sed -e "s#.*<release>\(.\+\)</release>.*#\1#"`
-        echo "version=$version"
+        last_quarkus_version=`curl -s https://repo1.maven.org/maven2/io/quarkus/quarkus-core/maven-metadata.xml | grep '<release>' | head -1 | sed -e "s#.*<release>\(.\+\)</release>.*#\1#"`
+        echo "version=last_quarkus_version"
+        plugin_quarkus_version=`grep 'artifact ' src/main/resources/quarkus.xml | head -1 | sed -e "s#.*version=\"\(.\+\)\" .*#\1#"`
+        echo "version=$plugin_quarkus_version"
+
 
