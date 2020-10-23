@@ -30,6 +30,8 @@ jobs:
         if [ $last_quarkus_version != $plugin_quarkus_version ]; then
           echo "Versions differ"
           git checkout -b "switch_$plugin_quarkus_version_$last_quarkus_version"
+          git config user.email tools@jboss.org
+          git config user.name "Quarkus Bot"
           find . -type f -exec sed -i '' -e "s/$plugin_quarkus_version/$last_quarkus_version/g" {} \;
           git add -A
           git commit -m "Switch Quarkus runtime to $last_quarkus_version"
