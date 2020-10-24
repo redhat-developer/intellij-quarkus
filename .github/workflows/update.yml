@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ssh-key: ${{ secrets.DEVSTUDIO_RELEASE }}
+        token: ${{ secrets.DEVSTUDIO_RELEASE_TOKEN }}
     - name: Update source tree
       run: |
         last_quarkus_version=`curl -s https://repo1.maven.org/maven2/io/quarkus/quarkus-core/maven-metadata.xml | grep '<release>' | head -1 | sed -e "s#.*<release>\(.\+\)</release>.*#\1#"`
