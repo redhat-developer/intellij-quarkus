@@ -1,0 +1,41 @@
+# This workflow will build a Java project with Gradle
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Verify Quarkus updates
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.JBOSSTOOLSCI_TOKEN }}
+    - name: Update source tree
+      run: |
+        last_quarkus_version=`curl -s https://repo1.maven.org/maven2/io/quarkus/quarkus-core/maven-metadata.xml | grep '<release>' | head -1 | sed -e "s#.*<release>\(.\+\)</release>.*#\1#"`
+        plugin_quarkus_version=`grep 'artifact ' src/main/resources/quarkus.xml | head -1 | sed -e "s#.*version=\"\(.\+\)\" .*#\1#"`
+        if [ $last_quarkus_version != $plugin_quarkus_version ]; then
+          echo "Versions differ"
+          branch_name="switch_${plugin_quarkus_version}_${last_quarkus_version}"
+          git fetch origin
+          branch_exists=$(git branch -a --format='%(refname)' | grep "${branch_name}"  || true)
+          if [ "${branch_exists}" != "refs/remotes/origin/${branch_name}" ]; then
+            git checkout -b "${branch_name}"
+            git config user.email devstudio-release@redhat.com
+            git config user.name "devstudio-release Bot"
+            find . -path ./.git -prune -false -o -type f -exec sed -i '' -e "s/$plugin_quarkus_version/$last_quarkus_version/g" {} \;
+            git add -A
+            git commit -m "Switch Quarkus runtime to $last_quarkus_version"
+            git push origin "${branch_name}:${branch_name}"
+            echo "${{ secrets.JBOSSTOOLSCI_TOKEN }}" >github-token.txt
+            gh auth login --with-token <github-token.txt
+            rm github-token.txt
+            gh pr create -f
+          fi
+        fi
+
+
