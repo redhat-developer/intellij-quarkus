@@ -15,6 +15,7 @@ import com.intellij.remoterobot.data.RemoteComponent;
 import com.intellij.remoterobot.fixtures.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.List;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -32,7 +33,7 @@ public class NewProjectDialogFixture extends CommonContainerFixture {
     }
 
     public ComponentFixture toolComboBox() {
-        return find(ComponentFixture.class, byXpath("//div[@accessiblename='Tool:' and @class='ComboBox']"));
+        return find(ComponentFixture.class, byXpath("//div[@accessiblename='Tool:' and @class='ComboBox']"), Duration.ofSeconds(10));
     }
 
     public JTextFieldFixture projectNameJTextField() {

@@ -37,7 +37,7 @@ jobs:
         cp .github/workflows/accepted ~/.local/share/JetBrains/consentOptions
         export DISPLAY=:99.0
         Xvfb -ac :99 -screen 0 1920x1080x16 &
-        ./gradlew runIdeForUiTests -PideaVersion=2020.1 &
+        ./gradlew runIdeForUiTests -PideaVersion=2020.2 &
         ./gradlew integrationTest
     - uses: actions/upload-artifact@v1
       with:
