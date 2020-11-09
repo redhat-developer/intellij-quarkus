@@ -27,10 +27,13 @@ public class QuarkusIconProvider extends IconProvider {
     @Nullable
     @Override
     public Icon getIcon(@NotNull PsiElement element, int flags) {
-        VirtualFile file = element.getContainingFile().getVirtualFile();
-        if (QuarkusModuleUtil.isQuarkusPropertiesFile(file, element.getProject()) ||
-                QuarkusModuleUtil.isQuarkusYAMLFile(file, element.getProject())) {
-            return QUARKUS_ICON;
+        if (element != null && element.getContainingFile() != null &&
+                element.getContainingFile().getVirtualFile() != null && element.getProject() != null) {
+            VirtualFile file = element.getContainingFile().getVirtualFile();
+            if (QuarkusModuleUtil.isQuarkusPropertiesFile(file, element.getProject()) ||
+                    QuarkusModuleUtil.isQuarkusYAMLFile(file, element.getProject())) {
+                return QUARKUS_ICON;
+            }
         }
         return null;
     }
