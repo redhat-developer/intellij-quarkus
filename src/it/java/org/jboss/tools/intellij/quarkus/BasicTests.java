@@ -32,6 +32,7 @@ public class BasicTests {
 
     @BeforeAll
     public static void connect() throws InterruptedException {
+        GlobalUtils.waitUntilIntelliJStarts();
         robot = new RemoteRobot("http://127.0.0.1:8082");
         for (int i = 0; i < 60; i++) {
             try {
