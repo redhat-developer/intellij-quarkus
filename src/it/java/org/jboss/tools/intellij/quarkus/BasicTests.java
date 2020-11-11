@@ -16,6 +16,7 @@ import org.jboss.tools.intellij.quarkus.utils.BuildUtils;
 import org.jboss.tools.intellij.quarkus.utils.GlobalUtils;
 import org.jboss.tools.intellij.quarkus.utils.QuarkusUtils;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -32,20 +33,19 @@ public class BasicTests {
 
     @BeforeAll
     public static void connect() throws InterruptedException {
-        GlobalUtils.waitUntilIntelliJStarts();
-        robot = new RemoteRobot("http://127.0.0.1:8082");
-        for (int i = 0; i < 60; i++) {
-            try {
-                robot.find(WelcomeFrameDialogFixture.class);
-            } catch (Exception ex) {
-                Thread.sleep(1000);
-            }
-        }
+        GlobalUtils.waitUntilIntelliJStarts(8082);
+        robot = GlobalUtils.getRemoteRobotConnection(8082);
+        GlobalUtils.clearTheWorkspace(robot);
     }
 
     @AfterAll
     public static void quitTheIde() {
         GlobalUtils.quitIntelliJFromTheWelcomeDialog(robot);
+    }
+
+    @AfterEach
+    public void clearTheWorkspace() {
+        GlobalUtils.clearTheWorkspace(robot);
     }
 
     @Test
@@ -61,7 +61,6 @@ public class BasicTests {
             BuildUtils.testIfBuildIsSuccessful(robot);
             GlobalUtils.checkForExceptions(robot);
             GlobalUtils.closeTheProject(robot);
-            GlobalUtils.clearTheWorkspace(robot);
         });
     }
 }
