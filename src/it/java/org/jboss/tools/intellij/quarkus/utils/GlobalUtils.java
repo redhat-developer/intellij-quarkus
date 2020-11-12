@@ -39,6 +39,18 @@ public class GlobalUtils {
 
     public static String projectPath = "";
 
+    public static RemoteRobot getRemoteRobotConnection(int port) throws InterruptedException {
+        RemoteRobot remoteRobot = new RemoteRobot("http://127.0.0.1:" + port);
+        for (int i = 0; i < 60; i++) {
+            try {
+                remoteRobot.find(WelcomeFrameDialogFixture.class);
+            } catch (Exception ex) {
+                Thread.sleep(1000);
+            }
+        }
+        return remoteRobot;
+    }
+
     public static void closeTheTipOfTheDayDialog(RemoteRobot remoteRobot) {
         step("Close the 'Tip of the Day' Dialog", () -> {
             final TipOfTheDayDialogFixture tipOfTheDayDialogFixture = remoteRobot.find(TipOfTheDayDialogFixture.class, Duration.ofSeconds(20));
@@ -186,12 +198,12 @@ public class GlobalUtils {
         }
     }
 
-    public static void waitUntilIntelliJStarts() {
-        waitFor(Duration.ofSeconds(300), Duration.ofSeconds(3), "The IntelliJ Idea did not start in 5 minutes.", () -> isIntelliJUIVisible());
+    public static void waitUntilIntelliJStarts(int port) {
+        waitFor(Duration.ofSeconds(300), Duration.ofSeconds(3), "The IntelliJ Idea did not start in 5 minutes.", () -> isIntelliJUIVisible(port));
     }
 
-    private static boolean isIntelliJUIVisible() {
-        return isHostOnIpAndPortAccessible("127.0.0.1", 8082);
+    private static boolean isIntelliJUIVisible(int port) {
+        return isHostOnIpAndPortAccessible("127.0.0.1", port);
     }
 
     private static boolean isHostOnIpAndPortAccessible(String ip, int port) {
