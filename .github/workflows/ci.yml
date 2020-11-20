@@ -25,7 +25,7 @@ jobs:
       run: ./gradlew build
     - uses: actions/upload-artifact@v1
       with:
-        name: linux-test-reports
+        name: ${{ runner.os }}-test-reports
         path: build/reports
       if: always()
     - name: Run integration tests
@@ -47,7 +47,7 @@ jobs:
     - name: Archiving screenshots
       uses: actions/upload-artifact@v2
       with: 
-        name: screenshots
+        name: ${{ runner.os }}-screenshots
         path: |
           build/screenshots/*
 
@@ -66,9 +66,26 @@ jobs:
       run: ./gradlew build
     - uses: actions/upload-artifact@v1
       with:
-        name: macos-test-reports
+        name: ${{ runner.os }}-test-reports
         path: build/reports
       if: success() || failure()
+    - name: Run integration tests
+      run: |
+        mkdir -p ~/Library/Application\ Support/JetBrains/consentOptions
+        cp .github/workflows/accepted ~//Library/Application\ Support/JetBrains/consentOptions
+        ./gradlew runIdeForUiTests -PideaVersion=2020.2 &
+        ./gradlew integrationTest
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{ runner.os }}-integration-test-reports
+        path: build/reports/tests/integrationTest
+      if: always()
+    - name: Archiving screenshots
+      uses: actions/upload-artifact@v2
+      with: 
+        name: ${{ runner.os }}-screenshots
+        path: |
+          build/screenshots/*
 
   build-windows:
     runs-on: windows-latest
@@ -85,7 +102,7 @@ jobs:
       run: ./gradlew build
     - uses: actions/upload-artifact@v1
       with:
-        name: windows-test-reports
+        name: ${{ runner.os }}-test-reports
         path: build/reports
       if: success() || failure()
 
