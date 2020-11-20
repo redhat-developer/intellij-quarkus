@@ -195,6 +195,14 @@ This script is ```pulltest.sh```
 If the version of the IntelliJ SDK used to build is changed (see gradle.properties), you must
 update the branch in ```pulltest.sh``` and run the script again.
 
+#### UI testing
+
+You can perform UI testing by running the following command:
+
+```sh
+./gradlew clean runIdeForUiTests -PideaVersion=2020.1& ./gradlew integrationTest 
+```
+
 ## Feedback
 
 File a bug in [GitHub Issues](https://github.com/redhat-developer/intellij-quarkus/issues).
