@@ -34,7 +34,7 @@ public class BuildUtils {
                 case MAVEN:
                     step("Open the Maven tab and build the project", () -> {
                         final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
-                        waitFor(Duration.ofSeconds(10), Duration.ofSeconds(1), "The 'Maven' stripe button is not available.", () -> isStripeButtonAvailable(toolWindowsPaneFixture, "Maven"));
+                        waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "The 'Maven' stripe button is not available.", () -> isStripeButtonAvailable(toolWindowsPaneFixture, "Maven"));
                         toolWindowsPaneFixture.stripeButton("Maven").click();
                         toolWindowsPaneFixture.mavenTabTree().findText("code-with-quarkus").doubleClick();
                         toolWindowsPaneFixture.mavenTabTree().findText("Lifecycle").doubleClick();
