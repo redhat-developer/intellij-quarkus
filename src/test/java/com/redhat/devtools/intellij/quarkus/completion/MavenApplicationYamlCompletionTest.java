@@ -48,7 +48,7 @@ public class MavenApplicationYamlCompletionTest extends MavenImportingTestCase {
 			try {
 				queue.dispatchEvent(queue.getNextEvent());
 			} catch (InterruptedException e) {
-				Thread.interrupt();
+				Thread.currentThread().interrupt();
 			}
 		}
 	}
