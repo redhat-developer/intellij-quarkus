@@ -44,9 +44,13 @@ public class MavenApplicationYamlCompletionTest extends MavenImportingTestCase {
 		long start = System.currentTimeMillis();
 		IdeEventQueue queue = IdeEventQueue.getInstance();
 
-		while ((queue.peekEvent()) != null && System.currentTimeMillis() - start < timeout) {
+		while (System.currentTimeMillis() - start < timeout) {
 			try {
-				queue.dispatchEvent(queue.getNextEvent());
+				if (queue.peekEvent() != null) {
+					queue.dispatchEvent(queue.getNextEvent());
+				} else {
+					Thread.sleep(100);
+				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
