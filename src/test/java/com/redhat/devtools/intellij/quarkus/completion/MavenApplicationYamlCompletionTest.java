@@ -42,25 +42,4 @@ public class MavenApplicationYamlCompletionTest extends MavenImportingTestCase {
 		UIUtil.dispatchAllInvocationEvents();
 		((CodeInsightTestFixture)myTestFixture).checkHighlighting();
 	}
-
-	private void pumpEvents(long timeout) {
-		long start = System.currentTimeMillis();
-		IdeEventQueue queue = IdeEventQueue.getInstance();
-
-		while (System.currentTimeMillis() - start < timeout) {
-			System.out.println("pumpEvents: elapsed=" + (System.currentTimeMillis() - start));
-			try {
-				if (queue.peekEvent() != null) {
-					AWTEvent event = queue.getNextEvent();
-					System.out.println("pumpEvents: event=" + event);
-					queue.dispatchEvent(event);
-				} else {
-					System.out.println("pumpEvents: pause");
-					Thread.sleep(100);
-				}
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-		}
-	}
 }
