@@ -9,7 +9,6 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.completion;
 
-import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
@@ -19,7 +18,6 @@ import com.redhat.devtools.intellij.quarkus.maven.MavenImportingTestCase;
 import org.jetbrains.yaml.schema.YamlJsonSchemaHighlightingInspection;
 import org.junit.Test;
 
-import java.awt.AWTEvent;
 import java.io.File;
 
 /**
