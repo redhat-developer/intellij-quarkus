@@ -12,6 +12,8 @@ package com.redhat.devtools.intellij.quarkus.completion;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
+import com.intellij.util.ui.UIUtil;
+import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import com.redhat.devtools.intellij.quarkus.maven.MavenImportingTestCase;
 import org.jetbrains.yaml.schema.YamlJsonSchemaHighlightingInspection;
 import org.junit.Test;
@@ -34,7 +36,8 @@ public class MavenApplicationYamlCompletionTest extends MavenImportingTestCase {
 		Module module = createMavenModule("hibernate-orm-resteasy-yaml", new File("projects/maven/hibernate-orm-resteasy-yaml"));
 		((CodeInsightTestFixture)myTestFixture).setTestDataPath(ModuleUtilCore.getModuleDirPath(module));
 		((CodeInsightTestFixture)myTestFixture).configureByFile("src/main/resources/application.yaml");
-		Thread.sleep(5000);
+		QuarkusProjectService.getInstance(module.getProject()).getSchema(module);
+		UIUtil.dispatchAllInvocationEvents();
 		((CodeInsightTestFixture)myTestFixture).checkHighlighting();
 	}
 }
