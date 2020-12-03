@@ -69,10 +69,14 @@ public class GlobalUtils {
         return remoteRobot;
     }
 
-    public static void closeTheTipOfTheDayDialog(RemoteRobot remoteRobot) {
+    public static void closeTheTipOfTheDayDialogIfItAppears(RemoteRobot remoteRobot) {
         step("Close the 'Tip of the Day' Dialog", () -> {
-            final TipOfTheDayDialogFixture tipOfTheDayDialogFixture = remoteRobot.find(TipOfTheDayDialogFixture.class, Duration.ofSeconds(20));
-            tipOfTheDayDialogFixture.button("Close").click();
+            try {
+                final TipOfTheDayDialogFixture tipOfTheDayDialogFixture = remoteRobot.find(TipOfTheDayDialogFixture.class, Duration.ofSeconds(20));
+                tipOfTheDayDialogFixture.button("Close").click();
+            } catch (WaitForConditionTimeoutException e) {
+                e.printStackTrace();
+            }
         });
     }
 
