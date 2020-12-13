@@ -33,10 +33,10 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 		Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
 		VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/application.properties");
 		codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);
-		Thread.sleep(10000);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_START_NEW_LINE);
 		codeInsightTestFixture.type("quarkus.arc.auto-inject-fields=");
+		Thread.sleep(10000);
 		LookupElement[] elements = codeInsightTestFixture.complete(CompletionType.BASIC);
 		assertNotNull(elements);
 		assertEquals(2, elements.length);
