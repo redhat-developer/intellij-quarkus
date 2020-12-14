@@ -36,6 +36,7 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_START_NEW_LINE);
 		codeInsightTestFixture.type("quarkus.arc.auto-inject-fields=");
+		Thread.sleep(1000);
 		LookupElement[] elements = codeInsightTestFixture.complete(CompletionType.BASIC);
 		assertNotNull(elements);
 		assertEquals(2, elements.length);
