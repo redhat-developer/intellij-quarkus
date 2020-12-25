@@ -20,10 +20,13 @@ import org.jboss.tools.intellij.quarkus.fixtures.dialogs.WelcomeFrameDialogFixtu
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.IdeStatusBarFixture;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -137,7 +140,12 @@ public class GlobalUtils {
             // delete all the files and folders in the IdeaProjects folder
             try {
                 String pathToDirToMakeEmpty = System.getProperty("user.home") + File.separator + "IdeaProjects";
-                FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
+                boolean doesTheProjectDirExists = Files.exists(Paths.get(pathToDirToMakeEmpty));
+                if (doesTheProjectDirExists) {
+                    FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
+                } else {
+                    Files.createDirectory(Paths.get(pathToDirToMakeEmpty));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
