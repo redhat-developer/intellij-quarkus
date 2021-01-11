@@ -64,10 +64,13 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
   }
 
   private void sendPropertiesChangeEvent(MicroProfilePropertiesScope scope, Set<String> uris) {
-    MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();
-    event.setType(Collections.singletonList(scope));
-    event.setProjectURIs(uris);
-    ((MicroProfileLanguageServerAPI)getLanguageServer()).propertiesChanged(event);
+    MicroProfileLanguageServerAPI server = (MicroProfileLanguageServerAPI) getLanguageServer();
+    if (server != null) {
+      MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();
+      event.setType(Collections.singletonList(scope));
+      event.setProjectURIs(uris);
+      server.propertiesChanged(event);
+    }
   }
 
   @Override
