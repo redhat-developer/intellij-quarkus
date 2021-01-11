@@ -16,7 +16,7 @@ jobs:
         token: ${{ secrets.JBOSSTOOLSCI_TOKEN }}
     - name: Update source tree
       run: |
-        last_quarkus_version=`curl -s https://repo1.maven.org/maven2/io/quarkus/quarkus-core/maven-metadata.xml | grep '<release>' | head -1 | sed -e "s#.*<release>\(.\+\)</release>.*#\1#"`
+        last_quarkus_version=`curl -s https://repo1.maven.org/maven2/io/quarkus/quarkus-universe-bom/maven-metadata.xml | grep '<release>' | head -1 | sed -e "s#.*<release>\(.\+\)</release>.*#\1#"`
         plugin_quarkus_version=`grep 'artifact ' src/main/resources/quarkus.xml | head -1 | sed -e "s#.*version=\"\(.\+\)\" .*#\1#"`
         if [ $last_quarkus_version != $plugin_quarkus_version ]; then
           echo "Versions differ"
