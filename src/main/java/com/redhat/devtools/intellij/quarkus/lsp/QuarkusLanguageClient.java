@@ -14,6 +14,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -91,7 +92,7 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
   <R> CompletableFuture<R> runAsBackground(String title, Supplier<R> supplier) {
     CompletableFuture<R> future = new CompletableFuture<>();
     CompletableFuture.runAsync(() -> {
-      ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
+      Runnable task = () -> ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
         @Override
         public void run(ProgressIndicator indicator) {
           try {
@@ -101,6 +102,11 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
           }
         }
       });
+      if (DumbService.getInstance(getProject()).isDumb()) {
+        DumbService.getInstance(getProject()).runWhenSmart(task);
+      } else {
+        task.run();
+      }
     });
     return future;
   }
