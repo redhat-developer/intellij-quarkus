@@ -130,7 +130,8 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
                 wizardContext.getUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY),
                 wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY),
                 wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY),
-                moduleFile);
+                moduleFile,
+                wizardContext.getUserData(QuarkusConstants.WIZARD_EXAMPLE_KEY));
         updateWrapperPermissions(moduleFile);
         VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
         RefreshQueue.getInstance().refresh(true, true, (Runnable) null, new VirtualFile[]{vf});

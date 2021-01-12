@@ -20,6 +20,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
@@ -42,6 +43,8 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
     private final JBLoadingPanel panel = new JBLoadingPanel(new BorderLayout(), this, 300);
 
     private ComboBox<ToolDelegate> toolComboBox;
+
+    private JBCheckBox exampleField;
 
     private JBTextField groupIdField;
 
@@ -67,6 +70,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
     @Override
     public void updateDataModel() {
         context.putUserData(QuarkusConstants.WIZARD_TOOL_KEY, (ToolDelegate)toolComboBox.getModel().getSelectedItem());
+        context.putUserData(QuarkusConstants.WIZARD_EXAMPLE_KEY, exampleField.isSelected());
         context.putUserData(QuarkusConstants.WIZARD_GROUPID_KEY, groupIdField.getText());
         context.putUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY, artifactIdField.getText());
         context.putUserData(QuarkusConstants.WIZARD_VERSION_KEY, versionField.getText());
@@ -100,6 +104,8 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
                 }
             });
             formBuilder.addLabeledComponent("Tool:", toolComboBox);
+            exampleField = new JBCheckBox("If selected, project will contain sample code from extensions that suppport codestarts.", true);
+            formBuilder.addLabeledComponent("Example code:", exampleField);
             groupIdField = new JBTextField("org.acme");
             formBuilder.addLabeledComponent("Group:", groupIdField);
             artifactIdField = new JBTextField("code-with-quarkus");
