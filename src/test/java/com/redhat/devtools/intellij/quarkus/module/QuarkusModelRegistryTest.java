@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.*;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_CODE_URL;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -76,13 +77,33 @@ public class QuarkusModelRegistryTest  {
         registry.load("https://invalid.org", new EmptyProgressIndicator());
     }
 
-    @Test
-    public void checkBaseMavenProject() throws IOException {
+    private void enableExtension(QuarkusModel model, String name) {
+        model.getCategories().stream().
+                forEach(category -> category.getExtensions().stream().filter(extension -> extension.getName().equals(name)).
+                        forEach(extension -> extension.setSelected(true)));
+    }
+
+    private File checkBaseMavenProject(boolean examples) throws IOException {
         File folder = temporaryFolder.newFolder();
+        QuarkusModel model = registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator());
+        enableExtension(model, "RESTEasy JAX-RS");
         QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "MAVEN", "org.acme", "code-with-quarkus",
                 "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example",
-                registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator()), folder);
+                model, folder, examples);
         assertTrue(new File(folder, "pom.xml").exists());
+        return folder;
+    }
+
+    @Test
+    public void checkBaseMavenProjectWithExamples() throws IOException {
+        File folder = checkBaseMavenProject(true);
+        assertTrue(new File(folder, "src/main/java/org/acme/ExampleResource.java").exists());
+    }
+
+    @Test
+    public void checkBaseMavenProjectWithoutExamples() throws IOException {
+        File folder = checkBaseMavenProject(false);
+        assertFalse(new File(folder, "src/main/java/org/acme/ExampleResource.java").exists());
     }
 
     private void enableAllExtensions(QuarkusModel model) {
@@ -101,13 +122,27 @@ public class QuarkusModelRegistryTest  {
         assertTrue(new File(folder, "pom.xml").exists());
     }
 
-    @Test
-    public void checkBaseGradleProject() throws IOException {
+    private File checkBaseGradleProject(boolean examples) throws IOException {
         File folder = temporaryFolder.newFolder();
+        QuarkusModel model = registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator());
+        enableExtension(model, "RESTEasy JAX-RS");
         QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "GRADLE", "org.acme", "code-with-quarkus",
                 "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example",
-                registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator()), folder);
+                model, folder, examples);
         assertTrue(new File(folder, "build.gradle").exists());
+        return folder;
+    }
+
+    @Test
+    public void checkBaseGradleProjectWithExamples() throws IOException {
+        File folder  = checkBaseGradleProject(true);
+        assertTrue(new File(folder, "src/main/java/org/acme/ExampleResource.java").exists());
+    }
+
+    @Test
+    public void checkBaseGradleProjectWithoutExamples() throws IOException {
+        File folder  = checkBaseGradleProject(false);
+        assertFalse(new File(folder, "src/main/java/org/acme/ExampleResource.java").exists());
     }
 
     @Test

@@ -16,6 +16,7 @@ import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 
 public class QuarkusConstants {
     public final static Key<ToolDelegate> WIZARD_TOOL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".tool");
+    public final static Key<Boolean> WIZARD_EXAMPLE_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".example");
     public final static Key<String> WIZARD_GROUPID_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".groupId");
     public final static Key<String> WIZARD_ARTIFACTID_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".artifactId");
     public final static Key<String> WIZARD_VERSION_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".version");
