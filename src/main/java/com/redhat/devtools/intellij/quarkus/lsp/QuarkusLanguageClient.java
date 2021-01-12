@@ -26,6 +26,10 @@ import com.redhat.devtools.intellij.quarkus.search.ProjectLabelManager;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.core.PropertiesManagerForJava;
+import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaProjectLabelsParams;
@@ -37,10 +41,6 @@ import org.eclipse.lsp4mp.commons.MicroProfilePropertyDefinitionParams;
 import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageClientAPI;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI;
-import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,20 +92,24 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
   <R> CompletableFuture<R> runAsBackground(String title, Supplier<R> supplier) {
     CompletableFuture<R> future = new CompletableFuture<>();
     CompletableFuture.runAsync(() -> {
-      Runnable task = () -> ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
-        @Override
-        public void run(ProgressIndicator indicator) {
-          try {
-            future.complete(supplier.get());
-          } catch (Throwable t) {
-            future.completeExceptionally(t);
-          }
+      Runnable task = () -> {
+        try {
+          future.complete(supplier.get());
+        } catch (Throwable t) {
+          future.completeExceptionally(t);
         }
-      });
+      };
       if (DumbService.getInstance(getProject()).isDumb()) {
         DumbService.getInstance(getProject()).runWhenSmart(task);
-      } else {
+      } else if (ProgressManager.getInstance().hasModalProgressIndicator()) {
         task.run();
+      } else {
+        ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
+          @Override
+          public void run(ProgressIndicator indicator) {
+            task.run();
+          }
+        });
       }
     });
     return future;
