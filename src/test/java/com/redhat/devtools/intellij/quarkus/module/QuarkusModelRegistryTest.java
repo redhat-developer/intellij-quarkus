@@ -97,13 +97,13 @@ public class QuarkusModelRegistryTest  {
     @Test
     public void checkBaseMavenProjectWithExamples() throws IOException {
         File folder = checkBaseMavenProject(true);
-        assertTrue(new File(folder, "src/main/java/org/acme/GreetingResource.java").exists());
+        assertTrue(new File(folder, "src/main/java/org/acme/ExampleResource.java").exists());
     }
 
     @Test
     public void checkBaseMavenProjectWithoutExamples() throws IOException {
         File folder = checkBaseMavenProject(false);
-        assertFalse(new File(folder, "src/main/java/org/acme/GreetingResource.java").exists());
+        assertFalse(new File(folder, "src/main/java/org/acme/ExampleResource.java").exists());
     }
 
     private void enableAllExtensions(QuarkusModel model) {
@@ -136,13 +136,13 @@ public class QuarkusModelRegistryTest  {
     @Test
     public void checkBaseGradleProjectWithExamples() throws IOException {
         File folder  = checkBaseGradleProject(true);
-        assertTrue(new File(folder, "src/main/java/org/acme/GreetingResource.java").exists());
+        assertTrue(new File(folder, "src/main/java/org/acme/ExampleResource.java").exists());
     }
 
     @Test
     public void checkBaseGradleProjectWithoutExamples() throws IOException {
         File folder  = checkBaseGradleProject(false);
-        assertFalse(new File(folder, "src/main/java/org/acme/GreetingResource.java").exists());
+        assertFalse(new File(folder, "src/main/java/org/acme/ExampleResource.java").exists());
     }
 
     @Test
