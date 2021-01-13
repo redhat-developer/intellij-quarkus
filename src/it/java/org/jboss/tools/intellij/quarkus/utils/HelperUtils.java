@@ -23,6 +23,10 @@ import java.util.stream.Collectors;
 public class HelperUtils {
 
     public static String listOfRemoteTextToString(List<RemoteText> data) {
+        if (data.isEmpty()) {
+            return "";
+        }
+
         List<String> listOfStrings = data
                 .stream()
                 .map(RemoteText::getText)
