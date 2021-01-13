@@ -9,7 +9,7 @@ plugins {
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
-def remoteRobotVersion = "0.9.35"
+def remoteRobotVersion = "0.10.3"
 def fixturesVersion = "1.1.18"
 
 intellij {
