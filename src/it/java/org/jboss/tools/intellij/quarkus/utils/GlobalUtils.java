@@ -23,8 +23,11 @@ import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.IdeStatusBarFixtu
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.LinuxIdeMenuBarFixture;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.AWTException;
 import java.awt.image.BufferedImage;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
