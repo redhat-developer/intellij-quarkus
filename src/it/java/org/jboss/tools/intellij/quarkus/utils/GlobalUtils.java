@@ -22,6 +22,12 @@ import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.CustomHeaderMenuB
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.IdeStatusBarFixture;
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.LinuxIdeMenuBarFixture;
 
+import javax.imageio.ImageIO;
+import java.awt.AWTException;
+import java.awt.image.BufferedImage;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -30,6 +36,8 @@ import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -176,6 +184,39 @@ public class GlobalUtils {
                         "robot.click(component, new Point(horizontal_offset, 18), MouseButton.LEFT_BUTTON, 1);");
             }
         });
+    }
+
+    public static void takeScreenshot() {
+        String screenshotLocation = "./build/screenshots/";
+        String screenshotFilename = getTimeNowAsString("yyyy_MM_dd_HH_mm_ss");
+        String filetype = "png";
+        String screenshotPathname = screenshotLocation + screenshotFilename + "." + filetype;
+
+        try {
+            BufferedImage screenshotBufferedImage = getScreenshotAsBufferedImage();
+            boolean doesTheScreenshotDirExists = Files.exists(Paths.get(screenshotLocation));
+            if (!doesTheScreenshotDirExists) {
+                Files.createDirectory(Paths.get(screenshotLocation));
+            }
+            File screenshotFile = new File(screenshotPathname);
+            ImageIO.write(screenshotBufferedImage, filetype, screenshotFile);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static BufferedImage getScreenshotAsBufferedImage() throws AWTException {
+        Rectangle fullscreenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+        BufferedImage screenshot = new Robot().createScreenCapture(fullscreenRect);
+        return screenshot;
+    }
+
+    private static String getTimeNowAsString(String format) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(format);
+        LocalDateTime now = LocalDateTime.now();
+        return dtf.format(now);
     }
 
     private static boolean didTheProjectImportFinish(RemoteRobot remoteRobot) {
