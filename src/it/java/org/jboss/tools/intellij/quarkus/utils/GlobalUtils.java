@@ -13,6 +13,7 @@ package org.jboss.tools.intellij.quarkus.utils;
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.ContainerFixture;
+import com.intellij.remoterobot.utils.Keyboard;
 import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
 import org.apache.commons.io.FileUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.IdeFatalErrorsDialogFixture;
@@ -21,6 +22,7 @@ import org.jboss.tools.intellij.quarkus.fixtures.dialogs.WelcomeFrameDialogFixtu
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.CustomHeaderMenuBarFixture;
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.IdeStatusBarFixture;
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.LinuxIdeMenuBarFixture;
+import org.jboss.tools.intellij.quarkus.fixtures.popups.SearchEverywherePopupFixture;
 
 import javax.imageio.ImageIO;
 import java.awt.AWTException;
@@ -28,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -43,6 +46,7 @@ import java.util.List;
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
 import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
+import static org.jboss.tools.intellij.quarkus.utils.HelperUtils.listOfRemoteTextToString;
 
 /**
  * Static utilities that assist and simplify manipulation with the IDE and with the project
@@ -276,5 +280,28 @@ public class GlobalUtils {
             return false;
         }
         return true;
+    }
+
+    public static void invokeCmdUsingTheSearchEverywherePopup(RemoteRobot remoteRobot, String cmdToInvoke) {
+        step("Invoke a command using the Search Everywhere popup", () -> {
+            Keyboard keyboard = new Keyboard(remoteRobot);
+            if (remoteRobot.isMac()) {
+                keyboard.hotKey(KeyEvent.VK_META, KeyEvent.VK_O);
+            } else {
+                keyboard.hotKey(KeyEvent.VK_CONTROL, KeyEvent.VK_N);
+            }
+            final SearchEverywherePopupFixture searchEverywherePopupFixture = remoteRobot.find(SearchEverywherePopupFixture.class, Duration.ofSeconds(10));
+            searchEverywherePopupFixture.popupTab("All").click();
+            searchEverywherePopupFixture.searchField().click();
+            keyboard.enterText(cmdToInvoke);
+            waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "The search in the Search Everywhere popup did not finish in 30 seconds.", () -> didTheSearchInTheSearchEverywherePopupFinish(remoteRobot, cmdToInvoke));
+            keyboard.hotKey(KeyEvent.VK_ENTER);
+        });
+    }
+
+    private static boolean didTheSearchInTheSearchEverywherePopupFinish(RemoteRobot remoteRobot, String cmdToInvoke) {
+        final SearchEverywherePopupFixture searchEverywherePopupFixture = remoteRobot.find(SearchEverywherePopupFixture.class, Duration.ofSeconds(10));
+        String searchResultsString = listOfRemoteTextToString(searchEverywherePopupFixture.searchResultsJBList().findAllText());
+        return searchResultsString.toLowerCase().contains(cmdToInvoke.toLowerCase());
     }
 }
