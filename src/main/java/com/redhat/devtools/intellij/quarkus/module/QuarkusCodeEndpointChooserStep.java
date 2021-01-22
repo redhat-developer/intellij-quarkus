@@ -36,8 +36,6 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_CODE_URL;
@@ -100,7 +98,7 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep {
         builder.addComponent(defaultPanel);
         BorderLayoutPanel customPanel = JBUI.Panels.simplePanel(10, 0);
         customPanel.addToLeft(this.customRadioButton);
-        this.customUrlWithBrowseButton.setButtonIcon(AllIcons.Actions.ShowViewer);
+        this.customUrlWithBrowseButton.setButtonIcon(AllIcons.Actions.Preview);
         customPanel.addToCenter(this.customUrlWithBrowseButton);
         builder.addComponent(customPanel);
         builder.addTooltip("Make sure your network connection is active before continuing.");
