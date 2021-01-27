@@ -27,7 +27,30 @@ jobs:
       with:
         name: linux-test-reports
         path: build/reports
-      if: success() || failure()
+      if: always()
+    - name: Run integration tests
+      run: |
+        dir=~/.java/.userPrefs/jetbrains/_\!\(\!\!cg\"p\!\(\}\!\}@\"j\!\(k\!\|w\"w\!\'8\!b\!\"p\!\':\!e@=\=
+        mkdir -p "$dir"
+        cp .github/workflows/prefs.xml $dir
+        mkdir -p ~/.local/share/JetBrains/consentOptions
+        cp .github/workflows/accepted ~/.local/share/JetBrains/consentOptions
+        export DISPLAY=:99.0
+        Xvfb -ac :99 -screen 0 1920x1080x16 &
+        ./gradlew runIdeForUiTests -PideaVersion=2020.1 &
+        ./gradlew integrationTest
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{ runner.os }}-integration-test-reports
+        path: build/reports/tests/integrationTest
+      if: always()
+    - name: Archiving screenshots
+      uses: actions/upload-artifact@v2
+      with: 
+        name: screenshots
+        path: |
+          build/screenshots/*
+        retention-days: 5 
 
   build-macos:
     runs-on: macos-latest
