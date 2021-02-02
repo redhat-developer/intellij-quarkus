@@ -43,14 +43,12 @@ public class ProjectToolWindowUtils {
 
     private static void navigateThroughTheProjectTree(RemoteRobot remoteRobot, ActionToPerform action, String... pathArray) {
         step("Navigate through the project tree", () -> {
-            List<String> path = Arrays.asList(pathArray);
-            Iterator<String> pathIterator = path.iterator();
-            while (pathIterator.hasNext()) {
+            for (int i = 0; i < pathArray.length; i++) {
                 final ProjectToolWindowFixture projectToolWindowFixture = remoteRobot.find(ProjectToolWindowFixture.class);
-                String pathItem = pathIterator.next();
+                String pathItem = pathArray[i];
 
                 // for last item perform different action
-                if (!pathIterator.hasNext()) {
+                if (i == pathArray.length - 1) {
                     switch (action) {
                         case OPEN:
                             projectToolWindowFixture.projectViewTree().findText(pathItem).doubleClick();
