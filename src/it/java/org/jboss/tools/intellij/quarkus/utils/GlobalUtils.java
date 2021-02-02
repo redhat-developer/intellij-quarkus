@@ -267,7 +267,7 @@ public class GlobalUtils {
     }
 
     public static void waitUntilIntelliJStarts(int port) {
-        waitFor(Duration.ofSeconds(1800), Duration.ofSeconds(3), "The IntelliJ Idea did not start in 30 minutes.", () -> isIntelliJUIVisible(port));
+        waitFor(Duration.ofSeconds(600), Duration.ofSeconds(3), "The IntelliJ Idea did not start in 10 minutes.", () -> isIntelliJUIVisible(port));
     }
 
     private static boolean isIntelliJUIVisible(int port) {

@@ -39,7 +39,9 @@ public class BasicTests {
     }
 
     @AfterEach
-    public void clearTheWorkspace() {
+    public void finishTheTestRun() {
+        GlobalUtils.checkForExceptions(robot);
+        GlobalUtils.closeTheProject(robot);
         GlobalUtils.clearTheWorkspace(robot);
     }
 
@@ -54,8 +56,6 @@ public class BasicTests {
             BuildUtils.buildTheProject(robot, BuildUtils.ToolToBuildTheProject.MAVEN);
             GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
             BuildUtils.testIfBuildIsSuccessful(robot);
-            GlobalUtils.checkForExceptions(robot);
-            GlobalUtils.closeTheProject(robot);
         });
     }
 
@@ -69,8 +69,6 @@ public class BasicTests {
             GlobalUtils.maximizeTheIdeWindow(robot);
             GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
             assertTrue(ProjectToolWindowUtils.isAProjectFilePresent(robot, projectName, "lib", runtimeJarName), "The runtime has not been downloaded.");
-            GlobalUtils.checkForExceptions(robot);
-            GlobalUtils.closeTheProject(robot);
         });
     }
 }
