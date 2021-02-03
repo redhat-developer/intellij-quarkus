@@ -43,8 +43,8 @@ public class ProjectToolWindowUtils {
 
     private static void navigateThroughTheProjectTree(RemoteRobot remoteRobot, ActionToPerform action, String... pathArray) {
         step("Navigate through the project tree", () -> {
+            final ProjectToolWindowFixture projectToolWindowFixture = remoteRobot.find(ProjectToolWindowFixture.class);
             for (int i = 0; i < pathArray.length; i++) {
-                final ProjectToolWindowFixture projectToolWindowFixture = remoteRobot.find(ProjectToolWindowFixture.class);
                 String pathItem = pathArray[i];
 
                 // for last item perform different action
