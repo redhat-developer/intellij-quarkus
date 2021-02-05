@@ -50,7 +50,6 @@ jobs:
         name: screenshots
         path: |
           build/screenshots/*
-        retention-days: 5 
 
   build-macos:
     runs-on: macos-latest
