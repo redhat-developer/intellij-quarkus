@@ -55,4 +55,12 @@ public class NewProjectDialogFixture extends CommonContainerFixture {
     public ComponentFixture extensionsTable() {
         return find(ComponentFixture.class, byXpath("//div[@class='ExtensionsTable']"));
     }
+
+    public ComponentFixture theFrameworksTree() {
+        return find(ComponentFixture.class, byXpath("//div[@accessiblename='Additional Libraries and Frameworks:' and @class='FrameworksTree']"));
+    }
+
+    public JTextFieldFixture projectNameField() {
+        return find(JTextFieldFixture.class, byXpath("//div[@accessiblename='Project name:' and @class='JTextField']"));
+    }
 }

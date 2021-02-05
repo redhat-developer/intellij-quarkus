@@ -69,10 +69,14 @@ public class GlobalUtils {
         return remoteRobot;
     }
 
-    public static void closeTheTipOfTheDayDialog(RemoteRobot remoteRobot) {
+    public static void closeTheTipOfTheDayDialogIfItAppears(RemoteRobot remoteRobot) {
         step("Close the 'Tip of the Day' Dialog", () -> {
-            final TipOfTheDayDialogFixture tipOfTheDayDialogFixture = remoteRobot.find(TipOfTheDayDialogFixture.class, Duration.ofSeconds(20));
-            tipOfTheDayDialogFixture.button("Close").click();
+            try {
+                final TipOfTheDayDialogFixture tipOfTheDayDialogFixture = remoteRobot.find(TipOfTheDayDialogFixture.class, Duration.ofSeconds(20));
+                tipOfTheDayDialogFixture.button("Close").click();
+            } catch (WaitForConditionTimeoutException e) {
+                e.printStackTrace();
+            }
         });
     }
 
@@ -263,7 +267,7 @@ public class GlobalUtils {
     }
 
     public static void waitUntilIntelliJStarts(int port) {
-        waitFor(Duration.ofSeconds(300), Duration.ofSeconds(3), "The IntelliJ Idea did not start in 5 minutes.", () -> isIntelliJUIVisible(port));
+        waitFor(Duration.ofSeconds(600), Duration.ofSeconds(3), "The IntelliJ Idea did not start in 10 minutes.", () -> isIntelliJUIVisible(port));
     }
 
     private static boolean isIntelliJUIVisible(int port) {
