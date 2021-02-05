@@ -104,13 +104,13 @@ public class GlobalUtils {
 
     public static void checkForExceptions(RemoteRobot remoteRobot) {
         step("Check for exceptions and other errors", () -> {
-            final IdeStatusBarFixture ideStatusBarFixture = remoteRobot.find(IdeStatusBarFixture.class);
             try {
-                ideStatusBarFixture.ideErrorsIcon();
+                final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class, Duration.ofSeconds(10));
+                welcomeFrameDialogFixture.ideErrorsIcon().click();
             } catch (WaitForConditionTimeoutException e) {
+                e.printStackTrace();
                 return;
             }
-            ideStatusBarFixture.ideErrorsIcon().click();
 
             final IdeFatalErrorsDialogFixture ideFatalErrorsDialogFixture = remoteRobot.find(IdeFatalErrorsDialogFixture.class, Duration.ofSeconds(10));
             String exceptionNumberLabel = ideFatalErrorsDialogFixture.numberOfExcetionsJBLabel().findAllText().get(0).getText();
