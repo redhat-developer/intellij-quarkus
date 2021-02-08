@@ -13,6 +13,7 @@ package org.jboss.tools.intellij.quarkus.utils;
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.ContainerFixture;
+import com.intellij.remoterobot.fixtures.dataExtractor.RemoteText;
 import com.intellij.remoterobot.utils.Keyboard;
 import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
 import org.apache.commons.io.FileUtils;
@@ -42,6 +43,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
@@ -194,6 +196,31 @@ public class GlobalUtils {
         });
     }
 
+    public static IdeaVersion getTheIntelliJVersion(RemoteRobot remoteRobot) {
+        WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class);
+        List<ComponentFixture> jLabels = welcomeFrameDialogFixture.findAll(ComponentFixture.class, byXpath("//div[@class='JLabel']"));
+
+        IdeaVersion ideaVersion = IdeaVersion.UNIDENTIFIED;
+        for (ComponentFixture jLabel : jLabels) {
+            String labelText = listOfRemoteTextToString(jLabel.findAllText()).toLowerCase(Locale.ROOT);
+            if (labelText.contains("20")) {
+                if (labelText.contains("2020.1")) {
+                    ideaVersion = IdeaVersion.V2020_1;
+                } else if (labelText.contains("2020.2")) {
+                    ideaVersion = IdeaVersion.V2020_2;
+                }
+                break;
+            }
+        }
+        return ideaVersion;
+    }
+
+    public enum IdeaVersion {
+        V2020_1,
+        V2020_2,
+        UNIDENTIFIED
+    }
+
     public static void takeScreenshot() {
         String screenshotLocation = "./build/screenshots/";
         String screenshotFilename = getTimeNowAsString("yyyy_MM_dd_HH_mm_ss");
@@ -239,16 +266,15 @@ public class GlobalUtils {
     private static boolean didAllTheBgTasksFinish(RemoteRobot remoteRobot) {
         for (int i = 0; i < 5; i++) {
             final IdeStatusBarFixture ideStatusBarFixture = remoteRobot.find(IdeStatusBarFixture.class);
+            List<RemoteText> inlineProgressPanelContent = ideStatusBarFixture.inlineProgressPanel().findAllText();
+            if (!inlineProgressPanelContent.isEmpty()) {
+                return false;
+            }
 
             try {
-                ideStatusBarFixture.bgTasksIcon();
-                return false;
-            } catch (WaitForConditionTimeoutException timeoutException) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
         return true;

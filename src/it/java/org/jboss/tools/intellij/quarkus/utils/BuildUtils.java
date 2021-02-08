@@ -44,7 +44,6 @@ public class BuildUtils {
                     step("Open the Gradle tab and build the project", () -> {
                         final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
                         toolWindowsPaneFixture.stripeButton("Gradle").click();
-                        toolWindowsPaneFixture.gradleTabTree().findText("code-with-quarkus").doubleClick();
                         toolWindowsPaneFixture.gradleTabTree().findText("Tasks").doubleClick();
                         toolWindowsPaneFixture.gradleTabTree().findText("build").doubleClick();
                         toolWindowsPaneFixture.gradleTabTree().findAllText("build").get(1).doubleClick();

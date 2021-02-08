@@ -30,12 +30,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class BasicTests {
 
     private static RemoteRobot robot;
+    private static GlobalUtils.IdeaVersion ideaVersion;
 
     @BeforeAll
     public static void connect() throws InterruptedException {
         GlobalUtils.waitUntilIntelliJStarts(8082);
         robot = GlobalUtils.getRemoteRobotConnection(8082);
         GlobalUtils.clearTheWorkspace(robot);
+        ideaVersion = GlobalUtils.getTheIntelliJVersion(robot);
     }
 
     @AfterEach
@@ -69,6 +71,20 @@ public class BasicTests {
             GlobalUtils.maximizeTheIdeWindow(robot);
             GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
             assertTrue(ProjectToolWindowUtils.isAProjectFilePresent(robot, projectName, "lib", runtimeJarName), "The runtime has not been downloaded.");
+        });
+    }
+
+    @Test
+    public void createAQuarkusProjectAndBuildItUsingGradle() {
+        step("Create a Quarkus project and build it using gradle", () -> {
+            QuarkusUtils.createNewQuarkusProject(robot, BuildUtils.ToolToBuildTheProject.GRADLE);
+            GlobalUtils.waitUntilTheProjectImportIsComplete(robot);
+            GlobalUtils.closeTheTipOfTheDayDialogIfItAppears(robot);
+            GlobalUtils.maximizeTheIdeWindow(robot);
+            GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
+            BuildUtils.buildTheProject(robot, BuildUtils.ToolToBuildTheProject.GRADLE);
+            GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
+            BuildUtils.testIfBuildIsSuccessful(robot);
         });
     }
 }

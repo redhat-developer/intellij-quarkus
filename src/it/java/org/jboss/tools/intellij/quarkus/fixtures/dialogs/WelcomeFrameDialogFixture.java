@@ -34,7 +34,7 @@ public class WelcomeFrameDialogFixture extends ContainerFixture {
     }
 
     public ActionLinkFixture createNewProjectLink() {
-        return find(ActionLinkFixture.class, byXpath("//div[@text='Create New Project' and @class='ActionLink']"));
+        return find(ActionLinkFixture.class, byXpath("//div[@text='New Project' and @class='ActionLink']"));
     }
 
     public ComponentFixture importProjectLink() {
