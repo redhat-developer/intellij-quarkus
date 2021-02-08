@@ -14,6 +14,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.libraries.Library;
@@ -148,7 +149,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
                 schemaFile = createJSONSchemaFile(module.getName());
             }
             final VirtualFile schemaFile1 = schemaFile;
-            ApplicationManager.getApplication().invokeLater(() -> {
+            DumbService.getInstance(module.getProject()).runWhenSmart(() -> {
                 ApplicationManager.getApplication().runWriteAction(() -> {
                     try {
                         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module,
