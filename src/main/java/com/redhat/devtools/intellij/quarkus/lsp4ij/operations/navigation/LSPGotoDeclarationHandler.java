@@ -43,6 +43,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
@@ -56,13 +58,18 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
             if (uri != null) {
                 DefinitionParams parms = new DefinitionParams(new TextDocumentIdentifier(uri.toString()), LSPIJUtils.toPosition(offset, editor.getDocument()));
                 Set<PsiElement> targets = new HashSet<>();
-                LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(editor.getDocument(), capabilities -> capabilities.getDefinitionProvider()).thenComposeAsync(servers ->
+                try {
+                    LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(editor.getDocument(), capabilities -> capabilities.getDefinitionProvider()).thenComposeAsync(servers ->
 
-                    CompletableFuture.allOf(servers.stream().map(server -> server.getTextDocumentService().definition(parms).thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
-                    .toArray(CompletableFuture[]::new))).get();
+                        CompletableFuture.allOf(servers.stream().map(server -> server.getTextDocumentService().definition(parms).thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
+                        .toArray(CompletableFuture[]::new))).get(1_000, TimeUnit.MILLISECONDS);
+                } catch (ExecutionException | TimeoutException e) {
+                    LOGGER.warn(e.getLocalizedMessage(), e);
+                }
                 return targets.toArray(new PsiElement[targets.size()]);
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return new PsiElement[0];
