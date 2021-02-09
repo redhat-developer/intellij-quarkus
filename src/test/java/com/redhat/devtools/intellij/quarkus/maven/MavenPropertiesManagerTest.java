@@ -3,7 +3,7 @@
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
- * and is available at http://www.eclipse.org/legal/epl-v20.html
+ * and is available at https://www.eclipse.org/legal/epl-v20.html
  *
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
@@ -30,7 +30,7 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUIL
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerTest.java</a>
  */
 public class MavenPropertiesManagerTest extends MavenImportingTestCase {
-    private static final String XML = "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" xmlns=\"http://maven.apache.org/POM/4.0.0\"" +
+    private static final String XML = "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\" xmlns=\"http://maven.apache.org/POM/4.0.0\"" +
             "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
             "  <modelVersion>4.0.0</modelVersion>" +
             "<groupId>com.redhat.devtools.intellij.quarkus</groupId>" +
