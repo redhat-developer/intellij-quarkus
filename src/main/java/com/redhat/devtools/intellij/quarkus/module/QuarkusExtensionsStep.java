@@ -240,13 +240,18 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             extensionsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
-                    QuarkusExtension extension = ((ExtensionsTable.Model)extensionsTable.getModel()).getElementAt(extensionsTable.getSelectedRow());
-                    StringBuilder builder = new StringBuilder("<html><body>" + extension.getDescription() + ".");
-                    if (StringUtils.isNotBlank(extension.getGuide())) {
-                        builder.append(" <a href=\"" + extension.getGuide() + "\">Click to open guide</a>");
+                    int index = extensionsTable.getSelectedRow();
+                    if (index >=0) {
+                        QuarkusExtension extension = ((ExtensionsTable.Model)extensionsTable.getModel()).getElementAt(index);
+                        StringBuilder builder = new StringBuilder("<html><body>" + extension.getDescription() + ".");
+                        if (StringUtils.isNotBlank(extension.getGuide())) {
+                            builder.append(" <a href=\"" + extension.getGuide() + "\">Click to open guide</a>");
+                        }
+                        builder.append("</body></html>");
+                        extensionDetailTextPane.setText(builder.toString());
+                    } else {
+                        extensionDetailTextPane.setText("");
                     }
-                    builder.append("</body></html>");
-                    extensionDetailTextPane.setText(builder.toString());
                 }
             });
         }
