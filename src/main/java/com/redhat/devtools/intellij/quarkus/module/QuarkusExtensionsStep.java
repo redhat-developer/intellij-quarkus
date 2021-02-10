@@ -14,6 +14,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.BooleanTableCellRenderer;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -57,6 +59,7 @@ import java.util.Set;
 
 public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposable {
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusExtensionsStep.class);
+    private static final Icon CODESTARTS_ICON = IconLoader.findIcon("/images/fighter-jet-solid.svg");
 
     private JBSplitter panel;
     private final WizardContext wizardContext;
@@ -135,6 +138,10 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                     append(extension.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, null));
                     append(" ");
                     append(extension.asLabel(false), new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
+                    if (extension.isProvidesExampleCode()) {
+                        setIcon(CODESTARTS_ICON);
+                        setIconOnTheRight(true);
+                    }
                 }
             });
         }

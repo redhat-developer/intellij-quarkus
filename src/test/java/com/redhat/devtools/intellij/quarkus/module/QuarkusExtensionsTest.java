@@ -126,4 +126,24 @@ public class QuarkusExtensionsTest {
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).asLabel());
         assertFalse(model.getCategories().get(0).getExtensions().get(0).isDefaultExtension());
     }
+
+    @Test
+    public void checkExtensionWithProvidesExampleCode() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-extension-with-provides-example-code.json"));
+        assertEquals(1, model.getCategories().size());
+        assertEquals(1, model.getCategories().get(0).getExtensions().size());
+        assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
+        assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).asLabel());
+        assertTrue(model.getCategories().get(0).getExtensions().get(0).isProvidesExampleCode());
+    }
+
+    @Test
+    public void checkExtensionWithoutProvidesExampleCode() throws IOException {
+        QuarkusModel model = new QuarkusModel(load("/single-extension-without-provides-example-code.json"));
+        assertEquals(1, model.getCategories().size());
+        assertEquals(1, model.getCategories().get(0).getExtensions().size());
+        assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
+        assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).asLabel());
+        assertFalse(model.getCategories().get(0).getExtensions().get(0).isProvidesExampleCode());
+    }
 }

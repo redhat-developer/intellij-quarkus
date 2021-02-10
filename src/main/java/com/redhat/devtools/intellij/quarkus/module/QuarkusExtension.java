@@ -58,6 +58,9 @@ public class QuarkusExtension {
 
     private boolean selected;
 
+    @JsonProperty("providesExampleCode")
+    private boolean providesExampleCode;
+
     public String getCategory() {
         return category;
     }
@@ -162,6 +165,14 @@ public class QuarkusExtension {
         this.shortId = shortId;
     }
 
+    public boolean isProvidesExampleCode() {
+        return providesExampleCode;
+    }
+
+    public void setProvidesExampleCode(boolean providesExampleCode) {
+        this.providesExampleCode = providesExampleCode;
+    }
+
     public String asLabel(boolean withName) {
         StringBuilder builder = new StringBuilder(withName?getName() + "":"");
         List<String> tags = getTags();
@@ -169,7 +180,12 @@ public class QuarkusExtension {
             if (withName) {
                 builder.append(' ');
             }
-            builder.append("(").append(tags.stream().map(tag -> Character.toUpperCase(tag.charAt(0)) + tag.substring(1)).collect(Collectors.joining(","))).append(')');
+            String labels = tags.stream().
+                    filter(tag -> !"provides-example".equals(tag)).
+                    map(tag -> Character.toUpperCase(tag.charAt(0)) + tag.substring(1)).collect(Collectors.joining(","));
+            if (StringUtils.isNotBlank(labels)) {
+                builder.append('(').append(labels).append(')');
+            }
         } else {
             String st = getStatus();
             if (StringUtils.isNotBlank(st) && !"stable".equalsIgnoreCase(st)) {
