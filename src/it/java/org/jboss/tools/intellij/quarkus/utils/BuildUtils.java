@@ -11,8 +11,8 @@
 package org.jboss.tools.intellij.quarkus.utils;
 
 import com.intellij.remoterobot.RemoteRobot;
+import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
 import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.ToolWindowsPaneFixture;
-
 import java.time.Duration;
 
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
@@ -34,6 +34,7 @@ public class BuildUtils {
                 case MAVEN:
                     step("Open the Maven tab and build the project", () -> {
                         final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
+                        waitFor(Duration.ofSeconds(10), Duration.ofSeconds(1), "The 'Maven' stripe button is not available.", () -> isStripeButtonAvailable(toolWindowsPaneFixture, "Maven"));
                         toolWindowsPaneFixture.stripeButton("Maven").click();
                         toolWindowsPaneFixture.mavenTabTree().findText("code-with-quarkus").doubleClick();
                         toolWindowsPaneFixture.mavenTabTree().findText("Lifecycle").doubleClick();
@@ -85,6 +86,15 @@ public class BuildUtils {
         final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
         String buildStatusTreeText = HelperUtils.listOfRemoteTextToString(toolWindowsPaneFixture.theBuildStatusTree().findAllText());
         return buildStatusTreeText;
+    }
+
+    private static boolean isStripeButtonAvailable(ToolWindowsPaneFixture toolWindowsPaneFixture, String label) {
+        try {
+            toolWindowsPaneFixture.stripeButton(label);
+        } catch (WaitForConditionTimeoutException e) {
+            return false;
+        }
+        return true;
     }
 
     public enum ToolToBuildTheProject {

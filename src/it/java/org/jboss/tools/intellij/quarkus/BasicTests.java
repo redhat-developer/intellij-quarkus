@@ -43,14 +43,13 @@ public class BasicTests {
     @AfterEach
     public void finishTheTestRun() {
         GlobalUtils.checkForExceptions(robot);
-        GlobalUtils.closeTheProject(robot);
         GlobalUtils.clearTheWorkspace(robot);
     }
 
     @Test
     public void createAQuarkusProjectAndBuildItUsingMaven() {
         step("Create a Quarkus project and build it using maven", () -> {
-            QuarkusUtils.createNewQuarkusProject(robot, BuildUtils.ToolToBuildTheProject.MAVEN);
+            QuarkusUtils.createNewQuarkusProject(robot, BuildUtils.ToolToBuildTheProject.MAVEN, QuarkusUtils.EndpointURLType.DEFAULT);
             GlobalUtils.waitUntilTheProjectImportIsComplete(robot);
             GlobalUtils.closeTheTipOfTheDayDialogIfItAppears(robot);
             GlobalUtils.maximizeTheIdeWindow(robot);
@@ -58,6 +57,7 @@ public class BasicTests {
             BuildUtils.buildTheProject(robot, BuildUtils.ToolToBuildTheProject.MAVEN);
             GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
             BuildUtils.testIfBuildIsSuccessful(robot);
+            GlobalUtils.closeTheProject(robot);
         });
     }
 
@@ -71,13 +71,33 @@ public class BasicTests {
             GlobalUtils.maximizeTheIdeWindow(robot);
             GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
             assertTrue(ProjectToolWindowUtils.isAProjectFilePresent(robot, projectName, "lib", runtimeJarName), "The runtime has not been downloaded.");
+            GlobalUtils.closeTheProject(robot);
+        });
+    }
+
+    @Test
+    public void createNewQuarkusProjectWithValidCustomEndpointURL() {
+        step("Create new Quarkus project with valid custom endpoint URL", () -> {
+            QuarkusUtils.createNewQuarkusProject(robot, BuildUtils.ToolToBuildTheProject.MAVEN, QuarkusUtils.EndpointURLType.CUSTOM);
+            GlobalUtils.waitUntilTheProjectImportIsComplete(robot);
+            GlobalUtils.closeTheTipOfTheDayDialogIfItAppears(robot);
+            GlobalUtils.maximizeTheIdeWindow(robot);
+            GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
+            GlobalUtils.closeTheProject(robot);
+        });
+    }
+
+    @Test
+    public void createNewQuarkusProjectWithInvalidCustomEndpointURL() {
+        step("Create new Quarkus project with invalid custom endpoint URL", () -> {
+            QuarkusUtils.tryToCreateNewQuarkusProjectWithInvalidCustomEndpointURL(robot);
         });
     }
 
     @Test
     public void createAQuarkusProjectAndBuildItUsingGradle() {
         step("Create a Quarkus project and build it using gradle", () -> {
-            QuarkusUtils.createNewQuarkusProject(robot, BuildUtils.ToolToBuildTheProject.GRADLE);
+            QuarkusUtils.createNewQuarkusProject(robot, BuildUtils.ToolToBuildTheProject.GRADLE, QuarkusUtils.EndpointURLType.DEFAULT);
             GlobalUtils.waitUntilTheProjectImportIsComplete(robot);
             GlobalUtils.closeTheTipOfTheDayDialogIfItAppears(robot);
             GlobalUtils.maximizeTheIdeWindow(robot);
@@ -85,6 +105,7 @@ public class BasicTests {
             BuildUtils.buildTheProject(robot, BuildUtils.ToolToBuildTheProject.GRADLE);
             GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
             BuildUtils.testIfBuildIsSuccessful(robot);
+            GlobalUtils.closeTheProject(robot);
         });
     }
 }

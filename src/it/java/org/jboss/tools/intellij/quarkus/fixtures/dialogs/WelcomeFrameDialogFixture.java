@@ -40,4 +40,8 @@ public class WelcomeFrameDialogFixture extends ContainerFixture {
     public ComponentFixture importProjectLink() {
         return find(ComponentFixture.class, byXpath("//div[@text='Import Project' and @class='ActionLink']"));
     }
+
+    public ComponentFixture ideErrorsIcon() {
+        return find(ComponentFixture.class, byXpath("//div[@class='IdeErrorsIcon']"));
+    }
 }
