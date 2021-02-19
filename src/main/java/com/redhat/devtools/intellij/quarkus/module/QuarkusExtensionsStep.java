@@ -41,6 +41,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
@@ -188,6 +189,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             //categories component
             List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY).getCategories();
             JBList<QuarkusCategory> categoriesList = new JBList<>(categories);
+            categoriesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             ColoredListCellRenderer<QuarkusCategory> categoryRender = new ColoredListCellRenderer<QuarkusCategory>() {
                 @Override
                 protected void customizeCellRenderer(@NotNull JList<? extends QuarkusCategory> list, QuarkusCategory category, int index, boolean selected, boolean hasFocus) {
