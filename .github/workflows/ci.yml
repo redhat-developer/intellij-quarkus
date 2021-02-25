@@ -72,7 +72,9 @@ jobs:
     - name: Run integration tests
       run: |
         mkdir -p ~/Library/Application\ Support/JetBrains/consentOptions
-        cp .github/workflows/accepted ~//Library/Application\ Support/JetBrains/consentOptions
+        cp .github/workflows/accepted ~/Library/Application\ Support/JetBrains/consentOptions
+        cp .github/workflows/com.apple.java.util.prefs.plist ~/Library/Preferences
+        killall cfprefsd
         ./gradlew runIdeForUiTests -PideaVersion=2020.2 &
         ./gradlew integrationTest
     - uses: actions/upload-artifact@v1
