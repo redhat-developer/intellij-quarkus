@@ -43,44 +43,14 @@ public class QuarkusUtils {
     public static void createNewQuarkusProject(RemoteRobot remoteRobot, BuildUtils.ToolToBuildTheProject toolToBuildTheProject, EndpointURLType endpointURLType) {
         step("Create new Quarkus project", () -> {
             final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class);
+
+            GlobalUtils.takeScreenshot();
             welcomeFrameDialogFixture.createNewProjectLink().click();
 
 
             GlobalUtils.takeScreenshot();
 
 
-
-            final NewProjectDialogFixture newProjectDialogFixture = welcomeFrameDialogFixture.find(NewProjectDialogFixture.class, Duration.ofSeconds(20));
-            NewProjectDialogUtils.selectNewProjectType(remoteRobot, "Quarkus");
-
-            if (endpointURLType == EndpointURLType.CUSTOM) {
-                ComponentFixture customEndpointURLJBRadioButton = remoteRobot.find(ComponentFixture.class, byXpath("//div[@accessiblename='Custom:' and @class='JBRadioButton' and @text='Custom:']"));
-                customEndpointURLJBRadioButton.click();
-                JTextFieldFixture customEndpointURLJTextField = remoteRobot.find(JTextFieldFixture.class, byXpath("//div[@class='BorderlessTextField']"));
-                customEndpointURLJTextField.setText("https://code.quarkus.io");
-            }
-
-            newProjectDialogFixture.button("Next").click();
-
-            switch (toolToBuildTheProject) {
-                case GRADLE:
-                    newProjectDialogFixture.toolComboBox().click();
-                    new Keyboard(remoteRobot).hotKey(40);
-                    break;
-                case MAVEN:
-                    break;
-            }
-
-            newProjectDialogFixture.button("Next").click();
-            selectQuarkusExtensions(newProjectDialogFixture, 2, new int[]{0, 1, 3});
-            selectQuarkusExtensions(newProjectDialogFixture, 10, new int[]{1, 2, 3});
-
-            newProjectDialogFixture.button("Next").click();
-            String newProjectName = "code-with-quarkus-" + toolToBuildTheProject.toString().toLowerCase();
-            newProjectDialogFixture.projectNameJTextField().setText(newProjectName);
-
-            GlobalUtils.projectPath = newProjectDialogFixture.projectLocationJTextField().getText();
-            newProjectDialogFixture.button("Finish").click();
         });
     }
 
