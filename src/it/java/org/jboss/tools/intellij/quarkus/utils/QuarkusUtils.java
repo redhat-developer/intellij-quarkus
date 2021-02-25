@@ -44,6 +44,12 @@ public class QuarkusUtils {
         step("Create new Quarkus project", () -> {
             final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class);
             welcomeFrameDialogFixture.createNewProjectLink().click();
+
+
+            GlobalUtils.takeScreenshot();
+
+
+
             final NewProjectDialogFixture newProjectDialogFixture = welcomeFrameDialogFixture.find(NewProjectDialogFixture.class, Duration.ofSeconds(20));
             NewProjectDialogUtils.selectNewProjectType(remoteRobot, "Quarkus");
 
