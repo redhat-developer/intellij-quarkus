@@ -12,6 +12,8 @@ package com.redhat.devtools.intellij.quarkus.module;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -20,23 +22,19 @@ import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.RequestBuilder;
-import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_ARTIFACT_ID_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_CLASSNAME_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_EXTENSIONS_SHORT_PARAMETER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_EXTENSIONS_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_GROUP_ID_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_NO_EXAMPLES_DEFAULT;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_NO_EXAMPLES_NAME;
@@ -110,27 +108,14 @@ public class QuarkusModelRegistry {
     public static void zip(String endpoint, String tool, String groupId, String artifactId, String version,
                            String className, String path, QuarkusModel model, File output, boolean codeStarts) throws IOException {
         Url url = Urls.newFromEncoded(normalizeURL(endpoint) + "/api/download");
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put(CODE_TOOL_PARAMETER_NAME, tool);
-        parameters.put(CODE_GROUP_ID_PARAMETER_NAME, groupId);
-        parameters.put(CODE_ARTIFACT_ID_PARAMETER_NAME, artifactId);
-        parameters.put(CODE_VERSION_PARAMETER_NAME, version);
-        parameters.put(CODE_CLASSNAME_PARAMETER_NAME, className);
-        parameters.put(CODE_PATH_PARAMETER_NAME, path);
-        if (!codeStarts) {
-            parameters.put(CODE_NO_EXAMPLES_NAME, CODE_NO_EXAMPLES_DEFAULT);
-        }
-        parameters.put(CODE_EXTENSIONS_SHORT_PARAMETER_NAME, model.getCategories().stream().flatMap(category -> category.getExtensions().stream()).
-                filter(extension -> extension.isSelected() || extension.isDefaultExtension()).
-                map(extension -> extension.getShortId()).
-                collect(Collectors.joining(".")));
-        url = url.addParameters(parameters);
-        RequestBuilder builder = HttpRequests.request(url.toString()).userAgent(QuarkusModelRegistry.USER_AGENT).tuner(connection -> {
+        String body = buildParameters(tool, groupId, artifactId, version, className, path, model, codeStarts);
+        RequestBuilder builder = HttpRequests.post(url.toString(), HttpRequests.JSON_CONTENT_TYPE).userAgent(QuarkusModelRegistry.USER_AGENT).tuner(connection -> {
             connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
             connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
         });
         try {
             if (ApplicationManager.getApplication().executeOnPooledThread(() -> builder.connect(request -> {
+                request.write(body);
                 ZipUtil.unpack(request.getInputStream(), output, name -> {
                     int index = name.indexOf('/');
                     return name.substring(index);
@@ -142,6 +127,26 @@ public class QuarkusModelRegistry {
     } catch (InterruptedException | ExecutionException e) {
             throw new IOException(e);
         }
+    }
+
+    private static String buildParameters(String tool, String groupId, String artifactId, String version, String className, String path, QuarkusModel model, boolean codeStarts) {
+        JsonObject json = new JsonObject();
+
+        json.addProperty(CODE_TOOL_PARAMETER_NAME, tool);
+        json.addProperty(CODE_GROUP_ID_PARAMETER_NAME, groupId);
+        json.addProperty(CODE_ARTIFACT_ID_PARAMETER_NAME, artifactId);
+        json.addProperty(CODE_VERSION_PARAMETER_NAME, version);
+        json.addProperty(CODE_CLASSNAME_PARAMETER_NAME, className);
+        json.addProperty(CODE_PATH_PARAMETER_NAME, path);
+        if (!codeStarts) {
+            json.addProperty(CODE_NO_EXAMPLES_NAME, CODE_NO_EXAMPLES_DEFAULT);
+        }
+        JsonArray extensions = new JsonArray();
+        model.getCategories().stream().flatMap(category -> category.getExtensions().stream()).
+                filter(extension -> extension.isSelected() || extension.isDefaultExtension()).
+                forEach(extension -> extensions.add(extension.getId()));
+        json.add(CODE_EXTENSIONS_PARAMETER_NAME, extensions);
+        return json.toString();
     }
 
     public static void zip(String endpoint, String tool, String groupId, String artifactId, String version,
