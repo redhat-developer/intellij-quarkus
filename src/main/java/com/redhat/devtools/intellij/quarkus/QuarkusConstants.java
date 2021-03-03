@@ -74,22 +74,22 @@ public class QuarkusConstants {
      * Parameter names for the download request. See
      * http://editor.swagger.io/?url=https://code.quarkus.io/openapi for reference.
      */
-    public static final String CODE_TOOL_PARAMETER_NAME = "b";
+    public static final String CODE_TOOL_PARAMETER_NAME = "buildTool";
 
-    public static final String CODE_GROUP_ID_PARAMETER_NAME = "g";
+    public static final String CODE_GROUP_ID_PARAMETER_NAME = "groupId";
 
-    public static final String CODE_ARTIFACT_ID_PARAMETER_NAME = "a";
+    public static final String CODE_ARTIFACT_ID_PARAMETER_NAME = "artifactId";
 
-    public static final String CODE_VERSION_PARAMETER_NAME = "v";
+    public static final String CODE_VERSION_PARAMETER_NAME = "version";
 
-    public static final String CODE_CLASSNAME_PARAMETER_NAME = "c";
+    public static final String CODE_CLASSNAME_PARAMETER_NAME = "className";
 
-    public static final String CODE_PATH_PARAMETER_NAME = "p";
+    public static final String CODE_PATH_PARAMETER_NAME = "path";
 
-    public static final String CODE_NO_EXAMPLES_NAME = "ne";
-    public static final String CODE_NO_EXAMPLES_DEFAULT = "true";
+    public static final String CODE_NO_EXAMPLES_NAME = "noExamples";
+    public static final Boolean CODE_NO_EXAMPLES_DEFAULT = Boolean.TRUE;
 
-    public static final String CODE_EXTENSIONS_PARAMETER_NAME = "e";
+    public static final String CODE_EXTENSIONS_PARAMETER_NAME = "extensions";
     public static final String CODE_EXTENSIONS_SHORT_PARAMETER_NAME = "s";
 
     public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME = "Client-Name";
