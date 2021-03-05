@@ -29,7 +29,7 @@ jobs:
             git config user.name "jbosstoolsci Bot"
             find . -path ./.git -prune -false -o -type f -exec sed -i '' -e "s/$plugin_quarkus_version/$last_quarkus_version/g" {} \;
             git add -A
-            git commit -s -m "Update the Quarkus runtime used by the plugin to version $last_quarkus_version"
+            git commit -s -m "fix: Update the Quarkus runtime used by the plugin to version $last_quarkus_version"
             git push origin "${branch_name}:${branch_name}"
             echo "${{ secrets.JBOSSTOOLSCI_TOKEN }}" >github-token.txt
             gh auth login --with-token <github-token.txt
