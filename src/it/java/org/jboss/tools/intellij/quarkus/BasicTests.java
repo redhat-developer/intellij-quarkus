@@ -40,11 +40,7 @@ public class BasicTests {
         ideaVersion = GlobalUtils.getTheIntelliJVersion(robot);
     }
 
-    @AfterEach
-    public void finishTheTestRun() {
-        GlobalUtils.checkForExceptions(robot);
-        GlobalUtils.clearTheWorkspace(robot);
-    }
+
 
     @Test
     public void createAQuarkusProjectAndBuildItUsingMaven() {
@@ -52,12 +48,10 @@ public class BasicTests {
             QuarkusUtils.createNewQuarkusProject(robot, BuildUtils.ToolToBuildTheProject.MAVEN, QuarkusUtils.EndpointURLType.DEFAULT);
             GlobalUtils.waitUntilTheProjectImportIsComplete(robot);
             GlobalUtils.closeTheTipOfTheDayDialogIfItAppears(robot);
-            GlobalUtils.maximizeTheIdeWindow(robot);
-            GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
-            BuildUtils.buildTheProject(robot, BuildUtils.ToolToBuildTheProject.MAVEN);
-            GlobalUtils.waitUntilAllTheBgTasksFinish(robot);
-            BuildUtils.testIfBuildIsSuccessful(robot);
-            GlobalUtils.closeTheProject(robot);
+
+            GlobalUtils.takeScreenshot();
+
+
         });
     }
 
