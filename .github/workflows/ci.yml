@@ -75,8 +75,9 @@ jobs:
         cp .github/workflows/accepted ~/Library/Application\ Support/JetBrains/consentOptions
         cp .github/workflows/com.apple.java.util.prefs.plist ~/Library/Preferences
         killall cfprefsd
-        ./gradlew runIdeForUiTests -PideaVersion=2020.2 &
-        ./gradlew integrationTest
+        sudo spctl --master-disable
+        sudo ./gradlew runIdeForUiTests -PideaVersion=IC-2020.2 &
+        sudo ./gradlew integrationTest
     - uses: actions/upload-artifact@v1
       with:
         name: ${{ runner.os }}-integration-test-reports
