@@ -90,6 +90,8 @@ public class GlobalUtils {
 
     public static void maximizeTheIdeWindow(RemoteRobot remoteRobot) {
         step("Maximize the IDE window", () -> {
+
+            GlobalUtils.takeScreenshot();
             ComponentFixture cf = remoteRobot.find(ComponentFixture.class, byXpath("//div[@class='IdeFrameImpl']"));
             cf.runJs("const horizontal_offset = component.getWidth()/2;\n" +
                     "robot.click(component, new Point(horizontal_offset, 10), MouseButton.LEFT_BUTTON, 2);");
