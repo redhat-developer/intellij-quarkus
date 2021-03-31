@@ -14,19 +14,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME;
-import static com.redhat.devtools.intellij.quarkus.tool.ToolDelegate.BINARY;
-import static com.redhat.devtools.intellij.quarkus.tool.ToolDelegate.SOURCES;
 
 public class QuarkusPostStartupActivity implements StartupActivity, DumbAware {
     @Override
