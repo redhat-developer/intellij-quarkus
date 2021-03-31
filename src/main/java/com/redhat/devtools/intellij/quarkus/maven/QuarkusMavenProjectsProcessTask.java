@@ -12,23 +12,12 @@ package com.redhat.devtools.intellij.quarkus.maven;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.idea.maven.project.MavenConsole;
 import org.jetbrains.idea.maven.project.MavenEmbeddersManager;
 import org.jetbrains.idea.maven.project.MavenProjectsProcessorTask;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME;
-import static com.redhat.devtools.intellij.quarkus.tool.ToolDelegate.BINARY;
-import static com.redhat.devtools.intellij.quarkus.tool.ToolDelegate.SOURCES;
 
 public class QuarkusMavenProjectsProcessTask implements MavenProjectsProcessorTask {
     private final Module module;
