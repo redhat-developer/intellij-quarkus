@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.quarkus.lsp;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
+import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.ProcessStreamConnectionProvider;
 
 import java.io.File;
@@ -26,5 +27,6 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         String javaHome = System.getProperty("java.home");
         setCommands(Arrays.asList(javaHome + File.separator + "bin" + File.separator + "java", "-jar",
                 lsp4mpServerPath.getAbsolutePath(), "-cp", quarkusServerPath.getAbsolutePath()));
+        TelemetryService.instance().action("lsp:start").send();
     }
 }

@@ -16,49 +16,26 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.RefreshQueue;
-import com.intellij.util.Url;
-import com.intellij.util.Urls;
-import com.intellij.util.io.HttpRequests;
-import com.intellij.util.io.RequestBuilder;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import org.jdom.JDOMException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.idea.maven.project.MavenProjectsManager;
-import org.zeroturnaround.zip.ZipUtil;
 
 import javax.swing.Icon;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_ARTIFACT_ID_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_CLASSNAME_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_GROUP_ID_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_PATH_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_TOOL_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_VERSION_PARAMETER_NAME;
 
 public class QuarkusModuleBuilder extends JavaModuleBuilder {
 
@@ -74,7 +51,6 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         return "quarkus";
     }
 
-    @Nls(capitalization = Nls.Capitalization.Sentence)
     @Override
     public String getDescription() {
         return "Create <b>Quarkus</b> projects using code.quarkus.io provided by Quarkus Tools";
@@ -117,6 +93,7 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         processDownload();
         Module module = super.createModule(moduleModel);
         wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).processImport(module);
+        TelemetryService.instance().action("ui:wizard").send();
         return module;
     }
 
