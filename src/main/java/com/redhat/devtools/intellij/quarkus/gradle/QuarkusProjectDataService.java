@@ -39,7 +39,7 @@ public class QuarkusProjectDataService extends AbstractProjectDataService<Librar
     }
 
     @Override
-    public void importData(@NotNull Collection<DataNode<LibraryDependencyData>> toImport, @Nullable ProjectData projectData, @NotNull Project project, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    public void importData(@NotNull Collection<? extends DataNode<LibraryDependencyData>> toImport, @Nullable ProjectData projectData, @NotNull Project project, @NotNull IdeModifiableModelsProvider modelsProvider) {
         for(DataNode<LibraryDependencyData> libraryNode : toImport) {
             String name = libraryNode.getData().getExternalName();
             if (name.startsWith("io.quarkus:")) {
