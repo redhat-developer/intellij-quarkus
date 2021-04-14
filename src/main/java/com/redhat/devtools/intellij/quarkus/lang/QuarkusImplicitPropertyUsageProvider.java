@@ -16,7 +16,7 @@ import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 
 public class QuarkusImplicitPropertyUsageProvider extends ImplicitPropertyUsageProvider {
     @Override
-    protected boolean isUsed(Property property) {
+    public boolean isUsed(Property property) {
         return QuarkusModuleUtil.isQuarkusPropertiesFile(property.getContainingFile().getVirtualFile(), property.getProject());
     }
 }
