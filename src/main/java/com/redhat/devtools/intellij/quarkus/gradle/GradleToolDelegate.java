@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportBuilder;
 import com.intellij.projectImport.ProjectImportProvider;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -134,10 +135,10 @@ public class GradleToolDelegate implements ToolDelegate {
             ModuleManager manager = ModuleManager.getInstance(module.getProject());
             Module parentModule = manager.findModuleByName(names.get(0));
             if (parentModule != null) {
-                return ModuleUtilCore.getModuleDirPath(parentModule);
+                return QuarkusModuleUtil.getModuleDirPath(parentModule).getPath();
             }
         }
-        return ModuleUtilCore.getModuleDirPath(module);
+        return QuarkusModuleUtil.getModuleDirPath(module).getPath();
     }
 
     /**

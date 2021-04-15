@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.RootPolicy;
 import com.intellij.openapi.roots.impl.libraries.LibraryEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -80,10 +82,12 @@ public class QuarkusModuleUtil {
                         Library library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         while (library != null) {
                             table.removeLibrary(library);
+                            TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "removeLibrary");
                             library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         }
                         List<VirtualFile>[] files = toolDelegate.getDeploymentFiles(module);
                         LOGGER.info("Adding library to " + module.getName() + " previousHash=" + previousHash + " newHash=" + actualHash);
+                        TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "addLibrary").send();
                         addLibrary(model, files);
                     });
                     module.getComponent(QuarkusModuleComponent.class).setHash(actualHash);
@@ -179,5 +183,15 @@ public class QuarkusModuleUtil {
             return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
         }
         return false;
+    }
+
+    public static VirtualFile getModuleDirPath(Module module) {
+        ModuleRootManager manager = ModuleRootManager.getInstance(module);
+        VirtualFile[] roots = manager.getContentRoots();
+        if (roots.length > 0) {
+            return roots[0];
+        } else {
+            return LocalFileSystem.getInstance().findFileByPath(new File(module.getModuleFilePath()).getParent());
+        }
     }
 }
