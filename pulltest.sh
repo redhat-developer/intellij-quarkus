@@ -1,5 +1,5 @@
-#rm -rf intellij-community-tmp 2>/dev/null 
-#git clone --single-branch --branch 193.5233 https://github.com/JetBrains/intellij-community intellij-community-tmp
+rm -rf intellij-community-tmp 2>/dev/null
+git clone --single-branch --branch 193.5233 https://github.com/JetBrains/intellij-community intellij-community-tmp
 mkdir -p intellij-community/java/compiler/tests/com/intellij/compiler/artifacts
 cp -p intellij-community-tmp/java/compiler/tests/com/intellij/compiler/artifacts/ArtifactsTestUtil.java intellij-community/java/compiler/tests/com/intellij/compiler/artifacts
 mkdir -p intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
