@@ -4,6 +4,7 @@ plugins {
     id "com.adarshr.test-logger" version "1.7.0"
     id 'idea'
     id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
     id 'jacoco'
 }
 
@@ -14,13 +15,7 @@ def fixturesVersion = "1.1.18"
 
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    if (ideaVersion.substring(3) == "2020.2") {
-        plugins 'java', 'maven', 'maven-model', 'gradle', 'properties', 'yaml'
-    } else if (ideaVersion.substring(3) != "2019.1") {
-        plugins 'java', 'maven', 'gradle', 'properties', 'yaml'
-    } else {
-        plugins 'maven', 'gradle', 'properties', 'yaml'
-    }
+    plugins 'java', 'maven', 'gradle-java', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.1.9'
     pluginName 'Quarkus Tools'
     updateSinceUntilBuild false
 }
@@ -56,6 +51,17 @@ configurations {
     compile {
         exclude group: 'org.slf4j', module: 'slf4j-api'
     }
+    compileKotlin {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+
+    compileTestKotlin {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
     lsp
     integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
@@ -75,6 +81,7 @@ sourceSets {
         java.srcDir 'src/test/java'
         java.srcDir 'intellij-community/java/compiler/tests'
         java.srcDir 'intellij-community/platform/external-system-impl/testSrc'
+        java.srcDir 'intellij-community/platform/testFramework/extensions/src'
         java.srcDir 'intellij-community/plugins/gradle/testSources'
         java.srcDir 'intellij-community/plugins/gradle/tooling-extension-impl/testSources'
         resources.srcDir file('src/test/resources')
@@ -125,6 +132,7 @@ dependencies {
     compile files(new File(buildDir, 'server')) {
         builtBy 'copyDeps'
     }
+    testCompile 'org.assertj:assertj-core:3.19.0'
 }
 
 
@@ -133,8 +141,13 @@ task copyDeps(type: Copy) {
     into new File(buildDir, 'server/server')
 }
 
+runIde {
+    systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'debug'
+}
+
 runIdeForUiTests {
     systemProperty "robot-server.port", "8082" // default port 8080
+    systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'debug'
 }
 
 prepareSandbox {

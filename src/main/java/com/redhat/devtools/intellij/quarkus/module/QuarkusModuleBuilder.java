@@ -27,6 +27,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.RefreshQueue;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.devtools.intellij.quarkus.TelemetryService;
+import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuilder;
 import org.jdom.JDOMException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +52,6 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         return "quarkus";
     }
 
-    @Nls(capitalization = Nls.Capitalization.Sentence)
     @Override
     public String getDescription() {
         return "Create <b>Quarkus</b> projects using code.quarkus.io provided by Quarkus Tools";
@@ -90,10 +91,17 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
     @NotNull
     @Override
     public Module createModule(@NotNull ModifiableModuleModel moduleModel) throws InvalidDataException, IOException, ModuleWithNameAlreadyExists, JDOMException, ConfigurationException {
-        processDownload();
-        Module module = super.createModule(moduleModel);
-        wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).processImport(module);
-        return module;
+        TelemetryMessageBuilder.ActionMessage telemetry = TelemetryService.instance().action(TelemetryService.UI_PREFIX + "wizard");
+        try {
+            processDownload();
+            Module module = super.createModule(moduleModel);
+            wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).processImport(module);
+            telemetry.send();
+            return module;
+        } catch (IOException | InvalidDataException | ModuleWithNameAlreadyExists | JDOMException | ConfigurationException e) {
+            telemetry.error(e).send();
+            throw e;
+        }
     }
 
     private void processDownload() throws IOException {

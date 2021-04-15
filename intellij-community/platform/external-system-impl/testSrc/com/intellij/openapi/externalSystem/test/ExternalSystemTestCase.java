@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.intellij.openapi.externalSystem.test;
 
 import com.intellij.compiler.artifacts.ArtifactsTestUtil;
@@ -24,7 +24,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.ByteArraySequence;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,12 +34,11 @@ import com.intellij.task.ProjectTaskManager;
 import com.intellij.testFramework.*;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ExceptionUtil;
-import com.intellij.util.ExceptionUtilRt;
 import com.intellij.util.PathUtil;
+import com.intellij.util.SmartList;
 import com.intellij.util.concurrency.Semaphore;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.io.PathKt;
 import com.intellij.util.io.TestFileSystemItem;
 import com.intellij.util.ui.UIUtil;
@@ -58,6 +56,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
@@ -110,7 +109,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     List<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
     if (!allowedRoots.isEmpty()) {
-      VfsRootAccess.allowRootAccess(myTestFixture.getTestRootDisposable(), ArrayUtil.toStringArray(allowedRoots));
+      VfsRootAccess.allowRootAccess(myTestFixture.getTestRootDisposable(), ArrayUtilRt.toStringArray(allowedRoots));
     }
   }
 
@@ -118,7 +117,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
   }
 
   public static Collection<String> collectRootsInside(String root) {
-    final List<String> roots = ContainerUtil.newSmartList();
+    final List<String> roots = new SmartList<>();
     roots.add(root);
     FileUtil.processFilesRecursively(new File(root), file -> {
       try {
@@ -300,21 +299,19 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
 
   protected VirtualFile createConfigFile(final VirtualFile dir, String config) {
     final String configFileName = getExternalSystemConfigFileName();
-    VirtualFile f = dir.findChild(configFileName);
+    VirtualFile configFile;
     try {
-      if (f == null) {
-        f = WriteAction.computeAndWait(() -> {
-          VirtualFile res = dir.createChildData(null, configFileName);
-          return res;
+        configFile = WriteAction.computeAndWait(() -> {
+          VirtualFile file = dir.findChild(configFileName);
+          return file == null ? dir.createChildData(null, configFileName) : file;
         });
-        myAllConfigs.add(f);
-      }
+        myAllConfigs.add(configFile);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-    setFileContent(f, config, true);
-    return f;
+    setFileContent(configFile, config, true);
+    return configFile;
   }
 
   protected abstract String getExternalSystemConfigFileName();
@@ -414,10 +411,14 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     final Semaphore semaphore = new Semaphore();
     semaphore.down();
     if (buildableElements instanceof Module[]) {
-      ProjectTaskManager.getInstance(myProject).build((Module[])buildableElements, executionResult -> semaphore.up());
+      ProjectTaskManager.getInstance(myProject)
+        .build((Module[])buildableElements)
+        .onProcessed(result -> semaphore.up());
     }
     else if (buildableElements instanceof Artifact[]) {
-      ProjectTaskManager.getInstance(myProject).build((Artifact[])buildableElements, executionResult -> semaphore.up());
+      ProjectTaskManager.getInstance(myProject)
+        .build((Artifact[])buildableElements)
+        .onProcessed(result -> semaphore.up());
     }
     else {
       assert false : "Unsupported buildableElements: " + Arrays.toString(buildableElements);
@@ -454,7 +455,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
       }
     }
     catch (Exception e) {
-      ExceptionUtilRt.rethrow(e);
+      ExceptionUtil.rethrow(e);
     }
   }
 
@@ -524,10 +525,10 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     try {
       WriteAction.runAndWait(() -> {
         if (advanceStamps) {
-          file.setBinaryContent(content.getBytes(CharsetToolkit.UTF8_CHARSET), -1, file.getTimeStamp() + 4000);
+          file.setBinaryContent(content.getBytes(StandardCharsets.UTF_8), -1, file.getTimeStamp() + 4000);
         }
         else {
-          file.setBinaryContent(content.getBytes(CharsetToolkit.UTF8_CHARSET), file.getModificationStamp(), file.getTimeStamp());
+          file.setBinaryContent(content.getBytes(StandardCharsets.UTF_8), file.getModificationStamp(), file.getTimeStamp());
         }
       });
     }
