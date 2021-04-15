@@ -82,12 +82,12 @@ public class QuarkusModuleUtil {
                         Library library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         while (library != null) {
                             table.removeLibrary(library);
-                            TelemetryService.instance().action("model:removeLibrary");
+                            TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "removeLibrary");
                             library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         }
                         List<VirtualFile>[] files = toolDelegate.getDeploymentFiles(module);
                         LOGGER.info("Adding library to " + module.getName() + " previousHash=" + previousHash + " newHash=" + actualHash);
-                        TelemetryService.instance().action("model:addLibrary").send();
+                        TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "addLibrary").send();
                         addLibrary(model, files);
                     });
                     module.getComponent(QuarkusModuleComponent.class).setHash(actualHash);

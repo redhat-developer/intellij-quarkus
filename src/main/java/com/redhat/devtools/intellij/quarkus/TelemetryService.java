@@ -14,6 +14,12 @@ import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuild
 import com.redhat.devtools.intellij.telemetry.core.util.Lazy;
 
 public class TelemetryService {
+    public static final String LSP_PREFIX = "lsp-";
+
+    public static final String UI_PREFIX = "ui-";
+
+    public static final String MODEL_PREFIX = "model-";
+
     private static final TelemetryService INSTANCE = new TelemetryService();
 
     private final Lazy<TelemetryMessageBuilder> builder = new Lazy<>(() -> new TelemetryMessageBuilder(TelemetryService.class.getClassLoader()));

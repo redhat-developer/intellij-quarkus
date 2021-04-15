@@ -27,6 +27,6 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         String javaHome = System.getProperty("java.home");
         setCommands(Arrays.asList(javaHome + File.separator + "bin" + File.separator + "java", "-jar",
                 lsp4mpServerPath.getAbsolutePath(), "-cp", quarkusServerPath.getAbsolutePath()));
-        TelemetryService.instance().action("lsp:start").send();
+        TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "start").send();
     }
 }
