@@ -15,13 +15,7 @@ def fixturesVersion = "1.1.18"
 
 intellij {
     version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    if (ideaVersion.substring(3) == "2020.2") {
-        plugins 'java', 'maven', 'maven-model', 'gradle', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.1.9'
-    } else if (ideaVersion.substring(3) != "2019.1") {
-        plugins 'java', 'maven', 'gradle', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.1.9'
-    } else {
-        plugins 'maven', 'gradle', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.1.9'
-    }
+    plugins 'java', 'maven', 'gradle-java', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.1.9'
     pluginName 'Quarkus Tools'
     updateSinceUntilBuild false
 }
