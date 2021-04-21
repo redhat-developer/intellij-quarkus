@@ -11,6 +11,12 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.5.0</b></p>
+    <ul>
+      <li>Quarkus project wizard now uses POST requests</li>
+      <li>Opt-in telemetry</li>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.4.0</b></p>
     <ul>
       <li>Quarkus project wizard now displays codestarts enabled extensions with an icon</li>
