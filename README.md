@@ -203,6 +203,10 @@ You can perform UI testing by running the following command:
 ./gradlew clean runIdeForUiTests -PideaVersion=2020.2& ./gradlew integrationTest 
 ```
 
+Data and Telemetry
+==================
+The JetBrains IntelliJ Quarkus Tools plugin collects anonymous [usage data](USAGE_DATA.md) and sends it to Red Hat servers to help improve our products and services. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection) to learn more. This extension respects the Red Hat Telemetry setting which you can learn more about at [https://github.com/redhat-developer/intellij-redhat-telemetry#telemetry-reporting](https://github.com/redhat-developer/intellij-redhat-telemetry#telemetry-reporting)
+
 ## Feedback
 
 File a bug in [GitHub Issues](https://github.com/redhat-developer/intellij-quarkus/issues).
