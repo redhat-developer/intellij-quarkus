@@ -10,6 +10,8 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.gradle;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.idea.IdeaDependency;
@@ -64,6 +66,14 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
 
     protected File getMavenRepository() {
         return new File(System.getProperty("user.home") + File.separatorChar + ".m2" + File.separator + "repository");
+    }
+
+    @Override
+    protected void importProject() {
+        super.importProject();
+        for(Module m : ModuleManager.getInstance(myProject).getModules()) {
+            setupJdkForModule(m.getName());
+        }
     }
 
     @Parameterized.Parameters(name = "{index}: with Gradle-{0}")

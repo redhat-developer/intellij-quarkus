@@ -11,6 +11,12 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.5.0</b></p>
+    <ul>
+      <li>Quarkus project wizard now uses POST requests</li>
+      <li>Opt-in telemetry</li>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.4.0</b></p>
     <ul>
       <li>Quarkus project wizard now displays codestarts enabled extensions with an icon</li>
@@ -84,13 +90,14 @@
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="191"/>
+  <idea-version since-build="193"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products -->
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.java</depends>
   <depends>com.intellij.properties</depends>
+  <depends>com.redhat.devtools.intellij.telemetry</depends>
   <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
   <depends optional="true" config-file="plugin-json.xml">com.intellij.modules.json</depends>
