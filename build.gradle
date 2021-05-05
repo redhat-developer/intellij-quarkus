@@ -1,6 +1,6 @@
 
 plugins {
-    id "org.jetbrains.intellij" version "0.4.21"
+    id "org.jetbrains.intellij" version "0.7.3"
     id "com.adarshr.test-logger" version "1.7.0"
     id 'idea'
     id 'java'
@@ -10,7 +10,7 @@ plugins {
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
-def remoteRobotVersion = "0.10.3"
+def remoteRobotVersion = "0.11.2"
 def fixturesVersion = "1.1.18"
 
 intellij {
@@ -43,7 +43,7 @@ repositories {
         url 'https://repo.eclipse.org/content/repositories/lsp4mp-releases'
     }
     maven {
-        url 'https://jetbrains.bintray.com/intellij-third-party-dependencies'
+        url 'https://packages.jetbrains.team/maven/p/ij/intellij-dependencies'
     }
 }
 
