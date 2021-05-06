@@ -4,14 +4,12 @@ plugins {
     id "com.adarshr.test-logger" version "1.7.0"
     id 'idea'
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
     id 'jacoco'
 }
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
-def remoteRobotVersion = "0.11.13"
-def fixturesVersion = "1.1.18"
 
 intellij {
     version = ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
@@ -30,6 +28,7 @@ publishPlugin {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url 'https://repository.jboss.org/nexus/content/repositories/snapshots'
@@ -64,11 +63,10 @@ configurations {
         }
     }
     lsp
-    integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+    testRuntime {
+        setCanBeResolved(true)
+    }
 }
-
-downloadRobotServerPlugin.version = remoteRobotVersion
 
 sourceSets {
     main  {
@@ -97,6 +95,7 @@ sourceSets {
 }
 
 task integrationTest(type: Test) {
+    useJUnitPlatform()
     description = 'Runs the integration tests.'
     group = 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
@@ -129,10 +128,7 @@ dependencies {
     //required by lsp4j as the version from IJ is incompatible
     compile 'com.google.code.gson:gson:2.8.9'
     compile 'com.vladsch.flexmark:flexmark:0.50.50'
-    integrationTestImplementation("com.intellij.remoterobot:remote-robot:$remoteRobotVersion")
-    integrationTestImplementation("com.intellij.remoterobot:remote-fixtures:$fixturesVersion")
-    integrationTestImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
-    integrationTestRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    compile 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.0.8'
     lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.4.0-SNAPSHOT:uber') {
         transitive = false
     }
@@ -158,8 +154,7 @@ runIde {
 }
 
 runIdeForUiTests {
-    systemProperty "robot-server.port", "8082" // default port 8080
-    systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'debug'
+    systemProperty "robot-server.port", System.getProperty("robot-server.port")
 }
 
 prepareSandbox {
@@ -174,10 +169,6 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
-
-integrationTest {
-    useJUnitPlatform()
-}
 
 group 'com.redhat.devtools.intellij'
 version projectVersion // Plugin version

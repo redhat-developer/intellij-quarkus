@@ -8,13 +8,12 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow;
+package org.jboss.tools.intellij.quarkus.fixtures.dialogs;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
 import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
-import com.intellij.remoterobot.fixtures.ContainerFixture;
 import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
 import org.jetbrains.annotations.NotNull;
@@ -22,22 +21,23 @@ import org.jetbrains.annotations.NotNull;
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 
 /**
- * Bottom status bar fixture
+ * Downloading options dialog fixture
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "IdeStatusBarImpl type", xpath = "//div[@class='IdeStatusBarImpl']")
-@FixtureName(name = "Ide Status Bar")
-public class IdeStatusBarFixture extends CommonContainerFixture {
-    public IdeStatusBarFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "MyDialog type", xpath = "//div[@accessiblename='Downloading Options' and @class='MyDialog']")
+@FixtureName(name = "Dialog")
+public class DownloadingOptionsDialog extends CommonContainerFixture {
+    public DownloadingOptionsDialog(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 
-    public ComponentFixture inlineProgressPanel() {
-        return find(ContainerFixture.class, byXpath("//div[@class='InlineProgressPanel']"));
-    }
-
-    public ComponentFixture ideErrorsIcon() {
-        return find(ComponentFixture.class, byXpath("//div[@class='IdeErrorsIcon']"));
+    /**
+     * Get fixture for the 'Files to download' checkbox
+     *
+     * @return fixture for the 'Files to download' checkbox
+     */
+    public ComponentFixture filesToDownload() {
+        return find(ComponentFixture.class, byXpath("//div[@accessiblename='Files to download:' and @class='CheckBoxList']"));
     }
 }

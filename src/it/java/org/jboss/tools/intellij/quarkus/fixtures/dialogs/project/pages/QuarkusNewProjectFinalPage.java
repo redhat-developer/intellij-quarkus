@@ -8,28 +8,24 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.intellij.quarkus.fixtures.other;
+package org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
-import com.intellij.remoterobot.fixtures.ComponentFixture;
+import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
+import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.pages.AbstractNewProjectFinalPage;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Action link fixture
+ * New project dialog fixture
  *
  * @author zcervink@redhat.com
  */
-@FixtureName(name = "Action Link")
-public class ActionLinkFixture extends ComponentFixture {
-    public ActionLinkFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "MyDialog type", xpath = "//div[@class='DialogRootPane']")
+@FixtureName(name = "New Project Dialog")
+public class QuarkusNewProjectFinalPage extends AbstractNewProjectFinalPage {
+    public QuarkusNewProjectFinalPage(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
-    }
-
-    public void click() {
-        runJs("const offset = component.getHeight()/2;\n" +
-                "robot.click(component, new Point(offset, offset), MouseButton.LEFT_BUTTON, 1);"
-        );
     }
 }
