@@ -26,8 +26,8 @@ import static com.intellij.remoterobot.search.locators.Locators.byXpath;
  */
 @DefaultXpath(by = "ToolWindowsPane type", xpath = "//div[@class='ToolWindowsPane']")
 @FixtureName(name = "Tool Windows Pane")
-public class ToolWindowsPaneFixture extends CommonContainerFixture {
-    public ToolWindowsPaneFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+public class ToolWindowsPane extends CommonContainerFixture {
+    public ToolWindowsPane(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 

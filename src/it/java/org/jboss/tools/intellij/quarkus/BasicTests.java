@@ -11,15 +11,19 @@
 package org.jboss.tools.intellij.quarkus;
 
 import com.intellij.remoterobot.RemoteRobot;
+import com.redhat.devtools.intellij.commonUiTestLibrary.UITestRunner;
 import org.jboss.tools.intellij.quarkus.utils.BuildUtils;
 import org.jboss.tools.intellij.quarkus.utils.GlobalUtils;
 import org.jboss.tools.intellij.quarkus.utils.ProjectToolWindowUtils;
 import org.jboss.tools.intellij.quarkus.utils.QuarkusUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
+import static com.redhat.devtools.intellij.commonUiTestLibrary.utils.GlobalUtils.checkForExceptions;
+import static com.redhat.devtools.intellij.commonUiTestLibrary.utils.GlobalUtils.clearTheWorkspace;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -28,22 +32,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author zcervink@redhat.com
  */
 public class BasicTests {
-
     private static RemoteRobot robot;
-    private static GlobalUtils.IdeaVersion ideaVersion;
 
     @BeforeAll
-    public static void connect() throws InterruptedException {
-        GlobalUtils.waitUntilIntelliJStarts(8082);
-        robot = GlobalUtils.getRemoteRobotConnection(8082);
-        GlobalUtils.clearTheWorkspace(robot);
-        ideaVersion = GlobalUtils.getTheIntelliJVersion(robot);
+    public static void runIdeForUiTests() {
+        robot = UITestRunner.runIde("IC-2020.2", 8082);
+    }
+
+    @AfterAll
+    public static void closeIde() {
+        UITestRunner.closeIde();
     }
 
     @AfterEach
     public void finishTheTestRun() {
-        GlobalUtils.checkForExceptions(robot);
-        GlobalUtils.clearTheWorkspace(robot);
+        checkForExceptions();
+        clearTheWorkspace();
     }
 
     @Test

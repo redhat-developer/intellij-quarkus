@@ -11,7 +11,7 @@
 package org.jboss.tools.intellij.quarkus.utils;
 
 import com.intellij.remoterobot.RemoteRobot;
-import org.jboss.tools.intellij.quarkus.fixtures.dialogs.NewProjectDialogFixture;
+import org.jboss.tools.intellij.quarkus.fixtures.dialogs.NewProjectDialog;
 
 /**
  * Static utilities that assist and simplify the creation of new project
@@ -21,7 +21,7 @@ import org.jboss.tools.intellij.quarkus.fixtures.dialogs.NewProjectDialogFixture
 public class NewProjectDialogUtils {
 
     public static void selectNewProjectType(RemoteRobot remoteRobot, String projectType) {
-        NewProjectDialogFixture newProjectDialogFixture = remoteRobot.find(NewProjectDialogFixture.class);
+        NewProjectDialog newProjectDialogFixture = remoteRobot.find(NewProjectDialog.class);
         newProjectDialogFixture.projectTypeJBList().findText(projectType).click();
     }
 }

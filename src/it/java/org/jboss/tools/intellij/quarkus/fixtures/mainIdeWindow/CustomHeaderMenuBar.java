@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
+ * Copyright (c) 2021 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -12,27 +12,24 @@ package org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
-import com.intellij.remoterobot.fixtures.CommonContainerFixture;
-import com.intellij.remoterobot.fixtures.ComponentFixture;
-import com.intellij.remoterobot.fixtures.DefaultXpath;
-import com.intellij.remoterobot.fixtures.FixtureName;
+import com.intellij.remoterobot.fixtures.*;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 
 /**
- * The Project Tool Window Fixture
+ * Top menu fixture for Windows
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "InternalDecorator type", xpath = "//div[@accessiblename='Project Tool Window' and @class='InternalDecorator']")
-@FixtureName(name = "Project Tool Window")
-public class ProjectToolWindowFixture extends CommonContainerFixture {
-    public ProjectToolWindowFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "MainFrameHeader type", xpath = "//div[@class='CustomHeaderMenuBar']")
+@FixtureName(name = "Main Frame Header")
+public class CustomHeaderMenuBar extends CommonContainerFixture {
+    public CustomHeaderMenuBar(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 
-    public ComponentFixture projectViewTree() {
-        return find(ComponentFixture.class, byXpath("//div[@class='ProjectViewTree']"));
+    public ComponentFixture mainMenuItem(String label) {
+        return find(ComponentFixture.class, byXpath("//div[@accessiblename='" + label + "' and @class='ActionMenu' and @text='" + label + "']"));
     }
 }
