@@ -8,24 +8,24 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.intellij.quarkus.fixtures.dialogs;
+package org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
-import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
+import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.pages.NewProjectFirstPage;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Tip of the Day dialog fixture
+ * New project dialog fixture
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "MyDialog type", xpath = "//div[@accessiblename='Tip of the Day' and @class='MyDialog']")
-@FixtureName(name = "Tip Of The Day Dialog")
-public class TipOfTheDayDialogFixture extends CommonContainerFixture {
-    public TipOfTheDayDialogFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "MyDialog type", xpath = "//div[@class='DialogRootPane']")
+@FixtureName(name = "New Project Dialog")
+public class QuarkusNewProjectFirstPage extends NewProjectFirstPage {
+    public QuarkusNewProjectFirstPage(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 }

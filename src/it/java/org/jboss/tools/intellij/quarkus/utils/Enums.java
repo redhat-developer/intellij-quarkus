@@ -10,18 +10,30 @@
  ******************************************************************************/
 package org.jboss.tools.intellij.quarkus.utils;
 
-import com.intellij.remoterobot.RemoteRobot;
-import org.jboss.tools.intellij.quarkus.fixtures.dialogs.NewProjectDialogFixture;
-
 /**
- * Static utilities that assist and simplify the creation of new project
+ * Enumerations
  *
  * @author zcervink@redhat.com
  */
-public class NewProjectDialogUtils {
+public class Enums {
+    public enum BuildTool {
+        MAVEN("Maven"),
+        GRADLE("Gradle");
 
-    public static void selectNewProjectType(RemoteRobot remoteRobot, String projectType) {
-        NewProjectDialogFixture newProjectDialogFixture = remoteRobot.find(NewProjectDialogFixture.class);
-        newProjectDialogFixture.projectTypeJBList().findText(projectType).click();
+        private String textRepresentation;
+
+        BuildTool(String textRepresentation) {
+            this.textRepresentation = textRepresentation;
+        }
+
+        @Override
+        public String toString() {
+            return this.textRepresentation;
+        }
+    }
+
+    public enum EndpointURLType {
+        DEFAULT,
+        CUSTOM
     }
 }
