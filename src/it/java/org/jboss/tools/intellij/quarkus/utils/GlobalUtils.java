@@ -16,14 +16,12 @@ import com.intellij.remoterobot.fixtures.ContainerFixture;
 import com.intellij.remoterobot.fixtures.dataExtractor.RemoteText;
 import com.intellij.remoterobot.utils.Keyboard;
 import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
-import org.apache.commons.io.FileUtils;
-import org.jboss.tools.intellij.quarkus.fixtures.dialogs.IdeFatalErrorsDialogFixture;
-import org.jboss.tools.intellij.quarkus.fixtures.dialogs.TipOfTheDayDialogFixture;
-import org.jboss.tools.intellij.quarkus.fixtures.dialogs.WelcomeFrameDialogFixture;
-import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.CustomHeaderMenuBarFixture;
-import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.IdeStatusBarFixture;
-import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.LinuxIdeMenuBarFixture;
-import org.jboss.tools.intellij.quarkus.fixtures.popups.SearchEverywherePopupFixture;
+import org.jboss.tools.intellij.quarkus.fixtures.dialogs.TipOfTheDayDialog;
+import com.redhat.devtools.intellij.commonUiTestLibrary.fixtures.dialogs.WelcomeFrameDialog;
+import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.CustomHeaderMenuBar;
+import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.IdeStatusBar;
+import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.LinuxIdeMenuBar;
+import org.jboss.tools.intellij.quarkus.fixtures.popups.SearchEverywherePopup;
 
 import javax.imageio.ImageIO;
 import java.awt.AWTException;
@@ -34,9 +32,6 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -48,7 +43,7 @@ import java.util.Locale;
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
 import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
-import static org.jboss.tools.intellij.quarkus.utils.HelperUtils.listOfRemoteTextToString;
+import static com.redhat.devtools.intellij.commonUiTestLibrary.utils.HelperUtils.listOfRemoteTextToString;
 
 /**
  * Static utilities that assist and simplify manipulation with the IDE and with the project
@@ -59,22 +54,10 @@ public class GlobalUtils {
 
     public static String projectPath = "";
 
-    public static RemoteRobot getRemoteRobotConnection(int port) throws InterruptedException {
-        RemoteRobot remoteRobot = new RemoteRobot("http://127.0.0.1:" + port);
-        for (int i = 0; i < 60; i++) {
-            try {
-                remoteRobot.find(WelcomeFrameDialogFixture.class);
-            } catch (Exception ex) {
-                Thread.sleep(1000);
-            }
-        }
-        return remoteRobot;
-    }
-
     public static void closeTheTipOfTheDayDialogIfItAppears(RemoteRobot remoteRobot) {
         step("Close the 'Tip of the Day' Dialog", () -> {
             try {
-                final TipOfTheDayDialogFixture tipOfTheDayDialogFixture = remoteRobot.find(TipOfTheDayDialogFixture.class, Duration.ofSeconds(20));
+                final TipOfTheDayDialog tipOfTheDayDialogFixture = remoteRobot.find(TipOfTheDayDialog.class, Duration.ofSeconds(20));
                 tipOfTheDayDialogFixture.button("Close").click();
             } catch (WaitForConditionTimeoutException e) {
                 e.printStackTrace();
@@ -102,46 +85,20 @@ public class GlobalUtils {
         });
     }
 
-    public static void checkForExceptions(RemoteRobot remoteRobot) {
-        step("Check for exceptions and other errors", () -> {
-            try {
-                final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class, Duration.ofSeconds(10));
-                welcomeFrameDialogFixture.ideErrorsIcon().click();
-            } catch (WaitForConditionTimeoutException e) {
-                e.printStackTrace();
-                return;
-            }
-
-            final IdeFatalErrorsDialogFixture ideFatalErrorsDialogFixture = remoteRobot.find(IdeFatalErrorsDialogFixture.class, Duration.ofSeconds(10));
-            String exceptionNumberLabel = ideFatalErrorsDialogFixture.numberOfExcetionsJBLabel().findAllText().get(0).getText();
-            int numberOfExceptions = Integer.parseInt(exceptionNumberLabel.substring(5));
-
-            for (int i = 0; i < numberOfExceptions; i++) {
-                String exceptionStackTrace = HelperUtils.listOfRemoteTextToString(ideFatalErrorsDialogFixture.exceptionDescriptionJTextArea().findAllText());
-
-                if (i + 1 < numberOfExceptions) {
-                    ideFatalErrorsDialogFixture.nextExceptionButton().click();
-                }
-            }
-
-            ideFatalErrorsDialogFixture.button("Clear all").click();
-        });
-    }
-
     public static void closeTheProject(RemoteRobot remoteRobot) {
         step("Close the project that is currently open", () -> {
             ComponentFixture cf = remoteRobot.find(ComponentFixture.class, byXpath("//div[@class='IdeFrameImpl']"));
             if (remoteRobot.isMac()) {
                 cf.runJs("robot.click(component, new Point(15, 10), MouseButton.LEFT_BUTTON, 1);");
             } else if (remoteRobot.isWin()) {
-                CustomHeaderMenuBarFixture chmb = remoteRobot.find(CustomHeaderMenuBarFixture.class, Duration.ofSeconds(10));
+                CustomHeaderMenuBar chmb = remoteRobot.find(CustomHeaderMenuBar.class, Duration.ofSeconds(10));
                 chmb.mainMenuItem("File").click();
                 List<ContainerFixture> allHeavyWeightWindows = remoteRobot.findAll(ContainerFixture.class, byXpath("//div[@class='HeavyWeightWindow']"));
                 ContainerFixture lastHeavyWeightWindow = allHeavyWeightWindows.get(allHeavyWeightWindows.size() - 1);
                 ComponentFixture closeProjectButtonFixture = lastHeavyWeightWindow.find(ComponentFixture.class, byXpath("//div[@accessiblename='Close Project' and @text='Close Project']"));
                 closeProjectButtonFixture.click();
             } else {
-                LinuxIdeMenuBarFixture limb = remoteRobot.find(LinuxIdeMenuBarFixture.class, Duration.ofSeconds(10));
+                LinuxIdeMenuBar limb = remoteRobot.find(LinuxIdeMenuBar.class, Duration.ofSeconds(10));
                 limb.mainMenuItem("File").click();
                 List<ContainerFixture> allHeavyWeightWindows = remoteRobot.findAll(ContainerFixture.class, byXpath("//div[@class='HeavyWeightWindow']"));
                 ContainerFixture lastHeavyWeightWindow = allHeavyWeightWindows.get(allHeavyWeightWindows.size() - 1);
@@ -149,41 +106,15 @@ public class GlobalUtils {
                 closeProjectButtonFixture.click();
             }
 
-            final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class, Duration.ofSeconds(10));
+            final WelcomeFrameDialog welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialog.class, Duration.ofSeconds(10));
             welcomeFrameDialogFixture.runJs("const horizontal_offset = component.getWidth()/2;\n" +
                     "robot.click(component, new Point(horizontal_offset, 10), MouseButton.LEFT_BUTTON, 1);");
         });
     }
 
-    public static void clearTheWorkspace(RemoteRobot remoteRobot) {
-        step("Delete all the projects in the workspace", () -> {
-            // delete all the projects' links from the 'Welcome to IntelliJ IDEA' dialog
-            int numberOfLinks = getNumberOfProjectLinks(remoteRobot);
-            for (int i = 0; i < numberOfLinks; i++) {
-                final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class, Duration.ofSeconds(10));
-                ComponentFixture cf = welcomeFrameDialogFixture.find(ComponentFixture.class, byXpath("//div[@accessiblename='Recent Projects' and @class='MyList']"));
-                cf.runJs("const horizontal_offset = component.getWidth()-22;\n" +
-                        "robot.click(component, new Point(horizontal_offset, 22), MouseButton.LEFT_BUTTON, 1);");
-            }
-
-            // delete all the files and folders in the IdeaProjects folder
-            try {
-                String pathToDirToMakeEmpty = System.getProperty("user.home") + File.separator + "IdeaProjects";
-                boolean doesTheProjectDirExists = Files.exists(Paths.get(pathToDirToMakeEmpty));
-                if (doesTheProjectDirExists) {
-                    FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
-                } else {
-                    Files.createDirectory(Paths.get(pathToDirToMakeEmpty));
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
     public static void quitIntelliJFromTheWelcomeDialog(RemoteRobot remoteRobot) {
         step("Quit IntelliJ Idea from the 'Welcome To IntelliJ IDEA' dialog", () -> {
-            WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class);
+            WelcomeFrameDialog welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialog.class);
             if (remoteRobot.isMac()) {
                 welcomeFrameDialogFixture.runJs("robot.click(component, new Point(15, 10), MouseButton.LEFT_BUTTON, 1);");
             } else if (remoteRobot.isWin()) {
@@ -197,7 +128,7 @@ public class GlobalUtils {
     }
 
     public static IdeaVersion getTheIntelliJVersion(RemoteRobot remoteRobot) {
-        WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class);
+        WelcomeFrameDialog welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialog.class);
         List<ComponentFixture> jLabels = welcomeFrameDialogFixture.findAll(ComponentFixture.class, byXpath("//div[@class='JLabel']"));
 
         IdeaVersion ideaVersion = IdeaVersion.UNIDENTIFIED;
@@ -213,12 +144,6 @@ public class GlobalUtils {
             }
         }
         return ideaVersion;
-    }
-
-    public enum IdeaVersion {
-        V2020_1,
-        V2020_2,
-        UNIDENTIFIED
     }
 
     public static void takeScreenshot() {
@@ -265,7 +190,7 @@ public class GlobalUtils {
 
     private static boolean didAllTheBgTasksFinish(RemoteRobot remoteRobot) {
         for (int i = 0; i < 5; i++) {
-            final IdeStatusBarFixture ideStatusBarFixture = remoteRobot.find(IdeStatusBarFixture.class);
+            final IdeStatusBar ideStatusBarFixture = remoteRobot.find(IdeStatusBar.class);
             List<RemoteText> inlineProgressPanelContent = ideStatusBarFixture.inlineProgressPanel().findAllText();
             if (!inlineProgressPanelContent.isEmpty()) {
                 return false;
@@ -280,38 +205,6 @@ public class GlobalUtils {
         return true;
     }
 
-    private static int getNumberOfProjectLinks(RemoteRobot remoteRobot) {
-        final WelcomeFrameDialogFixture welcomeFrameDialogFixture = remoteRobot.find(WelcomeFrameDialogFixture.class, Duration.ofSeconds(10));
-        try {
-            ComponentFixture cf = welcomeFrameDialogFixture.find(ComponentFixture.class, byXpath("//div[@accessiblename='Recent Projects' and @class='MyList']"));
-            int numberOfProjectsLinks = cf.findAllText().size() / 2;    // 2 items per 1 project link (project path and project name)
-            return numberOfProjectsLinks;
-        } catch (WaitForConditionTimeoutException e) {
-            // the list with accessible name 'Recent Projects' is not available -> 0 links in the 'Welcome to IntelliJ IDEA' dialog
-            return 0;
-        }
-    }
-
-    public static void waitUntilIntelliJStarts(int port) {
-        waitFor(Duration.ofSeconds(600), Duration.ofSeconds(3), "The IntelliJ Idea did not start in 10 minutes.", () -> isIntelliJUIVisible(port));
-    }
-
-    private static boolean isIntelliJUIVisible(int port) {
-        return isHostOnIpAndPortAccessible("127.0.0.1", port);
-    }
-
-    private static boolean isHostOnIpAndPortAccessible(String ip, int port) {
-        SocketAddress sockaddr = new InetSocketAddress(ip, port);
-        Socket socket = new Socket();
-
-        try {
-            socket.connect(sockaddr, 10000);
-        } catch (IOException IOException) {
-            return false;
-        }
-        return true;
-    }
-
     public static void invokeCmdUsingTheSearchEverywherePopup(RemoteRobot remoteRobot, String cmdToInvoke) {
         step("Invoke a command using the Search Everywhere popup", () -> {
             Keyboard keyboard = new Keyboard(remoteRobot);
@@ -320,7 +213,7 @@ public class GlobalUtils {
             } else {
                 keyboard.hotKey(KeyEvent.VK_CONTROL, KeyEvent.VK_N);
             }
-            final SearchEverywherePopupFixture searchEverywherePopupFixture = remoteRobot.find(SearchEverywherePopupFixture.class, Duration.ofSeconds(10));
+            final SearchEverywherePopup searchEverywherePopupFixture = remoteRobot.find(SearchEverywherePopup.class, Duration.ofSeconds(10));
             searchEverywherePopupFixture.popupTab("All").click();
             searchEverywherePopupFixture.searchField().click();
             keyboard.enterText(cmdToInvoke);
@@ -330,8 +223,14 @@ public class GlobalUtils {
     }
 
     private static boolean didTheSearchInTheSearchEverywherePopupFinish(RemoteRobot remoteRobot, String cmdToInvoke) {
-        final SearchEverywherePopupFixture searchEverywherePopupFixture = remoteRobot.find(SearchEverywherePopupFixture.class, Duration.ofSeconds(10));
+        final SearchEverywherePopup searchEverywherePopupFixture = remoteRobot.find(SearchEverywherePopup.class, Duration.ofSeconds(10));
         String searchResultsString = listOfRemoteTextToString(searchEverywherePopupFixture.searchResultsJBList().findAllText());
         return searchResultsString.toLowerCase().contains(cmdToInvoke.toLowerCase());
+    }
+
+    public enum IdeaVersion {
+        V2020_1,
+        V2020_2,
+        UNIDENTIFIED
     }
 }

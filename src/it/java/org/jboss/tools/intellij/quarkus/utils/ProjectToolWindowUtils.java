@@ -12,13 +12,8 @@ package org.jboss.tools.intellij.quarkus.utils;
 
 import com.intellij.remoterobot.RemoteRobot;
 import org.assertj.swing.core.MouseButton;
-import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.ProjectToolWindowFixture;
-import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.ToolWindowsPaneFixture;
+import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.ProjectToolWindow;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
@@ -43,7 +38,7 @@ public class ProjectToolWindowUtils {
 
     private static void navigateThroughTheProjectTree(RemoteRobot remoteRobot, ActionToPerform action, String... pathArray) {
         step("Navigate through the project tree", () -> {
-            final ProjectToolWindowFixture projectToolWindowFixture = remoteRobot.find(ProjectToolWindowFixture.class);
+            final ProjectToolWindow projectToolWindowFixture = remoteRobot.find(ProjectToolWindow.class);
             for (int i = 0; i < pathArray.length; i++) {
                 String pathItem = pathArray[i];
 

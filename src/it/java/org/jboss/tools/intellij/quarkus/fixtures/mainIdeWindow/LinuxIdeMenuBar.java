@@ -18,14 +18,15 @@ import org.jetbrains.annotations.NotNull;
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 
 /**
- * Top menu fixture for Windows
+ * Top menu fixture for Linux
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "MainFrameHeader type", xpath = "//div[@class='CustomHeaderMenuBar']")
-@FixtureName(name = "Main Frame Header")
-public class CustomHeaderMenuBarFixture extends CommonContainerFixture {
-    public CustomHeaderMenuBarFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+
+@DefaultXpath(by = "LinuxIdeMenuBar type", xpath = "//div[@class='LinuxIdeMenuBar']")
+@FixtureName(name = "Linux Ide Menu Bar")
+public class LinuxIdeMenuBar extends CommonContainerFixture {
+    public LinuxIdeMenuBar(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 

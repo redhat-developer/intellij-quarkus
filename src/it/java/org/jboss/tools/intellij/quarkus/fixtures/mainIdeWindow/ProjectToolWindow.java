@@ -8,28 +8,31 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.intellij.quarkus.fixtures.other;
+package org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
+import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
+import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
 import org.jetbrains.annotations.NotNull;
 
+import static com.intellij.remoterobot.search.locators.Locators.byXpath;
+
 /**
- * Action link fixture
+ * The Project Tool Window Fixture
  *
  * @author zcervink@redhat.com
  */
-@FixtureName(name = "Action Link")
-public class ActionLinkFixture extends ComponentFixture {
-    public ActionLinkFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "InternalDecorator type", xpath = "//div[@accessiblename='Project Tool Window' and @class='InternalDecorator']")
+@FixtureName(name = "Project Tool Window")
+public class ProjectToolWindow extends CommonContainerFixture {
+    public ProjectToolWindow(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 
-    public void click() {
-        runJs("const offset = component.getHeight()/2;\n" +
-                "robot.click(component, new Point(offset, offset), MouseButton.LEFT_BUTTON, 1);"
-        );
+    public ComponentFixture projectViewTree() {
+        return find(ComponentFixture.class, byXpath("//div[@class='ProjectViewTree']"));
     }
 }

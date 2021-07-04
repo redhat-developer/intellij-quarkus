@@ -12,7 +12,8 @@ package org.jboss.tools.intellij.quarkus.utils;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
-import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.ToolWindowsPaneFixture;
+import com.redhat.devtools.intellij.commonUiTestLibrary.utils.HelperUtils;
+import org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow.ToolWindowsPane;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.stepsProcessing.StepWorkerKt.step;
@@ -33,7 +34,7 @@ public class BuildUtils {
             switch (toolToBuildTheProject) {
                 case MAVEN:
                     step("Open the Maven tab and build the project", () -> {
-                        final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
+                        final ToolWindowsPane toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPane.class);
                         waitFor(Duration.ofSeconds(10), Duration.ofSeconds(1), "The 'Maven' stripe button is not available.", () -> isStripeButtonAvailable(toolWindowsPaneFixture, "Maven"));
                         toolWindowsPaneFixture.stripeButton("Maven").click();
                         toolWindowsPaneFixture.mavenTabTree().findText("code-with-quarkus").doubleClick();
@@ -43,7 +44,7 @@ public class BuildUtils {
                     break;
                 case GRADLE:
                     step("Open the Gradle tab and build the project", () -> {
-                        final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
+                        final ToolWindowsPane toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPane.class);
                         toolWindowsPaneFixture.stripeButton("Gradle").click();
                         toolWindowsPaneFixture.gradleTabTree().findText("Tasks").doubleClick();
                         toolWindowsPaneFixture.gradleTabTree().findText("build").doubleClick();
@@ -58,7 +59,7 @@ public class BuildUtils {
 
     public static void testIfBuildIsSuccessful(RemoteRobot remoteRobot) {
         step("Test if the build is successful", () -> {
-            final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
+            final ToolWindowsPane toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPane.class);
             String theRunConsoleOutput = HelperUtils.listOfRemoteTextToString(toolWindowsPaneFixture.theRunConsole().findAllText());
             assertTrue(theRunConsoleOutput.contains("BUILD SUCCESS"), "The build should be successful, but is not.");
         });
@@ -83,12 +84,12 @@ public class BuildUtils {
     }
 
     private static String getBuildStatusTreeText(RemoteRobot remoteRobot) {
-        final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
+        final ToolWindowsPane toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPane.class);
         String buildStatusTreeText = HelperUtils.listOfRemoteTextToString(toolWindowsPaneFixture.theBuildStatusTree().findAllText());
         return buildStatusTreeText;
     }
 
-    private static boolean isStripeButtonAvailable(ToolWindowsPaneFixture toolWindowsPaneFixture, String label) {
+    private static boolean isStripeButtonAvailable(ToolWindowsPane toolWindowsPaneFixture, String label) {
         try {
             toolWindowsPaneFixture.stripeButton(label);
         } catch (WaitForConditionTimeoutException e) {

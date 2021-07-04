@@ -27,8 +27,8 @@ import static com.intellij.remoterobot.search.locators.Locators.byXpath;
  */
 @DefaultXpath(by = "MyDialog type", xpath = "//div[@accessiblename='New Project' and @class='MyDialog']")
 @FixtureName(name = "New Project Dialog")
-public class NewProjectDialogFixture extends CommonContainerFixture {
-    public NewProjectDialogFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+public class NewProjectDialog extends CommonContainerFixture {
+    public NewProjectDialog(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 

@@ -8,24 +8,36 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.intellij.quarkus.fixtures.dialogs;
+package org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
 import com.intellij.remoterobot.fixtures.CommonContainerFixture;
+import com.intellij.remoterobot.fixtures.ComponentFixture;
+import com.intellij.remoterobot.fixtures.ContainerFixture;
 import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
 import org.jetbrains.annotations.NotNull;
 
+import static com.intellij.remoterobot.search.locators.Locators.byXpath;
+
 /**
- * Tip of the Day dialog fixture
+ * Bottom status bar fixture
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "MyDialog type", xpath = "//div[@accessiblename='Tip of the Day' and @class='MyDialog']")
-@FixtureName(name = "Tip Of The Day Dialog")
-public class TipOfTheDayDialogFixture extends CommonContainerFixture {
-    public TipOfTheDayDialogFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "IdeStatusBarImpl type", xpath = "//div[@class='IdeStatusBarImpl']")
+@FixtureName(name = "Ide Status Bar")
+public class IdeStatusBar extends CommonContainerFixture {
+    public IdeStatusBar(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
+    }
+
+    public ComponentFixture inlineProgressPanel() {
+        return find(ContainerFixture.class, byXpath("//div[@class='InlineProgressPanel']"));
+    }
+
+    public ComponentFixture ideErrorsIcon() {
+        return find(ComponentFixture.class, byXpath("//div[@class='IdeErrorsIcon']"));
     }
 }

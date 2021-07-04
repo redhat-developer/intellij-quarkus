@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
+ * Copyright (c) 2021 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -8,13 +8,12 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.intellij.quarkus.fixtures.mainIdeWindow;
+package org.jboss.tools.intellij.quarkus.fixtures.popups;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
 import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
-import com.intellij.remoterobot.fixtures.ContainerFixture;
 import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
 import org.jetbrains.annotations.NotNull;
@@ -22,22 +21,26 @@ import org.jetbrains.annotations.NotNull;
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 
 /**
- * Bottom status bar fixture
+ * Search everywhere popup fixture
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "IdeStatusBarImpl type", xpath = "//div[@class='IdeStatusBarImpl']")
-@FixtureName(name = "Ide Status Bar")
-public class IdeStatusBarFixture extends CommonContainerFixture {
-    public IdeStatusBarFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "SearchEverywhereUI type", xpath = "//div[@accessiblename='Search everywhere' and @class='SearchEverywhereUI']")
+@FixtureName(name = "Search Everywhere Popup")
+public class SearchEverywherePopup extends CommonContainerFixture {
+    public SearchEverywherePopup(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 
-    public ComponentFixture inlineProgressPanel() {
-        return find(ContainerFixture.class, byXpath("//div[@class='InlineProgressPanel']"));
+    public ComponentFixture popupTab(String label) {
+        return find(ComponentFixture.class, byXpath("//div[@accessiblename='" + label + "' and @class='SETab' and @text='" + label + "']"));
     }
 
-    public ComponentFixture ideErrorsIcon() {
-        return find(ComponentFixture.class, byXpath("//div[@class='IdeErrorsIcon']"));
+    public ComponentFixture searchField() {
+        return find(ComponentFixture.class, byXpath("//div[@class='SearchField']"));
+    }
+
+    public ComponentFixture searchResultsJBList() {
+        return find(ComponentFixture.class, byXpath("//div[@class='JBList']"));
     }
 }

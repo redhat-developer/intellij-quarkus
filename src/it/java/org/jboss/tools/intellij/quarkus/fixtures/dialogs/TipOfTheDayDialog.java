@@ -8,33 +8,24 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.intellij.quarkus.fixtures.quarkus;
+package org.jboss.tools.intellij.quarkus.fixtures.dialogs;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
 import com.intellij.remoterobot.fixtures.CommonContainerFixture;
-import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-import static com.intellij.remoterobot.search.locators.Locators.byXpath;
-
 /**
- * Downloading Options dialog fixture
+ * Tip of the Day dialog fixture
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "MyDialog type", xpath = "//div[@accessiblename='Downloading Options' and @class='MyDialog']")
-@FixtureName(name = "Dialog")
-public class DownloadingOptionsDialogFixture extends CommonContainerFixture {
-    public DownloadingOptionsDialogFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "MyDialog type", xpath = "//div[@accessiblename='Tip of the Day' and @class='MyDialog']")
+@FixtureName(name = "Tip Of The Day Dialog")
+public class TipOfTheDayDialog extends CommonContainerFixture {
+    public TipOfTheDayDialog(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
-    }
-
-    public ComponentFixture filesToDownload() {
-        return find(ComponentFixture.class, byXpath("//div[@accessiblename='Files to download:' and @class='CheckBoxList']"));
     }
 }
