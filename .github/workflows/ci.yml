@@ -25,7 +25,7 @@ jobs:
       run: ./gradlew build
     - uses: actions/upload-artifact@v1
       with:
-        name: linux-test-reports
+        name: ${{ runner.os }}-test-reports
         path: build/reports
       if: always()
     - name: Run integration tests
@@ -47,7 +47,7 @@ jobs:
     - name: Archiving screenshots
       uses: actions/upload-artifact@v2
       with: 
-        name: screenshots
+        name: ${{ runner.os }}-screenshots
         path: |
           build/screenshots/*
 
@@ -66,7 +66,7 @@ jobs:
       run: ./gradlew build
     - uses: actions/upload-artifact@v1
       with:
-        name: macos-test-reports
+        name: ${{ runner.os }}-test-reports
         path: build/reports
       if: success() || failure()
 
@@ -85,7 +85,28 @@ jobs:
       run: ./gradlew build
     - uses: actions/upload-artifact@v1
       with:
-        name: windows-test-reports
+        name: ${{ runner.os }}-test-reports
         path: build/reports
       if: success() || failure()
-
+    - name: Run integration tests
+      run: |
+        $dir = "$env:USERPROFILE\AppData\Roaming\JetBrains\consentOptions"
+        mkdir -Path $dir
+        cp -Path .github/workflows/accepted -Destination $dir
+        $registryPath = "HKCU:\Software\JavaSoft\Prefs\jetbrains\privacy_policy"
+        New-Item -Path $registryPath -Force
+        New-ItemProperty -Path $registryPath -Name accepted_version -Value "2.1"
+        Start-Process .\gradlew.bat -ArgumentList "runIdeForUiTests -PideaVersion=IC-2020.2" -WindowStyle hidden
+        .\gradlew.bat integrationTest
+      shell: powershell
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{ runner.os }}-integration-test-reports
+        path: build/reports/tests/integrationTest
+      if: always()
+    - name: Archiving screenshots
+      uses: actions/upload-artifact@v2
+      with: 
+        name: ${{ runner.os }}-screenshots
+        path: |
+          build/screenshots/*
