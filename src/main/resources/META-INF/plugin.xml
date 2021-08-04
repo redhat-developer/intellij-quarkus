@@ -11,6 +11,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.6.0</b></p>
+    <ul>
+      <li>Quarkus 2.x</li>
+      <li>Fix compatibility issues with IntelliJ 2021.2</li>
+    </ul>
     <p><b>1.5.0</b></p>
     <ul>
       <li>Quarkus project wizard now uses POST requests</li>
