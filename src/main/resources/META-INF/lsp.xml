@@ -21,8 +21,7 @@
 
   <project-components>
     <component>
-      <implementation-class>com.redhat.devtools.intellij.quarkus.lsp4ij.ConnectDocumentToLanguageServerSetupParticipant
-      </implementation-class>
+      <implementation-class>com.redhat.devtools.intellij.quarkus.lsp4ij.ConnectDocumentToLanguageServerSetupParticipant</implementation-class>
     </component>
   </project-components>
 </idea-plugin>
