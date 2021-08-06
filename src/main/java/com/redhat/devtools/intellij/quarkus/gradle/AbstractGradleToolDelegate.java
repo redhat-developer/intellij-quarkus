@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Red Hat, Inc.
+ * Copyright (c) 2021 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -24,7 +24,6 @@ import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleGrouper;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -59,37 +58,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class GradleToolDelegate implements ToolDelegate {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GradleToolDelegate.class);
+public abstract class AbstractGradleToolDelegate implements ToolDelegate {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGradleToolDelegate.class);
     private static final String M2_REPO = System.getProperty("user.home") + File.separator + ".m2" + File.separator + "repository";
 
-    private static final String QUARKUS_DOWNLOAD_TASK_DEFINITION =
-            "task listQuarkusDependencies() {" + System.lineSeparator() +
-                    "    File f = new File('%1$s')" + System.lineSeparator() +
-                    "    f.withPrintWriter('UTF8') { writer ->" + System.lineSeparator() +
-                    "        configurations.quarkusDeployment.files.each { writer.println it }" + System.lineSeparator() +
-                    "        def componentIds = configurations.quarkusDeployment.incoming.resolutionResult.allDependencies.collect { it.selected.id }" + System.lineSeparator() +
-                    "        ArtifactResolutionResult result = dependencies.createArtifactResolutionQuery()" + System.lineSeparator() +
-                    "            .forComponents(componentIds)" + System.lineSeparator() +
-                    "            .withArtifacts(JvmLibrary, SourcesArtifact)" + System.lineSeparator() +
-                    "            .execute()" + System.lineSeparator() +
-                    "        def sourceArtifacts = []" + System.lineSeparator() +
-                    "        result.resolvedComponents.each { ComponentArtifactsResult component ->" + System.lineSeparator() +
-                    "            Set<ArtifactResult> sources = component.getArtifacts(SourcesArtifact)" + System.lineSeparator() +
-                    "            sources.each { ArtifactResult ar ->" + System.lineSeparator() +
-                    "                if (ar instanceof ResolvedArtifactResult) {" + System.lineSeparator() +
-                    "                    writer.println ar.file" + System.lineSeparator() +
-                    "                }" + System.lineSeparator() +
-                    "            }" + System.lineSeparator() +
-                    "        }" + System.lineSeparator() +
-                    "    }" + System.lineSeparator() +
-                    "}";
-    
     private static String GRADLE_LIBRARY_PREFIX = "Gradle: ";
+
+    private boolean scriptExists(Module module) {
+        String path = getModuleDirPath(module);
+        File script = new File(path, getScriptName());
+        return script.exists();
+    }
 
     @Override
     public boolean isValid(Module module) {
-        return ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module);
+        return ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module) && scriptExists(module);
     }
 
     @Override
@@ -181,6 +164,16 @@ public class GradleToolDelegate implements ToolDelegate {
         }
     }
 
+    abstract String getScriptName();
+
+    abstract String getScriptExtension();
+
+    abstract String formatQuarkusDependency(String id);
+
+    abstract String generateTask(String path);
+
+    abstract String createQuarkusConfiguration();
+
     /**
      * Generate the custom build file from the module build file and adding the specific task.
      *
@@ -192,17 +185,18 @@ public class GradleToolDelegate implements ToolDelegate {
      */
     private Path generateCustomGradleBuild(String basePath, Path outputPath, Set<String> deploymentIds) throws IOException {
         Path base = Paths.get(basePath);
-        Path path = base.resolve("build.gradle");
+        Path path = base.resolve(getScriptName());
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             String content = IOUtils.toString(reader);
             content = appendQuarkusResolution(content, outputPath, deploymentIds);
-            Path customPath = Files.createTempFile(base, null, ".gradle");
+            Path customPath = Files.createTempFile(base, null, getScriptExtension());
             try (Writer writer = Files.newBufferedWriter(customPath, StandardCharsets.UTF_8)) {
                 IOUtils.write(content, writer);
                 return customPath;
             }
         }
     }
+
 
     /**
      * Append the specific task definition.
@@ -215,11 +209,11 @@ public class GradleToolDelegate implements ToolDelegate {
     private String appendQuarkusResolution(String content, Path outputPath, Set<String> deploymentIds) {
         StringBuffer buffer = new StringBuffer(content);
         buffer.append(System.lineSeparator());
-        buffer.append("configurations {quarkusDeployment}").append(System.lineSeparator());
+        buffer.append(createQuarkusConfiguration()).append(System.lineSeparator());
         buffer.append("dependencies {").append(System.lineSeparator());
-        deploymentIds.forEach(id -> buffer.append("quarkusDeployment '").append(id).append('\'').append(System.lineSeparator()));
+        deploymentIds.forEach(id -> buffer.append(formatQuarkusDependency(id)));
         buffer.append('}').append(System.lineSeparator());
-        buffer.append(String.format(QUARKUS_DOWNLOAD_TASK_DEFINITION, outputPath.toString().replace("\\", "\\\\")));
+        buffer.append(generateTask(outputPath.toString().replace("\\", "\\\\")));
         return buffer.toString();
     }
 
@@ -264,23 +258,13 @@ public class GradleToolDelegate implements ToolDelegate {
     }
 
     @Override
-    public String getDisplay() {
-        return "Gradle";
-    }
-
-    @Override
-    public int getOrder() {
-        return 1;
-    }
-
-    @Override
     public void processImport(Module module) {
         Project project = module.getProject();
         File gradleFile = null;
 
         for(VirtualFile virtualFile : ModuleRootManager.getInstance(module).getContentRoots()) {
             File baseDir = VfsUtilCore.virtualToIoFile(virtualFile);
-            File file = new File(baseDir, "build.gradle");
+            File file = new File(baseDir, getScriptName());
             if (file.exists()) {
                 gradleFile = file;
                 break;
