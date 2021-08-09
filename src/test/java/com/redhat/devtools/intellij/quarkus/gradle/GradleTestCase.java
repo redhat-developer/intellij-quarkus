@@ -14,7 +14,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +46,7 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
             if (dependency.isPresent()) {
                 return dependency.get().getFile();
             } else {
-                return GradleToolDelegate.getDeploymentFile(groupId + ":" + artifactId + ":" + version);
+                return AbstractGradleToolDelegate.getDeploymentFile(groupId + ":" + artifactId + ":" + version);
             }
         }
     }

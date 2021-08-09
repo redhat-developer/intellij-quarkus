@@ -1,7 +1,8 @@
 <idea-plugin>
 
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
-    <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.gradle.GradleToolDelegate"/>
+    <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.gradle.GradleGroovyToolDelegate"/>
+    <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.gradle.GradleKotlinToolDelegate"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <externalProjectDataService implementation="com.redhat.devtools.intellij.quarkus.gradle.QuarkusProjectDataService"/>
