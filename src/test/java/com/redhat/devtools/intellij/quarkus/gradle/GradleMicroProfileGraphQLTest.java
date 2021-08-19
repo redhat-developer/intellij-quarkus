@@ -46,17 +46,17 @@ public class GradleMicroProfileGraphQLTest extends GradleTestCase {
 
 		assertProperties(infoFromClasspath,
 
-				p(null, "mp.graphql.defaultErrorMessage", "java.lang.String",
-						null, true,
-						"io.smallrye.graphql.cdi.config.GraphQLConfig", "defaultErrorMessage", null, 0, "Server Error"),
+				p("microprofile-graphql-api", "mp.graphql.defaultErrorMessage", "java.lang.String",
+						"Configured default message displayed when an unchecked exception is thrown from the user application. By default this value is set to \"Server Error\".", true,
+						null, null, null, 0, null),
 
-				p(null, "mp.graphql.hideErrorMessage", "java.util.Optional<java.util.List<java.lang.String>>",
-						null, true,
-						"io.smallrye.graphql.cdi.config.GraphQLConfig", "hideList", null, 0, ""),
+				p("microprofile-graphql-api", "mp.graphql.hideErrorMessage", "java.lang.String",
+						"Hide exception error messages when checked exceptions are thrown from the user application. Separate multiple exceptions with a comma. By default all unchecked exceptions are on the `hideErrorMessage` list.", true,
+						null, null, null, 0, null),
 
-				p(null, "mp.graphql.showErrorMessage", "java.util.Optional<java.util.List<java.lang.String>>",
-						null, true,
-						"io.smallrye.graphql.cdi.config.GraphQLConfig", "showList", null, 0, "")
+				p("microprofile-graphql-api", "mp.graphql.showErrorMessage", "java.lang.String",
+						"Show exception error messages when unchecked exceptions are thrown from the user application. Separate multiple exceptions with a comma. By default all checked exceptions are on the `showErrorMessage` list.", true,
+						null, null, null, 0, null)
 		);
 
 		assertPropertiesDuplicate(infoFromClasspath);
