@@ -15,7 +15,7 @@ import com.intellij.psi.PsiMember;
 
 /**
  * Java annotations utilities.
- * 
+ *
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/core/utils/AnnotationUtils.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/core/utils/AnnotationUtils.java</a>
  *
  */
@@ -29,7 +29,7 @@ public class AnnotationUtils {
 	/**
 	 * Returns the annotation from the given <code>annotatable</code> element with
 	 * the given name <code>annotationName</code> and null otherwise.
-	 * 
+	 *
 	 * @param annotatable    the class, field which can be annotated.
 	 * @param annotationName the annotation name
 	 * @return the annotation from the given <code>annotatable</code> element with
@@ -51,19 +51,27 @@ public class AnnotationUtils {
 	/**
 	 * Returns true if the given annotation match the given annotation name and
 	 * false otherwise.
-	 * 
+	 *
 	 * @param annotation     the annotation.
 	 * @param annotationName the annotation name.
 	 * @return true if the given annotation match the given annotation name and
 	 *         false otherwise.
 	 */
 	public static boolean isMatchAnnotation(PsiAnnotation annotation, String annotationName) {
-		return annotationName.endsWith(annotation.getQualifiedName());
+		if(annotation == null) {
+		    return false;
+        }
+		else if ( annotation.getQualifiedName() == null){
+			return false;
+		}
+		else {
+			return annotationName.endsWith(annotation.getQualifiedName());
+		}
 	}
 
 	/**
 	 * Returns the value of the given member name of the given annotation.
-	 * 
+	 *
 	 * @param annotation the annotation.
 	 * @param memberName the member name.
 	 * @return the value of the given member name of the given annotation.
