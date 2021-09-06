@@ -20,9 +20,6 @@ intellij {
     updateSinceUntilBuild = false
 }
 
-//with this option enabled, build will fail about IDEA expiration builds
-buildSearchableOptions.enabled = false
-
 runPluginVerifier {
     ideVersions = [ideaVersion]
 }

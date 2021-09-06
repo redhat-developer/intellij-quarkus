@@ -40,7 +40,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew runPluginVerifier -PideaVersion=IC-2021.2 -d
+        run: ./gradlew runPluginVerifier -PideaVersion=IC-2021.2
       - name: Upload report
         uses: actions/upload-artifact@v2
         if: always()
