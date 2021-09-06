@@ -20,13 +20,14 @@ intellij {
     updateSinceUntilBuild = false
 }
 
+runPluginVerifier {
+    ideVersions = [ideaVersion]
+}
+
 publishPlugin {
     token    = jetBrainsToken
     channels = [jetBrainsChannel]
 }
-
-//LSP plugin causes this task to fail
-//buildSearchableOptions.enabled = false
 
 repositories {
     mavenCentral()
