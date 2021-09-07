@@ -11,7 +11,6 @@
 package com.redhat.devtools.intellij.quarkus.lang;
 
 import com.intellij.ide.IconProvider;
-import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;

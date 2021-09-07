@@ -43,9 +43,16 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class QuarkusModuleUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleUtil.class);
+
+    public static final Pattern APPLICATION_PROPERTIES = Pattern.compile("application(-.+)?\\.properties");
+
+    public static final Pattern MICROPROFILE_CONFIG_PROPERTIES = Pattern.compile("microprofile-config(-.+)?\\.properties");
+
+    public static final Pattern APPLICATION_YAML = Pattern.compile("application(-.+)?\\.ya?ml");
 
     public static boolean isQuarkusExtensionWithDeploymentArtifact(Library library) {
         boolean result = false;
@@ -170,7 +177,8 @@ public class QuarkusModuleUtil {
     }
 
     public static boolean isQuarkusPropertiesFile(VirtualFile file, Project project) {
-        if ("application.properties".equals(file.getName())) {
+        if (APPLICATION_PROPERTIES.matcher(file.getName()).matches() ||
+                MICROPROFILE_CONFIG_PROPERTIES.matcher(file.getName()).matches()) {
             Module module = ModuleUtilCore.findModuleForFile(file, project);
             return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
         }
@@ -178,7 +186,7 @@ public class QuarkusModuleUtil {
     }
 
     public static boolean isQuarkusYAMLFile(VirtualFile file, Project project) {
-        if ("application.yaml".equals(file.getName()) || "application.yml".equals(file.getName())) {
+        if (APPLICATION_YAML.matcher(file.getName()).matches()) {
             Module module = ModuleUtilCore.findModuleForFile(file, project);
             return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
         }
