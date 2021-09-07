@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import static com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil.APPLICATION_PROPERTIES;
 import static com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil.APPLICATION_YAML;
+import static com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil.MICROPROFILE_CONFIG_PROPERTIES;
 import static org.junit.Assert.assertTrue;
 import static org.wildfly.common.Assert.assertFalse;
 
@@ -77,4 +78,25 @@ public class QuarkusModuleUtilTest {
     public void checkApplicationYMLWithProfileMatches() {
         assertTrue(APPLICATION_YAML.matcher("application-dev.yml").matches());
     }
+
+    @Test
+    public void checkMicroprofileConfigPropertiesMatches() {
+        assertTrue(MICROPROFILE_CONFIG_PROPERTIES.matcher("microprofile-config.properties").matches());
+    }
+
+    @Test
+    public void checkMicroprofileConfigPropertiesWithOnlyDashDoesntMatch() {
+        assertFalse(MICROPROFILE_CONFIG_PROPERTIES.matcher("microprofile-config-.properties").matches());
+    }
+
+    @Test
+    public void checkMicroprofileConfigPropertiesWithoutDashDoesntMatch() {
+        assertFalse(MICROPROFILE_CONFIG_PROPERTIES.matcher("microprofile-configdev.properties").matches());
+    }
+
+    @Test
+    public void checkMicroprofileConfigPropertiesWithProfileMatches() {
+        assertTrue(MICROPROFILE_CONFIG_PROPERTIES.matcher("microprofile-config-dev.properties").matches());
+    }
+
 }

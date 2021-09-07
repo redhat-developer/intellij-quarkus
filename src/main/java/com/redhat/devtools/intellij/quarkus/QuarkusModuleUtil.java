@@ -50,6 +50,8 @@ public class QuarkusModuleUtil {
 
     public static final Pattern APPLICATION_PROPERTIES = Pattern.compile("application(-.+)?\\.properties");
 
+    public static final Pattern MICROPROFILE_CONFIG_PROPERTIES = Pattern.compile("microprofile-config(-.+)?\\.properties");
+
     public static final Pattern APPLICATION_YAML = Pattern.compile("application(-.+)?\\.ya?ml");
 
     public static boolean isQuarkusExtensionWithDeploymentArtifact(Library library) {
@@ -175,7 +177,8 @@ public class QuarkusModuleUtil {
     }
 
     public static boolean isQuarkusPropertiesFile(VirtualFile file, Project project) {
-        if (APPLICATION_PROPERTIES.matcher(file.getName()).matches()) {
+        if (APPLICATION_PROPERTIES.matcher(file.getName()).matches() ||
+                MICROPROFILE_CONFIG_PROPERTIES.matcher(file.getName()).matches()) {
             Module module = ModuleUtilCore.findModuleForFile(file, project);
             return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
         }
