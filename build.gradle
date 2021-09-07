@@ -1,6 +1,6 @@
 
 plugins {
-    id "org.jetbrains.intellij" version "0.7.3"
+    id "org.jetbrains.intellij" version "1.1.4"
     id "com.adarshr.test-logger" version "1.7.0"
     id 'idea'
     id 'java'
@@ -14,19 +14,20 @@ def remoteRobotVersion = "0.11.2"
 def fixturesVersion = "1.1.18"
 
 intellij {
-    version ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    plugins 'java', 'maven', 'gradle-java', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.1.9'
-    pluginName 'Quarkus Tools'
-    updateSinceUntilBuild false
+    version = ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
+    plugins = ['java', 'maven', 'gradle-java', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.1.9']
+    pluginName = 'Quarkus Tools'
+    updateSinceUntilBuild = false
+}
+
+runPluginVerifier {
+    ideVersions = [ideaVersion]
 }
 
 publishPlugin {
-    token    jetBrainsToken
-    channels jetBrainsChannel
+    token    = jetBrainsToken
+    channels = [jetBrainsChannel]
 }
-
-//LSP plugin causes this task to fail
-buildSearchableOptions.enabled = false
 
 repositories {
     mavenCentral()
