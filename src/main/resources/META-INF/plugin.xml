@@ -11,6 +11,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.7.0</b></p>
+    <ul>
+      <li>Add support for projects with Gradle DSL</li>
+      <li>Configuration files with profile scope get content assist and syntax validation</li>
+    </ul>
     <p><b>1.6.0</b></p>
     <ul>
       <li>Quarkus 2.x</li>
