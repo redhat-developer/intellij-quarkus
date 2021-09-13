@@ -1,0 +1,21 @@
+name: Generate changelog
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag of release'
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Simple conventional changelog
+        uses: lstocchi/simple-conventional-changelog@0.0.6
+        id: changelog
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          current-tag: '${{ github.event.inputs.tag }}'
+          types-mapping: 'feat:Features,fix:Bug Fixes,docs:Documentation,refactor:Refactoring,chore:Other'
+      - run: |
+          echo '${{ steps.changelog.outputs.changelog }}'
