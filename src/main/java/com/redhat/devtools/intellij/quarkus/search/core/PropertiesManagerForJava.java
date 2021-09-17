@@ -20,13 +20,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaDiagnosticsParticipant;
 import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.JavaHoverContext;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.JavaFileInfo;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaFileInfoParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Hover;
@@ -56,6 +59,29 @@ public class PropertiesManagerForJava {
 
     public static PropertiesManagerForJava getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Returns the Java file information (ex : package name) from the given file URI
+     * and null otherwise.
+     *
+     * @param params  the file information parameters.
+     * @param utils   the utilities class
+     * @return the Java file information (ex : package name) from the given file URI
+     *         and null otherwise.
+     */
+    public JavaFileInfo fileInfo(MicroProfileJavaFileInfoParams params, IPsiUtils utils) {
+        return ApplicationManager.getApplication().runReadAction((Computable<JavaFileInfo>) () -> {
+            String uri = params.getUri();
+            final PsiFile unit = utils.resolveCompilationUnit(uri);
+            if (unit != null && unit.isValid() && unit instanceof PsiJavaFile) {
+                JavaFileInfo fileInfo = new JavaFileInfo();
+                String packageName = ((PsiJavaFile) unit).getPackageName();
+                fileInfo.setPackageName(packageName);
+                return fileInfo;
+            }
+            return null;
+        });
     }
 
     /**
