@@ -28,11 +28,11 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4mp.commons.metadata.ValueHint;
 import org.junit.Assert;
 
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.metadata.ItemHint;
-import org.eclipse.lsp4mp.commons.metadata.ItemHint.ValueHint;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 
 /**

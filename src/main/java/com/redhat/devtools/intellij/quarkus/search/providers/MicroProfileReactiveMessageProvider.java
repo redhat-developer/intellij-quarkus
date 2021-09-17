@@ -17,6 +17,7 @@ import com.intellij.psi.PsiNameValuePair;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4mp.commons.metadata.ItemHint;
+import org.eclipse.lsp4mp.commons.metadata.ValueHint;
 
 import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils.isMatchAnnotation;
@@ -361,7 +362,7 @@ public class MicroProfileReactiveMessageProvider extends AbstractAnnotationTypeR
 			return;
 		}
 		ItemHint itemHint = context.getCollector().getItemHint(hint);
-		ItemHint.ValueHint valueHint = new ItemHint.ValueHint();
+		ValueHint valueHint = new ValueHint();
 		valueHint.setValue(value);
 		valueHint.setDescription(description);
 		valueHint.setSourceType(sourceType);

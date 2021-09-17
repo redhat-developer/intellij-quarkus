@@ -36,8 +36,15 @@ public abstract class AbstractStaticPropertiesProvider extends AbstractPropertie
 
 	private ConfigurationMetadata metadata;
 
+	private final MergingStrategy mergingStrategy;
+
 	public AbstractStaticPropertiesProvider(String path) {
+		this(path, MergingStrategy.IGNORE_IF_EXISTS);
+	}
+
+	public AbstractStaticPropertiesProvider(String path, MergingStrategy mergingStrategy) {
 		this.path = path;
+		this.mergingStrategy = mergingStrategy;
 	}
 
 	@Override
@@ -75,7 +82,7 @@ public abstract class AbstractStaticPropertiesProvider extends AbstractPropertie
 			}
 		}
 		if (metadata != null) {
-			context.getCollector().merge(metadata, MergingStrategy.IGNORE_IF_EXISTS);
+			context.getCollector().merge(metadata, mergingStrategy);
 		}
 	}
 

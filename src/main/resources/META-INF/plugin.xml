@@ -155,6 +155,8 @@
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileGraphQLProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileHealthProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileJWTProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.JULPropertyProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.JBossLogManagerPropertyProvider"/>
 
     <javaHoverParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant"/>
 

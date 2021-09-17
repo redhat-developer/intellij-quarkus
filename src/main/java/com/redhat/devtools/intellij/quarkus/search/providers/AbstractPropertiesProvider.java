@@ -26,7 +26,7 @@ import com.redhat.devtools.intellij.quarkus.search.IPropertiesCollector;
 import com.redhat.devtools.intellij.quarkus.search.IPropertiesProvider;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
 import org.eclipse.lsp4mp.commons.metadata.ItemHint;
-import org.eclipse.lsp4mp.commons.metadata.ItemHint.ValueHint;
+import org.eclipse.lsp4mp.commons.metadata.ValueHint;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 
 /**

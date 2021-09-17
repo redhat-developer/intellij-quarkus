@@ -52,7 +52,7 @@ public class ProjectLabelManager {
 	private ProjectLabelInfoEntry getProjectLabelInfo(Module project, List<String> types, IPsiUtils utils) {
 		String uri = PsiUtilsImpl.getProjectURI(project);
 		if (uri != null) {
-			return new ProjectLabelInfoEntry(uri, getProjectLabels(project, types, utils));
+			return new ProjectLabelInfoEntry(uri, project.getName(), getProjectLabels(project, types, utils));
 		}
 		return null;
 	}

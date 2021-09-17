@@ -117,7 +117,7 @@ dependencies {
     compile 'io.quarkus:quarkus-core:1.5.0.Final'
     compile 'io.quarkus:quarkus-core-deployment:1.5.0.Final'
     compile 'io.quarkus:quarkus-arc:1.5.0.Final'
-    compile 'org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.1.0'
+    compile 'org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.2.0'
     compile 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.8.1'
     compile 'com.vladsch.flexmark:flexmark:0.50.50'
     integrationTestImplementation("com.intellij.remoterobot:remote-robot:$remoteRobotVersion")
