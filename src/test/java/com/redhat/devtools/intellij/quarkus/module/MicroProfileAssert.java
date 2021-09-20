@@ -18,11 +18,16 @@ import java.util.stream.Collectors;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
@@ -34,6 +39,8 @@ import org.junit.Assert;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.metadata.ItemHint;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * MicroProfile assert for JUnit tests.
@@ -64,7 +71,7 @@ public class MicroProfileAssert {
 	 */
 	public static void assertProperties(MicroProfileProjectInfo info, Integer expectedCount, ItemMetadata... expected) {
 		if (expectedCount != null) {
-			Assert.assertEquals(expectedCount.intValue(), info.getProperties().size());
+			assertEquals(expectedCount.intValue(), info.getProperties().size());
 		}
 		for (ItemMetadata item : expected) {
 			assertProperty(info, item);
@@ -82,26 +89,26 @@ public class MicroProfileAssert {
 			return expected.getName().equals(completion.getName());
 		}).collect(Collectors.toList());
 
-		Assert.assertEquals(
+		assertEquals(
 				expected.getName() + " should only exist once: Actual: "
 						+ info.getProperties().stream().map(c -> c.getName()).collect(Collectors.joining(",")),
 				1, matches.size());
 
 		ItemMetadata actual = matches.get(0);
-		Assert.assertEquals("Test 'extension name' for '" + expected.getName() + "'", expected.getExtensionName(),
+		assertEquals("Test 'extension name' for '" + expected.getName() + "'", expected.getExtensionName(),
 				actual.getExtensionName());
-		Assert.assertEquals("Test 'type' for '" + expected.getName() + "'", expected.getType(), actual.getType());
-		Assert.assertEquals("Test 'description' for '" + expected.getName() + "'", expected.getDescription(),
+		assertEquals("Test 'type' for '" + expected.getName() + "'", expected.getType(), actual.getType());
+		assertEquals("Test 'description' for '" + expected.getName() + "'", expected.getDescription(),
 				actual.getDescription());
-		Assert.assertEquals("Test 'binary' for '" + expected.getName() + "'", expected.isBinary(), actual.isBinary());
-		Assert.assertEquals("Test 'source type' for '" + expected.getName() + "'", expected.getSourceType(),
+		assertEquals("Test 'binary' for '" + expected.getName() + "'", expected.isBinary(), actual.isBinary());
+		assertEquals("Test 'source type' for '" + expected.getName() + "'", expected.getSourceType(),
 				actual.getSourceType());
-		Assert.assertEquals("Test 'source field' for '" + expected.getName() + "'", expected.getSourceField(),
+		assertEquals("Test 'source field' for '" + expected.getName() + "'", expected.getSourceField(),
 				actual.getSourceField());
-		Assert.assertEquals("Test 'source method' for '" + expected.getName() + "'", expected.getSourceMethod(),
+		assertEquals("Test 'source method' for '" + expected.getName() + "'", expected.getSourceMethod(),
 				actual.getSourceMethod());
-		Assert.assertEquals("Test 'phase' for '" + expected.getName() + "'", expected.getPhase(), actual.getPhase());
-		Assert.assertEquals("Test 'default value' for '" + expected.getName() + "'", expected.getDefaultValue(),
+		assertEquals("Test 'phase' for '" + expected.getName() + "'", expected.getPhase(), actual.getPhase());
+		assertEquals("Test 'default value' for '" + expected.getName() + "'", expected.getDefaultValue(),
 				actual.getDefaultValue());
 	}
 
@@ -148,7 +155,7 @@ public class MicroProfileAssert {
 				.collect(Collectors.groupingBy(ItemMetadata::getName, Collectors.counting()));
 		List<Entry<String, Long>> result = propertiesCount.entrySet().stream().filter(entry -> entry.getValue() > 1)
 				.collect(Collectors.toList());
-		Assert.assertEquals(
+		assertEquals(
 				result.stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(",")),
 				0, result.size());
 	}
@@ -174,7 +181,7 @@ public class MicroProfileAssert {
 	 */
 	public static void assertHints(MicroProfileProjectInfo info, Integer expectedCount, ItemHint... expected) {
 		if (expectedCount != null) {
-			Assert.assertEquals(expectedCount.intValue(), info.getHints().size());
+			assertEquals(expectedCount.intValue(), info.getHints().size());
 		}
 		for (ItemHint item : expected) {
 			assertHint(info, item);
@@ -192,13 +199,13 @@ public class MicroProfileAssert {
 			return expected.getName().equals(completion.getName());
 		}).collect(Collectors.toList());
 
-		Assert.assertEquals(
+		assertEquals(
 				expected.getName() + " should only exist once: Actual: "
 						+ info.getHints().stream().map(c -> c.getName()).collect(Collectors.joining(",")),
 				1, matches.size());
 
 		ItemHint actual = matches.get(0);
-		Assert.assertEquals("Test 'description' for '" + expected.getName() + "'", expected.getDescription(),
+		assertEquals("Test 'description' for '" + expected.getName() + "'", expected.getDescription(),
 				actual.getDescription());
 	}
 
@@ -253,34 +260,60 @@ public class MicroProfileAssert {
 				.collect(Collectors.groupingBy(ItemHint::getName, Collectors.counting()));
 		List<Entry<String, Long>> result = hintsCount.entrySet().stream().filter(entry -> entry.getValue() > 1)
 				.collect(Collectors.toList());
-		Assert.assertEquals(
+		assertEquals(
 				result.stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(",")),
 				0, result.size());
 	}
 
     public static void saveFile(String name, String content, Module javaProject) throws IOException {
-        String modulePath = ModuleUtilCore.getModuleDirPath(javaProject);
-        VirtualFile file = LocalFileSystem.getInstance().refreshAndFindFileByPath(modulePath + "/src/main/resources/" + name);
-        Application application = ApplicationManager.getApplication();
+		// For Mac OS, Linux OS, the call of Files.getLastModifiedTime is working for 1
+		// second.
+		// Here we wait for > 1s to be sure that call of Files.getLastModifiedTime will
+		// work.
+		try {
+			Thread.sleep(1050);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		Application application = ApplicationManager.getApplication();
         application.invokeAndWait(() -> application.runWriteAction(() -> {
             try {
+				VirtualFile file = null;
+				for(VirtualFile folder : ModuleRootManager.getInstance(javaProject).getSourceRoots(false)) {
+					file = folder.findFileByRelativePath(name);
+					if (file != null) {
+						break;
+					}
+				}
+				if (file == null) {
+					VirtualFile folder = ModuleRootManager.getInstance(javaProject).getSourceRoots(false)[0];
+					String[] comps = name.split("/");
+					if (comps.length > 1) {
+						folder = VfsUtil.createDirectoryIfMissing(folder, name.substring(0, name.lastIndexOf('/')));
+					}
+					file = folder.findOrCreateChildData(MicroProfileAssert.class, comps[comps.length - 1]);
+				}
                 file.setBinaryContent(content.getBytes(file.getCharset()));
             } catch (IOException e) {}
         }));
     }
 
-	public static void assertHover(String expectedKey, String expectedValue, int expectedLine, int expectedStartOffset,
-								   int expectedEndOffset, Hover actualInfo) {
-		Assert.assertNotNull(actualInfo);
+	public static void assertHoverEquals(Hover expected, Hover actual) {
+		assertEquals(expected.getContents().getRight(), actual.getContents().getRight());
+		assertEquals(expected.getRange(), actual.getRange());
+	}
 
-		Position expectedStart = new Position(expectedLine, expectedStartOffset);
-		Position expectedEnd = new Position(expectedLine, expectedEndOffset);
-		Range expectedRange = new Range(expectedStart, expectedEnd);
+	public static Hover ho(String hoverContent, int startLine, int startOffset, int endLine, int endOffset) {
+		Position p1 = new Position(startLine, startOffset);
+		Position p2 = new Position(endLine, endOffset);
+		Range range = new Range(p1, p2);
+		Hover hover = new Hover();
+		hover.setContents(Either.forRight(new MarkupContent("markdown", hoverContent)));
+		hover.setRange(range);
+		return hover;
+	}
 
-		MarkupContent expectedContent = MicroProfileConfigHoverParticipant.getDocumentation(expectedKey, expectedValue,
-				DocumentFormat.Markdown, true);
-
-		Assert.assertEquals(expectedContent, actualInfo.getContents().getRight());
-		Assert.assertEquals(expectedRange, actualInfo.getRange());
+	public static Hover ho(String hoverContent, int line, int startoffset, int endOffset) {
+		return ho(hoverContent, line, startoffset, line, endOffset);
 	}
 }

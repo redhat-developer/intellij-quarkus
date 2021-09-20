@@ -167,8 +167,10 @@ public class PropertiesManagerForJava {
             }
 
             DocumentFormat documentFormat = params.getDocumentFormat();
+            boolean surroundEqualsWithSpaces = params.isSurroundEqualsWithSpaces();
             List<Hover> hovers = new ArrayList<>();
-            collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, hovers);
+            collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, surroundEqualsWithSpaces,
+                    hovers);
             if (hovers.isEmpty()) {
                 return null;
             }
@@ -178,7 +180,8 @@ public class PropertiesManagerForJava {
     }
 
     private void collectHover(String uri, PsiFile typeRoot, PsiElement hoverElement, IPsiUtils utils,
-                              Position hoverPosition, DocumentFormat documentFormat, List<Hover> hovers) {
+                              Position hoverPosition, DocumentFormat documentFormat, boolean surroundEqualsWithSpaces,
+                              List<Hover> hovers) {
         try {
             VirtualFile file = utils.findFile(uri);
             if (file != null) {
@@ -186,7 +189,7 @@ public class PropertiesManagerForJava {
                 if (module != null) {
                     // Collect all adapted hover participant
                     JavaHoverContext context = new JavaHoverContext(uri, typeRoot, utils, module, hoverElement, hoverPosition,
-                            documentFormat);
+                            documentFormat, surroundEqualsWithSpaces);
                     List<IJavaHoverParticipant> definitions = IJavaHoverParticipant.EP_NAME.extensions()
                             .filter(definition -> definition.isAdaptedForHover(context)).collect(Collectors.toList());
                     if (definitions.isEmpty()) {

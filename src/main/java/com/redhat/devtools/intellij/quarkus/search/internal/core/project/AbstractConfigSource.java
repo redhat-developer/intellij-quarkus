@@ -9,14 +9,20 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search.internal.core.project;
 
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.quarkus.search.core.project.MicroProfileConfigPropertyInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract class for config file.
@@ -33,9 +39,7 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 	private final String configFileName;
 	private final Module javaProject;
 	private VirtualFile configFile;
-
 	private long lastModified = -1L;
-
 	private T config;
 
 	public AbstractConfigSource(String configFileName, Module javaProject) {
@@ -62,12 +66,18 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 			for (VirtualFile sourceRoot : sourceRoots) {
 				VirtualFile file = sourceRoot.findFileByRelativePath(configFileName);
 				if (file != null && file.exists()) {
-					return file;
+					configFile = file;
+					return configFile;
 				}
 			}
 			return null;
 		}
 		return null;
+	}
+
+	@Override
+	public String getConfigFileName() {
+		return configFileName;
 	}
 
 	/**
@@ -122,6 +132,28 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 		return null;
 	}
 
+	private Set<String> getPropertyKeys() {
+		T config = getConfig();
+		if (config == null) {
+			return Collections.<String>emptySet();
+		}
+		return getPropertyKeys(config);
+	}
+
+	@Override
+	public Map<String, MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey) {
+		Map<String, MicroProfileConfigPropertyInformation> infos = new HashMap<>();
+		getPropertyKeys().stream() //
+				.filter(key -> {
+					return propertyKey.equals(MicroProfileConfigPropertyInformation.getPropertyNameWithoutProfile(key))
+							&& getProperty(key) != null;
+				}) //
+				.forEach(matchingKey -> {
+					infos.put(matchingKey, new MicroProfileConfigPropertyInformation(matchingKey, getProperty(matchingKey), getConfigFileName()));
+				});
+		return infos;
+	}
+
 	private void reset() {
 		config = null;
 	}
@@ -144,4 +176,11 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 	 */
 	protected abstract String getProperty(String key, T config);
 
+	/**
+	 * Returns all property keys defined in the config.
+	 *
+	 * @param config
+	 * @return all property keys defined in the config.
+	 */
+	protected abstract Set<String> getPropertyKeys(T config);
 }

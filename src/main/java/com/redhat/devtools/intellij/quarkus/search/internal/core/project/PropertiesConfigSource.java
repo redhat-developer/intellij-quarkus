@@ -10,10 +10,15 @@
 package com.redhat.devtools.intellij.quarkus.search.internal.core.project;
 
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.quarkus.search.core.project.MicroProfileConfigPropertyInformation;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * {@link Properties} config file implementation.
@@ -40,4 +45,8 @@ public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 		return properties;
 	}
 
+	@Override
+	protected Set<String> getPropertyKeys(Properties properties) {
+		return properties.stringPropertyNames();
+	}
 }

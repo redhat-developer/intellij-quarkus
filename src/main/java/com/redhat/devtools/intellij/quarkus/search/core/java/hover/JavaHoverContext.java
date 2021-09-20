@@ -33,13 +33,15 @@ public class JavaHoverContext extends AbstractJavaContext {
 	private final PsiElement hoverElement;
 
 	private final DocumentFormat documentFormat;
+	private final boolean surroundEqualsWithSpaces;
 
 	public JavaHoverContext(String uri, PsiFile typeRoot, IPsiUtils utils, Module module, PsiElement hoverElement,
-							Position hoverPosition, DocumentFormat documentFormat) {
+							Position hoverPosition, DocumentFormat documentFormat, boolean surroundEqualsWithSpaces) {
 		super(uri, typeRoot, utils, module);
 		this.hoverElement = hoverElement;
 		this.hoverPosition = hoverPosition;
 		this.documentFormat = documentFormat;
+		this.surroundEqualsWithSpaces = surroundEqualsWithSpaces;
 	}
 
 	public DocumentFormat getDocumentFormat() {
@@ -54,4 +56,12 @@ public class JavaHoverContext extends AbstractJavaContext {
 		return hoverPosition;
 	}
 
+	/**
+	 * Returns true if `=` should be surrounded with spaces in hover items, and false otherwise
+	 *
+	 * @return true if `=` should be surrounded with spaces in hover items, and false otherwise
+	 */
+	public boolean isSurroundEqualsWithSpaces() {
+		return surroundEqualsWithSpaces;
+	}
 }

@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij.quarkus.search.core.utils;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiModifierListOwner;
 
 /**
  * Java annotations utilities.
@@ -35,7 +36,7 @@ public class AnnotationUtils {
 	 * @return the annotation from the given <code>annotatable</code> element with
 	 *         the given name <code>annotationName</code> and null otherwise.
 	 */
-	public static PsiAnnotation getAnnotation(PsiMember annotatable, String annotationName) {
+	public static PsiAnnotation getAnnotation(PsiModifierListOwner annotatable, String annotationName) {
 		if (annotatable == null) {
 			return null;
 		}
