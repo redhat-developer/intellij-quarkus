@@ -107,6 +107,7 @@ task integrationTest(type: Test) {
 
 tasks.withType(Test) {
     environment 'GRADLE_RELEASE_REPOSITORY','https://services.gradle.org/distributions'
+    systemProperty 'idea.log.leaked.projects.in.tests', 'false'
 }
 
 dependencies {
