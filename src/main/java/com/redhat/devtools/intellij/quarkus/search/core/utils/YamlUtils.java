@@ -13,36 +13,34 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search.core.utils;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class YamlUtils {
 
 	private YamlUtils() {}
 
 	/**
-	 * Returns the set of keys defined in the given Yaml map in the format used by
-	 * microprofile-config.properties
+	 * Returns the value extracted from the map as a String, or null if the value is
+	 * not in the map
 	 *
-	 * @param yamlMap the yaml map
-	 * @return the set of keys defined in the given Yaml map in the format used by
-	 *         microprofile-config.properties
+	 * @param segments the keys to use when searching for the value
+	 * @param mapOrValue the map from a property key to another portion of the map, or the
+	 * @return the value extracted from the map as a String, or null if the value is
+	 *         not in the map
 	 */
-	public static Set<String> flattenYamlMapToKeys(Map<String, Object> yamlMap) {
-		Set<String> keys = new HashSet<>();
-		for (String keyRoot : yamlMap.keySet()) {
-			Object keyRootValue = yamlMap.get(keyRoot);
-			if (keyRootValue instanceof Map<?, ?>) {
-				Set<String> childKeys = flattenYamlMapToKeys((Map<String, Object>) keyRootValue);
-				for (String childKey : childKeys) {
-					keys.add(keyRoot + "." + childKey);
-				}
-			} else {
-				keys.add(keyRoot);
-			}
+	public static String getValueRecursively(List<String> segments, Object mapOrValue) {
+		if (mapOrValue == null) {
+			return null;
 		}
-		return keys;
+		if (segments.size() == 0) {
+			return mapOrValue.toString();
+		} else if (segments.size() > 0 && mapOrValue instanceof Map<?, ?>) {
+			Map<String, Object> configMap = (Map<String, Object>) mapOrValue;
+			Object configChild = configMap.get(segments.get(0));
+			return getValueRecursively(segments.subList(1, segments.size()), configChild);
+		} else {
+			return null;
+		}
 	}
 }

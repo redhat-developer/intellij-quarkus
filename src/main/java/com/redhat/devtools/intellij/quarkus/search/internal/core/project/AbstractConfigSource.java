@@ -9,7 +9,6 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search.internal.core.project;
 
-import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -132,30 +131,13 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 		return null;
 	}
 
-	private Set<String> getPropertyKeys() {
-		T config = getConfig();
-		if (config == null) {
-			return Collections.<String>emptySet();
-		}
-		return getPropertyKeys(config);
+	private void reset() {
+		config = null;
 	}
 
 	@Override
 	public Map<String, MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey) {
-		Map<String, MicroProfileConfigPropertyInformation> infos = new HashMap<>();
-		getPropertyKeys().stream() //
-				.filter(key -> {
-					return propertyKey.equals(MicroProfileConfigPropertyInformation.getPropertyNameWithoutProfile(key))
-							&& getProperty(key) != null;
-				}) //
-				.forEach(matchingKey -> {
-					infos.put(matchingKey, new MicroProfileConfigPropertyInformation(matchingKey, getProperty(matchingKey), getConfigFileName()));
-				});
-		return infos;
-	}
-
-	private void reset() {
-		config = null;
+		return getPropertyInformations(propertyKey, getConfig());
 	}
 
 	/**
@@ -177,10 +159,15 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 	protected abstract String getProperty(String key, T config);
 
 	/**
-	 * Returns all property keys defined in the config.
+	 * Returns the property informations for the given propertyKey
 	 *
+	 * The property information are returned as a Map from the property and profile
+	 * in the microprofile-config.properties format to the property information
+	 *
+	 * @param propertyKey
 	 * @param config
-	 * @return all property keys defined in the config.
+	 * @return the property informations for the given propertyKey
 	 */
-	protected abstract Set<String> getPropertyKeys(T config);
+	protected abstract Map<String, MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey,
+																								  T config);
 }

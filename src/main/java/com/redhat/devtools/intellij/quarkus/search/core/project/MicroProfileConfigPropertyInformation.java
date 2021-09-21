@@ -128,4 +128,14 @@ public class MicroProfileConfigPropertyInformation {
 			return propertyNameWithProfile;
 		}
 	}
+
+	/**
+	 * Returns a list of segments of the property name
+	 *
+	 * @param propertyNameWithProfile the property and profile in the format used in microprofile-config.properties
+	 * @return
+	 */
+	public static List<String> getSegments(String propertyNameWithProfile) {
+		return Arrays.asList(propertyNameWithProfile.split("\\."));
+	}
 }

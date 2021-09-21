@@ -15,10 +15,8 @@ import com.redhat.devtools.intellij.quarkus.search.core.project.MicroProfileConf
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * {@link Properties} config file implementation.
@@ -46,7 +44,21 @@ public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 	}
 
 	@Override
-	protected Set<String> getPropertyKeys(Properties properties) {
-		return properties.stringPropertyNames();
+	public Map<String, MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey,
+																					  Properties properties) {
+		Map<String, MicroProfileConfigPropertyInformation> infos = new HashMap<>();
+		if (properties != null) {
+			properties.stringPropertyNames().stream() //
+					.filter(key -> {
+						return propertyKey
+								.equals(MicroProfileConfigPropertyInformation.getPropertyNameWithoutProfile(key))
+								&& getProperty(key) != null;
+					}) //
+					.forEach(matchingKey -> {
+						infos.put(matchingKey, new MicroProfileConfigPropertyInformation(matchingKey,
+								getProperty(matchingKey), getConfigFileName()));
+					});
+		}
+		return infos;
 	}
 }
