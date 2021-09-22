@@ -11,24 +11,23 @@ package com.redhat.devtools.intellij.quarkus.gradle;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.quarkus.search.core.project.PsiMicroProfileProject;
-import org.eclipse.lsp4mp.commons.DocumentFormat;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
-import org.junit.Assert;
+import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.assertHoverEquals;
-import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.ho;
 import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.saveFile;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileForJavaAssert.assertJavaHover;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileForJavaAssert.fixURI;
+import static com.redhat.devtools.intellij.quarkus.module.MicroProfileForJavaAssert.h;
 
 /**
  * JDT Quarkus manager test for hover in Java file.
@@ -36,7 +35,7 @@ import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.sav
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/JavaHoverTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/JavaHoverTest.java</a>
  *
  */
-public class GradleJavaHoverTest extends GradleTestCase {
+public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 
 	private Module loadProject(String name) throws IOException {
 		FileUtils.copyDirectory(new File("projects/gradle/" + name), new File(getProjectPath()));
@@ -47,7 +46,8 @@ public class GradleJavaHoverTest extends GradleTestCase {
 	@Test
 	public void testConfigPropertyNameHover() throws Exception {
 		Module javaProject = loadProject("config-hover");
-		String javaFileUri = new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI().toString();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
 		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
@@ -56,57 +56,55 @@ public class GradleJavaHoverTest extends GradleTestCase {
 				javaProject);
 		// Position(14, 40) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.mes|sage")
-		Hover info = getActualHover(new Position(14, 40), javaFileUri);
-		assertHoverEquals(ho("`greeting.message = hello` *in* application.properties", 14, 28, 44), info);
+		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.message = hello` *in* [application.properties](" + propertiesFileUri + ")", 14, 28, 44));
 
 		// Test left edge
 		// Position(14, 28) is the character after the | symbol:
 		// @ConfigProperty(name = "|greeting.message")
-		info = getActualHover(new Position(14, 28), javaFileUri);
-		assertHoverEquals(ho("`greeting.message = hello` *in* application.properties", 14, 28, 44), info);
+		assertJavaHover(new Position(14, 28), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.message = hello` *in* [application.properties](" + propertiesFileUri + ")", 14, 28, 44));
 
 		// Test right edge
 		// Position(14, 43) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.messag|e")
-		info = getActualHover(new Position(14, 43), javaFileUri);
-		assertHoverEquals(ho("`greeting.message = hello` *in* application.properties", 14, 28, 44), info);
+		assertJavaHover(new Position(14, 43), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.message = hello` *in* [application.properties](" + propertiesFileUri + ")", 14, 28, 44));
 
 		// Test no hover
 		// Position(14, 27) is the character after the | symbol:
 		// @ConfigProperty(name = |"greeting.message")
-		info = getActualHover(new Position(14, 27), javaFileUri);
-		Assert.assertNull(info);
+		assertJavaHover(new Position(14, 27), javaFileUri, PsiUtilsImpl.getInstance(), null);
 
 		// Test no hover 2
 		// Position(14, 44) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.message|")
-		info = getActualHover(new Position(14, 44), javaFileUri);
-		Assert.assertNull(info);
+		assertJavaHover(new Position(14, 44), javaFileUri, PsiUtilsImpl.getInstance(), null);
 
 		// Hover default value
 		// Position(17, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.suffix", defaultValue="!")
-		info = getActualHover(new Position(17, 33), javaFileUri);
-		assertHoverEquals(ho("`greeting.suffix = !` *in* GreetingResource.java", 17, 28, 43), info);
+		assertJavaHover(new Position(17, 33), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.suffix = !` *in* [GreetingResource.java](" + javaFileUri + ")", 17, 28, 43));
 
 		// Hover override default value
 		// Position(26, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.number", defaultValue="0")
-		info = getActualHover(new Position(26, 33), javaFileUri);
-		assertHoverEquals(ho("`greeting.number = 100` *in* application.properties", 26, 28, 43), info);
+		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.number = 100` *in* [application.properties](" + propertiesFileUri + ")", 26, 28, 43));
 
 		// Hover when no value
 		// Position(23, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.missing")
-		info = getActualHover(new Position(23, 33), javaFileUri);
-		assertHoverEquals(ho("`greeting.missing` is not set", 23, 28, 44), info);
+		assertJavaHover(new Position(23, 33), javaFileUri, PsiUtilsImpl.getInstance(), h("`greeting.missing` is not set", 23, 28, 44));
 	}
 
 	@Test
 	public void testConfigPropertyNameHoverWithProfiles() throws Exception {
 
 		Module javaProject = loadProject("config-hover");
-		String javaFileUri = new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI().toString();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
 		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
@@ -118,11 +116,12 @@ public class GradleJavaHoverTest extends GradleTestCase {
 
 		// Position(14, 40) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.mes|sage")
-		Hover info = getActualHover(new Position(14, 40), javaFileUri);
-		assertHoverEquals(ho("`%dev.greeting.message = hello dev` *in* application.properties  \n" + //
-						"`%prod.greeting.message = hello prod` *in* application.properties  \n" + //
-						"`greeting.message = hello` *in* application.properties", //
-				14, 28, 44), info);
+		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsImpl.getInstance(), //
+				h("`%dev.greeting.message = hello dev` *in* [application.properties](" + propertiesFileUri + ")  \n" + //
+								"`%prod.greeting.message = hello prod` *in* [application.properties](" + propertiesFileUri
+								+ ")  \n" + //
+								"`greeting.message = hello` *in* [application.properties](" + propertiesFileUri + ")", //
+						14, 28, 44));
 
 		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, //
 				"%dev.greeting.message = hello dev\r\n" + //
@@ -133,18 +132,21 @@ public class GradleJavaHoverTest extends GradleTestCase {
 
 		// Position(14, 40) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.mes|sage")
-		info = getActualHover(new Position(14, 40), javaFileUri);
-		assertHoverEquals(ho("`%dev.greeting.message = hello dev` *in* application.properties  \n" + //
-						"`%prod.greeting.message = hello prod` *in* application.properties  \n" + //
-						"`greeting.message` is not set", //
-				14, 28, 44), info);
+		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsImpl.getInstance(), //
+				h("`%dev.greeting.message = hello dev` *in* [application.properties](" + propertiesFileUri + ")  \n" + //
+								"`%prod.greeting.message = hello prod` *in* [application.properties](" + propertiesFileUri
+								+ ")  \n" + //
+								"`greeting.message` is not set", //
+						14, 28, 44));
 	}
 
 
 	@Test
 	public void testConfigPropertyNameYaml() throws Exception {
 		Module javaProject = loadProject("config-hover");
-		String javaFileUri = new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI().toString();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
+		String yamlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.yaml").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
 		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, //
 				"greeting:\n" + //
@@ -160,99 +162,105 @@ public class GradleJavaHoverTest extends GradleTestCase {
 
 		// Position(14, 40) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.mes|sage")
-		Hover info = getActualHover(new Position(14, 40), javaFileUri);
-		assertHoverEquals(ho("`greeting.message = message from yaml` *in* application.yaml", 14, 28, 44), info);
+		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.message = message from yaml` *in* [application.yaml](" + yamlFileUri + ")", 14, 28, 44));
 
 		// Position(26, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.number", defaultValue="0")
-		info = getActualHover(new Position(26, 33), javaFileUri);
-		assertHoverEquals(ho("`greeting.number = 2001` *in* application.yaml", 26, 28, 43), info);
+		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.number = 2001` *in* [application.yaml](" + yamlFileUri + ")", 26, 28, 43));
 
 		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, //
 				"greeting:\n" + //
 						"  message: message from yaml",
 				javaProject);
-
 		// fallback to application.properties
-		info = getActualHover(new Position(26, 33), javaFileUri);
-		assertHoverEquals(ho("`greeting.number = 100` *in* application.properties", 26, 28, 43), info);
+		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.number = 100` *in* [application.properties](" + propertiesFileUri + ")", 26, 28, 43));
 	}
 
 	@Test
 	public void testConfigPropertyNameMethod() throws Exception {
 		Module javaProject = loadProject("config-quickstart");
-		String javaFileUri = new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingMethodResource.java").toURI().toString();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingMethodResource.java").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
 		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, "greeting.method.message = hello", javaProject);
 
 		// Position(22, 61) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.m|ethod.message")
-		Hover info = getActualHover(new Position(22, 61), javaFileUri);
-		assertHoverEquals(ho("`greeting.method.message = hello` *in* application.properties", 22, 51, 74), info);
+		assertJavaHover(new Position(22, 61), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.method.message = hello` *in* [application.properties](" + propertiesFileUri + ")", 22, 51,
+						74));
 
 		// Position(27, 60) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.m|ethod.suffix" , defaultValue="!")
-		info = getActualHover(new Position(27, 60), javaFileUri);
-		assertHoverEquals(ho("`greeting.method.suffix = !` *in* GreetingMethodResource.java", 27, 50, 72), info);
+		assertJavaHover(new Position(27, 60), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.method.suffix = !` *in* [GreetingMethodResource.java](" + javaFileUri + ")", 27, 50, 72));
 
 		// Position(32, 58) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.method.name")
-		info = getActualHover(new Position(32, 58), javaFileUri);
-		assertHoverEquals(ho("`greeting.method.name` is not set", 32, 48, 68), info);
+		assertJavaHover(new Position(32, 48), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.method.name` is not set", 32, 48, 68));
 	}
 
 	@Test
 	public void testConfigPropertyNameConstructor() throws Exception {
 		Module javaProject = loadProject("config-quickstart");
-		String javaFileUri = new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI().toString();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
 		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, "greeting.constructor.message = hello",
 				javaProject);
-		Hover info;
 
 		// Position(23, 48) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.con|structor.message")
-		info = getActualHover(new Position(23, 48), javaFileUri);
-		assertHoverEquals(ho("`greeting.constructor.message = hello` *in* application.properties", 23, 36, 64), info);
+		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsImpl.getInstance(), //
+				h("`greeting.constructor.message = hello` *in* [application.properties](" + propertiesFileUri + ")", 23,
+						36, 64));
 
 		// Position(24, 48) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.con|structor.suffix" , defaultValue="!")
-		info = getActualHover(new Position(24, 48), javaFileUri);
-		assertHoverEquals(ho("`greeting.constructor.suffix = !` *in* GreetingConstructorResource.java", 24, 36, 63),
-				info);
+		assertJavaHover(new Position(24, 48), javaFileUri, PsiUtilsImpl.getInstance(), //
+				h("`greeting.constructor.suffix = !` *in* [GreetingConstructorResource.java](" + javaFileUri + ")", 24,
+						36, 63));
 
 		// Position(25, 48) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.con|structor.name")
-		info = getActualHover(new Position(25, 48), javaFileUri);
-		assertHoverEquals(ho("`greeting.constructor.name` is not set", 25, 36, 61), info);
+		assertJavaHover(new Position(25, 48), javaFileUri, PsiUtilsImpl.getInstance(), //
+				h("`greeting.constructor.name` is not set", 25, 36, 61));
 	}
 
 	@Test
 	public void testConfigPropertyNameRespectsPrecendence() throws Exception {
 		Module javaProject = loadProject("config-quickstart");
-		String javaFileUri = new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI().toString();
-		Hover info;
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
+		String configFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/META-INF/microprofile-config.properties").toURI());
+		String yamlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/application.yaml").toURI());
 
 		// microprofile-config.properties exists
 		saveFile(PsiMicroProfileProject.MICROPROFILE_CONFIG_PROPERTIES_FILE, "greeting.constructor.message = hello 1",
 				javaProject);
-		info = getActualHover(new Position(23, 48), javaFileUri);
-		assertHoverEquals(ho("`greeting.constructor.message = hello 1` *in* META-INF/microprofile-config.properties", 23, 36, 64), info);
+		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.constructor.message = hello 1` *in* [META-INF/microprofile-config.properties](" + configFileUri + ")", 23, 36, 64));
 
 		// microprofile-config.properties and application.properties exist
 		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, "greeting.constructor.message = hello 2",
 				javaProject);
-		info = getActualHover(new Position(23, 48), javaFileUri);
-		assertHoverEquals(ho("`greeting.constructor.message = hello 2` *in* application.properties", 23, 36, 64), info);
+		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.constructor.message = hello 2` *in* [application.properties](" + propertiesFileUri + ")",
+						23, 36, 64));
 
-		// microprofile-config.properties, application.properties, and application.yaml exist
+		// microprofile-config.properties, application.properties, and application.yaml
+		// exist
 		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, //
 				"greeting:\n" + //
 						"  constructor:\n" + //
 						"    message: hello 3", //
 				javaProject);
-		info = getActualHover(new Position(23, 48), javaFileUri);
-		assertHoverEquals(ho("`greeting.constructor.message = hello 3` *in* application.yaml", 23, 36, 64), info);
+		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsImpl.getInstance(),
+				h("`greeting.constructor.message = hello 3` *in* [application.yaml](" + yamlFileUri + ")", 23, 36, 64));
 	}
 
 

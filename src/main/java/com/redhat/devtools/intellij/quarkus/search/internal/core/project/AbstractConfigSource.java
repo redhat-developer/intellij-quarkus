@@ -9,8 +9,10 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search.internal.core.project;
 
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.search.core.project.MicroProfileConfigPropertyInformation;
 import org.slf4j.Logger;
@@ -18,10 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Abstract class for config file.
@@ -37,7 +36,8 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 
 	private final String configFileName;
 	private final Module javaProject;
-	private VirtualFile configFile;
+	private VirtualFile outputConfigFile;
+	private VirtualFile sourceConfigFile;
 	private long lastModified = -1L;
 	private T config;
 
@@ -56,17 +56,27 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 	 * 
 	 * @return the target/classes/$configFile and null otherwise.
 	 */
-	private VirtualFile getConfigFile() {
-		if (configFile != null && configFile.exists()) {
-			return configFile;
+	private VirtualFile getOutputConfigFile() {
+		if (outputConfigFile != null && outputConfigFile.exists()) {
+			return outputConfigFile;
 		}
+		sourceConfigFile = null;
+		outputConfigFile = null;
 		if (javaProject.isLoaded()) {
 			VirtualFile[] sourceRoots = ModuleRootManager.getInstance(javaProject).getSourceRoots();
 			for (VirtualFile sourceRoot : sourceRoots) {
 				VirtualFile file = sourceRoot.findFileByRelativePath(configFileName);
 				if (file != null && file.exists()) {
-					configFile = file;
-					return configFile;
+					sourceConfigFile = file;
+					outputConfigFile = file;
+					VirtualFile output = CompilerPaths.getModuleOutputDirectory(javaProject, false);
+					if (output != null) {
+						output = output.findFileByRelativePath(configFileName);
+						if (output != null) {
+							outputConfigFile = output;
+						}
+					}
+					return outputConfigFile;
 				}
 			}
 			return null;
@@ -79,13 +89,27 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 		return configFileName;
 	}
 
+	@Override
+	public String getSourceConfigFileURI() {
+		getOutputConfigFile();
+		if (sourceConfigFile != null) {
+			String uri = sourceConfigFile.getUrl();
+			return fixURI(uri);
+		}
+		return null;
+	}
+
+	private static String fixURI(String uri) {
+		return VfsUtil.toUri(uri).toString();
+	}
+
 	/**
 	 * Returns the loaded config and null otherwise.
 	 * 
 	 * @return the loaded config and null otherwise
 	 */
 	private T getConfig() {
-		VirtualFile configFile = getConfigFile();
+		VirtualFile configFile = getOutputConfigFile();
 		if (configFile == null) {
 			reset();
 			return null;

@@ -52,4 +52,6 @@ public interface IPsiUtils {
     void discoverSource(PsiFile classFile);
 
     Location toLocation(PsiMember fieldOrMethod);
+
+    String toUri(PsiFile typeRoot);
 }

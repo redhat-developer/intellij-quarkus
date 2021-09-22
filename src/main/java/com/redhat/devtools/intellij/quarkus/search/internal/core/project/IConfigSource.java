@@ -49,6 +49,13 @@ public interface IConfigSource {
 	String getConfigFileName();
 
 	/**
+	 * Returns the source file URI of the associated config file
+	 *
+	 * @return the source file URI of the associated config file
+	 */
+	String getSourceConfigFileURI();
+
+	/**
 	 * Returns a map from the property and profile, in the format used by
 	 * <code>microprofile-config.properties</code>, to the related property
 	 * information, for each property and profile that's assigned a value in this

@@ -137,6 +137,7 @@
     <extensionPoint name="javaHoverParticipant" interface="com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant"/>
     <extensionPoint name="javaDiagnosticsParticipant" interface="com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaDiagnosticsParticipant"/>
     <extensionPoint name="projectLabelProvider" interface="com.redhat.devtools.intellij.quarkus.search.IProjectLabelProvider"/>
+    <extensionPoint name="javaDefinitionParticipant" interface="com.redhat.devtools.intellij.quarkus.mp4ij.psi.core.java.definition.IJavaDefinitionParticipant"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileConfigPropertyProvider"/>
@@ -165,6 +166,9 @@
 
     <projectLabelProvider implementation="com.redhat.devtools.intellij.quarkus.search.internal.core.providers.MicroProfileProjectLabelProvider"/>
     <projectLabelProvider implementation="com.redhat.devtools.intellij.quarkus.search.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
+
+    <javaDefinitionParticipant implementation="com.redhat.devtools.intellij.quarkus.mp4ij.psi.internal.config.java.MicroProfileConfigDefinitionParticipant"/>
+    <javaDefinitionParticipant implementation="com.redhat.devtools.intellij.quarkus.mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceDefinitionParticipant"/>
   </extensions>
 
   <application-components>

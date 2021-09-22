@@ -11,8 +11,10 @@ package com.redhat.devtools.intellij.quarkus.search.core.utils;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiAnnotationOwner;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifierListOwner;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Java annotations utilities.
@@ -22,7 +24,7 @@ import com.intellij.psi.PsiModifierListOwner;
  */
 public class AnnotationUtils {
 
-	public static boolean hasAnnotation(PsiMember annotatable, String annotationName) {
+	public static boolean hasAnnotation(PsiElement annotatable, String annotationName) {
 		return getAnnotation(annotatable, annotationName) != null;
 	}
 
@@ -36,11 +38,17 @@ public class AnnotationUtils {
 	 * @return the annotation from the given <code>annotatable</code> element with
 	 *         the given name <code>annotationName</code> and null otherwise.
 	 */
-	public static PsiAnnotation getAnnotation(PsiModifierListOwner annotatable, String annotationName) {
-		if (annotatable == null) {
-			return null;
+	public static PsiAnnotation getAnnotation(PsiElement annotatable, String annotationName) {
+		if (annotatable instanceof PsiAnnotationOwner) {
+			return getAnnotation(annotationName, ((PsiAnnotationOwner) annotatable).getAnnotations());
+		} else if (annotatable instanceof PsiModifierListOwner) {
+			return getAnnotation(annotationName, ((PsiModifierListOwner) annotatable).getAnnotations());
 		}
-		PsiAnnotation[] annotations = annotatable.getAnnotations();
+		return null;
+	}
+
+	@Nullable
+	private static PsiAnnotation getAnnotation(String annotationName, PsiAnnotation[] annotations) {
 		for (PsiAnnotation annotation : annotations) {
 			if (isMatchAnnotation(annotation, annotationName)) {
 				return annotation;

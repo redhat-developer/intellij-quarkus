@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
+* Copyright (c) 2020 Red Hat Inc. and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -21,7 +21,6 @@ import java.util.List;
  * reference to where the value was assigned
  *
  * @author datho7561
- * @see <a href="https://github.com/eclipse/lsp4mp/blob/master/microprofile.jdt/org.eclipse.lsp4mp.jdt.core/src/main/java/org/eclipse/lsp4mp/jdt/core/project/MicroProfileConfigPropertyInformation.java">https://github.com/eclipse/lsp4mp/blob/master/microprofile.jdt/org.eclipse.lsp4mp.jdt.core/src/main/java/org/eclipse/lsp4mp/jdt/core/project/MicroProfileConfigPropertyInformation.java</a>
  */
 public class MicroProfileConfigPropertyInformation {
 
@@ -30,6 +29,7 @@ public class MicroProfileConfigPropertyInformation {
 	private final String propertyNameWithProfile;
 	private final String value;
 	private final String configFileName;
+	private final String sourceConfigFileURI;
 	private String profile;
 	private String property;
 
@@ -38,13 +38,17 @@ public class MicroProfileConfigPropertyInformation {
 	 * @param propertyNameWithProfile the property and profile, in the format used
 	 *                                by microprofile-config.properties
 	 * @param value                   the value of the property for this profile
+	 * @param sourceConfigFileURI the source of the file.
 	 * @param configFileName          the name of the file where the value for this
 	 *                                property was declared, or null if the value
 	 *                                was not declared in a file
 	 */
-	public MicroProfileConfigPropertyInformation(String propertyNameWithProfile, String value, String configFileName) {
+	public MicroProfileConfigPropertyInformation(String propertyNameWithProfile, String value,
+			String sourceConfigFileURI,
+			String configFileName) {
 		this.propertyNameWithProfile = propertyNameWithProfile;
 		this.value = value;
+		this.sourceConfigFileURI = sourceConfigFileURI;
 		this.configFileName = configFileName;
 		this.profile = null;
 		this.property = null;
@@ -111,6 +115,10 @@ public class MicroProfileConfigPropertyInformation {
 		return this.configFileName;
 	}
 
+	public String getSourceConfigFileURI() {
+		return this.sourceConfigFileURI;
+	}
+
 	/**
 	 * Returns the property name with any profile information removed
 	 *
@@ -132,10 +140,12 @@ public class MicroProfileConfigPropertyInformation {
 	/**
 	 * Returns a list of segments of the property name
 	 *
-	 * @param propertyNameWithProfile the property and profile in the format used in microprofile-config.properties
+	 * @param propertyNameWithProfile the property and profile in the format used in
+	 *                                microprofile-config.properties
 	 * @return
 	 */
 	public static List<String> getSegments(String propertyNameWithProfile) {
 		return Arrays.asList(propertyNameWithProfile.split("\\."));
 	}
+
 }
