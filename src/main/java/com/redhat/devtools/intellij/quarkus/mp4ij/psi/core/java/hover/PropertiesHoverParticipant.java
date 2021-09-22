@@ -56,9 +56,9 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 
 	private final String annotationName;
 
-	private final String annotationMemberName;
-
 	private final String defaultValueAnnotationMemberName;
+
+	private final String [] annotationMembers;
 
 	public PropertiesHoverParticipant(String annotationName, String annotationMemberName) {
 		this(annotationName, annotationMemberName, null);
@@ -66,7 +66,7 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 
 	/**
 	 * The definition participant constructor.
-	 * 
+	 *
 	 * @param annotationName                   the annotation name (ex :
 	 *                                         org.eclipse.microprofile.config.inject.ConfigProperty)
 	 * @param annotationMemberName             the annotation member name (ex :
@@ -75,9 +75,25 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 	 *                                         default value and null otherwise.
 	 */
 	public PropertiesHoverParticipant(String annotationName, String annotationMemberName,
-			String defaultValueAnnotationMemberName) {
+									  String defaultValueAnnotationMemberName) {
+		this(annotationName, new String [] { annotationMemberName }, defaultValueAnnotationMemberName);
+	}
+
+	/**
+	 * The definition participant constructor.
+	 *
+	 * @param annotationName                   the annotation name (ex :
+	 *                                         io.quarkus.scheduler.Scheduled)
+	 * @param annotationMembers                a list of annotation members (ex :
+	 *                                         cron, every, etc.
+	 * @param defaultValueAnnotationMemberName the annotation member name for
+	 *                                         default value and null otherwise.
+	 *
+	 */
+	public PropertiesHoverParticipant(String annotationName, String [] annotationMembers,
+									  String defaultValueAnnotationMemberName) {
 		this.annotationName = annotationName;
-		this.annotationMemberName = annotationMemberName;
+		this.annotationMembers = annotationMembers;
 		this.defaultValueAnnotationMemberName = defaultValueAnnotationMemberName;
 	}
 
@@ -108,18 +124,25 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 		}
 
 		String annotationSource = annotation.getText();
-		String propertyKey = getAnnotationMemberValue(annotation, annotationMemberName);
+		String propertyKey = null;
+		Range propertyKeyRange = null;
+		boolean found = false;
+		for (String annotationMemberName : annotationMembers) {
+			propertyKey = getAnnotationMemberValue(annotation, annotationMemberName);
+			if (propertyKey != null) {
+				TextRange r = annotation.getTextRange();
+				int offset = annotationSource.indexOf(propertyKey);
+				propertyKeyRange = utils.toRange(typeRoot, r.getStartOffset() + offset, propertyKey.length());
 
-		if (propertyKey == null) {
-			return null;
+				if (!hoverPosition.equals(propertyKeyRange.getEnd())
+						&& Ranges.containsPosition(propertyKeyRange, hoverPosition)) {
+					found = true;
+					break;
+				}
+			}
 		}
 
-		TextRange r = annotation.getTextRange();
-		int offset = annotationSource.indexOf(propertyKey);
-		final Range propertyKeyRange = utils.toRange(typeRoot, r.getStartOffset() + offset, propertyKey.length());
-
-		if (hoverPosition.equals(propertyKeyRange.getEnd())
-				|| !Ranges.containsPosition(propertyKeyRange, hoverPosition)) {
+		if (!found) {
 			return null;
 		}
 
@@ -128,6 +151,9 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 		if (javaProject == null) {
 			return null;
 		}
+
+		// property references may be surrounded by curly braces in Java file
+		propertyKey = propertyKey.replace("{", "").replace("}", "");
 
 		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance()
 				.getJDTMicroProfileProject(javaProject);
