@@ -11,22 +11,28 @@ package com.redhat.devtools.intellij.quarkus.search.providers;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiArrayInitializerMemberValue;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiNameValuePair;
 import com.redhat.devtools.intellij.quarkus.search.SearchContext;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4mp.commons.metadata.ItemHint;
 import org.eclipse.lsp4mp.commons.metadata.ValueHint;
 
 import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils.isMatchAnnotation;
+import static com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils.getSourceField;
 import static com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils.getSourceMethod;
 import static com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils.getSourceType;
 import static com.redhat.devtools.intellij.quarkus.search.core.utils.PsiTypeUtils.isBinary;
+import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileReactiveMessagingConstants.CHANNEL_ANNOTATION;
 import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileReactiveMessagingConstants.CONNECTOR_ANNOTATION;
 import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileReactiveMessagingConstants.CONNECTOR_ATTRIBUTES_ANNOTATION;
 import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileReactiveMessagingConstants.CONNECTOR_ATTRIBUTE_ANNOTATION;
+import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileReactiveMessagingConstants.EMITTER_CLASS;
 import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileReactiveMessagingConstants.INCOMING_ANNOTATION;
 import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileReactiveMessagingConstants.OUTGOING_ANNOTATION;
 
@@ -92,7 +98,8 @@ import static com.redhat.devtools.intellij.quarkus.search.providers.MicroProfile
  */
 public class MicroProfileReactiveMessageProvider extends AbstractAnnotationTypeReferencePropertiesProvider {
 
-	private static final String[] ANNOTATION_NAMES = { CONNECTOR_ANNOTATION, INCOMING_ANNOTATION, OUTGOING_ANNOTATION };
+	private static final String[] ANNOTATION_NAMES = { CONNECTOR_ANNOTATION, INCOMING_ANNOTATION, OUTGOING_ANNOTATION,
+	CHANNEL_ANNOTATION};
 
 	private static enum Direction {
 		INCOMING, OUTGOING, INCOMING_AND_OUTGOING;
@@ -133,6 +140,14 @@ public class MicroProfileReactiveMessageProvider extends AbstractAnnotationTypeR
 				// public double process(int priceInUsd) {
 				processIncomingChannel(psiElement, mprmAnnotation, context);
 				break;
+			case CHANNEL_ANNOTATION:
+				// @Inject
+				// @Channel("prices")
+				// Emitter<double> pricesEmitter;
+				if (isAnnotatingEmitterObject(psiElement)) {
+					processOutgoingChannel(psiElement, mprmAnnotation, context);
+				}
+				break;
 			case OUTGOING_ANNOTATION:
 				// public class PriceConverter {
 				// @Outgoing("my-data-stream")
@@ -142,6 +157,18 @@ public class MicroProfileReactiveMessageProvider extends AbstractAnnotationTypeR
 			default:
 				break;
 		}
+	}
+
+	private static boolean isAnnotatingEmitterObject(PsiElement element) {
+		if (!(element instanceof PsiField)) {
+			return false;
+		}
+		PsiField field = (PsiField) element;
+		String typeSignature = PsiTypeUtils.getResolvedTypeName(field);
+		if (typeSignature == null) {
+			return false;
+		}
+		return typeSignature.startsWith(EMITTER_CLASS);
 	}
 
 	/**
@@ -190,15 +217,19 @@ public class MicroProfileReactiveMessageProvider extends AbstractAnnotationTypeR
 		}
 		String sourceType = getSourceType(javaElement);
 		String sourceMethod = null;
+		String sourceField = null;
 		if (javaElement instanceof PsiMethod) {
 			PsiMethod method = (PsiMethod) javaElement;
 			sourceMethod = getSourceMethod(method);
+		} else if (javaElement instanceof PsiField) {
+			PsiField field = (PsiField) javaElement;
+			sourceField = getSourceField(field);
 		}
 		boolean binary = isBinary(javaElement);
 		String description = null;
 		String type = "org.eclipse.microprofile.reactive.messaging.spi.Connector";
-		addMpMessagingItem(channelName, false, "connector", messageType, sourceType, sourceMethod, binary, type,
-				description, null, context);
+		addMpMessagingItem(channelName, false, "connector", messageType, sourceType, sourceField,
+				sourceMethod, binary, type, description, null, context);
 	}
 
 	/**
@@ -267,34 +298,35 @@ public class MicroProfileReactiveMessageProvider extends AbstractAnnotationTypeR
 			case INCOMING:
 				// Generate mp.messaging.incoming.${connector-name}.[attribute]
 				// ex : mp.messaging.incoming.${smallrye-kafka}.topic
-				addMpMessagingItem(connectorName, true, attributeName, MessageType.INCOMING, sourceType, null, binary, type,
-						description, defaultValue, context);
+				addMpMessagingItem(connectorName, true, attributeName, MessageType.INCOMING, sourceType,
+						null, null, binary, type, description, defaultValue, context);
 				break;
 			case OUTGOING:
 				// Generate mp.messaging.outgoing.${connector-name}.[attribute]
-				addMpMessagingItem(connectorName, true, attributeName, MessageType.OUTGOING, sourceType, null, binary, type,
-						description, defaultValue, context);
+				addMpMessagingItem(connectorName, true, attributeName, MessageType.OUTGOING, sourceType,
+						null, null, binary, type, description, defaultValue, context);
 				break;
 			case INCOMING_AND_OUTGOING:
 				// Generate mp.messaging.incoming.${connector-name}.[attribute]
-				addMpMessagingItem(connectorName, true, attributeName, MessageType.INCOMING, sourceType, null, binary, type,
-						description, defaultValue, context);
+				addMpMessagingItem(connectorName, true, attributeName, MessageType.INCOMING, sourceType,
+						null, null, binary, type, description, defaultValue, context);
 				// Generate mp.messaging.outgoing.${connector-name}.[attribute]
-				addMpMessagingItem(connectorName, true, attributeName, MessageType.OUTGOING, sourceType, null, binary, type,
-						description, defaultValue, context);
+				addMpMessagingItem(connectorName, true, attributeName, MessageType.OUTGOING, sourceType,
+						null, null, binary, type, description, defaultValue, context);
 				break;
 		}
 		// Generate mp.messaging.connector.[connector-name].[attribute]
-		addMpMessagingItem(connectorName, false, attributeName, MessageType.CONNECTOR, sourceType, null, binary, type,
-				description, defaultValue, context);
+		addMpMessagingItem(connectorName, false, attributeName, MessageType.CONNECTOR, sourceType,
+				null,null, binary, type, description, defaultValue, context);
 	}
 
 	private void addMpMessagingItem(String connectorOrChannelName, boolean dynamic, String attributeName,
-									MessageType messageType, String sourceType, String sourceMethod, boolean binary, String type,
-									String description, String defaultValue, SearchContext context) {
+									MessageType messageType, String sourceType, String sourceField, String sourceMethod,
+									boolean binary, String type, String description, String defaultValue,
+									SearchContext context) {
 		String propertyName = getMPMessagingName(messageType, dynamic, connectorOrChannelName, attributeName);
-		super.addItemMetadata(context.getCollector(), propertyName, type, description, sourceType, null, sourceMethod,
-				defaultValue, null, binary);
+		super.addItemMetadata(context.getCollector(), propertyName, type, description, sourceType, sourceField,
+				sourceMethod, defaultValue, null, binary);
 	}
 
 	/**
