@@ -17,6 +17,8 @@ import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationU
 import static com.redhat.devtools.intellij.quarkus.search.core.utils.AnnotationUtils.getAnnotationMemberValue;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.TextRange;
@@ -131,13 +133,17 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 			propertyKey = getAnnotationMemberValue(annotation, annotationMemberName);
 			if (propertyKey != null) {
 				TextRange r = annotation.getTextRange();
-				int offset = annotationSource.indexOf(propertyKey);
-				propertyKeyRange = utils.toRange(typeRoot, r.getStartOffset() + offset, propertyKey.length());
+				Pattern memberPattern = Pattern.compile(".*[^\"]\\s*(" + annotationMemberName + ")\\s*=.*", Pattern.DOTALL);
+				Matcher match = memberPattern.matcher(annotationSource);
+				if (match.matches()) {
+					int offset = annotationSource.indexOf(propertyKey);
+					propertyKeyRange = utils.toRange(typeRoot, r.getStartOffset() + offset, propertyKey.length());
 
-				if (!hoverPosition.equals(propertyKeyRange.getEnd())
-						&& Ranges.containsPosition(propertyKeyRange, hoverPosition)) {
-					found = true;
-					break;
+					if (!hoverPosition.equals(propertyKeyRange.getEnd())
+							&& Ranges.containsPosition(propertyKeyRange, hoverPosition)) {
+						found = true;
+						break;
+					}
 				}
 			}
 		}
