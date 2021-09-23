@@ -16,6 +16,9 @@ import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaEr
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Hover;
@@ -34,6 +37,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDefinitionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
@@ -114,6 +118,37 @@ public class MicroProfileForJavaAssert {
 		textEdit.setNewText(newText);
 		textEdit.setRange(r(startLine, startCharacter, endLine, endCharacter));
 		return textEdit;
+	}
+
+	// ------------------- Assert for Completion
+
+	public static void assertJavaCompletion(MicroProfileJavaCompletionParams params, IPsiUtils utils,
+											CompletionItem... expected) {
+		CompletionList actual = PropertiesManagerForJava.getInstance().completion(params, utils);
+		assertCompletion(actual != null && actual.getItems() != null && actual.getItems().size() > 0 ? actual.getItems() : Collections.emptyList(), expected);
+	}
+
+	public static void assertCompletion(List<? extends CompletionItem> actual, CompletionItem... expected) {
+		actual.stream().forEach(completionItem -> {
+			completionItem.setDetail(null);
+			completionItem.setFilterText(null);
+			completionItem.setDocumentation((String) null);
+		});
+
+		Assert.assertEquals(expected.length, actual.size());
+		for (int i = 0; i < expected.length; i++) {
+			Assert.assertEquals("Assert TextEdit [" + i + "]", expected[i].getTextEdit(), actual.get(i).getTextEdit());
+			Assert.assertEquals("Assert label [" + i + "]", expected[i].getLabel(), actual.get(i).getLabel());
+			Assert.assertEquals("Assert Kind [" + i + "]", expected[i].getKind(), actual.get(i).getKind());
+		}
+	}
+
+	public static CompletionItem c(TextEdit textEdit, String label, CompletionItemKind kind) {
+		CompletionItem completionItem = new CompletionItem();
+		completionItem.setTextEdit(Either.forLeft(textEdit));
+		completionItem.setKind(kind);
+		completionItem.setLabel(label);
+		return completionItem;
 	}
 
 	// Assert for diagnostics

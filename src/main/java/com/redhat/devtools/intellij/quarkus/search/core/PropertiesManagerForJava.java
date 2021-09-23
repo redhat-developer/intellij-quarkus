@@ -26,6 +26,8 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.redhat.devtools.intellij.quarkus.mp4ij.psi.core.java.completion.IJavaCompletionParticipant;
+import com.redhat.devtools.intellij.quarkus.mp4ij.psi.core.java.completion.JavaCompletionContext;
 import com.redhat.devtools.intellij.quarkus.mp4ij.psi.core.java.definition.IJavaDefinitionParticipant;
 import com.redhat.devtools.intellij.quarkus.mp4ij.psi.core.java.definition.JavaDefinitionContext;
 import com.redhat.devtools.intellij.quarkus.search.core.utils.IPsiUtils;
@@ -34,10 +36,13 @@ import com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.JavaDia
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.quarkus.search.core.java.hover.JavaHoverContext;
 import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.JavaFileInfo;
 import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDefinitionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaFileInfoParams;
@@ -92,6 +97,59 @@ public class PropertiesManagerForJava {
                 return fileInfo;
             }
             return null;
+        });
+    }
+
+    /**
+     * Returns the CompletionItems given the completion item params
+     *
+     * @param params  the completion item params
+     * @param utils   the IJDTUtils
+     * @return the CompletionItems for the given the completion item params
+     */
+    public CompletionList completion(MicroProfileJavaCompletionParams params, IPsiUtils utils) {
+        return ApplicationManager.getApplication().runReadAction((Computable<CompletionList>) () -> {
+            try {
+                String uri = params.getUri();
+                PsiFile typeRoot = resolveTypeRoot(uri, utils);
+                if (typeRoot == null) {
+                    return null;
+                }
+
+                Module module = utils.getModule(uri);
+                if (module == null) {
+                    return null;
+                }
+
+                Position completionPosition = params.getPosition();
+                int completionOffset = utils.toOffset(typeRoot, completionPosition.getLine(),
+                        completionPosition.getCharacter());
+
+                List<CompletionItem> completionItems = new ArrayList<>();
+                JavaCompletionContext completionContext = new JavaCompletionContext(uri, typeRoot, utils, module, completionOffset);
+
+                List<IJavaCompletionParticipant> completions = IJavaCompletionParticipant.EP_NAME.extensions()
+                        .filter(completion -> completion.isAdaptedForCompletion(completionContext))
+                        .collect(Collectors.toList());
+
+                if (completions.isEmpty()) {
+                    return null;
+                }
+
+                completions.forEach(completion -> {
+                    List<? extends CompletionItem> collectedCompletionItems = completion.collectCompletionItems(completionContext);
+                    if (collectedCompletionItems != null) {
+                        completionItems.addAll(collectedCompletionItems);
+                    }
+                });
+
+                CompletionList completionList = new CompletionList();
+                completionList.setItems(completionItems);
+                return completionList;
+            } catch (IOException e) {
+                LOGGER.warn(e.getLocalizedMessage(), e);
+                return null;
+            }
         });
     }
 

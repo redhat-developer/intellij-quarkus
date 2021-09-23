@@ -39,7 +39,11 @@ public class LSCompletionProposal extends LSIncompleteCompletionProposal {
             if (!documentFilter.isEmpty()) {
                 return CompletionProposalTools.isSubstringFoundOrderedInString(documentFilter, getFilterString());
             } else if (item.getTextEdit() != null) {
-                return offset == LSPIJUtils.toOffset(item.getTextEdit().getRange().getStart(), document);
+                if (item.getTextEdit().isLeft()) {
+                    return offset == LSPIJUtils.toOffset(item.getTextEdit().getLeft().getRange().getStart(), document);
+                } else {
+                    return offset == LSPIJUtils.toOffset(item.getTextEdit().getRight().getInsert().getStart(), document);
+                }
             }
         } catch (IndexOutOfBoundsException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);

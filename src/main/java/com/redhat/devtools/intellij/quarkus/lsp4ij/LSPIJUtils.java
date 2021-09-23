@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.WorkspaceFolder;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -205,5 +206,17 @@ public class LSPIJUtils {
 
     public static void applyEdits(Editor editor, Document document, List<TextEdit> edits) {
         ApplicationManager.getApplication().runWriteAction(() -> edits.forEach(edit -> applyEdit(editor, edit, document)));
+    }
+
+    public static boolean hasCapability(Either<Boolean, ? extends Object> eitherCapability) {
+        if(eitherCapability != null) {
+            if (eitherCapability.isLeft()) {
+                return eitherCapability.getLeft();
+            } else {
+                return eitherCapability.getRight() != null;
+            }
+        } else {
+            return false;
+        }
     }
 }

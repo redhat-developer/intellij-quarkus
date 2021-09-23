@@ -8,7 +8,7 @@ import javax.ws.rs.core.MediaType;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 
 @Path("/fault-tolerant")
-public class FaultTolerantResource {
+public class OtherFaultToleranceResource {
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
@@ -21,6 +21,28 @@ public class FaultTolerantResource {
     @Produces(MediaType.TEXT_PLAIN)
     @Fallback(fallbackMethod = )
     public String hi() {
+        return "hello";
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Fallback(fallbackMethod = "")
+    public String third() {
+        return "hello";
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Fallback(fallbackMethod="")
+    public String fourth() {
+        return "hello";
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Fallback(fallbackMethod =
+        "")
+    public String fifth() {
         return "hello";
     }
 
