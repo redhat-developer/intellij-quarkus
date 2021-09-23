@@ -165,4 +165,9 @@ public class PsiUtilsImpl implements IPsiUtils {
     public static String getProjectURI(Module module) {
         return module.getModuleFilePath();
     }
+
+    @Override
+    public String toUri(PsiFile typeRoot) {
+        return VfsUtil.toUri(typeRoot.getVirtualFile().getUrl()).toString();
+    }
 }

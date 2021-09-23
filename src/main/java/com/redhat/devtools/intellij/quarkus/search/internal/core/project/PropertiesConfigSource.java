@@ -10,9 +10,12 @@
 package com.redhat.devtools.intellij.quarkus.search.internal.core.project;
 
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.quarkus.search.core.project.MicroProfileConfigPropertyInformation;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -40,4 +43,22 @@ public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 		return properties;
 	}
 
+	@Override
+	public Map<String, MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey,
+																					  Properties properties) {
+		Map<String, MicroProfileConfigPropertyInformation> infos = new HashMap<>();
+		if (properties != null) {
+			properties.stringPropertyNames().stream() //
+					.filter(key -> {
+						return propertyKey
+								.equals(MicroProfileConfigPropertyInformation.getPropertyNameWithoutProfile(key))
+								&& getProperty(key) != null;
+					}) //
+					.forEach(matchingKey -> {
+						infos.put(matchingKey, new MicroProfileConfigPropertyInformation(matchingKey,
+								getProperty(matchingKey), getSourceConfigFileURI(), getConfigFileName()));
+					});
+		}
+		return infos;
+	}
 }

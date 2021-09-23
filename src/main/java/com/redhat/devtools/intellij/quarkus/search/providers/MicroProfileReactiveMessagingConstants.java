@@ -35,6 +35,10 @@ public class MicroProfileReactiveMessagingConstants {
 
 	public static final String OUTGOING_ANNOTATION = "org.eclipse.microprofile.reactive.messaging.Outgoing";
 
+	public static final String CHANNEL_ANNOTATION = "org.eclipse.microprofile.reactive.messaging.Channel";
+
+	public static final String EMITTER_CLASS = "org.eclipse.microprofile.reactive.messaging.Emitter";
+
 	// smallrye
 	// See
 	// https://github.com/smallrye/smallrye-reactive-messaging/blob/master/api/src/main/java/io/smallrye/reactive/messaging/annotations

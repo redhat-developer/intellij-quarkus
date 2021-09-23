@@ -107,6 +107,7 @@ task integrationTest(type: Test) {
 
 tasks.withType(Test) {
     environment 'GRADLE_RELEASE_REPOSITORY','https://services.gradle.org/distributions'
+    systemProperty 'idea.log.leaked.projects.in.tests', 'false'
 }
 
 dependencies {
@@ -117,14 +118,14 @@ dependencies {
     compile 'io.quarkus:quarkus-core:1.5.0.Final'
     compile 'io.quarkus:quarkus-core-deployment:1.5.0.Final'
     compile 'io.quarkus:quarkus-arc:1.5.0.Final'
-    compile 'org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.1.0'
-    compile 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.8.1'
+    compile 'org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.3.0'
+    compile 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.11.0'
     compile 'com.vladsch.flexmark:flexmark:0.50.50'
     integrationTestImplementation("com.intellij.remoterobot:remote-robot:$remoteRobotVersion")
     integrationTestImplementation("com.intellij.remoterobot:remote-fixtures:$fixturesVersion")
     integrationTestImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     integrationTestRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
-    lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.2.1:uber') {
+    lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.3.0:uber') {
         transitive = false
     }
     lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.10.0') {
@@ -144,6 +145,7 @@ task copyDeps(type: Copy) {
 
 runIde {
     systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'debug'
+    systemProperties['com.redhat.devtools.intellij.quarkus.trace'] = 'true'
 }
 
 runIdeForUiTests {

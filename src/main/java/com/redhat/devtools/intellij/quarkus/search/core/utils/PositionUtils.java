@@ -13,6 +13,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
 import org.eclipse.lsp4j.Range;
 
 /**
@@ -27,7 +28,7 @@ public class PositionUtils {
 	/**
 	 * Returns the LSP range for the given field name.
 	 * 
-	 * @param field teh java field.
+	 * @param field the java field.
 	 * @param utils the JDT utilities.
 	 * @return the LSP range for the given field name.
 	 */
@@ -37,9 +38,31 @@ public class PositionUtils {
 		return utils.toRange(openable, sourceRange.getStartOffset(), sourceRange.getLength());
 	}
 
+	/**
+	 * Returns the LSP range for the given type name.
+	 *
+	 * @param type  the java type.
+	 * @param utils the JDT utilities.
+	 * @return the LSP range for the given type name.
+	 */
 	public static Range toNameRange(PsiClass type, IPsiUtils utils) {
 		PsiFile openable = type.getContainingFile();
 		TextRange sourceRange = type.getNameIdentifier().getTextRange();
 		return utils.toRange(openable, sourceRange.getStartOffset(), sourceRange.getLength());
 	}
+
+	/**
+	 * Returns the LSP range for the given method name.
+	 *
+	 * @param method the java type.
+	 * @param utils  the JDT utilities.
+	 * @return the LSP range for the given method name.
+	 * @throws JavaModelException
+	 */
+	public static Range toNameRange(PsiMethod method, IPsiUtils utils) {
+		PsiFile openable = method.getContainingFile();
+		TextRange sourceRange = method.getNameIdentifier().getTextRange();
+		return utils.toRange(openable, sourceRange.getStartOffset(), sourceRange.getLength());
+	}
+
 }

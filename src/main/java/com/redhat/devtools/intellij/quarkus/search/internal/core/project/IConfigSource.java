@@ -9,6 +9,11 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.search.internal.core.project;
 
+import com.redhat.devtools.intellij.quarkus.search.core.project.MicroProfileConfigPropertyInformation;
+
+import java.io.File;
+import java.util.Map;
+
 /**
  * Configuration file API
  * 
@@ -35,4 +40,35 @@ public interface IConfigSource {
 	 *         otherwise.
 	 */
 	Integer getPropertyAsInt(String key);
+
+	/**
+	 * Returns the file name of the associated config file
+	 *
+	 * @return the file name of the associated config file
+	 */
+	String getConfigFileName();
+
+	/**
+	 * Returns the source file URI of the associated config file
+	 *
+	 * @return the source file URI of the associated config file
+	 */
+	String getSourceConfigFileURI();
+
+	/**
+	 * Returns a map from the property and profile, in the format used by
+	 * <code>microprofile-config.properties</code>, to the related property
+	 * information, for each property and profile that's assigned a value in this
+	 * config source
+	 *
+	 * A map is used so that it can be merged with another map and override any
+	 * property informations from that map
+	 *
+	 * @param propertyKey the name of the property to collect the values for
+	 * @return a map from the property and profile, in the format used by
+	 *         <code>microprofile-config.properties</code>, to the related property
+	 *         information, for each property and profile that's assigned a value in
+	 *         this config source
+	 */
+	Map<String, MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey);
 }

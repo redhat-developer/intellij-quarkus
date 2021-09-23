@@ -59,7 +59,7 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
                 DefinitionParams parms = new DefinitionParams(new TextDocumentIdentifier(uri.toString()), LSPIJUtils.toPosition(offset, editor.getDocument()));
                 Set<PsiElement> targets = new HashSet<>();
                 try {
-                    LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(editor.getDocument(), capabilities -> capabilities.getDefinitionProvider()).thenComposeAsync(servers ->
+                    LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(editor.getDocument(), capabilities -> LSPIJUtils.hasCapability(capabilities.getDefinitionProvider())).thenComposeAsync(servers ->
 
                         CompletableFuture.allOf(servers.stream().map(server -> server.getTextDocumentService().definition(parms).thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
                         .toArray(CompletableFuture[]::new))).get(1_000, TimeUnit.MILLISECONDS);

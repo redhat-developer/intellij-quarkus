@@ -137,6 +137,8 @@
     <extensionPoint name="javaHoverParticipant" interface="com.redhat.devtools.intellij.quarkus.search.core.java.hover.IJavaHoverParticipant"/>
     <extensionPoint name="javaDiagnosticsParticipant" interface="com.redhat.devtools.intellij.quarkus.search.core.java.diagnostics.IJavaDiagnosticsParticipant"/>
     <extensionPoint name="projectLabelProvider" interface="com.redhat.devtools.intellij.quarkus.search.IProjectLabelProvider"/>
+    <extensionPoint name="javaDefinitionParticipant" interface="com.redhat.devtools.intellij.quarkus.mp4ij.psi.core.java.definition.IJavaDefinitionParticipant"/>
+    <extensionPoint name="javaCompletionParticipant" interface="com.redhat.devtools.intellij.quarkus.mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileConfigPropertyProvider"/>
@@ -155,6 +157,8 @@
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileGraphQLProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileHealthProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileJWTProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.JULPropertyProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.quarkus.search.providers.JBossLogManagerPropertyProvider"/>
 
     <javaHoverParticipant implementation="com.redhat.devtools.intellij.quarkus.search.internal.config.java.MicroProfileConfigHoverParticipant"/>
 
@@ -163,6 +167,11 @@
 
     <projectLabelProvider implementation="com.redhat.devtools.intellij.quarkus.search.internal.core.providers.MicroProfileProjectLabelProvider"/>
     <projectLabelProvider implementation="com.redhat.devtools.intellij.quarkus.search.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
+
+    <javaDefinitionParticipant implementation="com.redhat.devtools.intellij.quarkus.mp4ij.psi.internal.config.java.MicroProfileConfigDefinitionParticipant"/>
+    <javaDefinitionParticipant implementation="com.redhat.devtools.intellij.quarkus.mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceDefinitionParticipant"/>
+
+    <javaCompletionParticipant implementation="com.redhat.devtools.intellij.quarkus.mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceCompletionParticipant"/>
   </extensions>
 
   <application-components>

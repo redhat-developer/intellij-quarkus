@@ -7,8 +7,10 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.gradle;
+package com.redhat.devtools.intellij.quarkus.mp4ij.psi.core.faulttolerance;
 
+import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.quarkus.maven.MavenImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
 import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
 import com.redhat.devtools.intellij.quarkus.search.providers.MicroProfileFaultToleranceConstants;
@@ -16,7 +18,6 @@ import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
-import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -33,23 +34,20 @@ import static com.redhat.devtools.intellij.quarkus.module.MicroProfileAssert.vh;
 /**
  * Test the availability of the MicroProfile Metrics properties
  *
+ * @author David Kwon
+ *
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/faulttolerance/MicroProfileOpenTracingTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/faulttolerance/MicroProfileFaultToleranceTest.java</a>
  *
  */
 @Ignore("Skipped because dependencies on the classpath may not have sources")
-public class GradleMicroProfileFaultToleranceTest extends GradleTestCase {
-
-	@Override
-	public void setUp() throws Exception {
-		super.setUp();
-		FileUtils.copyDirectory(new File("projects/gradle/microprofile-fault-tolerance"), new File(getProjectPath()));
-		importProject();
-	}
+public class MavenMicroProfileFaultTolerancePropertiesTest extends MavenImportingTestCase {
 
 	@Test
-	public void testMicroprofileFaultTolerance() throws Exception {
+	public void testMicroprofileFaultTolerancePropertiesTest() throws Exception {
 
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-fault-tolerance.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.Markdown);
+		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsImpl.getInstance(), DocumentFormat.Markdown);
+
 		assertProperties(infoFromClasspath,
 
 				// <classname>/<annotation>/<parameter>

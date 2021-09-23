@@ -15,7 +15,6 @@ import com.intellij.codeInsight.completion.CompletionInitializationContext;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -26,10 +25,12 @@ import com.redhat.devtools.intellij.quarkus.lsp4ij.command.internal.CommandExecu
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.InsertReplaceEdit;
 import org.eclipse.lsp4j.InsertTextFormat;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -124,8 +125,13 @@ public class LSIncompleteCompletionProposal extends LookupElement {
 
     protected String getInsertText() {
         String insertText = this.item.getInsertText();
-        if (this.item.getTextEdit() != null) {
-            insertText = this.item.getTextEdit().getNewText();
+        Either<TextEdit, InsertReplaceEdit> eitherTextEdit = this.item.getTextEdit();
+        if (eitherTextEdit != null) {
+            if(eitherTextEdit.isLeft()) {
+                insertText = eitherTextEdit.getLeft().getNewText();
+            } else {
+                insertText = eitherTextEdit.getRight().getNewText();
+            }
         }
         if (insertText == null) {
             insertText = this.item.getLabel();
@@ -134,11 +140,20 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     }
 
     public int getPrefixCompletionStart(Document document, int completionOffset) {
-        if (this.item.getTextEdit() != null) {
-            try {
-                return LSPIJUtils.toOffset(this.item.getTextEdit().getRange().getStart(), document);
-            } catch (RuntimeException e) {
-                LOGGER.warn(e.getLocalizedMessage(), e);
+        Either<TextEdit, InsertReplaceEdit> textEdit = this.item.getTextEdit();
+        if (textEdit != null) {
+            if (textEdit.isLeft()) {
+                try {
+                    return LSPIJUtils.toOffset(this.item.getTextEdit().getLeft().getRange().getStart(), document);
+                } catch (RuntimeException e) {
+                    LOGGER.warn(e.getLocalizedMessage(), e);
+                }
+            } else {
+                try {
+                    return LSPIJUtils.toOffset(this.item.getTextEdit().getRight().getInsert().getStart(), document);
+                } catch (RuntimeException e) {
+                    LOGGER.warn(e.getLocalizedMessage(), e);
+                }
             }
         }
         String insertText = getInsertText();
@@ -183,7 +198,17 @@ public class LSIncompleteCompletionProposal extends LookupElement {
 
     protected void apply(Document document, char trigger, int stateMask, int offset) {
         String insertText = null;
-        TextEdit textEdit = item.getTextEdit();
+        Either<TextEdit, InsertReplaceEdit> eitherTextEdit = item.getTextEdit();
+        TextEdit textEdit = null;
+        if (eitherTextEdit != null) {
+            if(eitherTextEdit.isLeft()) {
+                textEdit = eitherTextEdit.getLeft();
+            } else {
+                // trick to partially support the new InsertReplaceEdit from LSP 3.16. Reuse previously code for TextEdit.
+                InsertReplaceEdit insertReplaceEdit = eitherTextEdit.getRight();
+                textEdit = new TextEdit(insertReplaceEdit.getInsert(), insertReplaceEdit.getNewText());
+            }
+        }
         try {
             if (textEdit == null) {
                 insertText = getInsertText();
@@ -342,13 +367,13 @@ public class LSIncompleteCompletionProposal extends LookupElement {
             case TM_DIRECTORY:
                 return LSPIJUtils.getFile(document).getParent().getPath();
             case TM_LINE_INDEX:
-                int lineIndex = item.getTextEdit().getRange().getStart().getLine();
+                int lineIndex = getTextEditRange().getStart().getLine();
                 return Integer.toString(lineIndex);
             case TM_LINE_NUMBER:
-                int lineNumber = item.getTextEdit().getRange().getStart().getLine();
+                int lineNumber = getTextEditRange().getStart().getLine();
                 return Integer.toString(lineNumber + 1);
             case TM_CURRENT_LINE:
-                int currentLineIndex = item.getTextEdit().getRange().getStart().getLine();
+                int currentLineIndex = getTextEditRange().getStart().getLine();
                 try {
                     int lineOffsetStart = document.getLineStartOffset(currentLineIndex);
                     int lineOffsetEnd = document.getLineEndOffset(currentLineIndex);
@@ -359,7 +384,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
                     return ""; //$NON-NLS-1$
                 }
             case TM_SELECTED_TEXT:
-                Range selectedRange = item.getTextEdit().getRange();
+                Range selectedRange = getTextEditRange();
                 try {
                     int startOffset = LSPIJUtils.toOffset(selectedRange.getStart(), document);
                     int endOffset = LSPIJUtils.toOffset(selectedRange.getEnd(), document);
@@ -373,6 +398,15 @@ public class LSIncompleteCompletionProposal extends LookupElement {
                 return ""; //$NON-NLS-1$
             default:
                 return null;
+        }
+    }
+
+    private Range getTextEditRange() {
+        if (item.getTextEdit().isLeft()) {
+            return item.getTextEdit().getLeft().getRange();
+        } else {
+            // here providing insert range, currently do not know if insert or replace is requested
+            return item.getTextEdit().getRight().getInsert();
         }
     }
 

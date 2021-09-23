@@ -10,10 +10,14 @@
 package com.redhat.devtools.intellij.quarkus.search.internal.core.project;
 
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.quarkus.search.core.project.MicroProfileConfigPropertyInformation;
+import com.redhat.devtools.intellij.quarkus.search.core.utils.YamlUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -68,4 +72,40 @@ public class YamlConfigSource extends AbstractConfigSource<Map<String, Object>> 
 		return String.valueOf(value);
 	}
 
+	@Override
+	public Map<String, MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey,
+																					  Map<String, Object> config) {
+
+		Map<String, MicroProfileConfigPropertyInformation> result = new HashMap<>();
+
+		if (config == null) {
+			return result;
+		}
+
+		final List<String> segments = MicroProfileConfigPropertyInformation.getSegments(propertyKey);
+		if (segments.size() < 1) {
+			return result;
+		}
+
+		for (String key : config.keySet()) {
+			if (key.equals(segments.get(0))) {
+				String value = YamlUtils.getValueRecursively(segments, config);
+				if (value != null) {
+					result.put(propertyKey,
+							new MicroProfileConfigPropertyInformation(propertyKey, value, getSourceConfigFileURI(), getConfigFileName()));
+				}
+			} else if (key.charAt(0) == '%') {
+				if (config.get(key) instanceof Map) {
+					String value = YamlUtils.getValueRecursively(segments, config.get(key));
+					if (value != null) {
+						String propertyAndProfile = key + "." + propertyKey;
+						result.put(propertyAndProfile, new MicroProfileConfigPropertyInformation(propertyAndProfile,
+								value, getSourceConfigFileURI(), getConfigFileName()));
+					}
+				}
+			}
+		}
+
+		return result;
+	}
 }

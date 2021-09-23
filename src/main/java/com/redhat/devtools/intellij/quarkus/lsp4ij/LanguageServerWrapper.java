@@ -34,8 +34,10 @@ import org.eclipse.lsp4j.CompletionCapabilities;
 import org.eclipse.lsp4j.CompletionItemCapabilities;
 import org.eclipse.lsp4j.DefinitionCapabilities;
 import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
+import org.eclipse.lsp4j.DocumentFormattingOptions;
 import org.eclipse.lsp4j.DocumentHighlightCapabilities;
 import org.eclipse.lsp4j.DocumentLinkCapabilities;
+import org.eclipse.lsp4j.DocumentRangeFormattingOptions;
 import org.eclipse.lsp4j.DocumentSymbolCapabilities;
 import org.eclipse.lsp4j.ExecuteCommandCapabilities;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
@@ -734,13 +736,23 @@ public class LanguageServerWrapper {
                     registerCommands(newCommands);
                 }
             } else if ("textDocument/formatting".equals(reg.getMethod())) { //$NON-NLS-1$
-                final Boolean beforeRegistration = serverCapabilities.getDocumentFormattingProvider();
-                serverCapabilities.setDocumentFormattingProvider(Boolean.TRUE);
-                addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(beforeRegistration));
+                final Either<Boolean, DocumentFormattingOptions> documentFormattingProvider  = serverCapabilities.getDocumentFormattingProvider();
+                if (documentFormattingProvider == null || documentFormattingProvider.isLeft()) {
+                    serverCapabilities.setDocumentFormattingProvider(Boolean.TRUE);
+                    addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider ));
+                } else {
+                    serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider.getRight());
+                    addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider ));
+                }
             } else if ("textDocument/rangeFormatting".equals(reg.getMethod())) { //$NON-NLS-1$
-                final Boolean beforeRegistration = serverCapabilities.getDocumentRangeFormattingProvider();
-                serverCapabilities.setDocumentRangeFormattingProvider(Boolean.TRUE);
-                addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(beforeRegistration));
+                final Either<Boolean, DocumentRangeFormattingOptions> documentRangeFormattingProvider  = serverCapabilities.getDocumentRangeFormattingProvider();
+                if (documentRangeFormattingProvider == null || documentRangeFormattingProvider.isLeft()) {
+                    serverCapabilities.setDocumentRangeFormattingProvider(Boolean.TRUE);
+                    addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
+                } else {
+                    serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider.getRight());
+                    addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
+                }
             }
         });
     }

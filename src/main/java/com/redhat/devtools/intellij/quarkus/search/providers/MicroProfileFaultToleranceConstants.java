@@ -36,6 +36,10 @@ public class MicroProfileFaultToleranceConstants {
 
 	public static final String TIMEOUT_ANNOTATION = "org.eclipse.microprofile.faulttolerance.Timeout";
 
+	// MicroProfile Fault Tolerance annotation member keys
+
+	public static final String FALLBACK_METHOD_FALLBACK_ANNOTATION_MEMBER = "fallbackMethod";
+
 	// MP_Fault_Tolerance_NonFallback_Enabled
 
 	public static final String MP_FAULT_TOLERANCE_NON_FALLBACK_ENABLED = "MP_Fault_Tolerance_NonFallback_Enabled";
@@ -57,4 +61,5 @@ public class MicroProfileFaultToleranceConstants {
 			+ //
 			"Any dynamic changes afterwards will be ignored until  the application restarting.";
 
+	public static final String DIAGNOSTIC_SOURCE = "microprofile-faulttolerance";
 }
