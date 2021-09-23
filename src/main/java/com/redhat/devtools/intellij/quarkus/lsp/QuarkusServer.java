@@ -17,7 +17,10 @@ import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.ProcessStreamConnectionProvider;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class QuarkusServer extends ProcessStreamConnectionProvider {
     public QuarkusServer() {
@@ -28,5 +31,32 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         setCommands(Arrays.asList(javaHome + File.separator + "bin" + File.separator + "java", "-jar",
                 lsp4mpServerPath.getAbsolutePath(), "-cp", quarkusServerPath.getAbsolutePath()));
         TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "start").send();
+    }
+
+    @Override
+    public Object getInitializationOptions(URI rootUri) {
+        Map<String, Object> root = new HashMap<>();
+        Map<String, Object> settings = new HashMap<>();
+        Map<String, Object> quarkus = new HashMap<>();
+        Map<String, Object> tools = new HashMap<>();
+        Map<String, Object> trace = new HashMap<>();
+        trace.put("server", "verbose");
+        tools.put("trace", trace);
+        Map<String, Object> codeLens = new HashMap<>();
+        codeLens.put("urlCodeLensEnabled", "true");
+        tools.put("codeLens", codeLens);
+        quarkus.put("tools", tools);
+        settings.put("microprofile", quarkus);
+        root.put("settings", settings);
+        Map<String, Object> extendedClientCapabilities = new HashMap<>();
+        Map<String, Object> commands = new HashMap<>();
+        Map<String, Object> commandsKind = new HashMap<>();
+        commandsKind.put("valueSet", Arrays.asList("microprofile.command.configuration.update", "microprofile.command.open.uri"));
+        commands.put("commandsKind", commandsKind);
+        extendedClientCapabilities.put("commands", commands);
+        extendedClientCapabilities.put("completion", new HashMap<>());
+        extendedClientCapabilities.put("shouldLanguageServerExitOnShutdown", Boolean.TRUE);
+        root.put("extendedClientCapabilities", extendedClientCapabilities);
+        return root;
     }
 }
