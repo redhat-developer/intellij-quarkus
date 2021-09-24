@@ -23,7 +23,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -84,7 +83,7 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
         return ApplicationManager.getApplication().runReadAction((Computable<PsiElement>) () -> {
             PsiElement element = null;
             try {
-                VirtualFile file = PsiUtilsImpl.getInstance().findFile(location.getUri());
+                VirtualFile file = PsiUtilsLSImpl.getInstance().findFile(location.getUri());
                 if (file != null) {
                     PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
                     if (psiFile != null) {

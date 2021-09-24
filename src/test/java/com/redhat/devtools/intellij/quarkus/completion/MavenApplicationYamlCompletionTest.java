@@ -14,7 +14,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ui.UIUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
-import com.redhat.devtools.intellij.quarkus.maven.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenImportingTestCase;
 import org.jetbrains.yaml.schema.YamlJsonSchemaHighlightingInspection;
 import org.junit.Test;
 

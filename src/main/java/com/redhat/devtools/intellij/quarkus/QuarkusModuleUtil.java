@@ -32,7 +32,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -171,7 +171,7 @@ public class QuarkusModuleUtil {
     public static Set<String> getModulesURIs(Project project) {
         Set<String> uris = new HashSet<>();
         for(Module module : ModuleManager.getInstance(project).getModules()) {
-            uris.add(PsiUtilsImpl.getProjectURI(module));
+            uris.add(PsiUtilsLSImpl.getProjectURI(module));
         }
         return uris;
     }

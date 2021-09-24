@@ -16,7 +16,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.quarkus.maven.MavenEditorTest;
+import com.redhat.devtools.intellij.MavenEditorTest;
 import org.junit.Test;
 
 import java.io.File;
