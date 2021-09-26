@@ -31,8 +31,8 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
-import com.redhat.devtools.intellij.quarkus.search.PropertiesManager;
-import com.redhat.devtools.intellij.quarkus.search.PsiUtilsImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
@@ -153,7 +153,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
                 ApplicationManager.getApplication().runWriteAction(() -> {
                     try {
                         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module,
-                                MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.TEST, PsiUtilsImpl.getInstance(),
+                                MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.TEST, PsiUtilsLSImpl.getInstance(),
                                 DocumentFormat.Markdown);
                         String schema = JSONSchemaUtils.toJSONSchema(info, false);
                         VfsUtil.saveText(schemaFile1, schema);
