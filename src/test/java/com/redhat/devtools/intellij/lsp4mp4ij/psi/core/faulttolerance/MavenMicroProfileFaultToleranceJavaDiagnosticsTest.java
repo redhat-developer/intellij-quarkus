@@ -43,8 +43,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
 public class MavenMicroProfileFaultToleranceJavaDiagnosticsTest extends MavenImportingTestCase {
 
 	@Test
-	@Ignore("fault tolerance not yet implemented")
-	public void fallbackMethodsMissing() throws Exception {
+	public void testFallbackMethodsMissing() throws Exception {
 		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance();

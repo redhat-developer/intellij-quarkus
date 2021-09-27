@@ -51,7 +51,6 @@ public class GradleMicroProfileFaultToleranceJavaDiagnosticsTest extends GradleT
 	}
 
 	@Test
-	@Ignore("fault tolerance not yet implemented")
 	public void testFallbackMethodsMissing() throws Exception {
 		Module module = getModule("microprofile-fault-tolerance.main");
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());

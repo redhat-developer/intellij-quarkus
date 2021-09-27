@@ -93,4 +93,8 @@ public class AnnotationUtils {
 		}
 		return value;
 	}
+
+	public static PsiAnnotationMemberValue getAnnotationMemberValueExpression(PsiAnnotation annotation, String memberName) {
+		return annotation.findDeclaredAttributeValue(memberName);
+	}
 }
