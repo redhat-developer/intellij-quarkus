@@ -164,6 +164,7 @@
 
     <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.MicroProfileHealthDiagnosticsParticipant"/>
     <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant"/>
+    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceDiagnosticsParticipant"/>
 
     <projectLabelProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileProjectLabelProvider"/>
     <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
