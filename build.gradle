@@ -15,7 +15,7 @@ def fixturesVersion = "1.1.18"
 
 intellij {
     version = ideaVersion //for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-    plugins = ['java', 'maven', 'gradle-java', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.1.9']
+    plugins = ['java', 'maven', 'gradle-java', 'properties', 'yaml', 'com.redhat.devtools.intellij.telemetry:0.0.2.18']
     pluginName = 'Quarkus Tools'
     updateSinceUntilBuild = false
 }
