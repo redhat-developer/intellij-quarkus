@@ -42,7 +42,7 @@ public class JBossLogManagerPropertyProvider extends AbstractStaticPropertiesPro
 	@Override
 	protected boolean isAdaptedFor(SearchContext context) {
 		// Check if JBoss LogManager exists in classpath
-		Module javaProject = context.getModule();
+		Module javaProject = context.getJavaProject();
 		return PsiTypeUtils.findType(javaProject, JBOSS_LOGMANAGER_LEVEL_CLASS) != null;
 	}
 }

@@ -1,0 +1,15 @@
+{
+	"hints": [
+		{
+			"name": "quarkus.log.category.{*}.level",
+			"providers": [
+				{
+					"name": "handle-as",
+					"parameters": {
+						"target": "java.util.logging.Level"
+					}
+				}
+			]
+		}
+	]
+}

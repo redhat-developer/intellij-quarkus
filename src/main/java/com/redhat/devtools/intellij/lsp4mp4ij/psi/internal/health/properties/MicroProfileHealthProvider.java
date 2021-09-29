@@ -38,7 +38,7 @@ public class MicroProfileHealthProvider extends AbstractStaticPropertiesProvider
     @Override
     protected boolean isAdaptedFor(SearchContext context) {
         // Check if MicroProfile Health exists in classpath
-        Module javaProject = context.getModule();
+        Module javaProject = context.getJavaProject();
         return (PsiTypeUtils.findType(javaProject, LIVENESS_ANNOTATION) != null);
     }
 

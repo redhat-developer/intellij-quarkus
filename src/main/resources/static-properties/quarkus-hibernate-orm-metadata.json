@@ -1,0 +1,29 @@
+{
+	"hints": [
+		{
+			"values": [
+				{
+					"value": "none",
+					"description": "Disable DDL handling."
+				},
+				{
+					"value": "create",
+					"description": "Create the schema and destroy previous data."
+				},
+				{
+					"value": "drop-and-create",
+					"description": "Drop and create the database at startup."
+				},
+				{
+					"value": "drop",
+					"description": "Drop the database."
+				},
+				{
+					"value": "update",
+					"description": "Update the schema if necessary."
+				}
+			],
+			"name": "quarkus.hibernate-orm.database.generation"
+		}
+	]
+}

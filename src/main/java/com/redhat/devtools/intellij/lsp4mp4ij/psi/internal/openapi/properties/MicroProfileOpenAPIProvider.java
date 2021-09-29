@@ -34,7 +34,7 @@ public class MicroProfileOpenAPIProvider extends AbstractStaticPropertiesProvide
 
 	@Override
 	protected boolean isAdaptedFor(SearchContext context) {
-		Module javaProject = context.getModule();
+		Module javaProject = context.getJavaProject();
 		return (PsiTypeUtils.findType(javaProject, OPEN_API_CONFIG) != null);
 	}
 }

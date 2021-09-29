@@ -35,7 +35,7 @@ public class MicroProfileMetricsProvider extends AbstractStaticPropertiesProvide
 
 	@Override
 	protected boolean isAdaptedFor(SearchContext context) {
-		Module javaProject = context.getModule();
+		Module javaProject = context.getJavaProject();
 		return (PsiTypeUtils.findType(javaProject, METRIC_ID) != null);
 	}
 }

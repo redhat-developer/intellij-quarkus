@@ -35,7 +35,7 @@ public class MicroProfileOpenTracingProvider extends AbstractStaticPropertiesPro
 
 	@Override
 	protected boolean isAdaptedFor(SearchContext context) {
-		Module javaProject = context.getModule();
+		Module javaProject = context.getJavaProject();
 		return (PsiTypeUtils.findType(javaProject, TRACED_ANNOTATION) != null);
 	}
 }

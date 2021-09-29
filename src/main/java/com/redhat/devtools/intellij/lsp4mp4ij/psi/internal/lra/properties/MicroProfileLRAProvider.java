@@ -32,7 +32,7 @@ public class MicroProfileLRAProvider extends AbstractStaticPropertiesProvider {
 
 	@Override
 	protected boolean isAdaptedFor(SearchContext context) {
-		Module javaProject = context.getModule();
+		Module javaProject = context.getJavaProject();
 		return (PsiTypeUtils.findType(javaProject, LRA_ANNOTATION) != null);
 	}
 }
