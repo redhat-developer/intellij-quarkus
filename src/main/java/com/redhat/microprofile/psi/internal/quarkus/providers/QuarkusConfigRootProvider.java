@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.psi.internal.quarkus.core.properties;
+package com.redhat.microprofile.psi.internal.quarkus.providers;
 
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.vfs.VirtualFile;

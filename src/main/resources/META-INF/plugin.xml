@@ -141,13 +141,10 @@
     <extensionPoint name="javaCompletionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
+    <!--LSP4MP-->
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertyProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.internal.restclient.properties.MicroProfileRegisterRestClientProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigPropertiesProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigRootProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.kubernetes.properties.QuarkusKubernetesProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider"/>
-
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.contextpropagation.properties.MicroProfileContextPropagationProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.lra.properties.MicroProfileLRAProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.properties.MicroProfileMetricsProvider"/>
@@ -168,12 +165,23 @@
     <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.java.MicroProfileMetricsDiagnosticsParticipant"/>
 
     <projectLabelProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileProjectLabelProvider"/>
-    <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
 
     <javaDefinitionParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigDefinitionParticipant"/>
     <javaDefinitionParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceDefinitionParticipant"/>
 
     <javaCompletionParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceCompletionParticipant"/>
+
+    <!--quarkus-ls-->
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusCoreProvider"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusConfigRootProvider"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusConfigPropertiesProvider"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusKubernetesProvider"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusHibernateORMProvider"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusScheduledPropertiesProvider"/>
+
+    <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
+
+    <javaHoverParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusScheduledHoverParticipant"/>
   </extensions>
 
   <application-components>

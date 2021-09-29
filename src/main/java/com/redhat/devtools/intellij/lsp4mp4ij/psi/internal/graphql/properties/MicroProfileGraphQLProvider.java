@@ -37,7 +37,7 @@ public class MicroProfileGraphQLProvider extends AbstractStaticPropertiesProvide
     @Override
     protected boolean isAdaptedFor(SearchContext context) {
         // Check if MicroProfile GraphQL exists in classpath
-        Module javaProject = context.getModule();
+        Module javaProject = context.getJavaProject();
         return (PsiTypeUtils.findType(javaProject, MicroProfileGraphQLConstants.GRAPHQL_NAME_TAG) != null);
     }
 

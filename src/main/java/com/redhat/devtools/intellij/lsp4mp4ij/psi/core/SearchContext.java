@@ -54,7 +54,7 @@ public class SearchContext {
         return cache.get(key);
     }
 
-    public Module getModule() {
+    public Module getJavaProject() {
         return module;
     }
 

@@ -399,7 +399,7 @@ public class MicroProfileFaultToleranceProvider extends AbstractAnnotationTypeRe
 		MicroProfileFaultToleranceContext mpftContext = (MicroProfileFaultToleranceContext) context
 				.get(MICROPROFILE_FAULT_TOLERANCE_CONTEXT_KEY);
 		if (mpftContext == null) {
-			mpftContext = new MicroProfileFaultToleranceContext(context.getModule(), context.getUtils(),
+			mpftContext = new MicroProfileFaultToleranceContext(context.getJavaProject(), context.getUtils(),
 					context.getDocumentFormat());
 			context.put(MICROPROFILE_FAULT_TOLERANCE_CONTEXT_KEY, mpftContext);
 		}

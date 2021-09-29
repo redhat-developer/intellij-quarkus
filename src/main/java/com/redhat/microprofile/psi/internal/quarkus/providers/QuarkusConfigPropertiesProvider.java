@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.psi.internal.quarkus.core.properties;
+package com.redhat.microprofile.psi.internal.quarkus.providers;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -81,8 +81,8 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 		private String defaultNamingStrategy;
 
 		public ConfigPropertiesContext(SearchContext context) {
-			this.javaProject = context.getModule();
-			this.supportNamingStrategy = PsiQuarkusUtils.isSupportNamingStrategy(context.getModule());
+			this.javaProject = context.getJavaProject();
+			this.supportNamingStrategy = PsiQuarkusUtils.isSupportNamingStrategy(context.getJavaProject());
 		}
 
 		/**

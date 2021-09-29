@@ -25,7 +25,7 @@ public class MicroProfileContextPropagationProvider extends AbstractStaticProper
     @Override
     protected boolean isAdaptedFor(SearchContext context) {
         // Check if MicroProfile context propagation exists in classpath
-        Module javaProject = context.getModule();
+        Module javaProject = context.getJavaProject();
         return (PsiTypeUtils.findType(javaProject, CONTEXT_PROPAGATION_ANNOTATION) != null);
     }
 }

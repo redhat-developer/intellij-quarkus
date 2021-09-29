@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.psi.internal.quarkus.kubernetes.properties;
+package com.redhat.microprofile.psi.internal.quarkus.providers;
 
 
 import com.intellij.psi.PsiClass;
