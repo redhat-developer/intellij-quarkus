@@ -29,7 +29,7 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         File quarkusServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls.jar");
         String javaHome = System.getProperty("java.home");
         setCommands(Arrays.asList(javaHome + File.separator + "bin" + File.separator + "java", "-jar",
-                lsp4mpServerPath.getAbsolutePath(), "-cp", quarkusServerPath.getAbsolutePath(), "-Dasync=true"));
+                lsp4mpServerPath.getAbsolutePath(), "-cp", quarkusServerPath.getAbsolutePath(), "-DrunAsync=true"));
         TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "start").send();
     }
 
