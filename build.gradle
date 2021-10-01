@@ -125,7 +125,7 @@ dependencies {
     integrationTestImplementation("com.intellij.remoterobot:remote-fixtures:$fixturesVersion")
     integrationTestImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     integrationTestRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
-    lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.3.0:uber') {
+    lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.4.0-SNAPSHOT:uber') {
         transitive = false
     }
     lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.10.1') {
@@ -141,6 +141,7 @@ dependencies {
 task copyDeps(type: Copy) {
     from configurations.lsp
     into new File(buildDir, 'server/server')
+    rename '^(.*)(-[0-9]+.[0-9]+.[0-9]+(-SNAPSHOT)?)(.*)$', '$1$4'
 }
 
 runIde {
