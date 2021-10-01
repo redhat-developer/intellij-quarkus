@@ -172,4 +172,9 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     public String toUri(PsiFile typeRoot) {
         return VfsUtil.toUri(typeRoot.getVirtualFile().getUrl()).toString();
     }
+
+    @Override
+    public boolean isHiddenGeneratedElement(PsiElement element) {
+        return PsiUtils.isHiddenGeneratedElement(element);
+    }
 }

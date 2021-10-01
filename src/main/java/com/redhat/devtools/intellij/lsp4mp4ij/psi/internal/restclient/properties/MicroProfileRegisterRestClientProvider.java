@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.internal.restclient.properties;
+package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.properties;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
