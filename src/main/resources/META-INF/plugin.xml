@@ -199,4 +199,9 @@
   </module-components>
 
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <actions>
+    <action id="microprofile.command.open.uri"
+            class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileOpenURIAction"
+            text="MicroprofileOpenURIAction"/>
+  </actions>
 </idea-plugin>

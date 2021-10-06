@@ -19,10 +19,21 @@ import com.intellij.codeInsight.hints.InlayHintsSink;
 import com.intellij.codeInsight.hints.NoSettings;
 import com.intellij.codeInsight.hints.SettingsKey;
 import com.intellij.codeInsight.hints.presentation.InlayPresentation;
+import com.intellij.codeInsight.hints.presentation.MouseButton;
 import com.intellij.codeInsight.hints.presentation.PresentationFactory;
 import com.intellij.codeInsight.hints.presentation.SequencePresentation;
+import com.intellij.ide.DataManager;
 import com.intellij.lang.Language;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKey;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -42,9 +53,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JComponent;
+import java.awt.Component;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -54,6 +65,9 @@ import java.util.concurrent.TimeoutException;
 
 public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPInlayProvider.class);
+
+    public static final DataKey<Command> LSP_COMMAND = DataKey.create("com.redhat.devtools.intellij.quarkus.lsp4ij.command");
+    private static final long TIMEOUT = 5L;
 
     private SettingsKey<NoSettings> key = new SettingsKey<>("LSP.hints");
 
@@ -103,13 +117,10 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
     @Nullable
     @Override
     public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull NoSettings o, @NotNull InlayHintsSink inlayHintsSink) {
-        final Date date = new Date();
-        System.out.println(date + " Called for file=" + psiFile + " virtual file=" + psiFile.getVirtualFile() + " editor=" + editor);
         return new FactoryInlayHintsCollector(editor) {
             @Override
             public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
                 try {
-                    //inlayHintsSink.addBlockElement(244, true, true, 0 ,getFactory().text("jeff"));
                     URI docURI = LSPIJUtils.toUri(editor.getDocument());
                     if (docURI != null) {
                         CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
@@ -125,7 +136,7 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
                                                                 .forEach(codeLens -> pairs.add(new Pair(codeLens, languageServer)));
                                                     }
                                                 }))
-                                        .toArray(CompletableFuture[]::new))).get(1L, TimeUnit.SECONDS);
+                                        .toArray(CompletableFuture[]::new))).get(TIMEOUT, TimeUnit.SECONDS);
                         pairs.forEach(pair -> {
                             int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), editor.getDocument());
                             inlayHintsSink.addBlockElement(offset, true, true, 0, toPresentation(editor, offset, pair.getSecond(), getFactory(), pair.getFirst()));
@@ -147,8 +158,35 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
         int column = offset - editor.getDocument().getLineStartOffset(line);
         List<InlayPresentation> presentations = new ArrayList<>();
         presentations.add(factory.text(StringUtils.repeat(' ', column)));
-        presentations.add(factory.text(getCodeLensString(codeLens)));
+        presentations.add(factory.onClick(factory.text(getCodeLensString(codeLens)), MouseButton.Left, (event,point) -> {
+            executeClientCommand(languageServer, codeLens, (Component) event.getSource(), editor.getProject());
+            return null;
+
+        }));
         return new SequencePresentation(presentations);
+    }
+
+    private void executeClientCommand(LanguageServer languageServer, CodeLens codeLens, Component source, Project project) {
+        if (LanguageServiceAccessor.getInstance(project).checkCapability(languageServer,
+                capabilites -> capabilites.getCodeLensProvider().getResolveProvider())) {
+            languageServer.getTextDocumentService().resolveCodeLens(codeLens).thenAcceptAsync(resolvedCodeLens -> {
+                executeClientCommand(source, resolvedCodeLens);
+            });
+        } else {
+            executeClientCommand(source, codeLens);
+        }
+    }
+
+    private void executeClientCommand(Component source, CodeLens resolvedCodeLens) {
+        if (resolvedCodeLens.getCommand() != null) {
+            AnAction action = ActionManager.getInstance().getAction(resolvedCodeLens.getCommand().getCommand());
+            if (action != null) {
+                DataContext context = SimpleDataContext.getSimpleContext(LSP_COMMAND.getName(), resolvedCodeLens.getCommand(), DataManager.getInstance().getDataContext(source));
+                action.actionPerformed(new AnActionEvent(null, context,
+                        ActionPlaces.UNKNOWN, new Presentation(),
+                        ActionManager.getInstance(), 0));
+            }
+        }
     }
 
     private String getCodeLensString(CodeLens codeLens) {
