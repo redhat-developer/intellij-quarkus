@@ -54,4 +54,6 @@ public interface IPsiUtils {
     Location toLocation(PsiMember fieldOrMethod);
 
     String toUri(PsiFile typeRoot);
+
+    boolean isHiddenGeneratedElement(PsiElement element);
 }

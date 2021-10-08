@@ -139,11 +139,12 @@
     <extensionPoint name="projectLabelProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IProjectLabelProvider"/>
     <extensionPoint name="javaDefinitionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.IJavaDefinitionParticipant"/>
     <extensionPoint name="javaCompletionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
+    <extensionPoint name="javaCodeLensParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <!--LSP4MP-->
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertyProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.internal.restclient.properties.MicroProfileRegisterRestClientProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.properties.MicroProfileRegisterRestClientProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.contextpropagation.properties.MicroProfileContextPropagationProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.lra.properties.MicroProfileLRAProvider"/>
@@ -171,6 +172,9 @@
 
     <javaCompletionParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceCompletionParticipant"/>
 
+    <javaCodeLensParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java.JaxRsCodeLensParticipant"/>
+    <javaCodeLensParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.MicroProfileRestClientCodeLensParticipant"/>
+
     <!--quarkus-ls-->
     <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusCoreProvider"/>
     <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusConfigRootProvider"/>
@@ -182,6 +186,8 @@
     <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
 
     <javaHoverParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusScheduledHoverParticipant"/>
+
+    <javaCodeLensParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
   </extensions>
 
   <application-components>
@@ -193,4 +199,9 @@
   </module-components>
 
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <actions>
+    <action id="microprofile.command.open.uri"
+            class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileOpenURIAction"
+            text="MicroprofileOpenURIAction"/>
+  </actions>
 </idea-plugin>

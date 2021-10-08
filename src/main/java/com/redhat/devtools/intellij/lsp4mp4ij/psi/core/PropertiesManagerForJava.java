@@ -26,6 +26,8 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.JavaCodeLensContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.JavaCompletionContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.IJavaDefinitionParticipant;
@@ -36,12 +38,14 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiag
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.JavaHoverContext;
 import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.JavaFileInfo;
 import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDefinitionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
@@ -98,6 +102,56 @@ public class PropertiesManagerForJava {
             }
             return null;
         });
+    }
+
+    /**
+     * Returns the codelens list according the given codelens parameters.
+     *
+     * @param params  the codelens parameters
+     * @param utils   the utilities class
+     * @return the codelens list according the given codelens parameters.
+     */
+    public List<? extends CodeLens> codeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
+        return ApplicationManager.getApplication().runReadAction((Computable<List<? extends CodeLens>>) () -> {
+            String uri = params.getUri();
+            PsiFile typeRoot = resolveTypeRoot(uri, utils);
+            if (typeRoot == null) {
+                return Collections.emptyList();
+            }
+            List<CodeLens> lenses = new ArrayList<>();
+            collectCodeLens(uri, typeRoot, utils, params, lenses);
+            return lenses;
+        });
+    }
+
+    private void collectCodeLens(String uri, PsiFile typeRoot, IPsiUtils utils, MicroProfileJavaCodeLensParams params,
+                                 List<CodeLens> lenses) {
+        // Collect all adapted codeLens participant
+        try {
+            Module module = utils.getModule(uri);
+            if (module == null) {
+                return;
+            }
+            JavaCodeLensContext context = new JavaCodeLensContext(uri, typeRoot, utils, module, params);
+            List<IJavaCodeLensParticipant> definitions = IJavaCodeLensParticipant.EP_NAME.getExtensionList()
+                    .stream().filter(definition -> definition.isAdaptedForCodeLens(context))
+                    .collect(Collectors.toList());
+            if (definitions.isEmpty()) {
+                return;
+            }
+
+            // Begin, collect, end participants
+            definitions.forEach(definition -> definition.beginCodeLens(context));
+            definitions.forEach(definition -> {
+                List<CodeLens> collectedLenses = definition.collectCodeLens(context);
+                if (collectedLenses != null && !collectedLenses.isEmpty()) {
+                    lenses.addAll(collectedLenses);
+                }
+            });
+            definitions.forEach(definition -> definition.endCodeLens(context));
+        } catch (IOException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+        }
     }
 
     /**

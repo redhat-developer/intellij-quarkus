@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -253,5 +254,15 @@ public class PsiTypeUtils {
             location = location.substring(0, location.length() - 2);
         }
         return location;
+    }
+
+    public static boolean overlaps(TextRange typeRange, TextRange methodRange) {
+        if (typeRange == null || methodRange == null) {
+            return false;
+        }
+        // method range is overlapping if it appears before or actually overlaps the
+        // type's range
+        return methodRange.getStartOffset() < typeRange.getStartOffset() || methodRange.getStartOffset() >= typeRange.getStartOffset()
+                && methodRange.getStartOffset() <= (typeRange.getStartOffset() + typeRange.getLength());
     }
 }

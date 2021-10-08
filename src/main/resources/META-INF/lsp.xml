@@ -16,6 +16,7 @@
     <inspectionToolProvider implementation="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPInspectionToolProvider"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor"/>
     <gotoDeclarationHandler implementation="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.navigation.LSPGotoDeclarationHandler"/>
+    <codeInsight.inlayProvider language="JAVA" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
   </extensions>
 
 
