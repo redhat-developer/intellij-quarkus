@@ -48,6 +48,16 @@ Property managed in your code through @ConfigProperty:
 
 ![](images/quarkus-tools5.gif)
 
+### CodeLens / Inlay
+
+When editing a resource class while the current Quarkus application is running in development mode (`./mvnw compile quarkus:dev` or `./gradlew quarkusDev`), there are now CodeLenses that provide the URL for the GET endpoints.
+
+This feature takes into account the path name and the HTTP server port from your application.properties file in order to create the URL.
+
+Clicking on the CodeLens URL will open the URL in your default browser.
+
+![](images/quarkus-tools15.gif)
+
 ### MicroProfile Health 
 
 Syntax validation is being performed for Java files using the MicroProfile Health assets:
@@ -61,6 +71,15 @@ and syntax validation as soon as you use MicroProfile related annotation in your
 source files
 
 ![](images/quarkus-tools7.gif)
+
+Methods referenced in `@Fallback(fallbackMethod)` are validated:
+
+![](images/quarkus-tools16.gif)
+
+Activating code completion on the `@Fallback(fallbackMethod)` value will get the list of available methods being proposed:
+
+![](images/quarkus-tools17.gif)
+
 
 ### MicroProfile Rest Client
 
@@ -88,6 +107,10 @@ MicroProfile Metrics related properties references are supported in `application
 and syntax validation as soon as you use MicroProfile Metrics in your Quarkus application
 
 ![](images/quarkus-tools10.png)
+
+Invalid use of the `@Gauge` annotation is reported as well:
+
+![](images/quarkus-tools18.png)
 
 ### MicroProfile OpenTracing
 
