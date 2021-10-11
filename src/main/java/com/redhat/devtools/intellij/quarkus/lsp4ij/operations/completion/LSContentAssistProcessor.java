@@ -17,6 +17,7 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
@@ -31,12 +32,12 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class LSContentAssistProcessor extends CompletionContributor {
@@ -57,15 +58,21 @@ public class LSContentAssistProcessor extends CompletionContributor {
              async processing is occuring on a separate thread.
              */
             param = LSPIJUtils.toCompletionParams(LSPIJUtils.toUri(document), offset, document);
-            List<Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer>> proposals = Collections.synchronizedList(new ArrayList<>());
-            completionLanguageServersFuture
+            BlockingDeque<Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer>> proposals = new LinkedBlockingDeque<>();
+            CompletableFuture<Void> future = completionLanguageServersFuture
                     .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
                             .map(languageServer -> languageServer.getTextDocumentService().completion(param)
                                     .thenAcceptAsync(completion -> proposals.add(new Pair<>(completion, languageServer))))
-                            .toArray(CompletableFuture[]::new)))
-                    .get();
-            proposals.forEach(pair -> result.addAllElements(toProposals(project, editor, document, offset, pair.getFirst(), pair.getSecond())));
-        } catch (RuntimeException | InterruptedException | ExecutionException e) {
+                            .toArray(CompletableFuture[]::new)));
+            while (!future.isDone() || !proposals.isEmpty()) {
+                ProgressManager.checkCanceled();
+                Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer> pair = proposals.poll(25, TimeUnit.MILLISECONDS);
+                if (pair != null) {
+                    result.addAllElements(toProposals(project, editor, document, offset, pair.getFirst(), pair.getSecond()));
+                }
+
+            }
+        } catch (RuntimeException | InterruptedException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
             result.addElement(createErrorProposal(offset, e));
         }
