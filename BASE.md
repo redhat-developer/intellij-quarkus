@@ -1,3 +1,5 @@
-This file is used to stored the commit from microprofile-ls on which this is based.
+This file is used to stored the upstream (LSP4MP/quarkus-ls) references on which this is based.
 
-accfacf3c83fc3ed53f1faaec1c5f960407c8801
+LSPMP: tag 0.3.0
+
+quarkus-ls: tag 0.10.1
