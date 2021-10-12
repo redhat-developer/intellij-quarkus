@@ -107,15 +107,8 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
       };
       if (DumbService.getInstance(getProject()).isDumb()) {
         DumbService.getInstance(getProject()).runWhenSmart(task);
-      } else if (ProgressManager.getInstance().hasModalProgressIndicator()) {
-        task.run();
       } else {
-        ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), title) {
-          @Override
-          public void run(ProgressIndicator indicator) {
-            task.run();
-          }
-        });
+        task.run();
       }
     });
     return future;
