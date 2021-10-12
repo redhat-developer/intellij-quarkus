@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiElement;
@@ -58,10 +59,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPInlayProvider.class);
@@ -124,8 +125,8 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
                     URI docURI = LSPIJUtils.toUri(editor.getDocument());
                     if (docURI != null) {
                         CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
-                        List<Pair<CodeLens, LanguageServer>> pairs = new ArrayList<>();
-                        LanguageServiceAccessor.getInstance(psiElement.getProject())
+                        BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
+                        CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(psiElement.getProject())
                                 .getLanguageServers(editor.getDocument(), capabilities -> capabilities.getCodeLensProvider() != null)
                                 .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
                                         .map(languageServer -> languageServer.getTextDocumentService().codeLens(param)
@@ -136,17 +137,19 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
                                                                 .forEach(codeLens -> pairs.add(new Pair(codeLens, languageServer)));
                                                     }
                                                 }))
-                                        .toArray(CompletableFuture[]::new))).get(TIMEOUT, TimeUnit.SECONDS);
-                        pairs.forEach(pair -> {
-                            int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), editor.getDocument());
-                            inlayHintsSink.addBlockElement(offset, true, true, 0, toPresentation(editor, offset, pair.getSecond(), getFactory(), pair.getFirst()));
-                        });
+                                        .toArray(CompletableFuture[]::new)));
+                        while (!future.isDone() || !pairs.isEmpty()) {
+                            ProgressManager.checkCanceled();
+                            Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
+                            if (pair != null) {
+                                int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), editor.getDocument());
+                                inlayHintsSink.addBlockElement(offset, true, true, 0, toPresentation(editor, offset, pair.getSecond(), getFactory(), pair.getFirst()));
+                            }
+                        }
                     }
                 } catch (InterruptedException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);
                     Thread.currentThread().interrupt();
-                } catch (ExecutionException | TimeoutException e) {
-                    LOGGER.warn(e.getLocalizedMessage(), e);
                 }
                 return false;
             }
