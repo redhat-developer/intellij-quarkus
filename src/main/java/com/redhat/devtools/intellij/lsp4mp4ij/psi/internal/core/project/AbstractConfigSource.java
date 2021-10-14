@@ -123,11 +123,11 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 					lastModified = configFile.getModificationStamp();
 				} catch (IOException e) {
 					reset();
-					LOGGER.error("Error while loading properties from '" + configFile + "'.", e);
+					LOGGER.warn("Error while loading properties from '" + configFile + "'.", e);
 				}
 			}
 		} catch (RuntimeException e1) {
-			LOGGER.error("Error while getting last modified time for '" + configFile + "'.", e1);
+			LOGGER.warn("Error while getting last modified time for '" + configFile + "'.", e1);
 		}
 		return config;
 	}
@@ -148,7 +148,7 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 			try {
 				return Integer.parseInt(property.trim());
 			} catch (NumberFormatException e) {
-				LOGGER.error("Error while converting '" + property.trim() + "' as Integer for key '" + key + "'", e);
+				LOGGER.warn("Error while converting '" + property.trim() + "' as Integer for key '" + key + "'", e);
 				return null;
 			}
 		}

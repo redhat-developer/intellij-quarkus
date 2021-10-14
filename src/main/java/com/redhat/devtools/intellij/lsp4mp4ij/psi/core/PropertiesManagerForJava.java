@@ -430,7 +430,7 @@ public class PropertiesManagerForJava {
                 }
             }
         } catch (IOException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
     }
 

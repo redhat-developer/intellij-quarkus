@@ -210,7 +210,7 @@ public class PsiTypeUtils {
                 try {
                     return VfsUtilCore.loadText(file);
                 } catch (IOException e) {
-                    LOGGER.error(e.getLocalizedMessage(), e);
+                    LOGGER.warn(e.getLocalizedMessage(), e);
                 }
             }
         }

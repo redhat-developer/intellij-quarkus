@@ -89,7 +89,7 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
                 processDownload(module, deploymentIds, result);
             }
         } catch (IOException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return result;
     }

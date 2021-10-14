@@ -56,7 +56,7 @@ public class JavaDoc2MarkdownConverter extends AbstractJavaDocConverter {
             w.addProtocols("a", "href", "file", "jdt");
             w.addProtocols("img", "src", "file");
         } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            LOGGER.error("Unable to modify jsoup to include file and jdt protocols", e);
+            LOGGER.warn("Unable to modify jsoup to include file and jdt protocols", e);
         }
     }
 

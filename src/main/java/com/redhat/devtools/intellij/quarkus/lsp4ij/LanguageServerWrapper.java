@@ -664,7 +664,7 @@ public class LanguageServerWrapper {
                         }
                     });
                 } catch (Exception e) {
-                    LOGGER.error(e.getLocalizedMessage(), e);
+                    LOGGER.warn(e.getLocalizedMessage(), e);
                 }
             }*/
             return initializeFuture.thenApply(r -> this.languageServer);

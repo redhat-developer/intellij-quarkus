@@ -61,7 +61,7 @@ public abstract class AbstractAnnotationTypeReferencePropertiesProvider extends 
 				}
 			}
 		} catch (Exception e) {
-				LOGGER.error("Cannot compute MicroProfile properties for the Java element '"
+				LOGGER.warn("Cannot compute MicroProfile properties for the Java element '"
 						+ psiElement + "'.", e);
 		}
 	}

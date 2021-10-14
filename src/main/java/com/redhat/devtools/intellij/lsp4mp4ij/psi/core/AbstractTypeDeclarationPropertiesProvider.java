@@ -51,7 +51,7 @@ public abstract class AbstractTypeDeclarationPropertiesProvider extends Abstract
 						processClass(type, className, context);
 						break;
 					} catch (Exception e) {
-						LOGGER.error("Cannot compute MicroProfile properties for the Java class '" + className + "'.",
+						LOGGER.warn("Cannot compute MicroProfile properties for the Java class '" + className + "'.",
 								e);
 					}
 				}

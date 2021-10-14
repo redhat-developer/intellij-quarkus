@@ -118,7 +118,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
             formBuilder.addLabeledComponent("Path:", pathField);
             panel.add(ScrollPaneFactory.createScrollPane(formBuilder.getPanel(), true), "North");
         } catch (IOException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
             throw new RuntimeException(e);
         }
     }

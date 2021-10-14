@@ -155,7 +155,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
                 return PsiManager.getInstance(getModule(file).getProject()).findFile(file);
             }
         } catch (IOException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return null;
     }
