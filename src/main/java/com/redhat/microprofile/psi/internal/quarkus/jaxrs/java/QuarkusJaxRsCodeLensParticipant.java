@@ -41,9 +41,25 @@ public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant
 		Module javaProject = context.getJavaProject();
 		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance()
 				.getJDTMicroProfileProject(javaProject);
-		int serverPort = mpProject.getPropertyAsInteger(QUARKUS_HTTP_PORT, JaxRsContext.DEFAULT_PORT);
-		int devServerPort = mpProject.getPropertyAsInteger(QUARKUS_DEV_HTTP_PORT, serverPort);
+		int serverPort = getPort(mpProject, QUARKUS_HTTP_PORT, JaxRsContext.DEFAULT_PORT);
+		int devServerPort = getPort(mpProject, QUARKUS_DEV_HTTP_PORT, serverPort);
 		JaxRsContext.getJaxRsContext(context).setServerPort(devServerPort);
+	}
+
+	private int getPort(PsiMicroProfileProject mpProject, String propertyName, int defaultPort) {
+		String portString = mpProject.getProperty(propertyName);
+		if(portString == null) {
+			return defaultPort;
+		}
+		portString = portString.replaceAll("\\s+", "");
+		// Check for environment variable with possible default value.
+		if(portString.startsWith("${") && portString.endsWith("}")) {
+			if(!portString.contains(":")) {
+				return defaultPort;
+			}
+			portString = portString.substring(portString.lastIndexOf(":") + 1, portString.lastIndexOf("}"));
+		}
+		return Integer.parseInt(portString);
 	}
 
 	@Override
