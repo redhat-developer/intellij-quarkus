@@ -24,7 +24,6 @@ import com.intellij.ui.TableUtil;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.UIUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -183,11 +182,11 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
 
     @Override
     public JComponent getComponent() {
-        if (panel == null && wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY) != null) {
+        if (panel == null && wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY) != null) {
             panel = new JBSplitter(false, 0.8f);
 
             //categories component
-            List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY).getCategories();
+            List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY).getCategories();
             JBList<QuarkusCategory> categoriesList = new JBList<>(categories);
             categoriesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             ColoredListCellRenderer<QuarkusCategory> categoryRender = new ColoredListCellRenderer<QuarkusCategory>() {

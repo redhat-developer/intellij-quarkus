@@ -43,11 +43,14 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_STREAM_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_TOOL_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_VERSION_PARAMETER_NAME;
 
 public class QuarkusModelRegistry {
-    private static final String EXTENSIONS_SUFFIX = "/api/extensions";
+    private static final String EXTENSIONS_SUFFIX = "/api/extensions/stream/";
+
+    private static final String STREAMS_SUFFIX = "/api/streams";
 
     public static final QuarkusModelRegistry INSTANCE = new QuarkusModelRegistry();
 
@@ -74,14 +77,14 @@ public class QuarkusModelRegistry {
         if (model == null) {
             indicator.setText("Loading Quarkus model from endpoint " + endPointURL);
             try {
-                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(normalizedEndPointURL + EXTENSIONS_SUFFIX).userAgent(USER_AGENT).tuner(request -> {
+                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(normalizedEndPointURL + STREAMS_SUFFIX).userAgent(USER_AGENT).tuner(request -> {
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
                 }).connect(request -> {
                         try (Reader reader = request.getReader(indicator)) {
-                            List<QuarkusExtension> extensions = mapper.readValue(reader, new TypeReference<List<QuarkusExtension>>() {
+                            List<QuarkusStream> streams = mapper.readValue(reader, new TypeReference<List<QuarkusStream>>() {
                             });
-                            QuarkusModel newModel = new QuarkusModel(extensions);
+                            QuarkusModel newModel = new QuarkusModel(normalizedEndPointURL, streams);
                             return newModel;
                         } catch (IOException e) {
                             throw new ProcessCanceledException(e);
@@ -105,8 +108,35 @@ public class QuarkusModelRegistry {
         return endPointURL;
     }
 
+    public static QuarkusExtensionsModel loadExtensionsModel(String endPointURL, String key, ProgressIndicator indicator) throws IOException {
+        String normalizedEndPointURL = normalizeURL(endPointURL);
+        indicator.setText("Looking up Quarkus extensions from endpoint " + endPointURL + " and key " + key);
+        QuarkusExtensionsModel model = null;
+            try {
+                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(normalizedEndPointURL + EXTENSIONS_SUFFIX + key).userAgent(USER_AGENT).tuner(request -> {
+                    request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
+                    request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
+                }).connect(request -> {
+                    try (Reader reader = request.getReader(indicator)) {
+                        List<QuarkusExtension> extensions = mapper.readValue(reader, new TypeReference<List<QuarkusExtension>>() {
+                        });
+                        QuarkusExtensionsModel newModel = new QuarkusExtensionsModel(key, extensions);
+                        return newModel;
+                    } catch (IOException e) {
+                        throw new ProcessCanceledException(e);
+                    }
+                })).get();
+            } catch (InterruptedException|ExecutionException e) {
+                throw new IOException(e);
+            }
+        if (model == null) {
+            throw new IOException();
+        }
+        return model;
+    }
+
     public static void zip(String endpoint, String tool, String groupId, String artifactId, String version,
-                           String className, String path, QuarkusModel model, File output, boolean codeStarts) throws IOException {
+                           String className, String path, QuarkusExtensionsModel model, File output, boolean codeStarts) throws IOException {
         Url url = Urls.newFromEncoded(normalizeURL(endpoint) + "/api/download");
         String body = buildParameters(tool, groupId, artifactId, version, className, path, model, codeStarts);
         RequestBuilder builder = HttpRequests.post(url.toString(), HttpRequests.JSON_CONTENT_TYPE).userAgent(QuarkusModelRegistry.USER_AGENT).tuner(connection -> {
@@ -129,7 +159,9 @@ public class QuarkusModelRegistry {
         }
     }
 
-    private static String buildParameters(String tool, String groupId, String artifactId, String version, String className, String path, QuarkusModel model, boolean codeStarts) {
+    private static String buildParameters(String tool, String groupId, String artifactId, String version,
+                                          String className, String path, QuarkusExtensionsModel model,
+                                          boolean codeStarts) {
         JsonObject json = new JsonObject();
 
         json.addProperty(CODE_TOOL_PARAMETER_NAME, tool);
@@ -146,11 +178,12 @@ public class QuarkusModelRegistry {
                 filter(extension -> extension.isSelected() || extension.isDefaultExtension()).
                 forEach(extension -> extensions.add(extension.getId()));
         json.add(CODE_EXTENSIONS_PARAMETER_NAME, extensions);
+        json.addProperty(CODE_STREAM_PARAMETER_NAME, model.getKey());
         return json.toString();
     }
 
     public static void zip(String endpoint, String tool, String groupId, String artifactId, String version,
-                           String className, String path, QuarkusModel model, File output) throws IOException {
+                           String className, String path, QuarkusExtensionsModel model, File output) throws IOException {
         zip(endpoint, tool, groupId, artifactId, version, className, path, model, output, true);
     }
 
