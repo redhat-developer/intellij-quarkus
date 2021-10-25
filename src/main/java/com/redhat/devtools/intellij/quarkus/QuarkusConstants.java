@@ -11,7 +11,7 @@
 package com.redhat.devtools.intellij.quarkus;
 
 import com.intellij.openapi.util.Key;
-import com.redhat.devtools.intellij.quarkus.module.QuarkusModel;
+import com.redhat.devtools.intellij.quarkus.module.QuarkusExtensionsModel;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 
 public class QuarkusConstants {
@@ -22,7 +22,7 @@ public class QuarkusConstants {
     public final static Key<String> WIZARD_VERSION_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".version");
     public final static Key<String> WIZARD_CLASSNAME_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".className");
     public final static Key<String> WIZARD_PATH_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".path");
-    public final static Key<QuarkusModel> WIZARD_MODEL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".model");
+    public final static Key<QuarkusExtensionsModel> WIZARD_EXTENSIONS_MODEL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".model");
     public final static Key<String> WIZARD_ENDPOINT_URL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".endpointURL");
 
     public static final String CONFIG_ROOT_ANNOTATION = "io.quarkus.runtime.annotations.ConfigRoot";
@@ -91,6 +91,8 @@ public class QuarkusConstants {
 
     public static final String CODE_EXTENSIONS_PARAMETER_NAME = "extensions";
     public static final String CODE_EXTENSIONS_SHORT_PARAMETER_NAME = "s";
+
+    public static final String CODE_STREAM_PARAMETER_NAME = "streamKey";
 
     public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME = "Client-Name";
     public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE = "IntelliJ Quarkus Tools";

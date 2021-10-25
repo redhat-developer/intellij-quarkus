@@ -30,7 +30,6 @@ import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuilder;
 import org.jdom.JDOMException;
-import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,7 +112,7 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
                 wizardContext.getUserData(QuarkusConstants.WIZARD_VERSION_KEY),
                 wizardContext.getUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY),
                 wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY),
-                wizardContext.getUserData(QuarkusConstants.WIZARD_MODEL_KEY),
+                wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY),
                 moduleFile,
                 wizardContext.getUserData(QuarkusConstants.WIZARD_EXAMPLE_KEY));
         updateWrapperPermissions(moduleFile);

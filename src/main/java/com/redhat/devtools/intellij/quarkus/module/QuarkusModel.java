@@ -10,37 +10,34 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.module;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import com.intellij.openapi.progress.ProgressIndicator;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class QuarkusModel {
-    private List<QuarkusCategory> categories = new ArrayList<>();
+    private String baseURL;
 
-    public QuarkusModel(List<QuarkusExtension> extensions) {
-        Collections.sort(extensions, (e1, e2) -> e1.getOrder() - e1.getOrder());
-        Map<String, QuarkusExtension> extensionIds = new HashMap<>();
-        final QuarkusCategory[] currentCategory = {null};
-        extensions.forEach(e -> {
-            if (currentCategory[0] == null || !e.getCategory().equals(currentCategory[0].getName())) {
-                currentCategory[0] = new QuarkusCategory(e.getCategory());
-                categories.add(currentCategory[0]);
-            }
-            if (extensionIds.containsKey(e.getId())) {
-                currentCategory[0].getExtensions().add(extensionIds.get(e.getId()));
-            } else {
-                currentCategory[0].getExtensions().add(e);
-                extensionIds.put(e.getId(), e);
-            }
-        });
+    private List<QuarkusStream> streams;
+
+    private Map<String, QuarkusExtensionsModel> extensionsModelMap = new HashMap<>();
+
+    public QuarkusModel(String baseURL, List<QuarkusStream> streams) {
+        this.baseURL = baseURL;
+        this.streams = streams;
     }
-    public List<QuarkusCategory> getCategories() {
-        return categories;
+    public List<QuarkusStream> getStreams() {
+        return streams;
     }
 
-    public void setCategories(List<QuarkusCategory> categories) {
-        this.categories = categories;
+    public QuarkusExtensionsModel getExtensionsModel(String key, ProgressIndicator indicator) throws IOException {
+        QuarkusExtensionsModel extensionsModel = extensionsModelMap.get(key);
+        if (extensionsModel == null) {
+            extensionsModel = QuarkusModelRegistry.loadExtensionsModel(baseURL, key, indicator);
+            extensionsModelMap.put(key, extensionsModel);
+        }
+        return extensionsModel;
     }
 }

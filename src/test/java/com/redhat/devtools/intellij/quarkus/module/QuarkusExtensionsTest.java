@@ -36,7 +36,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkExtensionWithShortId() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-extension.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-extension.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -45,7 +45,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkStableExtensionWithStatus() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-stable-extension-with-status.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-stable-extension-with-status.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -54,7 +54,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkPreviewExtensionWithStatus() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-preview-extension-with-status.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-preview-extension-with-status.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -63,7 +63,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkExperimentalExtensionWithStatus() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-experimental-extension-with-status.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-experimental-extension-with-status.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -72,7 +72,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkStableExtensionWithTags() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-stable-extension-with-tags.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-stable-extension-with-tags.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -81,7 +81,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkPreviewExtensionWithTags() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-preview-extension-with-tags.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-preview-extension-with-tags.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -90,7 +90,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkExperimentalExtensionWithTags() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-experimental-extension-with-tags.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-experimental-extension-with-tags.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -99,7 +99,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkExtensionWithSeveralTags() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-extension-with-several-tags.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-extension-with-several-tags.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -109,7 +109,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkExtensionWithDefault() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-extension-with-default.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-extension-with-default.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -119,7 +119,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkExtensionWithoutDefault() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-extension-without-default.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-extension-without-default.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -129,7 +129,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkExtensionWithProvidesExampleCode() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-extension-with-provides-example-code.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-extension-with-provides-example-code.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
@@ -139,7 +139,7 @@ public class QuarkusExtensionsTest {
 
     @Test
     public void checkExtensionWithoutProvidesExampleCode() throws IOException {
-        QuarkusModel model = new QuarkusModel(load("/single-extension-without-provides-example-code.json"));
+        QuarkusExtensionsModel model = new QuarkusExtensionsModel("", load("/single-extension-without-provides-example-code.json"));
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(RESTEASY_JAX_RS_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());

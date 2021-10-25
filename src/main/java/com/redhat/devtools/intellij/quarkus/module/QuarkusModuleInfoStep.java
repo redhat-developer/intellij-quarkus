@@ -20,6 +20,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTextField;
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import java.awt.BorderLayout;
 import java.io.IOException;
 import java.util.Arrays;
@@ -41,6 +44,8 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleInfoStep.class);
 
     private final JBLoadingPanel panel = new JBLoadingPanel(new BorderLayout(), this, 300);
+
+    private ComboBox<QuarkusStream> streamComboBox;
 
     private ComboBox<ToolDelegate> toolComboBox;
 
@@ -57,6 +62,10 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
     private JBTextField pathField;
 
     private final WizardContext context;
+
+    private QuarkusModel model;
+
+    private QuarkusExtensionsModel extensionsModel;
 
     public QuarkusModuleInfoStep(WizardContext context) {
         this.context = context;
@@ -76,6 +85,11 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
         context.putUserData(QuarkusConstants.WIZARD_VERSION_KEY, versionField.getText());
         context.putUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY, classNameField.getText());
         context.putUserData(QuarkusConstants.WIZARD_PATH_KEY, pathField.getText());
+        if (extensionsModel != null) {
+            context.putUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY, extensionsModel);
+        } else {
+            throw new RuntimeException("Unable to get extensions");
+        }
     }
 
     @Override
@@ -92,9 +106,42 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
             }
         };
         try {
-            QuarkusModel model = QuarkusModelRegistry.INSTANCE.load(context.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY), indicator);
-            context.putUserData(QuarkusConstants.WIZARD_MODEL_KEY, model);
+            model = QuarkusModelRegistry.INSTANCE.load(context.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY), indicator);
             final FormBuilder formBuilder = new FormBuilder();
+            final CollectionComboBoxModel<QuarkusStream> streamModel = new CollectionComboBoxModel<>(model.getStreams());
+            streamModel.setSelectedItem(model.getStreams().stream().filter(QuarkusStream::isRecommended).findFirst().orElse(model.getStreams().get(0)));
+            streamModel.addListDataListener(new ListDataListener() {
+                @Override
+                public void intervalAdded(ListDataEvent e) {
+                }
+
+                @Override
+                public void intervalRemoved(ListDataEvent e) {
+                }
+
+                @Override
+                public void contentsChanged(ListDataEvent e) {
+                    try {
+                        loadExtensionsModel(streamModel, indicator);
+                    } catch (IOException ex) {
+                        LOGGER.warn(ex.getLocalizedMessage(), ex);
+                    }
+                }
+            });
+            loadExtensionsModel(streamModel, indicator);
+            streamComboBox = new ComboBox<>(streamModel);
+            streamComboBox.setRenderer(new ColoredListCellRenderer<QuarkusStream>() {
+                @Override
+                protected void customizeCellRenderer(@NotNull JList<? extends QuarkusStream> list, QuarkusStream stream, int index, boolean selected, boolean hasFocus) {
+                    if (stream.isRecommended()) {
+                        this.append(stream.getPlatformVersion(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, true);
+                    } else {
+                        this.append(stream.getPlatformVersion(), SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+                    }
+                    this.append(" ").append(stream.getStatus());
+                }
+            });
+            formBuilder.addLabeledComponent("Quarkus stream:", streamComboBox);
             final CollectionComboBoxModel<ToolDelegate> toolModel = new CollectionComboBoxModel<>(Arrays.asList(ToolDelegate.getDelegates()));
             toolComboBox = new ComboBox<>(toolModel);
             toolComboBox.setRenderer(new ColoredListCellRenderer<ToolDelegate>() {
@@ -123,6 +170,10 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
         }
     }
 
+    private void loadExtensionsModel(CollectionComboBoxModel<QuarkusStream> streamModel, ProgressIndicator indicator) throws IOException {
+        extensionsModel = model.getExtensionsModel(((QuarkusStream) streamModel.getSelectedItem()).getKey(), indicator);
+    }
+
     @Override
     public boolean validate() throws ConfigurationException {
         if (groupIdField.getText().isEmpty()) {
@@ -133,6 +184,9 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
         }
         if (versionField.getText().isEmpty()) {
             throw new ConfigurationException("Version must be specified");
+        }
+        if (extensionsModel == null) {
+            throw new ConfigurationException("Unable to get extensions for this stream");
         }
         return true;
     }
