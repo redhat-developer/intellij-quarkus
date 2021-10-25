@@ -9,6 +9,7 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.completion;
 
+import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.actionSystem.IdeActions;
@@ -35,11 +36,16 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 		codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_START_NEW_LINE);
-		codeInsightTestFixture.type("quarkus.arc.auto-inject-fields=");
-		Thread.sleep(1000);
+		insertLine("quarkus.arc.auto-inject-fields=");
 		LookupElement[] elements = codeInsightTestFixture.complete(CompletionType.BASIC);
 		assertNotNull(elements);
 		assertEquals(2, elements.length);
 	}
 
+	private void insertLine(String s) throws InterruptedException {
+		for (int i = 0; i < s.length(); ++i) {
+			codeInsightTestFixture.type(s.charAt(i));
+			Thread.sleep(1000);
+		}
+	}
 }
