@@ -11,6 +11,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.9.0</b></p>
+    <ul>
+      <li>Quarkus wizard allows to select Quarkus stream</li>
+      <li>Fix compatibility issue with IntelliJ 2021.3</li>
+    </ul>
     <p><b>1.8.0</b></p>
     <ul>
       <li>Add support for CodeLens/Inlay (for JAX-RS endpoints)</li>
