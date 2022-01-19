@@ -13,6 +13,7 @@ import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.MicroProfileConfigPropertyInformation;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.YamlUtils;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +36,7 @@ public class YamlConfigSource extends AbstractConfigSource<Map<String, Object>> 
 
 	@Override
 	protected Map<String, Object> loadConfig(InputStream input) throws IOException {
-		Yaml yaml = new Yaml();
+		Yaml yaml = new Yaml(new SafeConstructor());
 		return (Map<String, Object>) yaml.load(input);
 	}
 
