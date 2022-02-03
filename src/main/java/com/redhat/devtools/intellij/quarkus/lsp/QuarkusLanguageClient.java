@@ -11,6 +11,7 @@
 package com.redhat.devtools.intellij.quarkus.lsp;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -98,13 +99,13 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
   <R> CompletableFuture<R> runAsBackground(String title, Supplier<R> supplier) {
     CompletableFuture<R> future = new CompletableFuture<>();
     CompletableFuture.runAsync(() -> {
-      Runnable task = () -> {
+      Runnable task = () -> ProgressManager.getInstance().runProcess(() -> {
         try {
           future.complete(supplier.get());
         } catch (Throwable t) {
           future.completeExceptionally(t);
         }
-      };
+      }, new EmptyProgressIndicator());
       if (DumbService.getInstance(getProject()).isDumb()) {
         DumbService.getInstance(getProject()).runWhenSmart(task);
       } else {
