@@ -98,7 +98,7 @@ public class GlobalUtils {
 
     public static void waitUntilAllTheBgTasksFinish(RemoteRobot remoteRobot) {
         step("Wait until all the background tasks finish", () -> {
-            waitFor(Duration.ofSeconds(300), Duration.ofSeconds(15), "The background tasks did not finish in 5 minutes.", () -> didAllTheBgTasksFinish(remoteRobot));
+            waitFor(Duration.ofSeconds(600), Duration.ofSeconds(15), "The background tasks did not finish in 5 minutes.", () -> didAllTheBgTasksFinish(remoteRobot));
         });
     }
 

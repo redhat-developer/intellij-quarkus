@@ -66,8 +66,8 @@ public class QuarkusUtils {
             }
 
             newProjectDialogFixture.button("Next").click();
-            selectQuarkusExtensions(newProjectDialogFixture, 2, new int[]{0, 1, 3});
-            selectQuarkusExtensions(newProjectDialogFixture, 10, new int[]{1, 2, 3});
+            //selectQuarkusExtensions(newProjectDialogFixture, 2, new int[]{0, 1, 3});
+            //selectQuarkusExtensions(newProjectDialogFixture, 10, new int[]{1, 2, 3});
 
             newProjectDialogFixture.button("Next").click();
             String newProjectName = "code-with-quarkus-" + toolToBuildTheProject.toString().toLowerCase();
