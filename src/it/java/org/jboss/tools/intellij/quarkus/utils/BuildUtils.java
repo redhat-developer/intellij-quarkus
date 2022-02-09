@@ -45,6 +45,8 @@ public class BuildUtils {
                     step("Open the Gradle tab and build the project", () -> {
                         final ToolWindowsPaneFixture toolWindowsPaneFixture = remoteRobot.find(ToolWindowsPaneFixture.class);
                         toolWindowsPaneFixture.stripeButton("Gradle").click();
+                        //tree seems to be load asynchronously let's sync
+                        waitFor(() -> toolWindowsPaneFixture.gradleTabTree().hasText("Tasks"));
                         toolWindowsPaneFixture.gradleTabTree().findText("Tasks").doubleClick();
                         toolWindowsPaneFixture.gradleTabTree().findText("build").doubleClick();
                         toolWindowsPaneFixture.gradleTabTree().findAllText("build").get(1).doubleClick();

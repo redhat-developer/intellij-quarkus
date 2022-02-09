@@ -50,6 +50,7 @@ jobs:
         name: screenshots
         path: |
           build/screenshots/*
+      if: always()
 
   build-macos:
     runs-on: macos-latest
