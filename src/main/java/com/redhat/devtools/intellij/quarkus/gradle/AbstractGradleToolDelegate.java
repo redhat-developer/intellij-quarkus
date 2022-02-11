@@ -150,12 +150,20 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
             ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, module.getProject());
             taskManager.executeTasks(taskId, Arrays.asList("listQuarkusDependencies"), getModuleDirPath(module), settings, null);
             try (BufferedReader reader = Files.newBufferedReader(outputPath)) {
-                reader.lines().forEach(line -> {
-                    VirtualFile jarFile = getJarFile(line);
-                    if (jarFile != null) {
-                        result[line.endsWith("sources.jar")?SOURCES:BINARY].add(jarFile);
+                String id;
+
+                while ((id = reader.readLine()) != null) {
+                    String file = reader.readLine();
+                    String[] ids = id.split(":");
+                    if (!isDependency(ModuleRootManager.getInstance(module), ids[0], ids[1])) {
+                        if (file != null) {
+                            VirtualFile jarFile = getJarFile(file);
+                            if (jarFile != null) {
+                                result[file.endsWith("sources.jar")?SOURCES:BINARY].add(jarFile);
+                            }
+                        }
                     }
-                });
+                }
             }
         } catch (IOException e) {
             throw e;
@@ -255,6 +263,10 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
 
     private boolean isDependency(ModuleRootManager manager, String deploymentIdStr) {
         return Stream.of(manager.getOrderEntries()).filter(entry -> entry instanceof LibraryOrderEntry && (GRADLE_LIBRARY_PREFIX + deploymentIdStr).equals(((LibraryOrderEntry)entry).getLibraryName())).findFirst().isPresent();
+    }
+
+    private boolean isDependency(ModuleRootManager manager, String groupId, String artifactId) {
+        return Stream.of(manager.getOrderEntries()).filter(entry -> entry instanceof LibraryOrderEntry && ((LibraryOrderEntry) entry).getLibraryName().startsWith(GRADLE_LIBRARY_PREFIX + groupId + ':' + artifactId)).findFirst().isPresent();
     }
 
     @Override

@@ -21,7 +21,10 @@ public class GradleKotlinToolDelegate extends AbstractGradleToolDelegate {
             "typealias FileWriter = java.io.FileWriter" + System.lineSeparator() +
             "tasks.register(\"listQuarkusDependencies\") {" + System.lineSeparator() +
             "    val writer = PrintWriter(FileWriter(\"%1$s\"))" + System.lineSeparator() +
-            "    quarkusDeployment.files.forEach { it -> writer.println(it) }" + System.lineSeparator() +
+            "    configurations.quarkusDeployment.incoming.artifacts.each {" + System.lineSeparator() +
+            "        writer.println(it.id.componentIdentifier)" + System.lineSeparator() +
+            "        writer.println(it.file)" + System.lineSeparator() +
+            "    }" + System.lineSeparator() +
             "    val componentIds = quarkusDeployment.incoming.resolutionResult.allDependencies.map { (it as ResolvedDependencyResult).selected.id }" + System.lineSeparator() +
             "    val result = dependencies.createArtifactResolutionQuery()" + System.lineSeparator() +
             "        .forComponents(componentIds)" + System.lineSeparator() +
@@ -31,6 +34,7 @@ public class GradleKotlinToolDelegate extends AbstractGradleToolDelegate {
             "        val sources = component.getArtifacts(SourcesArtifact::class)" + System.lineSeparator() +
             "        sources.forEach { ar ->" + System.lineSeparator() +
             "            if (ar is ResolvedArtifactResult) {" + System.lineSeparator() +
+            "                writer.println(ar.id.componentIdentifier)" + System.lineSeparator() +
             "                writer.println(ar.file)" + System.lineSeparator() +
             "            }" + System.lineSeparator() +
             "        }" + System.lineSeparator() +

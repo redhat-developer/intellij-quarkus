@@ -25,8 +25,6 @@ import java.util.stream.Stream;
 
 /**
  * Quarkus library test
- *
- * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/ProjectLabelTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/ProjectLabelTest.java</a>
  */
 public class MavenQuarkusLibraryTest extends MavenImportingTestCase {
 
