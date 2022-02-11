@@ -139,6 +139,7 @@
 
     <properties.implicitPropertyUsageProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusProjectService"/>
+    <configurationType implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationType"/>
   </extensions>
 
   <extensionPoints>

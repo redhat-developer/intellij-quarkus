@@ -10,11 +10,13 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.tool;
 
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -159,4 +161,6 @@ public interface ToolDelegate  {
         Arrays.sort(delegates, (a,b) -> a.getOrder() - b.getOrder());
         return delegates;
     }
+
+    RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration);
 }

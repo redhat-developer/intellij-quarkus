@@ -20,6 +20,8 @@ public class TelemetryService {
 
     public static final String MODEL_PREFIX = "model-";
 
+    public static final String RUN_PREFIX = "run-";
+
     private static final TelemetryService INSTANCE = new TelemetryService();
 
     private final Lazy<TelemetryMessageBuilder> builder = new Lazy<>(() -> new TelemetryMessageBuilder(TelemetryService.class.getClassLoader()));
