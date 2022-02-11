@@ -21,7 +21,7 @@ public class GradleKotlinToolDelegate extends AbstractGradleToolDelegate {
             "typealias FileWriter = java.io.FileWriter" + System.lineSeparator() +
             "tasks.register(\"listQuarkusDependencies\") {" + System.lineSeparator() +
             "    val writer = PrintWriter(FileWriter(\"%1$s\"))" + System.lineSeparator() +
-            "    configurations.quarkusDeployment.incoming.artifacts.each {" + System.lineSeparator() +
+            "    quarkusDeployment.incoming.artifacts.forEach {" + System.lineSeparator() +
             "        writer.println(it.id.componentIdentifier)" + System.lineSeparator() +
             "        writer.println(it.file)" + System.lineSeparator() +
             "    }" + System.lineSeparator() +
