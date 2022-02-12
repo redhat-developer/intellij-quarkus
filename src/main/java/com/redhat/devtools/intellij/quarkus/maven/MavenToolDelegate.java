@@ -109,7 +109,7 @@ public class MavenToolDelegate implements ToolDelegate {
     private boolean processDependency(MavenProject mavenProject, List<VirtualFile>[] result, Set<MavenArtifact> downloaded, MavenArtifact dependency, int type) {
         boolean added = false;
 
-        if (mavenProject.findDependencies(dependency.getMavenId()).isEmpty() && !downloaded.contains(dependency)) {
+        if (mavenProject.findDependencies(dependency.getGroupId(), dependency.getArtifactId()).isEmpty() && !downloaded.contains(dependency)) {
             downloaded.add(dependency);
             VirtualFile jarRoot = getJarFile(dependency.getFile());
             if (jarRoot != null) {

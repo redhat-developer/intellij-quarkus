@@ -20,17 +20,20 @@ public class GradleGroovyToolDelegate extends AbstractGradleToolDelegate {
             "task listQuarkusDependencies() {" + System.lineSeparator() +
                     "    File f = new File('%1$s')" + System.lineSeparator() +
                     "    f.withPrintWriter('UTF8') { writer ->" + System.lineSeparator() +
-                    "        configurations.quarkusDeployment.files.each { writer.println it }" + System.lineSeparator() +
+                    "        configurations.quarkusDeployment.incoming.artifacts.each {" + System.lineSeparator() +
+                    "            writer.println it.id.componentIdentifier" + System.lineSeparator() +
+                    "            writer.println it.file" + System.lineSeparator() +
+                    "        }" + System.lineSeparator() +
                     "        def componentIds = configurations.quarkusDeployment.incoming.resolutionResult.allDependencies.collect { it.selected.id }" + System.lineSeparator() +
                     "        ArtifactResolutionResult result = dependencies.createArtifactResolutionQuery()" + System.lineSeparator() +
                     "            .forComponents(componentIds)" + System.lineSeparator() +
                     "            .withArtifacts(JvmLibrary, SourcesArtifact)" + System.lineSeparator() +
                     "            .execute()" + System.lineSeparator() +
-                    "        def sourceArtifacts = []" + System.lineSeparator() +
                     "        result.resolvedComponents.each { ComponentArtifactsResult component ->" + System.lineSeparator() +
                     "            Set<ArtifactResult> sources = component.getArtifacts(SourcesArtifact)" + System.lineSeparator() +
                     "            sources.each { ArtifactResult ar ->" + System.lineSeparator() +
                     "                if (ar instanceof ResolvedArtifactResult) {" + System.lineSeparator() +
+                    "                    writer.println ar.id.componentIdentifier" + System.lineSeparator() +
                     "                    writer.println ar.file" + System.lineSeparator() +
                     "                }" + System.lineSeparator() +
                     "            }" + System.lineSeparator() +

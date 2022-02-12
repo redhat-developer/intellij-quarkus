@@ -32,6 +32,11 @@ public class QuarkusMavenLibraryImporter extends MavenImporter {
     }
 
     @Override
+    public boolean isApplicable(MavenProject mavenProject) {
+        return super.isApplicable(mavenProject) || mavenProject.findPlugin("io.quarkus.platform", myPluginArtifactID) != null;
+    }
+
+    @Override
     public void getSupportedPackagings(Collection<String> result) {
         result.addAll(SUPPORTED_PACKAGINGS);
     }
