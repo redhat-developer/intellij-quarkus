@@ -10,6 +10,8 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.gradle;
 
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.ExternalSystemExecutionSettings;
@@ -35,9 +37,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportBuilder;
 import com.intellij.projectImport.ProjectImportProvider;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType;
+import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -312,5 +318,17 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
         } catch (IllegalAccessException | InstantiationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration) {
+        RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Gradle)", GradleExternalTaskConfigurationType.class);
+        GradleRunConfiguration gradleConfiguration = (GradleRunConfiguration) settings.getConfiguration();
+        gradleConfiguration.getSettings().getTaskNames().add("quarkusDev");
+        gradleConfiguration.getSettings().setEnv(configuration.getEnv());
+        if (StringUtils.isNotBlank(configuration.getProfile())) {
+            //commandLine.getScriptParameters().getOptions().add("-Pquarkus.profile=" + configuration.getProfile());
+        }
+        return settings;
     }
 }

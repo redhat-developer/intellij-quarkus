@@ -10,11 +10,20 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.maven;
 
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.idea.maven.execution.MavenRunConfiguration;
+import org.jetbrains.idea.maven.execution.MavenRunConfigurationType;
+import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenArtifactInfo;
 import org.jetbrains.idea.maven.model.MavenId;
@@ -137,5 +146,26 @@ public class MavenToolDelegate implements ToolDelegate {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return result;
+    }
+
+    @Override
+    public RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration) {
+        RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Maven)", MavenRunConfigurationType.class);
+        MavenRunConfiguration mavenConfiguration = (MavenRunConfiguration) settings.getConfiguration();
+        mavenConfiguration.getRunnerParameters().setResolveToWorkspace(true);
+        mavenConfiguration.getRunnerParameters().setGoals(Collections.singletonList("quarkus:dev"));
+        mavenConfiguration.getRunnerParameters().setWorkingDirPath(VfsUtilCore.virtualToIoFile(QuarkusModuleUtil.getModuleDirPath(module)).getAbsolutePath());
+        ensureRunnerSettings(mavenConfiguration);
+        mavenConfiguration.getRunnerSettings().setEnvironmentProperties(configuration.getEnv());
+        if (StringUtils.isNotBlank(configuration.getProfile())) {
+            mavenConfiguration.getRunnerSettings().getMavenProperties().put("quarkus.profile", configuration.getProfile());
+        }
+        return settings;
+    }
+
+    private void ensureRunnerSettings(MavenRunConfiguration mavenConfiguration) {
+        if (mavenConfiguration.getRunnerSettings() == null) {
+            mavenConfiguration.setRunnerSettings(new MavenRunnerSettings());
+        }
     }
 }
