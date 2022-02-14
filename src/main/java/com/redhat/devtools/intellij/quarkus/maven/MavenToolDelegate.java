@@ -160,6 +160,7 @@ public class MavenToolDelegate implements ToolDelegate {
         if (StringUtils.isNotBlank(configuration.getProfile())) {
             mavenConfiguration.getRunnerSettings().getMavenProperties().put("quarkus.profile", configuration.getProfile());
         }
+        mavenConfiguration.getRunnerSettings().getMavenProperties().put("debug", Integer.toString(configuration.getPort()));
         return settings;
     }
 

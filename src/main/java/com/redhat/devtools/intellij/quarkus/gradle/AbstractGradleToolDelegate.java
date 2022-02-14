@@ -68,7 +68,7 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGradleToolDelegate.class);
     private static final String M2_REPO = System.getProperty("user.home") + File.separator + ".m2" + File.separator + "repository";
 
-    private static String GRADLE_LIBRARY_PREFIX = "Gradle: ";
+    private static final String GRADLE_LIBRARY_PREFIX = "Gradle: ";
 
     private boolean scriptExists(Module module) {
         String path = getModuleDirPath(module);
@@ -326,9 +326,11 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
         GradleRunConfiguration gradleConfiguration = (GradleRunConfiguration) settings.getConfiguration();
         gradleConfiguration.getSettings().getTaskNames().add("quarkusDev");
         gradleConfiguration.getSettings().setEnv(configuration.getEnv());
+        String parameters = "-Ddebug=" + configuration.getPort();
         if (StringUtils.isNotBlank(configuration.getProfile())) {
-            //commandLine.getScriptParameters().getOptions().add("-Pquarkus.profile=" + configuration.getProfile());
+            parameters += " -Dquarkus.profile=" + configuration.getProfile();
         }
+        gradleConfiguration.getSettings().setScriptParameters(parameters);
         return settings;
     }
 }
