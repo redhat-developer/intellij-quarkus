@@ -66,6 +66,8 @@ public class QuarkusConstants {
 
     public static final String QUARKUS_DEPLOYMENT_LIBRARY_NAME = "Quarkus (deployment)";
 
+    public static final Integer QUARKUS_DEPLOYMENT_LIBRARY_VERSION = 1;
+
     public static final String LSP_PLUGIN_ID = "com.github.gtache.lsp";
     public static final String DISPLAY_CHECK_NOTIFACTION_PROPERTY_NAME = QuarkusConstants.class.getPackage().getName() + ".displayCheckNotification";
     public static final String NOTIFICATION_GROUP = "Quarkus Tools";
