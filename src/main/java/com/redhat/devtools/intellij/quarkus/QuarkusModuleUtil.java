@@ -81,9 +81,11 @@ public class QuarkusModuleUtil {
             LOGGER.info("Tool delegate found for " + module.getName());
             if (isQuarkusModule(module)) {
                 LOGGER.info("isQuarkus module " + module.getName());
-                Integer previousHash = module.getComponent(QuarkusModuleComponent.class).getHash();
+                QuarkusModuleComponent component = module.getComponent(QuarkusModuleComponent.class);
+                Integer previousHash = component.getHash();
                 Integer actualHash = computeHash(module);
-                if (actualHash != null && !actualHash.equals(previousHash)) {
+                if ((actualHash != null && !actualHash.equals(previousHash)) ||
+                        !QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION.equals(component.getVersion())){
                     ModuleRootModificationUtil.updateModel(module, model -> {
                         LibraryTable table = model.getModuleLibraryTable();
                         Library library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
@@ -97,7 +99,8 @@ public class QuarkusModuleUtil {
                         TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "addLibrary").send();
                         addLibrary(model, files);
                     });
-                    module.getComponent(QuarkusModuleComponent.class).setHash(actualHash);
+                    component.setHash(actualHash);
+                    component.setVersion(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION);
                 }
             }
         }

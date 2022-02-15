@@ -25,6 +25,7 @@ public class QuarkusModuleComponent implements ModuleComponent, PersistentStateC
 
     public static final class State {
         private Integer hash;
+        private Integer version;
 
         public State() {}
 
@@ -34,6 +35,14 @@ public class QuarkusModuleComponent implements ModuleComponent, PersistentStateC
 
         public void setHash(Integer hash) {
             this.hash = hash;
+        }
+
+        public Integer getVersion() {
+            return version;
+        }
+
+        public void setVersion(Integer version) {
+            this.version = version;
         }
     }
 
@@ -57,14 +66,27 @@ public class QuarkusModuleComponent implements ModuleComponent, PersistentStateC
         this.state = state;
     }
 
+    private void ensureState() {
+        if (state == null) {
+            state = new State();
+        }
+    }
+
     public Integer getHash() {
         return state != null ? state.getHash():null;
     }
 
     public void setHash(Integer hash) {
-        if (state == null) {
-            state = new State();
-        }
+        ensureState();
         state.setHash(hash);
+    }
+
+    public Integer getVersion() {
+        return state != null ? state.getHash() : null;
+    }
+
+    public void setVersion(Integer version) {
+        ensureState();
+        state.setVersion(version);
     }
 }
