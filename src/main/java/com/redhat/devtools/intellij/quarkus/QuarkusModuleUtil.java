@@ -28,11 +28,11 @@ import com.intellij.openapi.roots.RootPolicy;
 import com.intellij.openapi.roots.impl.libraries.LibraryEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -202,7 +202,7 @@ public class QuarkusModuleUtil {
         if (roots.length > 0) {
             return roots[0];
         } else {
-            return LocalFileSystem.getInstance().findFileByPath(new File(module.getModuleFilePath()).getParent());
+            return VfsUtil.findFileByIoFile(new File(module.getModuleFilePath()).getParentFile(), true);
         }
     }
 }

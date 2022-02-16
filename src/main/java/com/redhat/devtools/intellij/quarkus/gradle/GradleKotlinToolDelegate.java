@@ -42,10 +42,17 @@ public class GradleKotlinToolDelegate extends AbstractGradleToolDelegate {
             "    writer.close()" + System.lineSeparator() +
             "}";
 
+    @Override
     String getScriptName() {
         return "build.gradle.kts";
     }
 
+    @Override
+    String getSettingsScriptName() {
+        return "settings.gradle.kts";
+    }
+
+    @Override
     String getScriptExtension() {
         return ".gradle.kts";
     }
