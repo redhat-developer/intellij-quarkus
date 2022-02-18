@@ -72,8 +72,11 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
 
     private boolean scriptExists(Module module) {
         String path = getModuleDirPath(module);
-        File script = new File(path, getScriptName());
-        return script.exists();
+        if (path != null) {
+            File script = new File(path, getScriptName());
+            return script.exists();
+        }
+        return false;
     }
 
     @Override
@@ -110,47 +113,62 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
      */
     private void processDownload(Module module, Set<String> deploymentIds, List<VirtualFile>[] result) throws IOException {
         Path outputPath = Files.createTempFile(null, ".txt");
-        Path customPath = generateCustomGradleBuild(getModuleDirPath(module), outputPath, deploymentIds);
-        collectDependencies(module, customPath, outputPath, result);
-        Files.delete(outputPath);
-        Files.delete(customPath);
-    }
+        Path customBuildFile = generateCustomGradleBuild(getModuleDirPath(module), outputPath, deploymentIds);
+        Path customSettingsFile = generateCustomGradleSettings(getModuleDirPath(module), customBuildFile);
+        try {
+            collectDependencies(module, customBuildFile, customSettingsFile, outputPath, result);
+        } catch (IOException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+        } finally {
+            Files.delete(outputPath);
+            Files.delete(customBuildFile);
+            Files.delete(customSettingsFile);
+        }
+   }
 
-    @NotNull
+
     private String getModuleDirPath(Module module) {
+        VirtualFile dir = QuarkusModuleUtil.getModuleDirPath(module);
+        if (dir != null) {
+            dir.refresh(false, false);
+        }
+        VirtualFile script = dir!=null?dir.findChild(getScriptName()):null;
+        if (script != null && script.exists()) {
+            return dir.getPath();
+        }
         ModuleGrouper grouper = ModuleGrouper.instanceFor(module.getProject());
         List<String> names = grouper.getGroupPath(module);
         if (!names.isEmpty()) {
             ModuleManager manager = ModuleManager.getInstance(module.getProject());
             Module parentModule = manager.findModuleByName(names.get(0));
             if (parentModule != null) {
-                return QuarkusModuleUtil.getModuleDirPath(parentModule).getPath();
+                return getModuleDirPath(parentModule);
             }
         }
-        return QuarkusModuleUtil.getModuleDirPath(module).getPath();
+        return null;
     }
 
     /**
      * Collect all deployment JARs and dependencies through a Gradle specific task.
      *
      * @param module the module to analyze
-     * @param customPath the custom Gradle build file with the specific task
+     * @param customBuildFile the custom Gradle build file with the specific task
      * @param outputPath the file where the result of the specific task is stored
      * @param result the list where to place results to
      * @throws IOException if an error occurs running Gradle
      */
-    private void collectDependencies(Module module, Path customPath, Path outputPath, List<VirtualFile>[] result) throws IOException {
+    private void collectDependencies(Module module, Path customBuildFile, Path customSettingsFile, Path outputPath, List<VirtualFile>[] result) throws IOException {
         try {
             final ExternalSystemFacadeManager manager = ServiceManager.getService(ExternalSystemFacadeManager.class);
 
             ExternalSystemExecutionSettings settings = ExternalSystemApiUtil.getExecutionSettings(module.getProject(),
-                    module.getProject().getBasePath(),
+                    getModuleDirPath(module),
                     GradleConstants.SYSTEM_ID);
 
             RemoteExternalSystemFacade facade = manager.getFacade(module.getProject(), getModuleDirPath(module), GradleConstants.SYSTEM_ID);
 
             RemoteExternalSystemTaskManager taskManager = facade.getTaskManager();
-            final List<String> arguments = Arrays.asList("-b", customPath.toString(), "-q", "--console", "plain");
+            final List<String> arguments = Arrays.asList("-c", customSettingsFile.toString(), "-q", "--console", "plain");
             settings
                     .withArguments(arguments);
             ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, module.getProject());
@@ -179,6 +197,8 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
     }
 
     abstract String getScriptName();
+
+    abstract String getSettingsScriptName();
 
     abstract String getScriptExtension();
 
@@ -210,6 +230,22 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
             }
         }
     }
+
+    private Path generateCustomGradleSettings(String basePath, Path customBuildFile) throws IOException {
+        Path base = Paths.get(basePath);
+        Path path = base.resolve(getSettingsScriptName());
+        String content = "";
+        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            content = IOUtils.toString(reader);
+        } catch (IOException e) {}
+        content += System.lineSeparator() + "rootProject.buildFileName ='" + customBuildFile.getFileName().toFile().getName() + "'";
+        Path customPath = Files.createTempFile(base, null, getScriptExtension());
+        try (Writer writer = Files.newBufferedWriter(customPath, StandardCharsets.UTF_8)) {
+            IOUtils.write(content, writer);
+            return customPath;
+        }
+    }
+
 
 
     /**

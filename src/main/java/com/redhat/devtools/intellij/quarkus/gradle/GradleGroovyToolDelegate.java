@@ -40,11 +40,18 @@ public class GradleGroovyToolDelegate extends AbstractGradleToolDelegate {
                     "        }" + System.lineSeparator() +
                     "    }" + System.lineSeparator() +
                     "}";
-    
+
+    @Override
     String getScriptName() {
         return "build.gradle";
     }
 
+    @Override
+    String getSettingsScriptName() {
+        return "settings.gradle";
+    }
+
+    @Override
     String getScriptExtension() {
         return ".gradle";
     }
