@@ -3,7 +3,9 @@ package com.redhat.devtools.intellij.quarkus.lsp4ij;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
@@ -17,6 +19,8 @@ import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.TextDocumentSyncOptions;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -26,6 +30,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class DocumentContentSynchronizer implements DocumentListener {
+    private final static Logger LOGGER = LoggerFactory.getLogger(DocumentContentSynchronizer.class);
+
     private final @Nonnull LanguageServerWrapper languageServerWrapper;
     private final @Nonnull Document document;
     private final @Nonnull URI fileUri;
@@ -179,8 +185,18 @@ public class DocumentContentSynchronizer implements DocumentListener {
         return version;
     }
 
+    private void logDocument(String header, Document document) {
+        LOGGER.warn(header + " text='" + document.getText());
+        VirtualFile file = FileDocumentManager.getInstance().getFile(document);
+        if (file != null) {
+            LOGGER.warn(header + " file=" + file);
+        }
+    }
+
     private void checkEvent(DocumentEvent event) {
         if (this.document != event.getDocument()) {
+            logDocument("Listener document", this.document);
+            logDocument("Event document", event.getDocument());
             throw new IllegalStateException("Synchronizer should apply to only a single document, which is the one it was instantiated for"); //$NON-NLS-1$
         }
     }
