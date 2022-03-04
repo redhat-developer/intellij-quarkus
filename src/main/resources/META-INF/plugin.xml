@@ -11,6 +11,12 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.10.0</b></p>
+    <ul>
+      <li>Add Quarkus configuration support to run and debug Quarkus applications</li>
+      <li>Fix Quarkus library dependencies
+      <li>Fix CVE-2021-25738 (Yaml parsing)</li>
+    </ul>
     <p><b>1.9.0</b></p>
     <ul>
       <li>Quarkus wizard allows to select Quarkus stream</li>
