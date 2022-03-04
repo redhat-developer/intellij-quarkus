@@ -153,7 +153,7 @@ Wrong property key names or values are reported
 
 ## Quarkus run/debug command
 
-It is possible to run or debug a Quarkus appliction from the IDE configurations.
+It is possible to run or debug a Quarkus application from the IDE configurations.
 Select the `Run -> Edit Configurations...` menu and click the `Add new...` link:
 
 ![](images/1.10.0/quarkus-tools1.png)
