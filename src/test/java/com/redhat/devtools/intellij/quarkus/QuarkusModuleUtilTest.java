@@ -15,8 +15,8 @@ import org.junit.Test;
 import static com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil.APPLICATION_PROPERTIES;
 import static com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil.APPLICATION_YAML;
 import static com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil.MICROPROFILE_CONFIG_PROPERTIES;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.wildfly.common.Assert.assertFalse;
 
 public class QuarkusModuleUtilTest {
     @Test
