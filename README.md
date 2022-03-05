@@ -151,12 +151,27 @@ Wrong property key names or values are reported
   * Support for Quarkus profiles
   * Outline support (flat or tree view)
 
-## ~~Quarkus debug command~~
-  NYI
+## Quarkus run/debug command
 
-  Launches the Maven quarkus:dev plugin and automatically attaches a debugger
+It is possible to run or debug a Quarkus application from the IDE configurations.
+Select the `Run -> Edit Configurations...` menu and click the `Add new...` link:
 
-  TBD
+![](images/1.10.0/quarkus-tools1.png)
+
+Select the `Quarkus` configuration type:
+
+![](images/1.10.0/quarkus-tools2.png)
+
+The first module of the project is selected. For single Quarkus projects, it is ok. If you have a multi module Quarkus project, you can change the module to test.
+You can also specify a Quarkus profile to use (dev is the default) and environment variables (using the notation VARNAME=varvalue, separated by semicolon)
+
+The click the `OK` button. The configuration will now appear on the top right side of the window:
+
+![](images/1.10.0/quarkus-tools3.png)
+
+If you click the Run icon, it will start the Quarkus application in dev mode. If you click the Debug button, it will start the Quarkus application in dev mode and connect a local Java debugger to the running application.
+
+![](images/1.10.0/quarkus-tools4.png)
 
 ## Quarkus code snippets
 
