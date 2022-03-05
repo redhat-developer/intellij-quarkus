@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import java.awt.Point;
 import java.net.ConnectException;
 import java.time.Duration;
+import java.util.Arrays;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -75,9 +76,8 @@ public class BasicTest extends AbstractQuarkusTest {
             assertTrue(isBuildSuccessful, "The build should be successful but is not.");
         }
         catch (Exception e) { // java.net.ConnectException
-            e.printStackTrace();
             ScreenshotUtils.takeScreenshot(remoteRobot);
-            fail();
+            fail(stackTraceToString(e));
         }
     }
 
@@ -92,9 +92,8 @@ public class BasicTest extends AbstractQuarkusTest {
             assertTrue(isRuntimeAvailable, "The Quarkus runtime has not been downloaded.");
         }
         catch (Exception e) { // java.net.ConnectException
-            e.printStackTrace();
             ScreenshotUtils.takeScreenshot(remoteRobot);
-            fail();
+            fail(stackTraceToString(e));
         }
     }
 
@@ -172,5 +171,17 @@ public class BasicTest extends AbstractQuarkusTest {
         } catch (WaitForConditionTimeoutException e) {
             e.printStackTrace();
         }
+    }
+
+    public static String stackTraceToString(Throwable e) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(e.toString());
+        sb.append("\n");
+        for (StackTraceElement element : e.getStackTrace()) {
+            sb.append("\tat ");
+            sb.append(element.toString());
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 }
