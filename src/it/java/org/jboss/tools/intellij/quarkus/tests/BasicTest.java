@@ -55,6 +55,7 @@ public class BasicTest extends AbstractQuarkusTest {
 
     @AfterEach
     public void finishTestRun() {
+        ScreenshotUtils.takeScreenshot(remoteRobot);
         CreateCloseUtils.closeProject(remoteRobot);
         FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
         flatWelcomeFrame.clearExceptions();
