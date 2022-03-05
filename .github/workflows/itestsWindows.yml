@@ -23,7 +23,7 @@ jobs:
       run: |
         .\gradlew.bat integrationTest
       shell: powershell
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }}-integration-test-reports
         path: build\reports\tests\integrationTest

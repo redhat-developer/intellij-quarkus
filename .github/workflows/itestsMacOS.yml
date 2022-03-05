@@ -22,7 +22,7 @@ jobs:
     - name: Run integration tests
       run: |
         ./gradlew integrationTest
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }}-integration-test-reports
         path: build/reports/tests/integrationTest
