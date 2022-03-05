@@ -43,6 +43,7 @@ import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Basic Quarkus tests
@@ -76,6 +77,7 @@ public class BasicTest extends AbstractQuarkusTest {
         catch (Exception e) { // java.net.ConnectException
             e.printStackTrace();
             ScreenshotUtils.takeScreenshot(remoteRobot);
+            fail();
         }
     }
 
@@ -92,6 +94,7 @@ public class BasicTest extends AbstractQuarkusTest {
         catch (Exception e) { // java.net.ConnectException
             e.printStackTrace();
             ScreenshotUtils.takeScreenshot(remoteRobot);
+            fail();
         }
     }
 
