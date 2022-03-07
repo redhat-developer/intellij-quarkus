@@ -57,7 +57,6 @@ public class BasicTest extends AbstractQuarkusTest {
 
     @AfterEach
     public void finishTestRun() {
-        ScreenshotUtils.takeScreenshot(remoteRobot);
         CreateCloseUtils.closeProject(remoteRobot);
         FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
         flatWelcomeFrame.clearExceptions();
@@ -77,7 +76,7 @@ public class BasicTest extends AbstractQuarkusTest {
         }
         catch (Exception e) { // java.net.ConnectException
             ScreenshotUtils.takeScreenshot(remoteRobot);
-            fail(stackTraceToString(e));
+            e.printStackTrace();
         }
     }
 
@@ -93,7 +92,7 @@ public class BasicTest extends AbstractQuarkusTest {
         }
         catch (Exception e) { // java.net.ConnectException
             ScreenshotUtils.takeScreenshot(remoteRobot);
-            fail(stackTraceToString(e));
+            e.printStackTrace();
         }
     }
 
