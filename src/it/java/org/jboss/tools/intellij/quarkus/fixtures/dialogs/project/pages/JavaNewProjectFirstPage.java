@@ -8,33 +8,36 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.intellij.quarkus.fixtures.quarkus;
+package org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.data.RemoteComponent;
-import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
+import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.pages.NewProjectFirstPage;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 
 /**
- * Downloading Options dialog fixture
+ * New Java project dialog first page fixture
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "MyDialog type", xpath = "//div[@accessiblename='Downloading Options' and @class='MyDialog']")
-@FixtureName(name = "Dialog")
-public class DownloadingOptionsDialogFixture extends CommonContainerFixture {
-    public DownloadingOptionsDialogFixture(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
+@DefaultXpath(by = "MyDialog type", xpath = "//div[@class='DialogRootPane']")
+@FixtureName(name = "New Project Dialog")
+public class JavaNewProjectFirstPage extends NewProjectFirstPage {
+    public JavaNewProjectFirstPage(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
         super(remoteRobot, remoteComponent);
     }
 
-    public ComponentFixture filesToDownload() {
-        return find(ComponentFixture.class, byXpath("//div[@accessiblename='Files to download:' and @class='CheckBoxList']"));
+    /**
+     * Get fixture for the frameworks tree
+     *
+     * @return fixture for the frameworks tree
+     */
+    public ComponentFixture frameworksTree() {
+        return find(ComponentFixture.class, byXpath("//div[@accessiblename='Additional Libraries and Frameworks:' and @class='FrameworksTree']"));
     }
 }
