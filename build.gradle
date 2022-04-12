@@ -129,7 +129,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.9'
     compile 'com.vladsch.flexmark:flexmark:0.50.50'
     testCompile 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.0.8'
-    lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.4.0-SNAPSHOT:uber') {
+    lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.3.0:uber') {
         transitive = false
     }
     lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.10.1') {
