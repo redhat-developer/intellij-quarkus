@@ -42,7 +42,7 @@ public class GradleMicroProfileJWTTest extends GradleTestCase {
 	@Test
 	public void testMicroprofileJWT() throws Exception {
 
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-jwt.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-jwt.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 				// confirm properties are being merged with force, should not overwrite properties coming from ConfigProperty provider

@@ -10,7 +10,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.faulttolerance;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.MicroProfileFaultToleranceConstants;
@@ -40,13 +40,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  *
  */
 @Ignore("Skipped because dependencies on the classpath may not have sources")
-public class MavenMicroProfileFaultTolerancePropertiesTest extends MavenImportingTestCase {
+public class MavenMicroProfileFaultTolerancePropertiesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testMicroprofileFaultTolerancePropertiesTest() throws Exception {
 
 		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.Markdown);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 
 		assertProperties(infoFromClasspath,
 

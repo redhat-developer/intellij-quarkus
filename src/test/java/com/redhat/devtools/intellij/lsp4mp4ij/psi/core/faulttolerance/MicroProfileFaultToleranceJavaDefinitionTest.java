@@ -15,7 +15,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.faulttolerance;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -34,13 +34,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  * @author Angelo ZERR
  *
  */
-public class MavenMicroProfileFaultToleranceJavaDefinitionTest extends MavenImportingTestCase {
+public class MicroProfileFaultToleranceJavaDefinitionTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testFallbackMethodsDefinition() throws Exception {
 		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
 		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 
 		// @Fallback(fallbackMethod = "a|aa") --> no definition

@@ -42,7 +42,6 @@ import com.intellij.ui.layout.LCFlags;
 import com.intellij.ui.layout.LayoutKt;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
@@ -74,7 +73,7 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
 
     @Override
     public boolean isVisibleInSettings() {
-        return false;
+        return true;
     }
 
     @NotNull
@@ -117,8 +116,7 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
 
     @Nullable
     @Override
-    public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull NoSettings o, @NotNull InlayHintsSink inlayHintsSink) {
-        return new FactoryInlayHintsCollector(editor) {
+    public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull NoSettings o, @NotNull InlayHintsSink inlayHintsSink) {return new FactoryInlayHintsCollector(editor) {
             @Override
             public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
                 try {
@@ -160,7 +158,7 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
         int line = editor.getDocument().getLineNumber(offset);
         int column = offset - editor.getDocument().getLineStartOffset(line);
         List<InlayPresentation> presentations = new ArrayList<>();
-        presentations.add(factory.text(StringUtils.repeat(' ', column)));
+        presentations.add(factory.textSpacePlaceholder(column, true));
         presentations.add(factory.onClick(factory.text(getCodeLensString(codeLens)), MouseButton.Left, (event,point) -> {
             executeClientCommand(languageServer, codeLens, (Component) event.getSource(), editor.getProject());
             return null;

@@ -6,6 +6,7 @@
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <externalProjectDataService implementation="com.redhat.devtools.intellij.quarkus.gradle.QuarkusProjectDataService"/>
+    <externalProjectDataService implementation="com.redhat.devtools.intellij.qute.gradle.QuteProjectDataService"/>
   </extensions>
 
 </idea-plugin>

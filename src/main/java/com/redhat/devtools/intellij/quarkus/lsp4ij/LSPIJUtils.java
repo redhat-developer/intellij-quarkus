@@ -1,12 +1,13 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
+import com.intellij.lang.Language;
+import com.intellij.lang.LanguageUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -33,15 +34,14 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
 
 public class LSPIJUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPIJUtils.class);
 
     @Nonnull
-    public static List<FileType> getFileContentTypes(@Nonnull VirtualFile file) {
-        return Collections.singletonList(file.getFileType());
+    public static Language getFileLanguage(@Nonnull VirtualFile file, Project project) {
+        return LanguageUtil.getLanguageForPsi(project, file);
     }
 
     private static <T extends TextDocumentPositionParams> T toTextDocumentPositionParamsCommon(T param, int offset, Document document) {
@@ -132,9 +132,9 @@ public class LSPIJUtils {
         //TODO: implements WorkspaceEdit
     }
 
-    public static List<FileType> getDocumentContentTypes(Document document) {
+    public static Language getDocumentLanguage(Document document, Project project) {
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
-        return Collections.singletonList(file.getFileType());
+        return getFileLanguage(file, project);
     }
 
     public static VirtualFile findResourceFor(URI uri) {

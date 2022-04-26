@@ -153,7 +153,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
                 ApplicationManager.getApplication().runWriteAction(() -> {
                     try {
                         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module,
-                                MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.TEST, PsiUtilsLSImpl.getInstance(),
+                                MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.TEST, PsiUtilsLSImpl.getInstance(module.getProject()),
                                 DocumentFormat.Markdown);
                         String schema = JSONSchemaUtils.toJSONSchema(info, false);
                         VfsUtil.saveText(schemaFile1, schema);

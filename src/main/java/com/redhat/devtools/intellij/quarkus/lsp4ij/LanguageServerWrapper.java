@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.AppTopics;
 import com.intellij.ProjectTopics;
+import com.intellij.lang.Language;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -14,15 +14,11 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.ui.Messages;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.CodeActionCapabilities;
 import org.eclipse.lsp4j.CodeActionKind;
@@ -172,6 +168,10 @@ public class LanguageServerWrapper {
         this.allWatchedProjects = new HashSet<>();
         this.serverDefinition = serverDefinition;
         this.connectedDocuments = new HashMap<>();
+    }
+
+    public Project getProject() {
+        return initialProject.getProject();
     }
 
     /**
@@ -597,16 +597,15 @@ public class LanguageServerWrapper {
         }
     }
 
-    public void disconnectContentType(@Nonnull FileType contentType) {
+    public void disconnectContentType(@Nonnull Language language) {
         List<URI> pathsToDisconnect = new ArrayList<>();
         for (URI path : connectedDocuments.keySet()) {
             VirtualFile foundFiles = LSPIJUtils.findResourceFor(path);
             if (foundFiles != null) {
-                LSPIJUtils.getFileContentTypes(foundFiles).forEach(type -> {
-                    if (type.equals(contentType)) {
+                Language fileLanguage = LSPIJUtils.getFileLanguage(foundFiles, initialProject.getProject());
+                    if (fileLanguage.isKindOf(language)) {
                         pathsToDisconnect.add(path);
                     }
-                });
             }
         }
         for (URI path : pathsToDisconnect) {
@@ -701,12 +700,13 @@ public class LanguageServerWrapper {
      *         content type mapping for the language server
      */
     @Nullable
-    public String getLanguageId(FileType[] contentTypes) {
-        for (FileType contentType : contentTypes) {
-            String languageId = serverDefinition.langugeIdMappings.get(contentType);
+    public String getLanguageId(Language language) {
+        while (language != null) {
+            String languageId = serverDefinition.languageIdMappings.get(language);
             if (languageId != null) {
                 return languageId;
             }
+            language = language.getBaseLanguage();
         }
         return null;
     }

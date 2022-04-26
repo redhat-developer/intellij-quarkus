@@ -16,7 +16,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 /**
  * Quarkus library test
  */
-public class MavenQuarkusLibraryTest extends MavenImportingTestCase {
+public class MavenQuarkusLibraryTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testQuarkusLibraryDoesNotReplicateExistingDependencies() throws Exception {

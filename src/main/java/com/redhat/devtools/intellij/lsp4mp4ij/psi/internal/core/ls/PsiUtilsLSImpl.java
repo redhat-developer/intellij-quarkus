@@ -53,14 +53,32 @@ import java.util.Scanner;
  */
 public class PsiUtilsLSImpl implements IPsiUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(PsiUtilsLSImpl.class);
+    private final Project project;
+    private final Module module;
 
-    private static final IPsiUtils INSTANCE = new PsiUtilsLSImpl();
-
-    public static IPsiUtils getInstance() {
-        return INSTANCE;
+    public static IPsiUtils getInstance(Project project) {
+        return new PsiUtilsLSImpl(project);
     }
 
-    private PsiUtilsLSImpl() {
+    private PsiUtilsLSImpl(Project project, Module module) {
+        this.project = project;
+        this.module = module;
+    }
+
+    private PsiUtilsLSImpl(Project project) {
+        this(project, null);
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public Module getModule() {
+        return module;
+    }
+
+    public IPsiUtils refine(Module module) {
+        return new PsiUtilsLSImpl(module.getProject(), module);
     }
 
     @Override
@@ -92,7 +110,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     }
 
     @Override
-    public Location toLocation(PsiMember psiMember) {
+    public Location toLocation(PsiElement psiMember) {
         PsiElement sourceElement = psiMember.getNavigationElement();
         if (sourceElement != null) {
             PsiFile file = sourceElement.getContainingFile();
@@ -158,6 +176,11 @@ public class PsiUtilsLSImpl implements IPsiUtils {
             LOGGER.error(e.getLocalizedMessage(), e);
         }
         return null;
+    }
+
+    @Override
+    public PsiFile resolveClassFile(String uri) {
+        return resolveCompilationUnit(uri);
     }
 
     public static ClasspathKind getClasspathKind(VirtualFile file, Module module) {

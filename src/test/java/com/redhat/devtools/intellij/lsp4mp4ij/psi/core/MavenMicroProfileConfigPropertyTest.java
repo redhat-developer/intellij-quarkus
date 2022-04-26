@@ -11,8 +11,8 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
@@ -31,10 +31,10 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUIL
 /**
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/MicroProfileConfigPropertyTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/MicroProfileConfigPropertyTest.java</a>
  */
-public class MavenMicroProfileConfigPropertyTest extends MavenImportingTestCase {
+public class MavenMicroProfileConfigPropertyTest extends MavenModuleImportingTestCase {
     public void testConfigQuickstartFromClasspath() throws Exception {
         Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
-        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar");
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
@@ -114,7 +114,7 @@ public class MavenMicroProfileConfigPropertyTest extends MavenImportingTestCase 
 
     public void testConfigQuickstartFromJavaSources() throws Exception {
         Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
         assertProperties(infoFromJavaSources, 9 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */,

@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
@@ -29,11 +29,8 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUIL
 /**
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerTest.java</a>
  */
-public class MavenPropertiesManagerTest extends MavenImportingTestCase {
-    private static final String XML = "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\" xmlns=\"http://maven.apache.org/POM/4.0.0\"" +
-            "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
-            "  <modelVersion>4.0.0</modelVersion>" +
-            "<groupId>com.redhat.devtools.intellij.quarkus</groupId>" +
+public class MavenPropertiesManagerTest extends MavenModuleImportingTestCase {
+    private static final String XML = "<groupId>com.redhat.devtools.intellij.quarkus</groupId>" +
             "<artifactId>sample-core-deployment</artifactId>" +
             "<version>0.0.1-SNAPSHOT</version>" +
             "<dependencies>" +
@@ -42,8 +39,7 @@ public class MavenPropertiesManagerTest extends MavenImportingTestCase {
             "<artifactId>quarkus-core-deployment</artifactId>" +
             "<version>0.24.0</version>" +
             "</dependency>" +
-            "</dependencies>" +
-            "</project>";
+            "</dependencies>";
 
     private Module module;
 
@@ -54,7 +50,7 @@ public class MavenPropertiesManagerTest extends MavenImportingTestCase {
     }
 
     public void testQuarkusCoreDeploymentProperties() {
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
         File quarkusCoreJARFile = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:0.24.0"), "jar");
         assertNotNull("Test existing of quarkus-core*.jar", quarkusCoreJARFile);
 

@@ -1,5 +1,7 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
+import com.intellij.lang.Language;
+import com.intellij.lang.LanguageUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -154,9 +156,9 @@ public class LanguageServiceAccessor {
         Optional<LanguageServerWrapper> result = startedServers.stream()
                 .filter(server -> server.serverDefinition.equals(contentTypeToLSDefinition.getValue())).findFirst();
         if (result.isPresent()) {
-            FileType contentType = contentTypeToLSDefinition.getKey();
-            if (contentType != null) {
-                result.get().disconnectContentType(contentType);
+            Language language = contentTypeToLSDefinition.getKey();
+            if (language != null) {
+                result.get().disconnectContentType(language);
             }
         }
 
@@ -167,11 +169,11 @@ public class LanguageServiceAccessor {
             @Nonnull Editor[] editors) {
         for (Editor editor : editors) {
             VirtualFile editorFile = LSPIJUtils.getFile(editor.getDocument());
-            FileType contentType = contentTypeToLSDefinition.getKey();
+            Language language = contentTypeToLSDefinition.getKey();
             LanguageServersRegistry.LanguageServerDefinition lsDefinition = contentTypeToLSDefinition.getValue();
-            FileType contentDesc = editorFile.getFileType();
-            if (contentTypeToLSDefinition.isEnabled() && contentType != null && contentDesc != null
-                    && contentType.equals(contentDesc)
+            Language contentLanguage = LanguageUtil.getLanguageForPsi(project, editorFile);
+            if (contentTypeToLSDefinition.isEnabled() && language != null && contentLanguage != null
+                    && contentLanguage.isKindOf(language)
                     && lsDefinition != null) {
                 try {
                     getInitializedLanguageServer(editorFile, lsDefinition, capabilities -> true);
@@ -299,13 +301,13 @@ public class LanguageServiceAccessor {
         res.addAll(getMatchingStartedWrappers(file, request));
 
         // look for running language servers via content-type
-        Queue<FileType> contentTypes = new LinkedList<>();
-        Set<FileType> addedContentTypes = new HashSet<>();
-        contentTypes.addAll(LSPIJUtils.getFileContentTypes(file));
+        Queue<Language> contentTypes = new LinkedList<>();
+        Set<Language> addedContentTypes = new HashSet<>();
+        contentTypes.add(LSPIJUtils.getFileLanguage(file, project.getProject()));
         addedContentTypes.addAll(contentTypes);
 
         while (!contentTypes.isEmpty()) {
-            FileType contentType = contentTypes.poll();
+            Language contentType = contentTypes.poll();
             if (contentType == null) {
                 continue;
             }
@@ -334,16 +336,16 @@ public class LanguageServiceAccessor {
         URI path = uri;
 
         // look for running language servers via content-type
-        Queue<FileType> contentTypes = new LinkedList<>();
-        Set<FileType> processedContentTypes = new HashSet<>();
-        contentTypes.addAll(LSPIJUtils.getDocumentContentTypes(document));
+        Queue<Language> contentTypes = new LinkedList<>();
+        Set<Language> processedContentTypes = new HashSet<>();
+        contentTypes.add(LSPIJUtils.getDocumentLanguage(document, project));
 
         synchronized (startedServers) {
             // already started compatible servers that fit request
             res.addAll(startedServers.stream()
                     .filter(wrapper -> {
                         try {
-                            return wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(document, wrapper.serverDefinition);
+                            return wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(document, wrapper.serverDefinition, project);
                         } catch (Exception e) {
                             LOGGER.warn(e.getLocalizedMessage(), e);
                             return false;
@@ -353,7 +355,7 @@ public class LanguageServiceAccessor {
                     .collect(Collectors.toList()));
 
             while (!contentTypes.isEmpty()) {
-                FileType contentType = contentTypes.poll();
+                Language contentType = contentTypes.poll();
                 if (contentType == null || processedContentTypes.contains(contentType)) {
                     continue;
                 }
@@ -472,7 +474,7 @@ public class LanguageServiceAccessor {
                                                                                 @Nullable Predicate<ServerCapabilities> request) {
         synchronized (startedServers) {
             return startedServers.stream().filter(wrapper -> wrapper.isConnectedTo(LSPIJUtils.toUri(file))
-                    || (LanguageServersRegistry.getInstance().matches(file, wrapper.serverDefinition)
+                    || (LanguageServersRegistry.getInstance().matches(file, wrapper.serverDefinition, project)
                     && wrapper.canOperate(LSPIJUtils.getProject(file)))).filter(wrapper -> request == null
                     || (wrapper.getServerCapabilities() == null || request.test(wrapper.getServerCapabilities())))
                     .collect(Collectors.toList());

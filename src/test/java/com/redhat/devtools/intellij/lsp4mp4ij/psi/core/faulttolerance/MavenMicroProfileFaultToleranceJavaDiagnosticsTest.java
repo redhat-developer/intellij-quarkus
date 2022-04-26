@@ -15,7 +15,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.faulttolerance;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceErrorCode;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -24,7 +24,6 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -40,13 +39,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  * @author Angelo ZERR
  *
  */
-public class MavenMicroProfileFaultToleranceJavaDiagnosticsTest extends MavenImportingTestCase {
+public class MavenMicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testFallbackMethodsMissing() throws Exception {
 		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
@@ -63,7 +62,7 @@ public class MavenMicroProfileFaultToleranceJavaDiagnosticsTest extends MavenImp
 	public void testFallbackMethodValidationFaultTolerant() throws Exception {
 		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/OtherFaultTolerantResource.java").toURI());
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		diagnosticsParams.setUris(Arrays.asList(javaFileUri));

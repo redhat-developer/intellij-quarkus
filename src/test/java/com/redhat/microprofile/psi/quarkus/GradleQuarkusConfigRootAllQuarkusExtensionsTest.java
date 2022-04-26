@@ -39,7 +39,7 @@ public class GradleQuarkusConfigRootAllQuarkusExtensionsTest extends GradleTestC
 
     @Test
     public void testAllExtensions() throws Exception {
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("all-quarkus-extensions.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("all-quarkus-extensions.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
         File keycloakJARFile = getDependency(getProjectPath(), "io.quarkus" , "quarkus-keycloak-authorization", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-keycloak-deployment*.jar", keycloakJARFile);
         File hibernateJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-hibernate-orm-deployment", "1.0.1.Final");

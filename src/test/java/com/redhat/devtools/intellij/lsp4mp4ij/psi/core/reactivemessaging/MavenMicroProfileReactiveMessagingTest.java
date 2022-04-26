@@ -10,9 +10,9 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.reactivemessaging;
 
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
@@ -36,13 +36,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Angelo ZERR
  *
  */
-public class MavenMicroProfileReactiveMessagingTest extends MavenImportingTestCase {
+public class MavenMicroProfileReactiveMessagingTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testMicroprofileReactiveMessagingPropertiesTest() throws Exception {
 
 		Module module = createMavenModule("microprofile-reactive-messaging", new File("projects/maven/microprofile-reactive-messaging"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 

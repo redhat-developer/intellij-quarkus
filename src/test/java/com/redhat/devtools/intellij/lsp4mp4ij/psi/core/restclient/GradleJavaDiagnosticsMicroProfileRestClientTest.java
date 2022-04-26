@@ -40,8 +40,6 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  *
  */
 public class GradleJavaDiagnosticsMicroProfileRestClientTest extends GradleTestCase {
-	private static final IPsiUtils utils = PsiUtilsLSImpl.getInstance();
-
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
@@ -78,7 +76,7 @@ public class GradleJavaDiagnosticsMicroProfileRestClientTest extends GradleTestC
 				DiagnosticSeverity.Warning, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileRestClientErrorCode.InjectAndRestClientAnnotationMissing);
 
-		assertJavaDiagnostics(params, utils, //
+		assertJavaDiagnostics(params, PsiUtilsLSImpl.getInstance(myProject), //
 				d1, //
 				d2, //
 				d3, //
@@ -119,7 +117,7 @@ public class GradleJavaDiagnosticsMicroProfileRestClientTest extends GradleTestC
 					DiagnosticSeverity.Warning, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
 					MicroProfileRestClientErrorCode.RegisterRestClientAnnotationMissing);
 
-			assertJavaDiagnostics(params, utils, //
+			assertJavaDiagnostics(params, PsiUtilsLSImpl.getInstance(myProject), //
 					d);
 
 		/*String uri = javaFile.getLocation().toFile().toURI().toString();

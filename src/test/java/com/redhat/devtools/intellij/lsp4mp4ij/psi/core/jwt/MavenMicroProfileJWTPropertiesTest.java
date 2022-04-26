@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jwt;
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
@@ -30,13 +30,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Kathryn Kodama
  *
  */
-public class MavenMicroProfileJWTPropertiesTest extends MavenImportingTestCase {
+public class MavenMicroProfileJWTPropertiesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testMicroprofileJWT() throws Exception {
 
 		Module module = createMavenModule("microprofile-jwt", new File("projects/maven/microprofile-jwt"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 				// confirm properties are being merged with force, should not overwrite properties coming from ConfigProperty provider

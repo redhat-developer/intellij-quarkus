@@ -12,11 +12,11 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils;
 
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
@@ -31,6 +31,12 @@ import java.io.IOException;
  *
  */
 public interface IPsiUtils {
+    Project getProject();
+
+    Module getModule();
+
+    IPsiUtils refine(Module module);
+
     VirtualFile findFile(String uri) throws IOException;
 
     String getJavadoc(PsiMethod method, DocumentFormat documentFormat);
@@ -51,9 +57,11 @@ public interface IPsiUtils {
 
     void discoverSource(PsiFile classFile);
 
-    Location toLocation(PsiMember fieldOrMethod);
+    Location toLocation(PsiElement fieldOrMethod);
 
     String toUri(PsiFile typeRoot);
 
     boolean isHiddenGeneratedElement(PsiElement element);
+
+    PsiFile resolveClassFile(String uri);
 }

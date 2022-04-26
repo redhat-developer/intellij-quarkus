@@ -177,7 +177,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     @NotNull
     @Override
     public String getLookupString() {
-        String lookup = StringUtils.isNotBlank(item.getFilterText())?item.getFilterText():item.getLabel();
+        String lookup = StringUtils.isNotBlank(item.getSortText())?item.getSortText():item.getLabel();
         if (lookup.charAt(0) == '@') {
             return lookup.substring(1);
         }
@@ -424,5 +424,9 @@ public class LSIncompleteCompletionProposal extends LookupElement {
 
     public boolean validate(Document document, int offset, DocumentEvent event) {
         return true;
+    }
+
+    public CompletionItem getItem() {
+        return item;
     }
 }

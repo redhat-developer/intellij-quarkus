@@ -11,7 +11,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import org.eclipse.lsp4j.Location;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,7 +26,7 @@ import java.io.File;
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerLocationTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerLocationTest.java</a>
  *
  */
-public class MavenPropertiesManagerLocationTest extends MavenImportingTestCase {
+public class MavenPropertiesManagerLocationTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUsingVertxTest() throws Exception {
@@ -35,19 +35,19 @@ public class MavenPropertiesManagerLocationTest extends MavenImportingTestCase {
 		// Test with JAR
 		// quarkus.datasource.url
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-				"io.quarkus.reactive.pg.client.runtime.DataSourceConfig", "url", null, PsiUtilsLSImpl.getInstance());
+				"io.quarkus.reactive.pg.client.runtime.DataSourceConfig", "url", null, PsiUtilsLSImpl.getInstance(myProject));
 		Assert.assertNotNull("Definition from JAR", location);
 
 		// Test with deployment JAR
 		// quarkus.arc.auto-inject-fields
 		location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-				"io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, PsiUtilsLSImpl.getInstance());
+				"io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, PsiUtilsLSImpl.getInstance(myProject));
 		Assert.assertNotNull("Definition deployment from JAR", location);
 
 		// Test with Java sources
 		// myapp.schema.create
 		location = PropertiesManager.getInstance().findPropertyLocation(javaProject, "org.acme.vertx.FruitResource",
-				"schemaCreate", null, PsiUtilsLSImpl.getInstance());
+				"schemaCreate", null, PsiUtilsLSImpl.getInstance(myProject));
 		Assert.assertNotNull("Definition from Java Sources", location);
 	}
 
@@ -59,7 +59,7 @@ public class MavenPropertiesManagerLocationTest extends MavenImportingTestCase {
 		// greetingInterface.name
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
 				"org.acme.config.IGreetingConfiguration", null, "getName()QOptional<QString;>;",
-				PsiUtilsLSImpl.getInstance());
+				PsiUtilsLSImpl.getInstance(myProject));
 
 		Assert.assertNotNull("Definition from IGreetingConfiguration#getName() method", location);
 	}
@@ -72,7 +72,7 @@ public class MavenPropertiesManagerLocationTest extends MavenImportingTestCase {
 		// greeting.constructor.message
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
 				"org.acme.config.GreetingMethodResource", null, "setMessage(QString;)V",
-				PsiUtilsLSImpl.getInstance());
+				PsiUtilsLSImpl.getInstance(myProject));
 
 		Assert.assertNotNull("Definition from GreetingMethodResource#setMessage() method", location);
 	}
@@ -86,7 +86,7 @@ public class MavenPropertiesManagerLocationTest extends MavenImportingTestCase {
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
 				"org.acme.config.GreetingConstructorResource", null,
 				"GreetingConstructorResource(QString;QString;QOptional<QString;>;)V",
-				PsiUtilsLSImpl.getInstance());
+				PsiUtilsLSImpl.getInstance(myProject));
 
 		Assert.assertNotNull("Definition from GreetingConstructorResource constructor", location);
 	}

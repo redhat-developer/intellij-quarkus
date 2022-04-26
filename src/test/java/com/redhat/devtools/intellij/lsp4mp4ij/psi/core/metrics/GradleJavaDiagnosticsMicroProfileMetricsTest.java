@@ -53,7 +53,7 @@ public class GradleJavaDiagnosticsMicroProfileMetricsTest extends GradleTestCase
 	@Test
 	public void testApplicationScopedAnnotationMissing() throws Exception {
 		Module module = getModule("microprofile-metrics.main");
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/IncorrectScope.java").toURI());

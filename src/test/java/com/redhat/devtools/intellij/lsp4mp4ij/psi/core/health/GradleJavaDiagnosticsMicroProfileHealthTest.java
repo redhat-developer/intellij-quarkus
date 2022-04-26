@@ -39,8 +39,6 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  *
  */
 public class GradleJavaDiagnosticsMicroProfileHealthTest extends GradleTestCase {
-	private static final IPsiUtils utils = PsiUtilsLSImpl.getInstance();
-
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
@@ -62,7 +60,7 @@ public class GradleJavaDiagnosticsMicroProfileHealthTest extends GradleTestCase 
 				"The class `org.acme.health.DontImplementHealthCheck` using the @Liveness, @Readiness, or @Health annotation should implement the HealthCheck interface.",
 				DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileHealthErrorCode.ImplementHealthCheck);
-		assertJavaDiagnostics(diagnosticsParams, utils, //
+		assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
 				d);
 
 		/*String uri = javaFile.getUrl();
@@ -90,7 +88,7 @@ public class GradleJavaDiagnosticsMicroProfileHealthTest extends GradleTestCase 
 				"The class `org.acme.health.ImplementHealthCheck` implementing the HealthCheck interface should use the @Liveness, @Readiness, or @Health annotation.",
 				DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileHealthErrorCode.HealthAnnotationMissing);
-		assertJavaDiagnostics(diagnosticsParams, utils, //
+		assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
 				d);
 
 		/*MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);

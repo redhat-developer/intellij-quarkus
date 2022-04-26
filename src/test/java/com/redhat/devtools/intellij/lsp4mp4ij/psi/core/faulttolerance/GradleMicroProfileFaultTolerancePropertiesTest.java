@@ -50,7 +50,7 @@ public class GradleMicroProfileFaultTolerancePropertiesTest extends GradleTestCa
 	@Test
 	public void testMicroprofileFaultTolerancePropertiesTest() throws Exception {
 
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-fault-tolerance.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.Markdown);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("microprofile-fault-tolerance.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 		assertProperties(infoFromClasspath,
 
 				// <classname>/<annotation>/<parameter>

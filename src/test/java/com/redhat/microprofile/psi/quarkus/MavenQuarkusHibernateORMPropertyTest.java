@@ -11,7 +11,7 @@ package com.redhat.microprofile.psi.quarkus;
 
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
@@ -33,13 +33,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Angelo ZERR
  *
  */
-public class MavenQuarkusHibernateORMPropertyTest extends MavenImportingTestCase {
+public class MavenQuarkusHibernateORMPropertyTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testQuarkusContainerImages() throws Exception {
 
 		Module module = createMavenModule("hibernate-orm-resteasy", new File("projects/quarkus/maven/hibernate-orm-resteasy"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 

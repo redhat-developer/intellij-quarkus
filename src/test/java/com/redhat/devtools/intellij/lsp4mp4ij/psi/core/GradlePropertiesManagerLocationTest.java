@@ -45,7 +45,7 @@ public class GradlePropertiesManagerLocationTest extends GradleTestCase {
 		// greetingInterface.name
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
 				"org.acme.config.IGreetingConfiguration", null, "getName()QOptional<QString;>;",
-				PsiUtilsLSImpl.getInstance());
+				PsiUtilsLSImpl.getInstance(myProject));
 
 		Assert.assertNotNull("Definition from IGreetingConfiguration#getName() method", location);
 	}

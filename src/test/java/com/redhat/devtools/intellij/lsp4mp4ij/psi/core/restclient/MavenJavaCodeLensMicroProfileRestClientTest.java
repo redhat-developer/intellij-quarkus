@@ -18,7 +18,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -40,12 +40,12 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Angelo ZERR
  *
  */
-public class MavenJavaCodeLensMicroProfileRestClientTest extends MavenImportingTestCase {
+public class MavenJavaCodeLensMicroProfileRestClientTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
 		Module javaProject = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
 		initConfigFile(javaProject);
@@ -84,7 +84,7 @@ public class MavenJavaCodeLensMicroProfileRestClientTest extends MavenImportingT
 	@Test
 	public void testUrlCodeLensPropertiesWithAnnotationBaseUri() throws Exception {
 		Module javaProject = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
 		initConfigFile(javaProject);
@@ -117,7 +117,7 @@ public class MavenJavaCodeLensMicroProfileRestClientTest extends MavenImportingT
 	@Test
 	public void testUrlCodeLensYaml() throws Exception {
 		Module javaProject = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
 		initConfigFile(javaProject);

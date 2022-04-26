@@ -11,8 +11,8 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
 import org.eclipse.lsp4mp.commons.JavaFileInfo;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaFileInfoParams;
 import org.junit.Test;
@@ -25,7 +25,7 @@ import java.io.File;
  * @see <a href="https://github.com/eclipse/lsp4mp/blob/master/microprofile.jdt/org.eclipse.lsp4mp.jdt.test/src/main/java/org/eclipse/lsp4mp/jdt/core/PropertiesManagerForJavaTest.java">https://github.com/eclipse/lsp4mp/blob/master/microprofile.jdt/org.eclipse.lsp4mp.jdt.test/src/main/java/org/eclipse/lsp4mp/jdt/core/PropertiesManagerForJavaTest.java</a>
  *
  */
-public class MavenPropertiesManagerForJavaTest extends MavenImportingTestCase {
+public class MavenPropertiesManagerForJavaTest extends MavenModuleImportingTestCase {
 	private Module javaProject;
 
 	private String getJavaFileUri(String path) {
@@ -43,7 +43,7 @@ public class MavenPropertiesManagerForJavaTest extends MavenImportingTestCase {
 		MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
 		String javaFileUri = getJavaFileUri("src/main/java/org/acme/config/GreetingResource.java");
 		params.setUri(javaFileUri);
-		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance());
+		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
 		assertNotNull(javaFileInfo);
 		assertEquals("org.acme.config", javaFileInfo.getPackageName());
 	}
@@ -54,7 +54,7 @@ public class MavenPropertiesManagerForJavaTest extends MavenImportingTestCase {
 
 		MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
 		params.setUri(javaFileUri);
-		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance());
+		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
 		assertNotNull(javaFileInfo);
 		assertEquals("", javaFileInfo.getPackageName());
 	}
@@ -65,7 +65,7 @@ public class MavenPropertiesManagerForJavaTest extends MavenImportingTestCase {
 
 		MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
 		params.setUri(javaFileUri);
-		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance());
+		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
 		assertNull(javaFileInfo);
 	}
 }
