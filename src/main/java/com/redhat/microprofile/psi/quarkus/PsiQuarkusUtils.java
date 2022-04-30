@@ -77,7 +77,7 @@ public class PsiQuarkusUtils {
      * @return true only if <code>javaProject</code> is a Quarkus project.
      */
     public static boolean isQuarkusProject(Module javaProject) {
-            return PsiUtilsLSImpl.getInstance().findClass(javaProject, QuarkusConstants.QUARKUS_RUNTIME_CLASS_NAME) != null;
+            return PsiUtilsLSImpl.getInstance(javaProject.getProject()).findClass(javaProject, QuarkusConstants.QUARKUS_RUNTIME_CLASS_NAME) != null;
     }
 
 }

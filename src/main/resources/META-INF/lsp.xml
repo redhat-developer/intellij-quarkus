@@ -1,22 +1,43 @@
 <idea-plugin>
   <extensionPoints>
     <extensionPoint name="server" beanClass="com.redhat.devtools.intellij.quarkus.lsp4ij.ServerExtensionPointBean"/>
-    <extensionPoint name="contentTypeMapping" beanClass="com.redhat.devtools.intellij.quarkus.lsp4ij.ContentTypeMappingExtensionPointBean"/>
+    <extensionPoint name="languageMapping" beanClass="com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageMappingExtensionPointBean"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
+    <!-- Quarkus LSP -->
     <server id="quarkus" class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer" clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient" serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"/>
-    <contentTypeMapping contentType="Properties" languageId="quarkus"/>
-    <contentTypeMapping contentType="JAVA" languageId="quarkus"/>
+    <languageMapping language="Properties" serverId="quarkus"/>
+    <languageMapping language="JAVA" serverId="quarkus"/>
+
+    <!-- Qute LSP -->
+    <server id="qute" class="com.redhat.devtools.intellij.qute.lsp.QuteServer" clientImpl="com.redhat.devtools.intellij.qute.lsp.QuteLanguageClient" serverInterface="com.redhat.qute.ls.api.QuteLanguageServerAPI"/>
+    <languageMapping language="Qute" serverId="qute"/>
+    <languageMapping language="JAVA" serverId="qute"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
-    <lang.documentationProvider id="LSPTextHover" language="Properties" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
-    <lang.documentationProvider id="LSPTextHoverJava" language="JAVA" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <!-- Generic -->
     <completion.contributor id="LSPCompletionContributor" language="any" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.completion.LSContentAssistProcessor" order="first"/>
     <inspectionToolProvider implementation="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPInspectionToolProvider"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor"/>
     <gotoDeclarationHandler implementation="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.navigation.LSPGotoDeclarationHandler"/>
+
+    <!-- Quarkus -->
+    <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverJAVA" language="JAVA" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <codeInsight.inlayProvider language="JAVA" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
+
+    <!-- Qute -->
+    <lang.documentationProvider id="LSPTextHoverQute" language="Qute" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverHTML" language="HTML" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverYAML" language="yaml" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverJSON" language="JSON" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverTEXT" language="TEXT" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <codeInsight.inlayProvider language="Qute" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
+    <codeInsight.inlayProvider language="HTML" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
+    <codeInsight.inlayProvider language="yaml" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
+    <codeInsight.inlayProvider language="JSON" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
+    <codeInsight.inlayProvider language="TEXT" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
   </extensions>
 
 

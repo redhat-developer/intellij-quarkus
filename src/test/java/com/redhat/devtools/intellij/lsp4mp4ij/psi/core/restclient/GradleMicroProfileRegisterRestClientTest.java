@@ -47,7 +47,7 @@ public class GradleMicroProfileRegisterRestClientTest extends GradleTestCase {
 	@Test
 	public void testRestClientQuickstart() throws Exception {
 
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("rest-client-quickstart.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("rest-client-quickstart.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		// mp-rest Properties
 		assertProperties(infoFromClasspath, 7,

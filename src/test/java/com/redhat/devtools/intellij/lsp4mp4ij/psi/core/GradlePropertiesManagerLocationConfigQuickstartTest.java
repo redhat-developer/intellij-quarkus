@@ -45,7 +45,7 @@ public class GradlePropertiesManagerLocationConfigQuickstartTest extends GradleT
 		// greeting.constructor.message
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
 				"org.acme.config.GreetingMethodResource", null, "setMessage(QString;)V",
-				PsiUtilsLSImpl.getInstance());
+				PsiUtilsLSImpl.getInstance(myProject));
 
 		Assert.assertNotNull("Definition from GreetingMethodResource#setMessage() method", location);
 	}
@@ -60,7 +60,7 @@ public class GradlePropertiesManagerLocationConfigQuickstartTest extends GradleT
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
 				"org.acme.config.GreetingConstructorResource", null,
 				"GreetingConstructorResource(QString;QString;QOptional<QString;>;)V",
-				PsiUtilsLSImpl.getInstance());
+				PsiUtilsLSImpl.getInstance(myProject));
 
 		Assert.assertNotNull("Definition from GreetingConstructorResource constructor", location);
 	}

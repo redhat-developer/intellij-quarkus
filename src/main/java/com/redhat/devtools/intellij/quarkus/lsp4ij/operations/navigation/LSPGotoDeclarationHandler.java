@@ -83,7 +83,7 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
         return ApplicationManager.getApplication().runReadAction((Computable<PsiElement>) () -> {
             PsiElement element = null;
             try {
-                VirtualFile file = PsiUtilsLSImpl.getInstance().findFile(location.getUri());
+                VirtualFile file = PsiUtilsLSImpl.getInstance(project).findFile(location.getUri());
                 if (file != null) {
                     PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
                     if (psiFile != null) {

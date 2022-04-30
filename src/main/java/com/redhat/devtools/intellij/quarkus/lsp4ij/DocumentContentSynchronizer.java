@@ -1,10 +1,10 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
+import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class DocumentContentSynchronizer implements DocumentListener {
@@ -56,9 +55,9 @@ public class DocumentContentSynchronizer implements DocumentListener {
         textDocument.setUri(fileUri.toString());
         textDocument.setText(document.getText());
 
-        List<FileType> contentTypes = LSPIJUtils.getDocumentContentTypes(this.document);
+        Language contentTypes = LSPIJUtils.getDocumentLanguage(this.document, languageServerWrapper.getProject());
 
-        String languageId = languageServerWrapper.getLanguageId(contentTypes.toArray(new FileType[0]));
+        String languageId = languageServerWrapper.getLanguageId(contentTypes);
 
         //TODO: determine languageId more precisely
         /*IPath fromPortableString = Path.fromPortableString(this.fileUri.getPath());

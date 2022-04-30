@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+    <artifact version="2.7.4.Final" name="Qute">
+        <item name="quarkus-core-2.7.4.Final.jar" md5=""
+              url="https://repo1.maven.org/maven2/io/quarkus/qute/qute-core/2.7.4.Final/qute-core-2.7.4.Final.jar">
+            <required-class fqn="io.quarkus.qute.Engine"/>
+        </item>
+    </artifact>
+</artifacts>

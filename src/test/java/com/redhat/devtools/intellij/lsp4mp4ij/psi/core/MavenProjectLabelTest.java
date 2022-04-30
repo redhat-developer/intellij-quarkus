@@ -14,8 +14,8 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaProjectLabelsParams;
 import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
 import org.junit.Assert;
@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/ProjectLabelTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/ProjectLabelTest.java</a>
  */
-public class MavenProjectLabelTest extends MavenImportingTestCase {
+public class MavenProjectLabelTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testGetProjectLabelQuarkusMaven() throws Exception {
@@ -38,7 +38,7 @@ public class MavenProjectLabelTest extends MavenImportingTestCase {
 		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/vertx/GreetingService.java");
 		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
 		projectLabelsParams.setUri(uri);
-		ProjectLabelInfoEntry projectLabelEntry = ProjectLabelManager.getInstance().getProjectLabelInfo(projectLabelsParams, PsiUtilsLSImpl.getInstance());
+		ProjectLabelInfoEntry projectLabelEntry = ProjectLabelManager.getInstance().getProjectLabelInfo(projectLabelsParams, PsiUtilsLSImpl.getInstance(myProject));
 		assertLabels(projectLabelEntry, "quarkus", "microprofile");
 	}
 

@@ -40,7 +40,7 @@ public class GradleQuarkusConfigRootHibernateRestEasyTest extends GradleTestCase
 
     @Test
     public void testHibernateOrmResteasy() throws Exception {
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("hibernate-orm-resteasy.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("hibernate-orm-resteasy.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
         File f = getDependency(getProjectPath(), "io.quarkus", "quarkus-hibernate-orm-deployment", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", f);
 

@@ -44,7 +44,7 @@ public class GradleJaxRsCodeLensTest extends GradleTestCase {
 		FileUtils.copyDirectory(new File("projects/gradle/hibernate-orm-resteasy"), new File(getProjectPath()));
 		importProject();
 		Module javaProject = getModule("hibernate-orm-resteasy.main");
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);
@@ -63,7 +63,7 @@ public class GradleJaxRsCodeLensTest extends GradleTestCase {
 		FileUtils.copyDirectory(new File("projects/gradle/hibernate-orm-resteasy-yaml"), new File(getProjectPath()));
 		importProject();
 		Module javaProject = getModule("hibernate-orm-resteasy-yaml.main");
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);

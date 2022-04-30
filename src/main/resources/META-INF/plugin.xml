@@ -116,7 +116,7 @@
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="193"/>
+  <idea-version since-build="203"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products -->
@@ -146,6 +146,26 @@
     <properties.implicitPropertyUsageProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusProjectService"/>
     <configurationType implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationType"/>
+
+    <!-- Qute -->
+    <facetType implementation="com.redhat.devtools.intellij.qute.facet.QuteFacetType"/>
+    <frameworkSupport implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkSupportProvider"/>
+    <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
+    <library.type implementation="com.redhat.devtools.intellij.qute.facet.QuteLibraryType"/>
+    <framework.type implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkType"/>
+    <fileType name="Qute"
+              language="Qute"
+              instance="QUTE"
+              extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml"
+              implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileType"/>
+    <lang.fileViewProviderFactory language="Qute"
+                                  implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileViewProviderFactory"/>
+    <lang.parserDefinition language="Qute" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteParserDefinition"/>
+    <pom.declarationSearcher implementation="com.redhat.devtools.intellij.qute.lang.QuteDeclarationSearcher"/>
+    <lang.substitutor language="HTML" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+    <lang.substitutor language="TEXT" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+    <lang.substitutor language="JSON" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+    <lang.substitutor language="yaml" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
   </extensions>
 
   <extensionPoints>
@@ -157,6 +177,9 @@
     <extensionPoint name="javaDefinitionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.IJavaDefinitionParticipant"/>
     <extensionPoint name="javaCompletionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
     <extensionPoint name="javaCodeLensParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant"/>
+
+    <!-- Qute -->
+    <extensionPoint name="qute.dataModelProvider" beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <!--LSP4MP-->
@@ -205,6 +228,16 @@
     <javaHoverParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusScheduledHoverParticipant"/>
 
     <javaCodeLensParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
+
+    <!-- Qute -->
+    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport"/>
+    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateExtensionSupport"/>
+    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateFieldSupport"/>
+
+    <qute.dataModelProvider namespaces="inject,cdi"
+                            description="A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces."
+                            url="https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates"
+                            implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.quarkus.InjectNamespaceResolverSupport"/>
   </extensions>
 
   <application-components>
@@ -220,5 +253,13 @@
     <action id="microprofile.command.open.uri"
             class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileOpenURIAction"
             text="MicroprofileOpenURIAction"/>
+
+    <action id="qute.command.open.uri"
+            class="com.redhat.devtools.intellij.qute.psi.core.command.QuteOpenURIAction"/>
+    <action id="qute.command.generate.template.file"
+            class="com.redhat.devtools.intellij.qute.psi.core.command.QuteGenerateTemplateAction"/>
+    <action id="qute.command.java.definition"
+            class="com.redhat.devtools.intellij.qute.psi.core.command.QuteJavaDefinitionAction"/>
+
   </actions>
 </idea-plugin>

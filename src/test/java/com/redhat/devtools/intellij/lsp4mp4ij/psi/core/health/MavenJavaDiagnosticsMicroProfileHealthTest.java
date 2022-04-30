@@ -14,11 +14,10 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.MicroProfileHealthErrorCode;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
@@ -42,9 +41,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/health/JavaDiagnosticsMicroProfileHealthTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/health/JavaDiagnosticsMicroProfileHealthTest.java</a>
  *
  */
-public class MavenJavaDiagnosticsMicroProfileHealthTest extends MavenImportingTestCase {
-	private static final IPsiUtils utils = PsiUtilsLSImpl.getInstance();
-
+public class MavenJavaDiagnosticsMicroProfileHealthTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testImplementHealthCheck() throws Exception {
 
@@ -60,7 +57,7 @@ public class MavenJavaDiagnosticsMicroProfileHealthTest extends MavenImportingTe
 				"The class `org.acme.health.DontImplementHealthCheck` using the @Liveness, @Readiness, or @Health annotation should implement the HealthCheck interface.",
 				DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileHealthErrorCode.ImplementHealthCheck);
-		assertJavaDiagnostics(diagnosticsParams, utils, //
+		assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
 				d);
 
 		/*String uri = javaFile.getUrl();
@@ -89,7 +86,7 @@ public class MavenJavaDiagnosticsMicroProfileHealthTest extends MavenImportingTe
 				"The class `org.acme.health.ImplementHealthCheck` implementing the HealthCheck interface should use the @Liveness, @Readiness, or @Health annotation.",
 				DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileHealthErrorCode.HealthAnnotationMissing);
-		assertJavaDiagnostics(diagnosticsParams, utils, //
+		assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
 				d);
 
 		/*MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);

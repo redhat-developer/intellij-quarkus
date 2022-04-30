@@ -14,11 +14,11 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientErrorCode;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
@@ -37,13 +37,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/restclient/JavaDiagnosticsMicroProfileRestClientTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/restclient/JavaDiagnosticsMicroProfileRestClientTest.java</a>
  *
  */
-public class MavenJavaDiagnosticsMicroProfileRestClientTest extends MavenImportingTestCase {
+public class MavenJavaDiagnosticsMicroProfileRestClientTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testRestClientAnnotationMissingForFields() throws Exception {
 
 		Module module = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
 		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/restclient/Fields.java");
@@ -100,7 +100,7 @@ public class MavenJavaDiagnosticsMicroProfileRestClientTest extends MavenImporti
 	public void testRestClientAnnotationMissingForInterface() throws Exception {
 
 		Module module = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
 		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/restclient/MyService.java");

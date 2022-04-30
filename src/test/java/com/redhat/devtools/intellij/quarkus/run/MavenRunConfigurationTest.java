@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.quarkus.run;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import org.jdom.Element;
 import org.junit.Test;
 
@@ -22,7 +22,7 @@ import java.util.Collections;
 /**
  * Quarkus run configuration test
  */
-public class MavenRunConfigurationTest extends MavenImportingTestCase {
+public class MavenRunConfigurationTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testDefaultRunConfiguration() throws Exception {

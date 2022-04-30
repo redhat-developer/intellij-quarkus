@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.quarkus.lsp4ij.operations.completion;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Document;
@@ -68,7 +69,8 @@ public class LSContentAssistProcessor extends CompletionContributor {
                 ProgressManager.checkCanceled();
                 Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer> pair = proposals.poll(25, TimeUnit.MILLISECONDS);
                 if (pair != null) {
-                    result.addAllElements(toProposals(project, editor, document, offset, pair.getFirst(), pair.getSecond()));
+                    result.addAllElements(toProposals(project, editor, document, offset, pair.getFirst(),
+                            pair.getSecond()));
                 }
 
             }
@@ -79,11 +81,14 @@ public class LSContentAssistProcessor extends CompletionContributor {
         super.fillCompletionVariants(parameters, result);
     }
 
-    private Collection<? extends LookupElement> toProposals(Project project, Editor editor, Document document, int offset, Either<List<CompletionItem>, CompletionList> completion, LanguageServer languageServer) {
+    private Collection<? extends LookupElement> toProposals(Project project, Editor editor, Document document,
+                                                            int offset, Either<List<CompletionItem>,
+            CompletionList> completion, LanguageServer languageServer) {
         List<CompletionItem> items = completion.isLeft()?completion.getLeft():completion.getRight().getItems();
         boolean isIncomplete = completion.isLeft()?false:completion.getRight().isIncomplete();
         return items.stream().map(item -> createLookupItem(project, editor, offset, item, isIncomplete, languageServer)).
                 filter(item -> item.validate(document, offset, null)).
+                map(item -> PrioritizedLookupElement.withGrouping(item, item.getItem().getKind().getValue())).
                 collect(Collectors.toList());
     }
 

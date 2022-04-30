@@ -13,8 +13,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ui.UIUtil;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
 import org.jetbrains.yaml.schema.YamlJsonSchemaHighlightingInspection;
 import org.junit.Test;
 
@@ -24,7 +24,7 @@ import java.io.File;
  * Project label tests
  *
  */
-public class MavenApplicationYamlCompletionTest extends MavenImportingTestCase {
+public class MavenApplicationYamlCompletionTest extends MavenModuleImportingTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();

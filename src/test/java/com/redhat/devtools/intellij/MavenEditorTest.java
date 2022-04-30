@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij;
 
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 
-public abstract class MavenEditorTest extends MavenImportingTestCase {
+public abstract class MavenEditorTest extends MavenModuleImportingTestCase {
     protected CodeInsightTestFixture codeInsightTestFixture;
 
     @Override

@@ -54,7 +54,7 @@ public class GradleMicroProfileFaultToleranceJavaDiagnosticsTest extends GradleT
 	public void testFallbackMethodsMissing() throws Exception {
 		Module module = getModule("microprofile-fault-tolerance.main");
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
@@ -71,7 +71,7 @@ public class GradleMicroProfileFaultToleranceJavaDiagnosticsTest extends GradleT
 	public void testFallbackMethodValidationFaultTolerant() throws Exception {
 		Module module = getModule("microprofile-fault-tolerance.main");
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/OtherFaultTolerantResource.java").toURI());
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		diagnosticsParams.setUris(Arrays.asList(javaFileUri));

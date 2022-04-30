@@ -19,7 +19,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.GradleTestCase;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -54,7 +53,7 @@ public class GradleJavaCodeLensMicroProfileRestClientTest extends GradleTestCase
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
 		Module javaProject = getModule("rest-client-quickstart.main");
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
 		initConfigFile(javaProject);
@@ -93,7 +92,7 @@ public class GradleJavaCodeLensMicroProfileRestClientTest extends GradleTestCase
 	@Test
 	public void testUrlCodeLensPropertiesWithAnnotationBaseUri() throws Exception {
 		Module javaProject = getModule("rest-client-quickstart.main");
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
 		initConfigFile(javaProject);
@@ -126,7 +125,7 @@ public class GradleJavaCodeLensMicroProfileRestClientTest extends GradleTestCase
 	@Test
 	public void testUrlCodeLensYaml() throws Exception {
 		Module javaProject = getModule("rest-client-quickstart.main");
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
 		initConfigFile(javaProject);

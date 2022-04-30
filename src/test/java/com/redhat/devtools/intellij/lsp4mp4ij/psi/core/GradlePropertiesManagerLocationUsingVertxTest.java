@@ -44,19 +44,19 @@ public class GradlePropertiesManagerLocationUsingVertxTest extends GradleTestCas
 		// Test with JAR
 		// quarkus.datasource.url
 		Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-				"io.quarkus.reactive.pg.client.runtime.DataSourceReactivePostgreSQLConfig", "cachePreparedStatements", null, PsiUtilsLSImpl.getInstance());
+				"io.quarkus.reactive.pg.client.runtime.DataSourceReactivePostgreSQLConfig", "cachePreparedStatements", null, PsiUtilsLSImpl.getInstance(myProject));
 		Assert.assertNotNull("Definition from JAR", location);
 
 		// Test with deployment JAR
 		// quarkus.arc.auto-inject-fields
 		location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-				"io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, PsiUtilsLSImpl.getInstance());
+				"io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, PsiUtilsLSImpl.getInstance(myProject));
 		Assert.assertNotNull("Definition deployment from JAR", location);
 
 		// Test with Java sources
 		// myapp.schema.create
 		location = PropertiesManager.getInstance().findPropertyLocation(javaProject, "org.acme.vertx.FruitResource",
-				"schemaCreate", null, PsiUtilsLSImpl.getInstance());
+				"schemaCreate", null, PsiUtilsLSImpl.getInstance(myProject));
 		Assert.assertNotNull("Definition from Java Sources", location);
 	}
 }

@@ -18,7 +18,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
@@ -36,12 +36,12 @@ import java.util.List;
  * @author Angelo ZERR
  *
  */
-public class MavenJaxRsCodeLensTest extends MavenImportingTestCase {
+public class MavenJaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
 		Module javaProject = createMavenModule("hibernate-orm-resteasy", new File("projects/maven/hibernate-orm-resteasy"));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);
@@ -58,7 +58,7 @@ public class MavenJaxRsCodeLensTest extends MavenImportingTestCase {
 	@Test
 	public void testUrlCodeLensYaml() throws Exception {
 		Module javaProject = createMavenModule("hibernate-orm-resteasy-yaml", new File("projects/maven/hibernate-orm-resteasy-yaml"));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);

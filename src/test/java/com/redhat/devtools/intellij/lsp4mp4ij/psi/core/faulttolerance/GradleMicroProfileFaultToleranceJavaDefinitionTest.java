@@ -48,7 +48,7 @@ public class GradleMicroProfileFaultToleranceJavaDefinitionTest extends GradleTe
 	public void testFallbackMethodsDefinition() throws Exception {
 		Module module = getModule("microprofile-fault-tolerance.main");
 		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance();
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 
 		// @Fallback(fallbackMethod = "a|aa") --> no definition

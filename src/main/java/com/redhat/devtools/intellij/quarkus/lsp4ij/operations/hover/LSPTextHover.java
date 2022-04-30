@@ -10,10 +10,11 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover;
 
-import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.DocumentationProviderEx;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -25,13 +26,18 @@ import com.vladsch.flexmark.parser.Parser;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.SwingUtilities;
 import java.awt.Color;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -51,7 +57,7 @@ public class LSPTextHover extends DocumentationProviderEx {
 
     private PsiElement lastElement;
     private int        lastOffset = -1;
-    private CompletableFuture<List<Hover>> request;
+    private CompletableFuture<List<Hover>> request,lspRequest;
 
     public LSPTextHover() {
         LOGGER.info("LSPTextHover");
@@ -109,14 +115,28 @@ public class LSPTextHover extends DocumentationProviderEx {
         return null;
     }
 
+    private CompletableFuture<Integer> getCursorOffset(Editor editor) {
+        CompletableFuture<Integer> future = new CompletableFuture<>();
+        ApplicationManager.getApplication().invokeLater(() -> {
+            int offset = -1;
+            PointerInfo info = MouseInfo.getPointerInfo();
+            if (info != null/* && EditorUtil.isPointOverText(editor, info.getLocation())*/) {
+                Point location = info.getLocation();
+                SwingUtilities.convertPointFromScreen(location, editor.getContentComponent());
+                LogicalPosition position = editor.xyToLogicalPosition(location);
+                offset = editor.logicalPositionToOffset(position);
+            }
+            future.complete(offset);
+        });
+        return future;
+    }
+
     @Nullable
     @Override
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
         Editor editor = LSPIJUtils.editorForElement(element);
         if (editor != null) {
-            if (this.request == null || !element.equals(this.lastElement) || lastOffset != editor.getCaretModel().getCurrentCaret().getOffset()) {
-                initiateHoverRequest(element, editor.getCaretModel().getCurrentCaret().getOffset());
-            }
+            initiateHoverRequest(element, editor);
             try {
                 String result = request.get(500, TimeUnit.MILLISECONDS).stream()
                         .filter(Objects::nonNull)
@@ -133,7 +153,6 @@ public class LSPTextHover extends DocumentationProviderEx {
                 LOGGER.warn(e.getLocalizedMessage(), e);
                 Thread.currentThread().interrupt();
             }
-
         }
         return null;
     }
@@ -175,34 +194,43 @@ public class LSPTextHover extends DocumentationProviderEx {
      *
      * @param element
      *            the PSI element.
-     * @param offset
-     *            the hovered offset.
+     * @param editor
+     *            the editor.
      */
-    private void initiateHoverRequest(PsiElement element, int offset) {
+    private void initiateHoverRequest(PsiElement element, Editor editor) {
         PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
         final Document document = manager.getDocument(element.getContainingFile());
-        this.lastElement = element;
-        this.lastOffset = offset;
-        this.request = LanguageServiceAccessor.getInstance(element.getProject())
-                .getLanguageServers(document, capabilities -> Boolean.TRUE.equals(capabilities.getHoverProvider()))
-                .thenApplyAsync(languageServers -> // Async is very important here, otherwise the LS Client thread is in
-                        // deadlock and doesn't read bytes from LS
-                        languageServers.stream()
-                                .map(languageServer -> {
-                                    try {
-                                        return languageServer.getTextDocumentService()
-                                                .hover(LSPIJUtils.toHoverParams(offset, document)).get();
-                                    } catch (ExecutionException e) {
-                                        LOGGER.warn(e.getLocalizedMessage(), e);
-                                        return null;
-                                    } catch (InterruptedException e) {
-                                        LOGGER.warn(e.getLocalizedMessage(), e);
-                                        Thread.currentThread().interrupt();
-                                        return null;
-                                    }
-                                }).filter(Objects::nonNull).collect(Collectors.toList()));
+        this.request = getCursorOffset(editor).thenComposeAsync(offset -> {
+            if (offset != -1 && (this.lspRequest == null || !element.equals(this.lastElement) || offset != this.lastOffset)) {
+                this.lastElement = element;
+                this.lastOffset = offset;
+                this.lspRequest = LanguageServiceAccessor.getInstance(element.getProject())
+                        .getLanguageServers(document, capabilities -> isHoverCapable(capabilities))
+                        .thenApplyAsync(languageServers -> // Async is very important here, otherwise the LS Client thread is in
+                                // deadlock and doesn't read bytes from LS
+                                languageServers.stream()
+                                        .map(languageServer -> {
+                                            try {
+                                                return languageServer.getTextDocumentService()
+                                                        .hover(LSPIJUtils.toHoverParams(offset, document)).get();
+                                            } catch (ExecutionException e) {
+                                                LOGGER.warn(e.getLocalizedMessage(), e);
+                                                return null;
+                                            } catch (InterruptedException e) {
+                                                LOGGER.warn(e.getLocalizedMessage(), e);
+                                                Thread.currentThread().interrupt();
+                                                return null;
+                                            }
+                                        }).filter(Objects::nonNull).collect(Collectors.toList()));
+
+            }
+            return this.lspRequest;
+        });
     }
 
+    private boolean isHoverCapable(ServerCapabilities capabilities) {
+        return (capabilities.getHoverProvider().isLeft() && capabilities.getHoverProvider().getLeft()) || capabilities.getHoverProvider().isRight();
+    }
 
     @Nullable
     @Override

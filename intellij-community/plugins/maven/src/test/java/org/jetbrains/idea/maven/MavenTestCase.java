@@ -1,14 +1,5 @@
-/*******************************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- * Distributed under license by Red Hat, Inc. All rights reserved.
- * This program is made available under the terms of the
- * Eclipse Public License v2.0 which accompanies this distribution,
- * and is available at https://www.eclipse.org/legal/epl-v20.html
- *
- * Contributors:
- * Red Hat, Inc. - initial API and implementation
- ******************************************************************************/
-package com.redhat.devtools.intellij;
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+package org.jetbrains.idea.maven;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -20,53 +11,38 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.rt.execution.junit.FileComparisonFailure;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.RunAll;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
-import com.intellij.testFramework.builders.ModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ExceptionUtil;
+import com.intellij.util.ThrowableRunnable;
 import gnu.trove.THashSet;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.indices.MavenIndicesManager;
-import org.jetbrains.idea.maven.project.MavenArtifactDownloader;
-import org.jetbrains.idea.maven.project.MavenGeneralSettings;
-import org.jetbrains.idea.maven.project.MavenImportingSettings;
-import org.jetbrains.idea.maven.project.MavenProjectsManager;
-import org.jetbrains.idea.maven.project.MavenWorkspaceSettings;
-import org.jetbrains.idea.maven.project.MavenWorkspaceSettingsComponent;
+import org.jetbrains.idea.maven.project.*;
 import org.jetbrains.idea.maven.server.MavenServerManager;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
 
-import java.awt.HeadlessException;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class MavenTestCase extends UsefulTestCase {
   protected static final String MAVEN_COMPILER_PROPERTIES = "<properties>\n" +
@@ -74,14 +50,13 @@ public abstract class MavenTestCase extends UsefulTestCase {
                                                             "        <maven.compiler.source>1.7</maven.compiler.source>\n" +
                                                             "        <maven.compiler.target>1.7</maven.compiler.target>\n" +
                                                             "</properties>\n";
-  //protected static final MavenConsole NULL_MAVEN_CONSOLE = new NullMavenConsole();
+  protected static final MavenConsole NULL_MAVEN_CONSOLE = new NullMavenConsole();
   // should not be static
   protected static MavenProgressIndicator EMPTY_MAVEN_PROCESS =
     new MavenProgressIndicator(new EmptyProgressIndicator(ModalityState.NON_MODAL), null);
 
   private File ourTempDir;
 
-  protected TestFixtureBuilder<IdeaProjectTestFixture> myProjectBuilder;
   protected IdeaProjectTestFixture myTestFixture;
 
   protected Project myProject;
@@ -136,11 +111,11 @@ public abstract class MavenTestCase extends UsefulTestCase {
   protected void tearDown() throws Exception {
     new RunAll(
       () -> MavenServerManager.getInstance().shutdown(true),
+      () -> checkAllMavenConnectorsDisposed(),
       () -> MavenArtifactDownloader.awaitQuiescence(100, TimeUnit.SECONDS),
       () -> myProject = null,
       () -> EdtTestUtil.runInEdtAndWait(() -> tearDownFixtures()),
       () -> MavenIndicesManager.getInstance().clear(),
-      () -> super.tearDown(),
       () -> {
         FileUtil.delete(myDir);
         // cannot use reliably the result of the com.intellij.openapi.util.io.FileUtil.delete() method
@@ -151,8 +126,12 @@ public abstract class MavenTestCase extends UsefulTestCase {
           myDir.deleteOnExit();
         }
       },
-      () -> resetClassFields(getClass())
+      () -> super.tearDown()
     ).run();
+  }
+
+  private void checkAllMavenConnectorsDisposed() {
+    assertEmpty("all maven connectors should be disposed", MavenServerManager.getInstance().getAllConnectors());
   }
 
   private void ensureTempDirCreated() throws IOException {
@@ -164,14 +143,8 @@ public abstract class MavenTestCase extends UsefulTestCase {
   }
 
   protected void setUpFixtures() throws Exception {
-    //myTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName()).getFixture();
-    //myTestFixture.setUp();
-    myProjectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-    final JavaTestFixtureFactory factory = JavaTestFixtureFactory.getFixtureFactory();
-    ModuleFixtureBuilder moduleBuilder = myProjectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    myTestFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
+    myTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName()).getFixture();
     myTestFixture.setUp();
-    LanguageLevelProjectExtension.getInstance(myTestFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_1_6);
   }
 
   protected void setUpInWriteAction() throws Exception {
@@ -202,60 +175,22 @@ public abstract class MavenTestCase extends UsefulTestCase {
     }
   }
 
-  private void resetClassFields(final Class<?> aClass) {
-    if (aClass == null) return;
-
-    final Field[] fields = aClass.getDeclaredFields();
-    for (Field field: fields) {
-      final int modifiers = field.getModifiers();
-      if ((modifiers & Modifier.FINAL) == 0
-          && (modifiers & Modifier.STATIC) == 0
-          && !field.getType().isPrimitive()) {
-        field.setAccessible(true);
-        try {
-          field.set(this, null);
-        }
-        catch (IllegalAccessException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-
-    if (aClass == MavenTestCase.class) return;
-    resetClassFields(aClass.getSuperclass());
-  }
-
   @Override
-  protected void runTest() throws Throwable {
+  protected void runTestRunnable(@NotNull ThrowableRunnable<Throwable> testRunnable) throws Throwable {
     try {
       if (runInWriteAction()) {
-        try {
-          WriteAction.runAndWait(() -> super.runTest());
-        }
-        catch (Throwable throwable) {
-          ExceptionUtil.rethrowAllAsUnchecked(throwable);
-        }
+        WriteAction.runAndWait(() -> super.runTestRunnable(testRunnable));
       }
       else {
-        super.runTest();
+        super.runTestRunnable(testRunnable);
       }
     }
-    catch (Exception throwable) {
-      Throwable each = throwable;
-      do {
-        if (each instanceof HeadlessException) {
-          printIgnoredMessage("Doesn't work in Headless environment");
-          return;
-        }
+    catch (Throwable throwable) {
+      if (ExceptionUtil.causedBy(throwable, HeadlessException.class)) {
+        printIgnoredMessage("Doesn't work in Headless environment");
       }
-      while ((each = each.getCause()) != null);
       throw throwable;
     }
-  }
-
-  @Override
-  protected void invokeTestRunnable(@NotNull Runnable runnable) {
-    runnable.run();
   }
 
   protected boolean runInWriteAction() {
@@ -333,7 +268,19 @@ public abstract class MavenTestCase extends UsefulTestCase {
   }
 
   private static String createSettingsXmlContent(String content) {
+    String mirror = System.getProperty("idea.maven.test.mirror",
+                                       // use JB maven proxy server for internal use by default, see details at
+                                       // https://confluence.jetbrains.com/display/JBINT/Maven+proxy+server
+                                       "https://repo.labs.intellij.net/repo1");
     return "<settings>" +
+           content +
+           "<mirrors>" +
+           "  <mirror>" +
+           "    <id>jb-central-proxy</id>" +
+           "    <url>" + mirror + "</url>" +
+           "    <mirrorOf>external:*,!flex-repository</mirrorOf>" +
+           "  </mirror>" +
+           "</mirrors>" +
            "</settings>";
   }
 
@@ -390,7 +337,13 @@ public abstract class MavenTestCase extends UsefulTestCase {
   @NonNls
   @Language(value = "XML")
   public static String createPomXml(@NonNls @Language(value = "XML", prefix = "<project>", suffix = "</project>") String xml) {
-    return xml;
+    return "<?xml version=\"1.0\"?>" +
+           "<project xmlns=\"http://maven.apache.org/POM/4.0.0\"" +
+           "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
+           "         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">" +
+           "  <modelVersion>4.0.0</modelVersion>" +
+           xml +
+           "</project>";
   }
 
   protected VirtualFile createProfilesXmlOldStyle(String xml) {
@@ -513,8 +466,8 @@ public abstract class MavenTestCase extends UsefulTestCase {
     assertOrderedElementsAreEqual(actual, expected.toArray());
   }
 
-  protected static <T> void assertUnorderedElementsAreEqual(Collection<T> actual, Collection<T> expected) {
-    assertEquals(new HashSet<>(expected), new HashSet<>(actual));
+  protected static <T> void assertUnorderedElementsAreEqual(@NotNull Collection<T> actual, @NotNull Collection<T> expected) {
+    assertThat(actual).hasSameElementsAs(expected);
   }
 
   protected static void assertUnorderedPathsAreEqual(Collection<String> actual, Collection<String> expected) {
@@ -582,6 +535,14 @@ public abstract class MavenTestCase extends UsefulTestCase {
     }
     toPrint += ": " + getClass().getSimpleName() + "." + getName();
     System.out.println(toPrint);
+  }
+
+  protected <R, E extends Throwable> R runWriteAction(@NotNull ThrowableComputable<R, E> computable) throws E {
+    return WriteCommandAction.writeCommandAction(myProject).compute(computable);
+  }
+
+  protected <E extends Throwable> void runWriteAction(@NotNull ThrowableRunnable<E> runnable) throws E {
+    WriteCommandAction.writeCommandAction(myProject).run(runnable);
   }
 
   private static String getTestMavenHome() {

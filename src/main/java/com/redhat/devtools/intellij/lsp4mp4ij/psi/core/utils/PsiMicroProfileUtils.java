@@ -49,6 +49,6 @@ public class PsiMicroProfileUtils {
 	 * @return true only if <code>javaProject</code> is a MicroProfile project.
 	 */
 	public static boolean isMicroProfileProject(Module javaProject) {
-		return PsiUtilsLSImpl.getInstance().findClass(javaProject, MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION) != null;
+		return PsiUtilsLSImpl.getInstance(javaProject.getProject()).findClass(javaProject, MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION) != null;
 	}
 }

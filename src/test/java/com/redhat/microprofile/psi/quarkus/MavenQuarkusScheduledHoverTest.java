@@ -15,7 +15,7 @@ package com.redhat.microprofile.psi.quarkus;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
@@ -31,7 +31,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
 /**
  * Quarkus Scheduled annotation property test for hover in Java file.
  */
-public class MavenQuarkusScheduledHoverTest extends MavenImportingTestCase {
+public class MavenQuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
 
 	private static Module javaProject;
 
@@ -48,7 +48,7 @@ public class MavenQuarkusScheduledHoverTest extends MavenImportingTestCase {
 
 		// Position(29, 25) is the character after the | symbol:
 		// @Scheduled(cron = "{c|ron.expr}", every = "{every.expr}")
-		assertJavaHover(new Position(29, 25), javaFileUri, PsiUtilsLSImpl.getInstance(),
+		assertJavaHover(new Position(29, 25), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
 				h("`cron.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 29, 23, 34));
 	}
 
@@ -65,7 +65,7 @@ public class MavenQuarkusScheduledHoverTest extends MavenImportingTestCase {
 
 		// Position(29, 48) is the character after the | symbol:
 		// @Scheduled(cron = "{cron.expr}", every = "{e|very.expr}")
-		assertJavaHover(new Position(29, 48), javaFileUri, PsiUtilsLSImpl.getInstance(),
+		assertJavaHover(new Position(29, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
 				h("`every.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 29, 46, 58));
 	}
 

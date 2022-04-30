@@ -10,7 +10,7 @@
 package com.redhat.microprofile.psi.quarkus;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.MavenImportingTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
@@ -28,13 +28,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
 /**
  * Test collection of Quarkus properties from @Scheduled
  */
-public class MavenQuarkusScheduledPropertiesTest extends MavenImportingTestCase {
+public class MavenQuarkusScheduledPropertiesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigQuickstartFromClasspath() throws Exception {
 
 		Module module = createMavenModule("scheduler-quickstart", new File("projects/quarkus/maven/scheduler-quickstart"));
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
 				// CounterBean
@@ -51,7 +51,7 @@ public class MavenQuarkusScheduledPropertiesTest extends MavenImportingTestCase 
 	public void testConfigQuickstartFromJavaSources() throws Exception {
 
 		Module module = createMavenModule("scheduler-quickstart", new File("projects/quarkus/maven/scheduler-quickstart"));
-		MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+		MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromJavaSources,
 				// CounterBean

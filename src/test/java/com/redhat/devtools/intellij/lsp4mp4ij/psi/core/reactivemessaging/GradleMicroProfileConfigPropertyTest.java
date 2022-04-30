@@ -44,7 +44,7 @@ public class GradleMicroProfileConfigPropertyTest extends GradleTestCase {
 
     @Test
     public void testConfigQuickstartFromClasspath() throws Exception {
-        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("config-quickstart.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("config-quickstart.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
         File f = getDependency(getProjectPath(),"io.quarkus", "quarkus-core-deployment", "1.1.0.Final");
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
@@ -124,7 +124,7 @@ public class GradleMicroProfileConfigPropertyTest extends GradleTestCase {
 
     @Test
     public void testApplicationConfigurationFromJavaSources() throws Exception {
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("config-quickstart.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("config-quickstart.main"), MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
         assertProperties(infoFromJavaSources, 9 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */,

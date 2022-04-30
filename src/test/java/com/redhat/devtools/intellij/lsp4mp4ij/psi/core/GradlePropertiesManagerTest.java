@@ -54,7 +54,7 @@ public class GradlePropertiesManagerTest extends GradleTestCase {
     @Test
     public void testQuarkusCoreDeploymentProperties() throws IOException {
         importProject(CONFIG);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("project.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("project.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
         File quarkusCoreJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-core-deployment", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-core-deployment.jar", quarkusCoreJARFile);
 

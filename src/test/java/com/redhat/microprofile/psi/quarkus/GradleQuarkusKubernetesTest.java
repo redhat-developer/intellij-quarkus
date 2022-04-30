@@ -47,7 +47,7 @@ public class GradleQuarkusKubernetesTest extends GradleTestCase {
 
 	@Test
 	public void testKubernetes() throws Exception {
-		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kubernetes.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.Markdown);
+		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kubernetes.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 
 		assertProperties(info,
 
@@ -106,7 +106,7 @@ public class GradleQuarkusKubernetesTest extends GradleTestCase {
 
 	@Test
 	public void testOpenshift() throws Exception {
-		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kubernetes.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(), DocumentFormat.Markdown);
+		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kubernetes.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 
 		assertProperties(info,
 

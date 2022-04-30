@@ -9,7 +9,6 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.completion;
 
-import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.actionSystem.IdeActions;
