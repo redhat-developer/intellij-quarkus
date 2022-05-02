@@ -47,7 +47,6 @@ public class MavenMicroProfileFaultToleranceJavaCompletionTest extends MavenModu
 		// fallbackMethod = "b|bb"
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(21, 33)), utils, //
 				c(te(21, 32, 21, 35, "hello"), "hello()", CompletionItemKind.Method), //
-				c(te(21, 32, 21, 35, "hi"), "hi()", CompletionItemKind.Method), //
 				c(te(21, 32, 21, 35, "bbb"), "bbb()", CompletionItemKind.Method), //
 				c(te(21, 32, 21, 35, "stringMethod"), "stringMethod()", CompletionItemKind.Method), //
 				c(te(21, 32, 21, 35, "ccc"), "ccc()", CompletionItemKind.Method));
@@ -63,7 +62,6 @@ public class MavenMicroProfileFaultToleranceJavaCompletionTest extends MavenModu
 		// fallbackMethod = "|bbb"
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(21, 32)), utils, //
 				c(te(21, 32, 21, 35, "hello"), "hello()", CompletionItemKind.Method), //
-				c(te(21, 32, 21, 35, "hi"), "hi()", CompletionItemKind.Method), //
 				c(te(21, 32, 21, 35, "bbb"), "bbb()", CompletionItemKind.Method), //
 				c(te(21, 32, 21, 35, "stringMethod"), "stringMethod()", CompletionItemKind.Method), //
 				c(te(21, 32, 21, 35, "ccc"), "ccc()", CompletionItemKind.Method));
@@ -91,7 +89,6 @@ public class MavenMicroProfileFaultToleranceJavaCompletionTest extends MavenModu
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(28, 32)), utils, //
 				c(te(28, 32, 28, 32, "hello"), "hello()", CompletionItemKind.Method), //
 				c(te(28, 32, 28, 32, "hi"), "hi()", CompletionItemKind.Method), //
-				c(te(28, 32, 28, 32, "third"), "third()", CompletionItemKind.Method), //
 				c(te(28, 32, 28, 32, "fourth"), "fourth()", CompletionItemKind.Method), //
 				c(te(28, 32, 28, 32, "fifth"), "fifth()", CompletionItemKind.Method), //
 				c(te(28, 32, 28, 32, "aaa"), "aaa()", CompletionItemKind.Method));
@@ -108,7 +105,6 @@ public class MavenMicroProfileFaultToleranceJavaCompletionTest extends MavenModu
 				c(te(35, 30, 35, 30, "hello"), "hello()", CompletionItemKind.Method), //
 				c(te(35, 30, 35, 30, "hi"), "hi()", CompletionItemKind.Method), //
 				c(te(35, 30, 35, 30, "third"), "third()", CompletionItemKind.Method), //
-				c(te(35, 30, 35, 30, "fourth"), "fourth()", CompletionItemKind.Method), //
 				c(te(35, 30, 35, 30, "fifth"), "fifth()", CompletionItemKind.Method), //
 				c(te(35, 30, 35, 30, "aaa"), "aaa()", CompletionItemKind.Method));
 	}
@@ -125,7 +121,6 @@ public class MavenMicroProfileFaultToleranceJavaCompletionTest extends MavenModu
 				c(te(43, 9, 43, 9, "hi"), "hi()", CompletionItemKind.Method), //
 				c(te(43, 9, 43, 9, "third"), "third()", CompletionItemKind.Method), //
 				c(te(43, 9, 43, 9, "fourth"), "fourth()", CompletionItemKind.Method), //
-				c(te(43, 9, 43, 9, "fifth"), "fifth()", CompletionItemKind.Method), //
 				c(te(43, 9, 43, 9, "aaa"), "aaa()", CompletionItemKind.Method));
 	}
 }
