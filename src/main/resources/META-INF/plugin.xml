@@ -177,6 +177,7 @@
     <extensionPoint name="javaDefinitionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.IJavaDefinitionParticipant"/>
     <extensionPoint name="javaCompletionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
     <extensionPoint name="javaCodeLensParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant"/>
+    <extensionPoint name="configSourceProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider"/>
 
     <!-- Qute -->
     <extensionPoint name="qute.dataModelProvider" beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean"/>
@@ -229,6 +230,9 @@
     <javaHoverParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusScheduledHoverParticipant"/>
 
     <javaCodeLensParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
+
+    <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider"/>
+    <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider"/>
 
     <!-- Qute -->
     <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport"/>

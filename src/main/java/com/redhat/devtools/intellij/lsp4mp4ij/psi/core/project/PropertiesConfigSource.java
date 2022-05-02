@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project;
+package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.MicroProfileConfigPropertyInformation;
@@ -28,8 +28,15 @@ import java.util.Properties;
  */
 public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 
+	private final int ordinal;
+
+	public PropertiesConfigSource(String configFileName, Module javaProject, int ordinal) {
+		super(configFileName, javaProject);
+		this.ordinal = ordinal;
+	}
 	public PropertiesConfigSource(String configFileName, Module javaProject) {
 		super(configFileName, javaProject);
+		this.ordinal = super.getOrdinal();
 	}
 
 	@Override
@@ -61,5 +68,10 @@ public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 					});
 		}
 		return infos;
+	}
+
+	@Override
+	public int getOrdinal() {
+		return ordinal;
 	}
 }

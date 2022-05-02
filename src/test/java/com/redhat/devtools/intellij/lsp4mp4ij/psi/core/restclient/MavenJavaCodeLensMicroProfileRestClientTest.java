@@ -20,9 +20,10 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.junit.Assert;
@@ -62,12 +63,12 @@ public class MavenJavaCodeLensMicroProfileRestClientTest extends MavenModuleImpo
 		Assert.assertEquals(0, lenses.size());
 
 		// /mp-rest/url
-		saveFile(PsiMicroProfileProject.MICROPROFILE_CONFIG_PROPERTIES_FILE,
+		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,
 				"org.acme.restclient.CountriesService/mp-rest/url = https://restcountries.url/rest", javaProject);
 		assertCodeLenses("https://restcountries.url/rest", params, utils);
 
 		// /mp-rest/uri
-		saveFile(PsiMicroProfileProject.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
+		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"org.acme.restclient.CountriesService/mp-rest/uri = https://restcountries.uri/rest" + //
 						System.lineSeparator() + //
 						"org.acme.restclient.CountriesService/mp-rest/url = https://restcountries.url/rest", //
@@ -76,9 +77,9 @@ public class MavenJavaCodeLensMicroProfileRestClientTest extends MavenModuleImpo
 	}
 
 	private static void initConfigFile(Module javaProject) throws IOException {
-		saveFile(PsiMicroProfileProject.MICROPROFILE_CONFIG_PROPERTIES_FILE, "", javaProject);
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, "", javaProject);
-		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, "", javaProject);
+		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
 	}
 
 	@Test
@@ -100,13 +101,13 @@ public class MavenJavaCodeLensMicroProfileRestClientTest extends MavenModuleImpo
 		assertCodeLenses("https://restcountries.ann/rest", params, utils);
 
 		// /mp-rest/url overrides @RegisterRestClient/baseUri
-		saveFile(PsiMicroProfileProject.MICROPROFILE_CONFIG_PROPERTIES_FILE,
+		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,
 				"org.acme.restclient.CountriesServiceWithBaseUri/mp-rest/url = https://restcountries.url/rest",
 				javaProject);
 		assertCodeLenses("https://restcountries.url/rest", params, utils);
 
 		// /mp-rest/uri overrides @RegisterRestClient/baseUri
-		saveFile(PsiMicroProfileProject.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
+		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"org.acme.restclient.CountriesServiceWithBaseUri/mp-rest/uri = https://restcountries.uri/rest" + //
 						System.lineSeparator() + //
 						"org.acme.restclient.CountriesServiceWithBaseUri/mp-rest/url = https://restcountries.url/rest", //
@@ -133,14 +134,14 @@ public class MavenJavaCodeLensMicroProfileRestClientTest extends MavenModuleImpo
 		Assert.assertEquals(0, lenses.size());
 
 		// /mp-rest/url
-		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, "org:\r\n" + //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "org:\r\n" + //
 				"  acme:\r\n" + //
 				"    restclient:\r\n" + //
 				"      CountriesService/mp-rest/url: https://restcountries.url/rest", javaProject);
 		assertCodeLenses("https://restcountries.url/rest", params, utils);
 
 		// /mp-rest/uri
-		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, //
 				"org:\r\n" + //
 						"  acme:\r\n" + //
 						"    restclient:\r\n" + //

@@ -11,10 +11,11 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.config;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.intellij.GradleTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
@@ -50,7 +51,7 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
 						"greeting.name = quarkus\r\n" + //
 						"greeting.number = 100",
@@ -107,7 +108,7 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
 						"%dev.greeting.message = hello dev\r\n" + //
 						"%prod.greeting.message = hello prod\r\n" + //
@@ -124,7 +125,7 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 								"`greeting.message = hello` *in* [application.properties](" + propertiesFileUri + ")", //
 						14, 28, 44));
 
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, //
 				"%dev.greeting.message = hello dev\r\n" + //
 						"%prod.greeting.message = hello prod\r\n" + //
 						"my.greeting.message\r\n" + //
@@ -149,13 +150,13 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 		String yamlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.yaml").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, //
 				"greeting:\n" + //
 						"  message: message from yaml\n" + //
 						"  number: 2001",
 				javaProject);
 
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
 						"greeting.name = quarkus\r\n" + //
 						"greeting.number = 100",
@@ -171,7 +172,7 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
 				h("`greeting.number = 2001` *in* [application.yaml](" + yamlFileUri + ")", 26, 28, 43));
 
-		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, //
 				"greeting:\n" + //
 						"  message: message from yaml",
 				javaProject);
@@ -186,7 +187,7 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingMethodResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, "greeting.method.message = hello", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.method.message = hello", javaProject);
 
 		// Position(22, 61) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.m|ethod.message")
@@ -211,7 +212,7 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, "greeting.constructor.message = hello",
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.constructor.message = hello",
 				javaProject);
 
 		// Position(23, 48) is the character after the | symbol:
@@ -241,13 +242,13 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 		String yamlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/application.yaml").toURI());
 
 		// microprofile-config.properties exists
-		saveFile(PsiMicroProfileProject.MICROPROFILE_CONFIG_PROPERTIES_FILE, "greeting.constructor.message = hello 1",
+		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "greeting.constructor.message = hello 1",
 				javaProject);
 		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
 				h("`greeting.constructor.message = hello 1` *in* [META-INF/microprofile-config.properties](" + configFileUri + ")", 23, 36, 64));
 
 		// microprofile-config.properties and application.properties exist
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE, "greeting.constructor.message = hello 2",
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.constructor.message = hello 2",
 				javaProject);
 		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
 				h("`greeting.constructor.message = hello 2` *in* [application.properties](" + propertiesFileUri + ")",
@@ -255,7 +256,7 @@ public class GradleMicroProfileConfigJavaHoverTest extends GradleTestCase {
 
 		// microprofile-config.properties, application.properties, and application.yaml
 		// exist
-		saveFile(PsiMicroProfileProject.APPLICATION_YAML_FILE, //
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, //
 				"greeting:\n" + //
 						"  constructor:\n" + //
 						"    message: hello 3", //

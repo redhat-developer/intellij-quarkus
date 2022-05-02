@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project;
+package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.MicroProfileConfigPropertyInformation;
 
@@ -70,4 +70,15 @@ public interface IConfigSource {
 	 *         this config source
 	 */
 	Map<String, MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey);
+
+	/**
+	 * Returns the ordinal for this config source
+	 *
+	 * See https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#_configsource_ordering
+	 *
+	 * @return the ordinal for this config source
+	 */
+	default int getOrdinal() {
+		return 100;
+	}
 }

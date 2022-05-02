@@ -109,4 +109,11 @@ public class YamlConfigSource extends AbstractConfigSource<Map<String, Object>> 
 
 		return result;
 	}
+
+	@Override
+	public int getOrdinal() {
+		// See https://github.com/quarkusio/quarkus/blob/main/extensions/config-yaml/runtime/src/main/java/io/quarkus/config/yaml/runtime/ApplicationYamlConfigSourceLoader.java#L29
+		// (or Quarkus --> yaml config extension --> ApplicationYamlConfigSourceLoader if the link is dead)
+		return 255;
+	}
 }

@@ -10,11 +10,9 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.IConfigSource;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.PropertiesConfigSource;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.YamlConfigSource;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,17 +27,11 @@ import java.util.stream.Collectors;
  */
 public class PsiMicroProfileProject {
 
-	public static final String MICROPROFILE_CONFIG_PROPERTIES_FILE = "META-INF/microprofile-config.properties";
-	public static final String APPLICATION_PROPERTIES_FILE = "application.properties";
-	public static final String APPLICATION_YAML_FILE = "application.yaml";
 
-	private final List<IConfigSource> configSources;
+	private final Module javaProject;
 
 	public PsiMicroProfileProject(Module javaProject) {
-		this.configSources = new ArrayList<IConfigSource>(3);
-		configSources.add(new YamlConfigSource(APPLICATION_YAML_FILE, javaProject));
-		configSources.add(new PropertiesConfigSource(APPLICATION_PROPERTIES_FILE, javaProject));
-		configSources.add(new PropertiesConfigSource(MICROPROFILE_CONFIG_PROPERTIES_FILE, javaProject));
+		this.javaProject = javaProject;
 	}
 
 	/**
@@ -54,7 +46,7 @@ public class PsiMicroProfileProject {
 	 *         defined in this project
 	 */
 	public String getProperty(String propertyKey, String defaultValue) {
-		for (IConfigSource configSource : configSources) {
+		for (IConfigSource configSource : getConfigSources()) {
 			String propertyValue = configSource.getProperty(propertyKey);
 			if (propertyValue != null) {
 				return propertyValue;
@@ -77,7 +69,7 @@ public class PsiMicroProfileProject {
 	}
 
 	public Integer getPropertyAsInteger(String key, Integer defaultValue) {
-		for (IConfigSource configSource : configSources) {
+		for (IConfigSource configSource : getConfigSources()) {
 			Integer property = configSource.getPropertyAsInt(key);
 			if (property != null) {
 				return property;
@@ -102,6 +94,7 @@ public class PsiMicroProfileProject {
 		IConfigSource configSource;
 		// Go backwards so that application.properties replaces
 		// microprofile-config.properties, etc.
+		List<IConfigSource> configSources = getConfigSources();
 		for (int i = configSources.size() - 1; i >= 0; i--) {
 			configSource = configSources.get(i);
 			propertyToInfoMap.putAll(configSource.getPropertyInformations(propertyKey));
@@ -111,5 +104,14 @@ public class PsiMicroProfileProject {
 					return a.getPropertyNameWithProfile().compareTo(b.getPropertyNameWithProfile());
 				}) //
 				.collect(Collectors.toList());
+	}
+
+	private List<IConfigSource> getConfigSources() {
+		List<IConfigSource> configSources = new ArrayList<>();
+		for (IConfigSourceProvider provider : IConfigSourceProvider.EP_NAME.getExtensions()) {
+			configSources.addAll(provider.getConfigSources(javaProject));
+		}
+		Collections.sort(configSources, (a, b) -> b.getOrdinal() - a.getOrdinal());
+		return configSources;
 	}
 }

@@ -17,8 +17,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider;
 import org.eclipse.lsp4j.Position;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class MavenQuarkusScheduledHoverTest extends MavenModuleImportingTestCase
 		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
 		String propertiesFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
 				"cron.expr=*/5 * * * * ?\r\n",
 				javaProject);
 
@@ -59,7 +59,7 @@ public class MavenQuarkusScheduledHoverTest extends MavenModuleImportingTestCase
 		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
 		String propertiesFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(PsiMicroProfileProject.APPLICATION_PROPERTIES_FILE,
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
 				"every.expr=*/5 * * * * ?\r\n",
 				javaProject);
 

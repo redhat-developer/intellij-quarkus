@@ -291,6 +291,24 @@ public class MicroProfileAssert {
         }));
     }
 
+	public static void deleteFile(String name, Module javaProject) throws IOException {
+		Application application = ApplicationManager.getApplication();
+		application.invokeAndWait(() -> application.runWriteAction(() -> {
+			try {
+				VirtualFile file = null;
+				for(VirtualFile folder : ModuleRootManager.getInstance(javaProject).getSourceRoots(false)) {
+					file = folder.findFileByRelativePath(name);
+					if (file != null) {
+						break;
+					}
+				}
+				if (file != null) {
+					file.delete(MicroProfileAssert.class);
+				}
+			} catch (IOException e) {}
+		}));
+	}
+
 	public static void assertHoverEquals(Hover expected, Hover actual) {
 		assertEquals(expected.getContents().getRight(), actual.getContents().getRight());
 		assertEquals(expected.getRange(), actual.getRange());
