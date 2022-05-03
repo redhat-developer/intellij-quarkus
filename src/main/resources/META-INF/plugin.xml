@@ -232,7 +232,7 @@
     <javaCodeLensParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
 
     <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider"/>
-    <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider"/>
+    <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
 
     <!-- Qute -->
     <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport"/>

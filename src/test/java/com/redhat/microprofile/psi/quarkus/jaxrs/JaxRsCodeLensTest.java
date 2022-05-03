@@ -21,7 +21,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider;
+import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.junit.Assert;
@@ -38,7 +38,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Angelo ZERR
  *
  */
-public class MavenJaxRsCodeLensTest extends MavenModuleImportingTestCase {
+public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {

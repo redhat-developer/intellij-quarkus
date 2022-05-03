@@ -7,15 +7,13 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project;
+package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
 import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSource;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.MicroProfileConfigPropertyInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

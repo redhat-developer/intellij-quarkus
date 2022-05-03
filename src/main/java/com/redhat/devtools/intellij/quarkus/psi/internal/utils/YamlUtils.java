@@ -11,7 +11,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils;
+package com.redhat.devtools.intellij.quarkus.psi.internal.utils;
 
 import java.util.List;
 import java.util.Map;

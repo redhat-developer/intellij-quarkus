@@ -10,8 +10,6 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.MicroProfileConfigPropertyInformation;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.AbstractConfigSource;
 
 import java.io.IOException;
 import java.io.InputStream;

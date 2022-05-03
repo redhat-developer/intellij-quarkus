@@ -36,7 +36,7 @@ import java.util.List;
  * @author Angelo ZERR
  *
  */
-public class MavenJaxRsCodeLensTest extends MavenModuleImportingTestCase {
+public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {

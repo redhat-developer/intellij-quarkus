@@ -123,7 +123,16 @@ dependencies {
         transitive = false
     }
     compile("io.quarkus:quarkus-core-deployment:$quarkusVersion") {
-        transitive = false
+    	exclude group: 'org.aesh'
+    	exclude group: 'org.apache.commons'
+    	exclude group: 'org.wildfly.common'
+    	exclude group: 'io.quarkus.gizmo'
+    	exclude group: 'org.ow2.asm'
+    	exclude group: 'io.quarkus'
+    	exclude group: 'org.eclipse.sisu'
+    	exclude group: 'org.graalvm.sdk'
+    	exclude group: 'org.junit.platform'
+    	exclude group: 'org.junit.jupiter'
     }
     compile("io.quarkus:quarkus-arc:$quarkusVersion") {
         transitive = false
@@ -157,14 +166,24 @@ task copyDeps(type: Copy) {
     rename '^(.*)(-[0-9]+.[0-9]+.[0-9]+(-SNAPSHOT)?)(.*)$', '$1$4'
 }
 
-task downloadProjectsZipFile(type: Download) {
+task downloadQuteProjectsZipFile(type: Download) {
     src 'https://download.jboss.org/jbosstools/vscode/stable/builds/qute-jdt/2022-03-25_16-18-49-B95/all/repo/com.redhat.qute.jdt.test-0.11.1-SNAPSHOT-projects.zip'
     dest new File(buildDir, 'com.redhat.qute.jdt.test-projects.zip')
 }
 
-task downloadAndUnzipProjects(dependsOn: downloadProjectsZipFile, type: Copy) {
-    from zipTree(downloadProjectsZipFile.dest)
+task downloadAndUnzipQuteProjects(dependsOn: downloadQuteProjectsZipFile, type: Copy) {
+    from zipTree(downloadQuteProjectsZipFile.dest)
     into new File(projectDir, 'projects/qute')
+}
+
+task downloadQuarkusProjectsZipFile(type: Download) {
+    src 'https://download.jboss.org/jbosstools/vscode/stable/builds/quarkus-jdt/2022-03-25_16-18-49-B95/all/repo/com.redhat.microprofile.jdt.quarkus.test-0.11.1-SNAPSHOT-projects.zip'
+    dest new File(buildDir, 'com.redhat.qute.jdt.test-projects.zip')
+}
+
+task downloadAndUnzipQuarkusProjects(dependsOn: downloadQuarkusProjectsZipFile, type: Copy) {
+    from zipTree(downloadQuarkusProjectsZipFile.dest)
+    into new File(projectDir, 'projects/quarkus')
 }
 
 runIde {
@@ -188,7 +207,7 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
-test.dependsOn downloadAndUnzipProjects
+test.dependsOn downloadAndUnzipQuarkusProjects, downloadAndUnzipQuteProjects
 
 group 'com.redhat.devtools.intellij'
 version projectVersion // Plugin version

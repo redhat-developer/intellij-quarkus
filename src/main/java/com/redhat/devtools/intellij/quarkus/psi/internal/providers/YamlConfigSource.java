@@ -7,11 +7,12 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project;
+package com.redhat.devtools.intellij.quarkus.psi.internal.providers;
 
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.AbstractConfigSource;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.MicroProfileConfigPropertyInformation;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.YamlUtils;
+import com.redhat.devtools.intellij.quarkus.psi.internal.utils.YamlUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 

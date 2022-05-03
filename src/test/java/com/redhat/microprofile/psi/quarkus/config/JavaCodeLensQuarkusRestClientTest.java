@@ -11,20 +11,19 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.restclient;
+package com.redhat.microprofile.psi.quarkus.config;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.GradleTestCase;
+import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider;
-import org.apache.commons.io.FileUtils;
+import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.junit.Assert;
@@ -42,18 +41,11 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Angelo ZERR
  *
  */
-public class GradleJavaCodeLensMicroProfileRestClientTest extends GradleTestCase {
-
-	@Override
-	public void setUp() throws Exception {
-		super.setUp();
-		FileUtils.copyDirectory(new File("projects/gradle/rest-client-quickstart"), new File(getProjectPath()));
-		importProject();
-	}
+public class JavaCodeLensQuarkusRestClientTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
-		Module javaProject = getModule("rest-client-quickstart.main");
+		Module javaProject = createMavenModule("rest-client-quickstart", new File("projects/quarkus/projects/maven/rest-client-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
@@ -92,7 +84,7 @@ public class GradleJavaCodeLensMicroProfileRestClientTest extends GradleTestCase
 
 	@Test
 	public void testUrlCodeLensPropertiesWithAnnotationBaseUri() throws Exception {
-		Module javaProject = getModule("rest-client-quickstart.main");
+		Module javaProject = createMavenModule("rest-client-quickstart", new File("projects/quarkus/projects/maven/rest-client-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
@@ -119,43 +111,6 @@ public class GradleJavaCodeLensMicroProfileRestClientTest extends GradleTestCase
 				"org.acme.restclient.CountriesServiceWithBaseUri/mp-rest/uri = https://restcountries.uri/rest" + //
 						System.lineSeparator() + //
 						"org.acme.restclient.CountriesServiceWithBaseUri/mp-rest/url = https://restcountries.url/rest", //
-				javaProject);
-		assertCodeLenses("https://restcountries.uri/rest", params, utils);
-	}
-
-	@Test
-	public void testUrlCodeLensYaml() throws Exception {
-		Module javaProject = getModule("rest-client-quickstart.main");
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
-
-		// Initialize file
-		initConfigFile(javaProject);
-
-		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
-		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(javaProject) + "/src/main/java/org/acme/restclient/CountriesService.java");
-		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
-		params.setUri(uri);
-		params.setUrlCodeLensEnabled(true);
-
-		// No configuration of base url
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
-		Assert.assertEquals(0, lenses.size());
-
-		// /mp-rest/url
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "org:\r\n" + //
-				"  acme:\r\n" + //
-				"    restclient:\r\n" + //
-				"      CountriesService/mp-rest/url: https://restcountries.url/rest", javaProject);
-		assertCodeLenses("https://restcountries.url/rest", params, utils);
-
-		// /mp-rest/uri
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, //
-				"org:\r\n" + //
-						"  acme:\r\n" + //
-						"    restclient:\r\n" + //
-						"      CountriesService/mp-rest/url: https://restcountries.url/rest\r\n" + //
-						"      CountriesService/mp-rest/uri: https://restcountries.uri/rest\r\n" + //
-						"", //
 				javaProject);
 		assertCodeLenses("https://restcountries.uri/rest", params, utils);
 	}

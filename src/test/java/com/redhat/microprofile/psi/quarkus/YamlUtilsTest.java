@@ -11,14 +11,14 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils;
+package com.redhat.microprofile.psi.quarkus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
 
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.YamlUtils;
+import com.redhat.devtools.intellij.quarkus.psi.internal.utils.YamlUtils;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 

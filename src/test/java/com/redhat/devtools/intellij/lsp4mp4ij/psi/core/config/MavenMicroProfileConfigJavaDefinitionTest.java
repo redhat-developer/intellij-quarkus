@@ -18,14 +18,10 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider;
-import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.deleteFile;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDefinitions;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.def;
@@ -46,9 +42,9 @@ public class MavenMicroProfileConfigJavaDefinitionTest extends MavenModuleImport
 		Module javaProject = createMavenModule("config-hover", new File("projects/maven/config-hover"));
 
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
 
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, //
+		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
 						"greeting.name = quarkus\r\n" + //
 						"greeting.number = 100",
@@ -92,25 +88,4 @@ public class MavenMicroProfileConfigJavaDefinitionTest extends MavenModuleImport
 		assertJavaDefinitions(p(23, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject));
 
 	}
-
-	@Test
-	public void testConfigPropertyNameDefinitionYml() throws Exception {
-
-		Module javaProject = createMavenModule("config-hover", new File("projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String applicationYmlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.yml").toURI());
-
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_YML_FILE, //
-				"greeting:\n" + //
-				"  message: hello\n" + //
-				"  name: quarkus\n" + //
-				"  number: 100\n",
-				javaProject);
-		// Position(14, 40) is the character after the | symbol:
-		// @ConfigProperty(name = "greeting.mes|sage")
-		assertJavaDefinitions(p(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
-				def(r(14, 28, 44), applicationYmlFileUri, "greeting.message"));
-
-	}
-
 }

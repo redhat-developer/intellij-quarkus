@@ -18,7 +18,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.QuarkusConfigSourceProvider;
+import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
 import org.eclipse.lsp4j.Position;
 import org.junit.Test;
 
@@ -31,7 +31,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
 /**
  * Quarkus Scheduled annotation property test for hover in Java file.
  */
-public class MavenQuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
+public class QuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
 
 	private static Module javaProject;
 
