@@ -29,6 +29,9 @@ public class JaxRsContext {
 
 	private int serverPort;
 
+	// The quarkus.http.root-path property in application.properties
+	private String rootPath;
+
 	public JaxRsContext() {
 		setServerPort(DEFAULT_PORT);
 	}
@@ -41,6 +44,24 @@ public class JaxRsContext {
 		this.serverPort = serverPort;
 	}
 
+	/**
+	 * Get the quarkus.http.root-path property
+	 *
+	 * @return the rootPath
+	 */
+	public String getRootPath() {
+		return rootPath;
+	}
+
+	/**
+	 * Set the quarkus.http.root-path property
+	 *
+	 * @param rootPath the rootPath to set
+	 */
+	public void setRootPath(String rootPath) {
+		this.rootPath = rootPath;
+	}
+
 	public static JaxRsContext getJaxRsContext(JavaCodeLensContext context) {
 		JaxRsContext jaxRsContext = (JaxRsContext) context.get(CONTEXT_KEY);
 		if (jaxRsContext == null) {
@@ -48,5 +69,19 @@ public class JaxRsContext {
 			context.put(CONTEXT_KEY, jaxRsContext);
 		}
 		return jaxRsContext;
+	}
+
+	/**
+	 * Create the local base URL
+	 *
+	 * @return the String representation of the project base URL
+	 */
+	public String getLocalBaseURL() {
+		StringBuilder localBaseURL = new StringBuilder("http://localhost:");
+		localBaseURL.append(getServerPort()).toString();
+		if (rootPath != null) {
+			localBaseURL.append(getRootPath());
+		}
+		return localBaseURL.toString();
 	}
 }

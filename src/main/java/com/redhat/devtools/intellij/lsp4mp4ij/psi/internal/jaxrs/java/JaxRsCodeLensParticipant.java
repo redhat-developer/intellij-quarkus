@@ -69,17 +69,16 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 	public List<CodeLens> collectCodeLens(JavaCodeLensContext context) {
 		PsiFile typeRoot = context.getTypeRoot();
 		PsiElement[] elements = typeRoot.getChildren();
-		int serverPort = JaxRsContext.getJaxRsContext(context).getServerPort();
+		JaxRsContext jaxrsContext = JaxRsContext.getJaxRsContext(context);
 		IPsiUtils utils = context.getUtils();
 		MicroProfileJavaCodeLensParams params = context.getParams();
-		params.setLocalServerPort(serverPort);
 		List<CodeLens> lenses = new ArrayList<>();
-		collectURLCodeLenses(elements, null, lenses, params, utils);
+		collectURLCodeLenses(elements, null, lenses, params, jaxrsContext, utils);
 		return lenses;
 	}
 
 	private static void collectURLCodeLenses(PsiElement[] elements, String rootPath, Collection<CodeLens> lenses,
-			MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
+			MicroProfileJavaCodeLensParams params, JaxRsContext jaxRsContext, IPsiUtils utils) {
 		for (PsiElement element : elements) {
 			if (element instanceof PsiClass) {
 				PsiClass type = (PsiClass) element;
@@ -89,10 +88,10 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 					// Class is annotated with @Path
 					// Display code lens only if local server is available.
 					if (!params.isCheckServerAvailable()
-							|| isServerAvailable(LOCALHOST, params.getLocalServerPort(), PING_TIMEOUT)) {
+							|| isServerAvailable(LOCALHOST, jaxRsContext.getServerPort(), PING_TIMEOUT)) {
 						// Loop for each method annotated with @Path to generate URL code lens per
 						// method.
-						collectURLCodeLenses(type.getChildren(), pathValue, lenses, params, utils);
+						collectURLCodeLenses(type.getChildren(), pathValue, lenses, params, jaxRsContext, utils);
 					}
 				}
 				continue;
@@ -118,7 +117,7 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 				// JAX-RS
 				// annotation
 				if (isJaxRsRequestMethod(method) && method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
-					String baseURL = params.getLocalBaseURL();
+					String baseURL = jaxRsContext.getLocalBaseURL();
 					String openURICommandId = params.getOpenURICommand();
 					CodeLens lens = createURLCodeLens(baseURL, rootPath, openURICommandId, (PsiMethod) element, utils);
 					if (lens != null) {
