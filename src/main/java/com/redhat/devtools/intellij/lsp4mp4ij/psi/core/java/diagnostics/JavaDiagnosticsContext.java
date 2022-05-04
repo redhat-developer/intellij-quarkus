@@ -20,6 +20,9 @@ import org.eclipse.lsp4j.Range;
 
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.AbstractJavaContext;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsSettings;
+
+import java.util.Collections;
 
 /**
  * Java diagnostics context for a given compilation unit.
@@ -32,13 +35,31 @@ public class JavaDiagnosticsContext extends AbstractJavaContext {
 
 	private final DocumentFormat documentFormat;
 
-	public JavaDiagnosticsContext(String uri, PsiFile typeRoot, IPsiUtils utils, Module module, DocumentFormat documentFormat) {
+	private final MicroProfileJavaDiagnosticsSettings settings;
+
+	public JavaDiagnosticsContext(String uri, PsiFile typeRoot, IPsiUtils utils, Module module, DocumentFormat documentFormat, MicroProfileJavaDiagnosticsSettings settings) {
 		super(uri, typeRoot, utils, module);
 		this.documentFormat = documentFormat;
+		if (settings == null) {
+			this.settings = new MicroProfileJavaDiagnosticsSettings(Collections.emptyList());
+		} else {
+			this.settings = settings;
+		}
 	}
 
 	public DocumentFormat getDocumentFormat() {
 		return documentFormat;
+	}
+
+	/**
+	 * Returns the MicroProfileJavaDiagnosticsSettings.
+	 *
+	 * Should not be null.
+	 *
+	 * @return the MicroProfileJavaDiagnosticsSettings
+	 */
+	public MicroProfileJavaDiagnosticsSettings getSettings() {
+		return this.settings;
 	}
 
 	public Diagnostic createDiagnostic(String uri, String message, Range range, String source, IJavaErrorCode code) {

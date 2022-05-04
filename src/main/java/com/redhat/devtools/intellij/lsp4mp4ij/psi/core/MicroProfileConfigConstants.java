@@ -23,6 +23,8 @@ public class MicroProfileConfigConstants {
 	private MicroProfileConfigConstants() {
 	}
 
+	public static final String MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE = "microprofile-config";
+
 	public static final String INJECT_ANNOTATION = "javax.inject.Inject";
 
 	// MicroProfile Core annotations

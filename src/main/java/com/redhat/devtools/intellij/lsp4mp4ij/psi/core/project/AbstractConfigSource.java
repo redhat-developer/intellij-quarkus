@@ -163,6 +163,12 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 		return getPropertyInformations(propertyKey, getConfig());
 	}
 
+	@Override
+	public boolean isSameFile(VirtualFile file) {
+		VirtualFile configSourceFile = getOutputConfigFile();
+		return file.equals(configSourceFile);
+	}
+
 	/**
 	 * Load the config model from the given input stream <code>input</code>.
 	 * 

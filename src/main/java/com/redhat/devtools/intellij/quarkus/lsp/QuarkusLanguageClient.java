@@ -21,6 +21,8 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.ProjectLabelManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSource;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
@@ -59,6 +61,7 @@ import java.util.stream.Collectors;
 
 public class QuarkusLanguageClient extends LanguageClientImpl implements MicroProfileLanguageClientAPI, QuarkusProjectService.Listener {
   private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusLanguageClient.class);
+  private static final String JAVA_FILE_EXTENSION = "java";
 
   private final MessageBusConnection connection;
 
@@ -69,11 +72,11 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
     QuarkusProjectService.getInstance(project);
   }
 
-  private void sendPropertiesChangeEvent(MicroProfilePropertiesScope scope, Set<String> uris) {
+  private void sendPropertiesChangeEvent(List<MicroProfilePropertiesScope> scope, Set<String> uris) {
     MicroProfileLanguageServerAPI server = (MicroProfileLanguageServerAPI) getLanguageServer();
     if (server != null) {
       MicroProfilePropertiesChangeEvent event = new MicroProfilePropertiesChangeEvent();
-      event.setType(Collections.singletonList(scope));
+      event.setType(scope);
       event.setProjectURIs(uris);
       server.propertiesChanged(event);
     }
@@ -81,18 +84,39 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
 
   @Override
   public void libraryUpdated(Library library) {
-    sendPropertiesChangeEvent(MicroProfilePropertiesScope.dependencies, QuarkusModuleUtil.getModulesURIs(getProject()));
+    sendPropertiesChangeEvent(Collections.singletonList(MicroProfilePropertiesScope.dependencies), QuarkusModuleUtil.getModulesURIs(getProject()));
   }
 
   @Override
   public void sourceUpdated(List<Pair<Module, VirtualFile>> sources) {
-    Set<String> uris = sources.stream().map(pair -> pair.getLeft()).
-            map(module -> PsiUtilsLSImpl.getProjectURI(module)).
-            collect(Collectors.toSet());
-    if (!uris.isEmpty()) {
-      sendPropertiesChangeEvent(MicroProfilePropertiesScope.sources, uris);
+    List<Pair<String,MicroProfilePropertiesScope>> info = sources.stream().
+            filter(pair -> isJavaFile(pair.getRight()) || isConfigSource(pair.getRight(), pair.getLeft())).
+            map(pair -> Pair.of(PsiUtilsLSImpl.getProjectURI(pair.getLeft()), getScope(pair.getRight()))).
+            collect(Collectors.toList());
+    if (!info.isEmpty()) {
+      sendPropertiesChangeEvent(info.stream().map(Pair::getRight).collect(Collectors.toList()), info.stream().map(Pair::getLeft).collect(Collectors.toSet()));
     }
   }
+
+  private MicroProfilePropertiesScope getScope(VirtualFile file) {
+    return isJavaFile(file)?MicroProfilePropertiesScope.sources:MicroProfilePropertiesScope.configfiles;
+  }
+
+  private boolean isJavaFile(VirtualFile file) {
+    return JAVA_FILE_EXTENSION.equals(file.getExtension());
+  }
+
+  private boolean isConfigSource(VirtualFile file, Module project) {
+    for (IConfigSourceProvider provider : IConfigSourceProvider.EP_NAME.getExtensions()) {
+      for (IConfigSource configSource : provider.getConfigSources(project)) {
+        if (configSource.isSameFile(file)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
 
   <R> CompletableFuture<R> runAsBackground(String title, Supplier<R> supplier) {
     CompletableFuture<R> future = new CompletableFuture<>();

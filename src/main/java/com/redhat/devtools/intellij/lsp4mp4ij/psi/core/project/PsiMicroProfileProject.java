@@ -114,4 +114,16 @@ public class PsiMicroProfileProject {
 		Collections.sort(configSources, (a, b) -> b.getOrdinal() - a.getOrdinal());
 		return configSources;
 	}
+
+	/**
+	 * Returns true if the given property has a value declared for any profile, and
+	 * false otherwise.
+	 *
+	 * @param property the property to check if there is a value for
+	 * @return true if the given property has a value declared for any profile, and
+	 *         false otherwise
+	 */
+	public boolean hasProperty(String property) {
+		return getPropertyInformations(property).size() > 0;
+	}
 }
