@@ -48,4 +48,6 @@ public class MicroProfileConfigConstants {
 	public static final String FUTURE_TYPE_UTILITY = "java.util.concurrent.Future";
 
 	public static final String COMPLETION_STAGE_TYPE_UTILITY = "java.util.concurrent.CompletionStage";
+
+	public static final String UNI_TYPE_UTILITY = "io.smallrye.mutiny.Uni";
 }

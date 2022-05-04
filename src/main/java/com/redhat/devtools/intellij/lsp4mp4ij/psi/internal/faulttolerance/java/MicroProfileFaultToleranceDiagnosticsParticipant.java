@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.COMPLETION_STAGE_TYPE_UTILITY;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.FUTURE_TYPE_UTILITY;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.UNI_TYPE_UTILITY;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.isMatchAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.MicroProfileFaultToleranceConstants.ASYNCHRONOUS_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE;
@@ -105,6 +106,13 @@ public class MicroProfileFaultToleranceDiagnosticsParticipant implements IJavaDi
 
 		@Override
 		public void visitClass(PsiClass aClass) {
+			for(PsiAnnotation annotation: aClass.getAnnotations()) {
+				if (isMatchAnnotation(annotation, ASYNCHRONOUS_ANNOTATION)) {
+					for(PsiMethod m : aClass.getMethods()) {
+						validateAsynchronousAnnotation(m, diagnostics, context, annotation);
+					}
+				}
+			}
 			for(PsiMethod method : aClass.getMethods()) {
 				visitMethod(method);
 			}
@@ -148,11 +156,12 @@ public class MicroProfileFaultToleranceDiagnosticsParticipant implements IJavaDi
 				//fallbackMethodName = fallbackMethodName.substring(1, fallbackMethodName.length() - 1);
 				if (!getExistingMethods(node).contains(fallbackMethodName)) {
 					PsiFile openable = context.getTypeRoot();
-					Diagnostic d = context.createDiagnostic(context.getUri(),
-							"The referenced fallback method '" + fallbackMethodName + "' does not exist",
-							context.getUtils().toRange(openable, fallbackMethodExpr.getTextOffset(),
-									fallbackMethodExpr.getTextLength()),
-							DIAGNOSTIC_SOURCE, FALLBACK_METHOD_DOES_NOT_EXIST);
+					Diagnostic d = context
+							.createDiagnostic(context.getUri(),
+									"The referenced fallback method '" + fallbackMethodName + "' does not exist",
+									context.getUtils().toRange(openable, fallbackMethodExpr.getTextOffset(),
+											fallbackMethodExpr.getTextLength()),
+									DIAGNOSTIC_SOURCE, FALLBACK_METHOD_DOES_NOT_EXIST);
 					d.setSeverity(DiagnosticSeverity.Error);
 					diagnostics.add(d);
 				}
@@ -177,12 +186,14 @@ public class MicroProfileFaultToleranceDiagnosticsParticipant implements IJavaDi
 			} catch (Exception e) {
 				throw e;
 			}
-			if ((!(methodReturnTypeString.startsWith(FUTURE_TYPE_UTILITY)) && !(methodReturnTypeString.startsWith(COMPLETION_STAGE_TYPE_UTILITY)))) {
+			if ((!(methodReturnTypeString.startsWith(FUTURE_TYPE_UTILITY)) && !(methodReturnTypeString.startsWith(COMPLETION_STAGE_TYPE_UTILITY)) && !(methodReturnTypeString.startsWith(UNI_TYPE_UTILITY)))) {
 				PsiFile openable = context.getTypeRoot();
-				Diagnostic d = context.createDiagnostic(context.getUri(),
-						"The annotated method does not return an object of type Future or CompletionStage",
-						context.getUtils().toRange(openable, node.getReturnTypeElement().getTextOffset(), node.getReturnTypeElement().getTextLength()),
-						DIAGNOSTIC_SOURCE, FAULT_TOLERANCE_DEFINITION_EXCEPTION);
+				Diagnostic d = context
+						.createDiagnostic(context.getUri(),
+								"The annotated method does not return an object of type Future, CompletionStage or Uni",
+								context.getUtils().toRange(openable, node.getReturnTypeElement().getTextOffset(),
+										node.getReturnTypeElement().getTextLength()),
+								DIAGNOSTIC_SOURCE, FAULT_TOLERANCE_DEFINITION_EXCEPTION);
 				d.setSeverity(DiagnosticSeverity.Error);
 				diagnostics.add(d);
 			}
