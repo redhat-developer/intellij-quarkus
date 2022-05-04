@@ -185,6 +185,7 @@
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <!--LSP4MP-->
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertyProvider"/>
+    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertiesProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.properties.MicroProfileRegisterRestClientProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.contextpropagation.properties.MicroProfileContextPropagationProvider"/>

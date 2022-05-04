@@ -76,6 +76,17 @@ public class PsiTypeUtils {
         return type.getCanonicalText();
     }
 
+    public static String getResolvedTypeName(PsiElement element) {
+        if (element instanceof PsiMethod) {
+            return getResolvedResultTypeName((PsiMethod) element);
+        } else if (element instanceof PsiField) {
+            return getResolvedTypeName((PsiField) element);
+        } else if (element instanceof PsiVariable) {
+            return getResolvedTypeName((PsiVariable) element);
+        }
+        return null;
+    }
+
     public static String getDefaultValue(PsiMethod method) {
         String value = null;
         if (method instanceof PsiAnnotationMethod) {

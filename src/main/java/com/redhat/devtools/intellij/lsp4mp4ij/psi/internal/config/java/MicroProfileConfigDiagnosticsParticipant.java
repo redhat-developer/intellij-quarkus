@@ -17,6 +17,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLiteral;
@@ -29,6 +30,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfilePr
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertyProvider;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
@@ -37,6 +39,8 @@ import org.eclipse.lsp4mp.commons.utils.AntPathMatcher;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTIES_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTIES_ANNOTATION_PREFIX;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE;
@@ -80,11 +84,28 @@ public class MicroProfileConfigDiagnosticsParticipant implements IJavaDiagnostic
 		private List<Diagnostic> diagnostics;
 		private JavaDiagnosticsContext context;
 		private List<String> patterns;
+		// prefix from @ConfigProperties(prefix="")
+		private String currentPrefix;
 
 		public AnnotationDiagnosticCollector(List<Diagnostic> diagnostics, JavaDiagnosticsContext context) {
 			this.diagnostics = diagnostics;
 			this.context = context;
 			this.patterns = getPatternsFromContext(context);
+		}
+
+		@Override
+		public void visitClass(PsiClass clazz) {
+			for(PsiAnnotation annotation : clazz.getAnnotations()) {
+				if (AnnotationUtils.isMatchAnnotation(annotation, CONFIG_PROPERTIES_ANNOTATION)) {
+					PsiAnnotationMemberValue prefixExpr = getAnnotationMemberValueExpression(annotation, CONFIG_PROPERTIES_ANNOTATION_PREFIX);
+					if (prefixExpr instanceof PsiLiteral && ((PsiLiteral) prefixExpr).getValue() instanceof String) {
+						currentPrefix = (String) ((PsiLiteral) prefixExpr).getValue();
+					}
+
+				}
+			}
+			clazz.acceptChildren(this);
+			this.currentPrefix = null;
 		}
 
 		@Override
@@ -143,6 +164,7 @@ public class MicroProfileConfigDiagnosticsParticipant implements IJavaDiagnostic
 
 				if (nameExpression instanceof PsiLiteral && ((PsiLiteral) nameExpression).getValue() instanceof String) {
 					name = (String) ((PsiLiteral) nameExpression).getValue();
+					name = MicroProfileConfigPropertyProvider.getPropertyName(name, currentPrefix);
 				}
 
 				if (name != null && !hasDefaultValue && !doesPropertyHaveValue(name, context)
