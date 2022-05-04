@@ -59,6 +59,38 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 	}
 
 	@Test
+	public void testAsynchronousNonFutureOrCompletionStage() throws Exception {
+		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/AsynchronousFaultToleranceResource.java").toURI());
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(34, 11, 17,
+				"The annotated method does not return an object of type Future or CompletionStage",
+				DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
+
+		Diagnostic d2 = d(39, 11, 15,
+				"The annotated method does not return an object of type Future or CompletionStage",
+				DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
+
+		Diagnostic d3 = d(44, 11, 36,
+				"The annotated method does not return an object of type Future or CompletionStage",
+				DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3);
+	}
+
+
+	@Test
 	public void testFallbackMethodValidationFaultTolerant() throws Exception {
 		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/OtherFaultTolerantResource.java").toURI());

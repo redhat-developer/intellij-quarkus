@@ -42,4 +42,10 @@ public class MicroProfileConfigConstants {
 	public static final String CONFIG_PROPERTIES_ANNOTATION_PREFIX = "prefix";
 
 	public static final String CONFIG_PROPERTIES_ANNOTATION_UNCONFIGURED_PREFIX = "org.eclipse.microprofile.config.inject.configproperties.unconfiguredprefix";
+
+	// @Asynchronous annotation
+
+	public static final String FUTURE_TYPE_UTILITY = "java.util.concurrent.Future";
+
+	public static final String COMPLETION_STAGE_TYPE_UTILITY = "java.util.concurrent.CompletionStage";
 }
