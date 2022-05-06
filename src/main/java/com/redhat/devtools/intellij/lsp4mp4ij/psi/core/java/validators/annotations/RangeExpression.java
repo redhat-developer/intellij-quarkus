@@ -151,6 +151,13 @@ public class RangeExpression {
 				}
 				valueAsString.append(c);
 				break;
+				case '-':
+					if (valueAsString.length() == 0) {
+						valueAsString.append(c);
+					} else {
+						unexpectedToken(c, i, expression);
+					}
+					break;
 			default:
 				if (Character.isDigit(c)) {
 					valueAsString.append(c);

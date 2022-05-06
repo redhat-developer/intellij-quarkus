@@ -197,5 +197,68 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2);
 	}
 
+	@Test
+	public void retryClientForValidation() throws Exception {
+		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/RetryClientForValidation.java").toURI());
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(33, 19, 21, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d2 = d(38, 25, 27, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d3 = d(43, 20, 22, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d4 = d(48, 24, 26, "The value `-2` must be greater than or equal to `-1`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d5 = d(53, 19, 23, "The `delay` member value must be less than the `maxDuration` member value.",
+				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
+
+		Diagnostic d6 = d(58, 19, 23, "The `delay` member value must be less than the `maxDuration` member value.",
+				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3, d4, d5, d6);
+	}
+
+	@Test
+	public void retryClientForValidationClass() throws Exception {
+		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/RetryClientForValidationClass.java").toURI());
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(32, 15, 17, "The value `-2` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d2 = d(32, 33, 35, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d3 = d(32, 46, 48, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d4 = d(32, 63, 65, "The value `-2` must be greater than or equal to `-1`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d5 = d(39, 19, 23, "The `delay` member value must be less than the `maxDuration` member value.",
+				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3, d4, d5);
+	}
+
+
 
 }

@@ -51,6 +51,14 @@ public class AnnotationValidatorTest {
 	}
 
 	@Test
+	public void testGreaterThanOrEqualWithNegativeValue() throws RangeExpressionException {
+		assertValidation("-1", "0", null);
+		assertValidation("-1", "1", null);
+		assertValidation("-1", "-1", null);
+		assertValidation("-1", "-2", "The value `-2` must be greater than or equal to `-1`.");
+	}
+
+	@Test
 	public void testGreaterThan() throws RangeExpressionException {
 		assertValidation("(0", "0.1", null);
 		assertValidation("(0", "0", "The value `0` must be greater than `0`.");

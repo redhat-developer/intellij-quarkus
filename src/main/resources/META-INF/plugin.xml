@@ -253,6 +253,13 @@
                               source="microprofile-faulttolerance" >
       <attribute name="value" range="0" /> <!-- x >=0 -->
     </javaASTValidator.annotationValidator>
+    <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.Retry"
+                               source="microprofile-faulttolerance" >
+             <attribute name="delay" range="0" /> <!-- x >=0 -->
+             <attribute name="maxDuration" range="0" /> <!-- x >=0 -->
+             <attribute name="jitter" range="0" /> <!-- x >=0 -->
+             <attribute name="maxRetries" range="-1" /> <!-- x >=0 -->
+    </javaASTValidator.annotationValidator>
 
     <!-- Qute -->
     <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport"/>
