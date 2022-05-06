@@ -51,11 +51,10 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
-		Diagnostic d = d(14, 31, 36, "The referenced fallback method 'aaa' does not exist", DiagnosticSeverity.Error,
+		Diagnostic d = d(14, 31, 36, "The referenced fallback method 'aaa' does not exist.", DiagnosticSeverity.Error,
 				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileFaultToleranceErrorCode.FALLBACK_METHOD_DOES_NOT_EXIST);
-		assertJavaDiagnostics(diagnosticsParams, utils, //
-				d);
+		assertJavaDiagnostics(diagnosticsParams, utils, d);
 	}
 
 	@Test
@@ -69,17 +68,17 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
 		Diagnostic d1 = d(34, 11, 17,
-				"The annotated method does not return an object of type Future, CompletionStage or Uni",
+				"The annotated method 'objectReturnTypeAsynchronousMethod' with @Asynchronous should return an object of type 'java.util.concurrent.Future', 'java.util.concurrent.CompletionStage'.",
 				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
 
 		Diagnostic d2 = d(39, 11, 15,
-				"The annotated method does not return an object of type Future, CompletionStage or Uni",
+				"The annotated method 'noReturnTypeAsynchronousMethod' with @Asynchronous should return an object of type 'java.util.concurrent.Future', 'java.util.concurrent.CompletionStage'.",
 				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
 
 		Diagnostic d3 = d(44, 11, 36,
-				"The annotated method does not return an object of type Future, CompletionStage or Uni",
+				"The annotated method 'completableFutureAsynchronousMethod' with @Asynchronous should return an object of type 'java.util.concurrent.Future', 'java.util.concurrent.CompletionStage'.",
 				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
 
@@ -97,17 +96,17 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
 		Diagnostic d1 = d(32, 11, 17,
-				"The annotated method does not return an object of type Future, CompletionStage or Uni",
+				"The annotated method 'objectReturnTypeAsynchronousMethod' with @Asynchronous should return an object of type 'java.util.concurrent.Future', 'java.util.concurrent.CompletionStage'.",
 				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
 
 		Diagnostic d2 = d(36, 11, 15,
-				"The annotated method does not return an object of type Future, CompletionStage or Uni",
+				"The annotated method 'noReturnTypeAsynchronousMethod' with @Asynchronous should return an object of type 'java.util.concurrent.Future', 'java.util.concurrent.CompletionStage'.",
 				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
 
 		Diagnostic d3 = d(40, 11, 36,
-				"The annotated method does not return an object of type Future, CompletionStage or Uni",
+				"The annotated method 'completableFutureAsynchronousMethod' with @Asynchronous should return an object of type 'java.util.concurrent.Future', 'java.util.concurrent.CompletionStage'.",
 				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileFaultToleranceErrorCode.FAULT_TOLERANCE_DEFINITION_EXCEPTION);
 
@@ -125,4 +124,24 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 		assertJavaDiagnostics(diagnosticsParams, utils);
 	}
+
+	@Test
+	public void testCircuitBreakerClientForValidationDelay() throws Exception {
+		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/CircuitBreakerClientForValidationDelay.java").toURI());
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(36, 35, 37, "The value `-1` must be between `0` (inclusive) and `1` (inclusive).",
+				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d2 = d(41, 35, 36, "The value `2` must be between `0` (inclusive) and `1` (inclusive).",
+				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2);
+	}
+
 }

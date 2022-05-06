@@ -11,15 +11,15 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
+package org.acme;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
 
 import org.eclipse.microprofile.faulttolerance.Asynchronous;
 
-package org.acme;
-
-public class AsynchronousFaultTolernaceResource {
+public class AsynchronousFaultToleranceResource {
 	
 	@Asynchronous
     public Future<Object> futureAsynchronousMethod() {

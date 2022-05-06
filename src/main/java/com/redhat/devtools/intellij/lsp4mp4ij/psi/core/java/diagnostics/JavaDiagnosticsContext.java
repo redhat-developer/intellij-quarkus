@@ -63,15 +63,19 @@ public class JavaDiagnosticsContext extends AbstractJavaContext {
 	}
 
 	public Diagnostic createDiagnostic(String uri, String message, Range range, String source, IJavaErrorCode code) {
+		return createDiagnostic(uri, message, range, source, code, DiagnosticSeverity.Warning);
+	}
+
+	public Diagnostic createDiagnostic(String uri, String message, Range range, String source, IJavaErrorCode code,
+									   DiagnosticSeverity severity) {
 		Diagnostic diagnostic = new Diagnostic();
 		diagnostic.setSource(source);
 		diagnostic.setMessage(message);
-		diagnostic.setSeverity(DiagnosticSeverity.Warning);
+		diagnostic.setSeverity(severity);
 		diagnostic.setRange(range);
 		if (code != null) {
 			diagnostic.setCode(code.getCode());
 		}
 		return diagnostic;
 	}
-
 }

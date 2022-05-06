@@ -29,6 +29,7 @@ import java.util.Arrays;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDiagnostics;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.d;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.fixURI;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator.setDataForUnassigned;
 
 /**
  * JDT Quarkus manager test for hover in Java file.
@@ -52,6 +53,9 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 		diagnosticsParams.setUris(Arrays.asList(javaFileUri.toString()));
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
 		Diagnostic d1 = d(8, 53, 58, "'foo' does not match the expected type of 'int'.", DiagnosticSeverity.Error,
 				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
 				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
@@ -64,9 +68,10 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
 				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 		Diagnostic d4 = d(32, 27, 38,
-				"The property greeting9 is not assigned a value in any config file, and must be assigned at runtime",
+				"The property 'greeting9' is not assigned a value in any config file, and must be assigned at runtime.",
 				DiagnosticSeverity.Warning, MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
 				MicroProfileConfigErrorCode.NO_VALUE_ASSIGNED_TO_PROPERTY);
+		setDataForUnassigned("greeting9", d4);
 
 		assertJavaDiagnostics(diagnosticsParams, utils, //
 				d1, d2, d3, d4);
@@ -110,9 +115,10 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
 		Diagnostic d = d(13, 32, 46,
-				"The property server.old.location is not assigned a value in any config file, and must be assigned at runtime",
+				"The property 'server.old.location' is not assigned a value in any config file, and must be assigned at runtime.",
 				DiagnosticSeverity.Warning, MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
 				MicroProfileConfigErrorCode.NO_VALUE_ASSIGNED_TO_PROPERTY);
+		setDataForUnassigned("server.old.location", d);
 
 		assertJavaDiagnostics(diagnosticsParams, utils, d);
 	}
