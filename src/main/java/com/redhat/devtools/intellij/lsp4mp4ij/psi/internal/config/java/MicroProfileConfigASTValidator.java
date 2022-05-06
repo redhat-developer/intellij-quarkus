@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTIES_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValueExpression;
 import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
@@ -66,6 +67,8 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
 	private static final String EXPECTED_TYPE_ERROR_MESSAGE = "''{0}'' does not match the expected type of ''{1}''.";
 
 	private static final String NO_VALUE_ERROR_MESSAGE = "The property ''{0}'' is not assigned a value in any config file, and must be assigned at runtime.";
+
+	private static final String EMPTY_KEY_ERROR_MESSAGE = "The member ''{0}'' can'''t be empty.";
 
 	private List<String> patterns;
 	// prefix from @ConfigProperties(prefix="")
@@ -152,7 +155,7 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
 	private void validatePropertyHasValue(PsiAnnotation annotation, PsiAnnotationMemberValue defaultValueExpr) {
 			String name = null;
 			PsiAnnotationMemberValue nameExpression = getAnnotationMemberValueExpression(annotation,
-					MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME);
+					CONFIG_PROPERTY_ANNOTATION_NAME);
 			boolean hasDefaultValue = defaultValueExpr != null;
 
 			if (nameExpression instanceof PsiLiteral && ((PsiLiteral) nameExpression).getValue() instanceof String) {
@@ -160,13 +163,18 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
 				name = MicroProfileConfigPropertyProvider.getPropertyName(name, currentPrefix);
 			}
 
-			if (name != null && !hasDefaultValue && !doesPropertyHaveValue(name, getContext())
-					&& !isPropertyIgnored(name)) {
+		if (name != null) {
+			if (name.isEmpty()) {
+				String message = MessageFormat.format(EMPTY_KEY_ERROR_MESSAGE, CONFIG_PROPERTY_ANNOTATION_NAME);
+				Diagnostic d = super.addDiagnostic(message, MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE, nameExpression,
+						MicroProfileConfigErrorCode.EMPTY_KEY, DiagnosticSeverity.Error);
+			} else if (!hasDefaultValue && !doesPropertyHaveValue(name, getContext()) && !isPropertyIgnored(name)) {
 				String message = MessageFormat.format(NO_VALUE_ERROR_MESSAGE, name);
 				Diagnostic d = super.addDiagnostic(message, MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE, nameExpression,
 						MicroProfileConfigErrorCode.NO_VALUE_ASSIGNED_TO_PROPERTY, DiagnosticSeverity.Warning);
 				setDataForUnassigned(name, d);
 			}
+		}
 	}
 
 	private boolean isPropertyIgnored(String propertyName) {

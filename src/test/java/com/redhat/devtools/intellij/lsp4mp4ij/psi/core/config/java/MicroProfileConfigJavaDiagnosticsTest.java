@@ -122,4 +122,21 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 
 		assertJavaDiagnostics(diagnosticsParams, utils, d);
 	}
+
+	@Test
+	public void testEmptyNameKeyValue() throws Exception {
+		Module javaProject = createMavenModule("microprofile-config", new File("projects/maven/microprofile-configproperties"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/EmptyKey.java").toURI());
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(5, 25, 27, "The member 'name' can't be empty.", DiagnosticSeverity.Error,
+				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+				MicroProfileConfigErrorCode.EMPTY_KEY);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1);
+	}
 }
