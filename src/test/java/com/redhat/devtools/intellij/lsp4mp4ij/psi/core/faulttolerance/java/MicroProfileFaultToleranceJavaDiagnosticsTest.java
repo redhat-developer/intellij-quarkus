@@ -144,4 +144,58 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2);
 	}
 
+	@Test
+	public void testBulkheadClientForValidation() throws Exception {
+		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/BulkheadClientForValidation.java").toURI());
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(34, 14, 16, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d2 = d(39, 20, 22, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d3 = d(44, 31, 33, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d4_a = d(49, 20, 22, "The value `-1` must be greater than or equal to `0`.",
+				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d4_b = d(49, 41, 43, "The value `-1` must be greater than or equal to `0`.",
+				DiagnosticSeverity.Error, MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d5 = d(54, 20, 22, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d6 = d(59, 40, 42, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3, d4_a, d4_b, d5, d6);
+	}
+
+	@Test
+	public void testTimeoutClientForValidation() throws Exception {
+		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/TimeoutClientForValidation.java").toURI());
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(33, 13, 15, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		Diagnostic d2 = d(38, 19, 21, "The value `-1` must be greater than or equal to `0`.", DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2);
+	}
+
+
 }
