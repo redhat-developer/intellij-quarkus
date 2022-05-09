@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 
 /**
  * Config source provider API
@@ -33,6 +34,16 @@ public interface IConfigSourceProvider {
 	 * @param project the Java project to get configuration sources for
 	 * @return a list of configuration sources for a given Java project
 	 */
-	List<IConfigSource> getConfigSources(Module project);
+	List<IConfigSource> getConfigSources(Module project, VirtualFile outputFolder);
 
+	/**
+	 * Returns true if the given file name is a config source (ex :
+	 * microprofile-config.properties) and false otherwise.
+	 *
+	 * @param fileName the file name to check.
+	 *
+	 * @return true if the given file name is a config source (ex :
+	 *         microprofile-config.properties) and false otherwise.
+	 */
+	boolean isConfigSource(String fileName);
 }

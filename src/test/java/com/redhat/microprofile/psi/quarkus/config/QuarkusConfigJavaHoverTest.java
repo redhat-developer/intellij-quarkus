@@ -13,7 +13,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
 import org.eclipse.lsp4j.Position;
 import org.junit.Test;
@@ -39,17 +39,18 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameRespectsPrecendence() throws Exception {
-		Module javaProject = createMavenModule("config-quickstart", new File("projects/quarkus/projects/maven/config-quickstart"));
+		Module javaProject = createMavenModule("config-quickstart", new File("projects/quarkus/projects/maven/config-quickstart"), true);
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
-		String yamlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/application.yaml").toURI());
-		String configFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/META-INF/microprofile-config.properties").toURI());
+
+		//fix for having application.yaml being part of the QuarkusConfigSourceProvider
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
 
 		// microprofile-config.properties exists
-		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "greeting.constructor.message = hello 1",
-				javaProject);
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,
+				"greeting.constructor.message = hello 1", javaProject);
 		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
-				h("`greeting.constructor.message = hello 1` *in* [META-INF/microprofile-config.properties](" + configFileUri + ")", 23, 36, 64));
+				h("`greeting.constructor.message = hello 1` *in* META-INF/microprofile-config.properties", 23, 36, 64));
 
 		// microprofile-config.properties and application.properties exist
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.constructor.message = hello 2",
@@ -66,7 +67,7 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 						"    message: hello 3", //
 				javaProject);
 		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
-				h("`greeting.constructor.message = hello 3` *in* [application.yaml](" + yamlFileUri + ")", 23, 36, 64));
+				h("`greeting.constructor.message = hello 3` *in* application.yaml", 23, 36, 64));
 	}
 
 	@Test

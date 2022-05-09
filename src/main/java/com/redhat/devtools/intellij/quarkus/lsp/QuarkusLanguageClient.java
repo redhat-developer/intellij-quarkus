@@ -23,6 +23,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSource;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
@@ -107,14 +108,7 @@ public class QuarkusLanguageClient extends LanguageClientImpl implements MicroPr
   }
 
   private boolean isConfigSource(VirtualFile file, Module project) {
-    for (IConfigSourceProvider provider : IConfigSourceProvider.EP_NAME.getExtensions()) {
-      for (IConfigSource configSource : provider.getConfigSources(project)) {
-        if (configSource.isSameFile(file)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return PsiMicroProfileProjectManager.getInstance(project.getProject()).isConfigSource(file);
   }
 
 

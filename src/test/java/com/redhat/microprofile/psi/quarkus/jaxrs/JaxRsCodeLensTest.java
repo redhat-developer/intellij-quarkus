@@ -20,7 +20,7 @@ import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
@@ -53,11 +53,16 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 		params.setUrlCodeLensEnabled(true);
 
+		//fix for having application.yaml being part of the QuarkusConfigSourceProvider
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "", javaProject);
+
 		// Default port
 		assertCodeLenses(8080, params, utils);
 
 		// META-INF/microprofile-config.properties : 8081
-		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "quarkus.http.port = 8081", javaProject);
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "quarkus.http.port = 8081", javaProject);
 		assertCodeLenses(8081, params, utils);
 
 		// application.properties : 8082 -> it overrides 8081 coming from the
@@ -91,6 +96,10 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
 		params.setUri(uri);
 		params.setUrlCodeLensEnabled(true);
+
+		//fix for having application.yaml being part of the QuarkusConfigSourceProvider
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
 		// Default port
 		assertCodeLenses(8080, params, utils);

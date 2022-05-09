@@ -33,17 +33,24 @@ public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant
 
 	private static final String QUARKUS_DEV_HTTP_PORT = "%dev.quarkus.http.port";
 	private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
+	private static final String QUARKUS_DEV_HTTP_ROOT_PATH = "%dev.quarkus.http.root-path";
+	private static final String QUARKUS_HTTP_ROOT_PATH = "quarkus.http.root-path";
 
 	@Override
 	public void beginCodeLens(JavaCodeLensContext context) {
 		// Update the JAX-RS server port from the declared quarkus property
 		// "quarkus.http.port"
 		Module javaProject = context.getJavaProject();
-		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance()
+		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject())
 				.getJDTMicroProfileProject(javaProject);
 		int serverPort = mpProject.getPropertyAsInteger(QUARKUS_HTTP_PORT, JaxRsContext.DEFAULT_PORT);
 		int devServerPort = mpProject.getPropertyAsInteger(QUARKUS_DEV_HTTP_PORT, serverPort);
 		JaxRsContext.getJaxRsContext(context).setServerPort(devServerPort);
+
+		// Retrieve HTTP root path from application.properties
+		String httpRootPath = mpProject.getProperty(QUARKUS_HTTP_ROOT_PATH);
+		String devHttpRootPath = mpProject.getProperty(QUARKUS_DEV_HTTP_ROOT_PATH, httpRootPath);
+		JaxRsContext.getJaxRsContext(context).setRootPath(devHttpRootPath);
 	}
 
 	@Override

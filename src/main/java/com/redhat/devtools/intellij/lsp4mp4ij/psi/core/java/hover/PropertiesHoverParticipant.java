@@ -155,7 +155,7 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 		// property references may be surrounded by curly braces in Java file
 		propertyKey = propertyKey.replace("{", "").replace("}", "");
 
-		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance()
+		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject())
 				.getJDTMicroProfileProject(javaProject);
 		List<MicroProfileConfigPropertyInformation> propertyInformation = getConfigPropertyInformation(propertyKey,
 				annotation, defaultValueAnnotationMemberName, typeRoot, mpProject, utils);

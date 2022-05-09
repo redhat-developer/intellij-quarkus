@@ -13,10 +13,11 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSource;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PropertiesConfigSource;
@@ -29,11 +30,18 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PropertiesConfigS
  */
 public class TestConfigSourceProvider implements IConfigSourceProvider {
 
-	public static final String MICROPROFILE_CONFIG_TEST = "META-INF/microprofile-config-test.properties";
+	public static final String MICROPROFILE_CONFIG_TEST_FILE = "META-INF/microprofile-config-test.properties";
+
+	public static final String CONFIG_FILE = "META-INF/config.properties";
 
 	@Override
-	public List<IConfigSource> getConfigSources(Module project) {
-		return Collections.singletonList(new PropertiesConfigSource(MICROPROFILE_CONFIG_TEST, project, 101));
+	public List<IConfigSource> getConfigSources(Module project, VirtualFile outputFolder) {
+		return Arrays.asList(new PropertiesConfigSource(MICROPROFILE_CONFIG_TEST_FILE, 101, project),
+				new PropertiesConfigSource(CONFIG_FILE, 102, project));
 	}
 
+	@Override
+	public boolean isConfigSource(String fileName) {
+		return MICROPROFILE_CONFIG_TEST_FILE.equals(fileName) || CONFIG_FILE.equals(fileName);
+	}
 }

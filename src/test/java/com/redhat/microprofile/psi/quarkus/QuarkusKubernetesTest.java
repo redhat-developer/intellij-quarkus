@@ -35,7 +35,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/QuarkusKubernetesTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/QuarkusKubernetesTest.java</a>
  *
  */
-public class MavenQuarkusKubernetesTest extends MavenModuleImportingTestCase {
+public class QuarkusKubernetesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testKubernetes() throws Exception {
@@ -146,6 +146,66 @@ public class MavenQuarkusKubernetesTest extends MavenModuleImportingTestCase {
 				h("io.dekorate.kubernetes.annotation.Protocol", null, true,
 						"io.dekorate.kubernetes.annotation.Protocol", vh("TCP", null, null), //
 						vh("UDP", null, null)));
+
+		assertHintsDuplicate(info);
+
+	}
+
+	@Test
+	public void s2i() throws Exception {
+		Module module = createMavenModule("kubernetes", new File("projects/maven/kubernetes"));
+		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
+
+		assertProperties(info,
+
+				// io.dekorate.s2i.annotation.S2iBuild
+				p(null, "s2i.docker-file", "java.lang.String", "The relative path of the Dockerfile, from the module root." + //
+								System.lineSeparator() + "" + System.lineSeparator() + //
+								" *  **Returns:**" + //
+								System.lineSeparator() + //
+								"    " + //
+								System.lineSeparator() + //
+								"     *  The relative path.", true, "io.dekorate.s2i.annotation.S2iBuild", null,
+						"dockerFile()Ljava/lang/String;", 0, "Dockerfile"),
+
+				p(null, "s2i.group", "java.lang.String",
+						"The group of the application. This value will be use as image user."
+								+ System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
+								+ "    " + System.lineSeparator() + "     *  The specified group name.",
+						true, "io.dekorate.s2i.annotation.S2iBuild", null, "group()Ljava/lang/String;", 0,
+						null),
+
+				p("quarkus-container-image-s2i", "quarkus.s2i.jar-directory", "java.lang.String",
+						"The directory where the jar is added during the assemble phase." + //
+								"\n" + //
+								"This is dependent on the S2I image and should be supplied if a non default image is used.",
+						true, "io.quarkus.container.image.s2i.deployment.S2iConfig", "jarDirectory", null, 1,
+						"/deployments/"));
+
+		assertPropertiesDuplicate(info);
+
+		assertHintsDuplicate(info);
+
+	}
+
+	@Test
+	public void docker() throws Exception {
+		Module module = createMavenModule("kubernetes", new File("projects/maven/kubernetes"));
+		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
+
+		assertProperties(info,
+
+				// io.dekorate.docker.annotation.DockerBuild
+				p(null, "docker.docker-file", "java.lang.String", "The relative path of the Dockerfile, from the module root." + //
+								System.lineSeparator() + "" + System.lineSeparator() + //
+								" *  **Returns:**" + //
+								System.lineSeparator() + //
+								"    " + //
+								System.lineSeparator() + //
+								"     *  The relative path.", true, "io.dekorate.docker.annotation.DockerBuild", null,
+						"dockerFile()Ljava/lang/String;", 0, "Dockerfile"));
+
+		assertPropertiesDuplicate(info);
 
 		assertHintsDuplicate(info);
 

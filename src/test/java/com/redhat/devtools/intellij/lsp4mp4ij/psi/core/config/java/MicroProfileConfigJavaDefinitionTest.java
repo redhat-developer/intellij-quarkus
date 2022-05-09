@@ -17,7 +17,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider;
 import org.junit.Test;
 
 import java.io.File;
@@ -44,7 +44,7 @@ public class MicroProfileConfigJavaDefinitionTest extends MavenModuleImportingTe
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
 
-		saveFile(DefaultMicroProfilePropertiesConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
 						"greeting.name = quarkus\r\n" + //
 						"greeting.number = 100",

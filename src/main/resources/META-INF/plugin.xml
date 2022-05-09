@@ -233,7 +233,7 @@
 
     <javaCodeLensParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
 
-    <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.DefaultMicroProfilePropertiesConfigSourceProvider"/>
+    <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider"/>
     <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
     
     <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator"/>
