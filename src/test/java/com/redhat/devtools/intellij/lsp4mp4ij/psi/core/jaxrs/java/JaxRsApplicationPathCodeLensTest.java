@@ -48,14 +48,14 @@ public class JaxRsApplicationPathCodeLensTest extends MavenModuleImportingTestCa
 		params.setUri(javaFileUri);
 		params.setUrlCodeLensEnabled(true);
 
-		saveFile("org/acme/ApplicationPathResource.java", "package org.acme;\r\n" + //
+		saveFile("org/acme/MyApplication.java", "package org.acme;\r\n" + //
 				"import javax.ws.rs.ApplicationPath;\r\n" + //
 				"import javax.ws.rs.core.Application;\r\n" + //
 				"@ApplicationPath(\"/api\")\r\n" + //
-				"public class MyApplication extends Application {}\r\n", javaProject);
+				"public class MyApplication extends Application {}\r\n", javaProject, true);
 
 		// Default port
-		assertCodeLense(8080, params, utils);
+		assertCodeLense(8080, params, utils, "/api/path");
 	}
 
 	@Test
@@ -69,23 +69,52 @@ public class JaxRsApplicationPathCodeLensTest extends MavenModuleImportingTestCa
 		params.setUri(javaFileUri);
 		params.setUrlCodeLensEnabled(true);
 
-		saveFile("org/acme/ApplicationPathResource.java", "package org.acme;\r\n" + //
+		saveFile("org/acme/MyApplication.java", "package org.acme;\r\n" + //
 				"import javax.ws.rs.ApplicationPath;\r\n" + //
 				"import javax.ws.rs.core.Application;\r\n" + //
 				"@ApplicationPath(\"api\")\r\n" + //
-				"public class MyApplication extends Application {}\r\n", javaProject);
+				"public class MyApplication extends Application {}\r\n", javaProject, true);
 
 		// Default port
-		assertCodeLense(8080, params, utils);
+		assertCodeLense(8080, params, utils, "/api/path");
 	}
 
-	private static void assertCodeLense(int port, MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
+	@Test
+	public void testUrlCodeLensApplicationPathChange() throws Exception {
+		Module javaProject = createMavenModule("microprofile-applicationpath", new File("projects/maven/microprofile-applicationpath"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
+		params.setCheckServerAvailable(false);
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/ApplicationPathResource.java").toURI());
+		params.setUri(javaFileUri);
+		params.setUrlCodeLensEnabled(true);
+
+		saveFile("org/acme/MyApplication.java", "package org.acme;\r\n" + //
+				"import javax.ws.rs.ApplicationPath;\r\n" + //
+				"import javax.ws.rs.core.Application;\r\n" + //
+				"@ApplicationPath(\"/api\")\r\n" + //
+				"public class MyApplication extends Application {}\r\n", javaProject, true);
+
+		// Default port
+		assertCodeLense(8080, params, utils, "/api/path");
+
+		saveFile("org/acme/MyApplication.java", "package org.acme;\r\n" + //
+				"import javax.ws.rs.ApplicationPath;\r\n" + //
+				"import javax.ws.rs.core.Application;\r\n" + //
+				"@ApplicationPath(\"/ipa\")\r\n" + //
+				"public class MyApplication extends Application {}\r\n", javaProject, true);
+
+		assertCodeLense(8080, params, utils, "/ipa/path");
+	}
+
+	private static void assertCodeLense(int port, MicroProfileJavaCodeLensParams params, IPsiUtils utils,
+										String actualEndpoint) {
 		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
 		Assert.assertEquals(1, lenses.size());
 
 		CodeLens lenseForEndpoint = lenses.get(0);
 		Assert.assertNotNull(lenseForEndpoint.getCommand());
-		Assert.assertEquals("http://localhost:" + port + "/api/path", lenseForEndpoint.getCommand().getTitle());
+		Assert.assertEquals("http://localhost:" + port + actualEndpoint, lenseForEndpoint.getCommand().getTitle());
 	}
-
 }

@@ -261,7 +261,11 @@ public class MicroProfileAssert {
 				0, result.size());
 	}
 
-    public static void saveFile(String name, String content, Module javaProject) throws IOException {
+	public static void saveFile(String name, String content, Module javaProject) throws IOException {
+		saveFile(name, content, javaProject, false);
+	}
+
+	public static void saveFile(String name, String content, Module javaProject, boolean inSource) throws IOException {
 		// For Mac OS, Linux OS, the call of Files.getLastModifiedTime is working for 1
 		// second.
 		// Here we wait for > 1s to be sure that call of Files.getLastModifiedTime will
@@ -274,10 +278,15 @@ public class MicroProfileAssert {
 		Application application = ApplicationManager.getApplication();
         application.invokeAndWait(() -> application.runWriteAction(() -> {
             try {
-				VirtualFile folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
-				if (folder == null) {
-					VfsUtil.createDirectoryIfMissing(CompilerPaths.getModuleOutputPath(javaProject, false));
+				VirtualFile folder;
+				if (!inSource) {
 					folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
+					if (folder == null) {
+						VfsUtil.createDirectoryIfMissing(CompilerPaths.getModuleOutputPath(javaProject, false));
+						folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
+					}
+				} else {
+					folder = ModuleRootManager.getInstance(javaProject).getSourceRoots()[0];
 				}
 				VirtualFile file = folder.findFileByRelativePath(name);
 				if (file == null) {
