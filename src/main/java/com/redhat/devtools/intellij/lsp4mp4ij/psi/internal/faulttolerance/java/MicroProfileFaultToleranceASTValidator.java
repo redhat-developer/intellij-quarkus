@@ -140,6 +140,8 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 				validateFallbackAnnotation(node, annotation);
 			} else if (isMatchAnnotation(annotation, ASYNCHRONOUS_ANNOTATION)) {
 				validateAsynchronousAnnotation(node, annotation);
+			} else if (isMatchAnnotation(annotation, RETRY_ANNOTATION)) {
+				validateRetryAnnotation(annotation);
 			}
 		}
 	}
@@ -209,46 +211,47 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 			PsiAnnotationMemberValue jitterUnitExpr = getAnnotationMemberValueExpression(annotation,
 					JITTER_DELAY_UNIT_RETRY_ANNOTATION_MEMBER);
 
-			int delayNum = delayExpr instanceof PsiLiteral && ((PsiLiteral) delayExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) delayExpr).getValue() : 0;
-			int maxDurationNum = maxDurationExpr instanceof PsiLiteral && ((PsiLiteral) maxDurationExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) maxDurationExpr).getValue() : 0;
+			int delayNum = delayExpr instanceof PsiLiteral && ((PsiLiteral) delayExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) delayExpr).getValue() : -1;
+			int maxDurationNum = maxDurationExpr instanceof PsiLiteral && ((PsiLiteral) maxDurationExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) maxDurationExpr).getValue() : -1;
 			int jitterNum = jitterExpr instanceof PsiLiteral && ((PsiLiteral) jitterExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) jitterExpr).getValue() : 0;
 
-			Duration delayValue = findDurationUnit(delayUnitExpr, delayNum);
-			Duration maxDurationValue = findDurationUnit(durationUnitExpr,
-					maxDurationNum);
-			Duration jitterValue = findDurationUnit(jitterUnitExpr, jitterNum);
+			if (delayNum != -1 && maxDurationNum != -1) {
+				double delayValue = findDurationUnit(delayUnitExpr, delayNum);
+				double maxDurationValue = findDurationUnit(durationUnitExpr,
+						maxDurationNum);
+				double jitterValue = findDurationUnit(jitterUnitExpr,
+						jitterNum);
 
-			if (delayValue == null || maxDurationValue == null
-					|| jitterValue == null) {
-				return;
-			}
+				double maxDelayValue = delayValue + jitterValue;
 
-			Duration maxDelayValue = delayValue.plus(jitterValue);
-
-			if (maxDelayValue.compareTo(maxDurationValue) >= 0) {
-				super.addDiagnostic(RETRY_WARNING_MESSAGE, DIAGNOSTIC_SOURCE,
-						delayExpr, DELAY_EXCEEDS_MAX_DURATION,
-						DiagnosticSeverity.Warning);
+				if (maxDelayValue >= maxDurationValue) {
+					super.addDiagnostic(RETRY_WARNING_MESSAGE,
+							DIAGNOSTIC_SOURCE, delayExpr,
+							DELAY_EXCEEDS_MAX_DURATION,
+							DiagnosticSeverity.Warning);
+				}
 			}
 		}
 	}
 
-	private Duration findDurationUnit(PsiAnnotationMemberValue memberUnitExpr,
-									  int memberUnitNum) {
+	private double findDurationUnit(PsiAnnotationMemberValue memberUnitExpr,
+									int memberUnitNum) {
 		String memberUnit = null;
-		if (memberUnitExpr != null && memberUnitExpr instanceof PsiReferenceExpression) {
-			memberUnit = ((PsiReferenceExpression) memberUnitExpr).getReferenceName();
+		if (memberUnitExpr != null) {
+			if (memberUnitExpr != null && memberUnitExpr instanceof PsiReferenceExpression) {
+				memberUnit = ((PsiReferenceExpression) memberUnitExpr).getReferenceName();
+			}
 		}
-		Duration memberValue = null;
-		try {
-			memberValue = memberUnit != null
-					? Duration.of(memberUnitNum, ChronoUnit.valueOf(memberUnit))
-					: Duration.of(memberUnitNum, ChronoUnit.MILLIS);
-		} catch (UnsupportedTemporalTypeException
-				 | IllegalArgumentException e) {
-			return null;
-		}
-		return memberValue;
+		return memberUnit != null
+				? getDurationInNanos(ChronoUnit.valueOf(memberUnit),
+				memberUnitNum)
+				: getDurationInNanos(ChronoUnit.MILLIS, memberUnitNum);
+	}
+
+	public double getDurationInNanos(ChronoUnit unit, long unitValue) {
+		double seconds = unit.getDuration().getSeconds();
+		int nanos = unit.getDuration().getNano();
+		return (seconds * 1000000000 * unitValue) + (nanos * unitValue);
 	}
 
 	private boolean isAllowedReturnTypeForAsynchronousAnnotation(String returnType) {

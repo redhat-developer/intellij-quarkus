@@ -312,6 +312,45 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3, d4, d5);
 	}
 
+	@Test
+	public void testRetryClientForValidationChronoUnit() throws Exception {
+		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/RetryClientForValidationChronoUnit.java").toURI());
+		diagnosticsParams.setUris(Arrays
+				.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(24, 15, 16,
+				"The effective delay may exceed the `maxDuration` member value.",
+				DiagnosticSeverity.Warning,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
+
+		Diagnostic d2 = d(42, 19, 20,
+				"The effective delay may exceed the `maxDuration` member value.",
+				DiagnosticSeverity.Warning,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
+
+		Diagnostic d3 = d(47, 19, 20,
+				"The effective delay may exceed the `maxDuration` member value.",
+				DiagnosticSeverity.Warning,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
+
+		Diagnostic d4 = d(52, 19, 21,
+				"The effective delay may exceed the `maxDuration` member value.",
+				DiagnosticSeverity.Warning,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3, d4);
+	}
+
+
 
 
 }
