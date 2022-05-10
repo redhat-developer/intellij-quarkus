@@ -26,6 +26,8 @@ public class JaxRsConstants {
 
 	public static final String JAVAX_WS_RS_PATH_ANNOTATION = "javax.ws.rs.Path";
 
+	public static final String JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION = "javax.ws.rs.ApplicationPath";
+
 	public static final String JAVAX_WS_RS_GET_ANNOTATION = "javax.ws.rs.GET";
 
 	public static final String PATH_VALUE = "value";

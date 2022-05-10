@@ -19,10 +19,13 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
+import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.Query;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.JavaCodeLensContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import org.eclipse.lsp4j.CodeLens;
@@ -34,11 +37,15 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.createURLCodeLens;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.getJaxRsApplicationPathValue;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.getJaxRsPathValue;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isJaxRsRequestMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.overlaps;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
 
 /**
@@ -66,6 +73,14 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 	}
 
 	@Override
+	public void beginCodeLens(JavaCodeLensContext context) {
+		Module javaProject = context.getJavaProject();
+		PsiClass applicationPathType = PsiTypeUtils.findType(javaProject, JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION);
+		String applicationPath = findApplicationPath(applicationPathType, context);
+		JaxRsContext.getJaxRsContext(context).setApplicationPath(applicationPath);
+	}
+
+	@Override
 	public List<CodeLens> collectCodeLens(JavaCodeLensContext context) {
 		PsiFile typeRoot = context.getTypeRoot();
 		PsiElement[] elements = typeRoot.getChildren();
@@ -89,7 +104,8 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 					// Display code lens only if local server is available.
 					if (!params.isCheckServerAvailable()
 							|| isServerAvailable(LOCALHOST, jaxRsContext.getServerPort(), PING_TIMEOUT)) {
-						// Loop for each method annotated with @Path to generate URL code lens per
+						// Loop for each method annotated with @Path to generate
+						// URL code lens per
 						// method.
 						collectURLCodeLenses(type.getChildren(), pathValue, lenses, params, jaxRsContext, utils);
 					}
@@ -125,6 +141,29 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Use the java search engine to search the java project for the location and
+	 * value of the @ApplicationPath annotation, or null if not found
+	 *
+	 * @param annotationType the type representing the @ApplicationPath annotation
+	 * @param context        the java code lens context
+	 * @return the value of the @ApplicationPath annotation, or null if not found
+	 */
+	private static String findApplicationPath(PsiClass annotationType, JavaCodeLensContext context) {
+		AtomicReference<String> applicationPathRef = new AtomicReference<String>();
+
+		Query<PsiClass> pattern = AnnotatedElementsSearch.searchElements(annotationType, context.getJavaProject().getModuleWithDependenciesScope(),
+				PsiClass.class);
+		pattern.forEach((Consumer<? super PsiClass>) match -> collectApplicationPath(match, applicationPathRef));
+		return applicationPathRef.get();
+	}
+
+	private static void collectApplicationPath(PsiClass type, AtomicReference<String> applicationPathRef) {
+		if (AnnotationUtils.hasAnnotation(type, JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION)) {
+			applicationPathRef.set(getJaxRsApplicationPathValue(type));
 		}
 	}
 

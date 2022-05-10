@@ -27,6 +27,7 @@ import java.util.Collections;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.hasAnnotation;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_GET_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.PATH_VALUE;
@@ -51,6 +52,19 @@ public class JaxRsUtils {
 	 */
 	public static String getJaxRsPathValue(PsiElement annotatable) {
 		PsiAnnotation annotationPath = getAnnotation(annotatable, JAVAX_WS_RS_PATH_ANNOTATION);
+		return annotationPath != null ? getAnnotationMemberValue(annotationPath, PATH_VALUE) : null;
+	}
+
+	/**
+	 * Returns the value of the JAX-RS ApplicationPath annotation and null
+	 * otherwise..
+	 *
+	 * @param annotatable
+	 * @return the value of the JAX-RS ApplicationPath annotation and null
+	 *         otherwise..
+	 */
+	public static String getJaxRsApplicationPathValue(PsiElement annotatable) {
+		PsiAnnotation annotationPath = getAnnotation(annotatable, JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION);
 		return annotationPath != null ? getAnnotationMemberValue(annotationPath, PATH_VALUE) : null;
 	}
 
