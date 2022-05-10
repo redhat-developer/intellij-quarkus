@@ -20,17 +20,18 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLiteral;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,7 +74,7 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 
 	private static final String ASYNCHRONOUS_ERROR_MESSAGE = "The annotated method ''{0}'' with @Asynchronous should return an object of type {1}.";
 
-	private static final String RETRY_ERROR_MESSAGE = "The `delay` member value must be less than the `maxDuration` member value.";
+	private static final String RETRY_WARNING_MESSAGE = "The effective delay may exceed the `maxDuration` member value.";
 
 	private final Map<PsiClass, Set<String>> methodsCache;
 
@@ -200,41 +201,55 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 				MAX_DURATION_RETRY_ANNOTATION_MEMBER);
 		if (delayExpr != null && maxDurationExpr != null) {
 
-			String delayUnitExpr = getAnnotationMemberValue(annotation,
+			PsiAnnotationMemberValue delayUnitExpr = getAnnotationMemberValueExpression(annotation,
 					DELAY_UNIT_RETRY_ANNOTATION_MEMBER);
-			String durationUnitExpr = getAnnotationMemberValue(annotation,
+			PsiAnnotationMemberValue durationUnitExpr = getAnnotationMemberValueExpression(annotation,
 					DURATION_UNIT_RETRY_ANNOTATION_MEMBER);
 			PsiAnnotationMemberValue jitterExpr = getAnnotationMemberValueExpression(annotation, JITTER_RETRY_ANNOTATION_MEMBER);
-			String jitterDelayUnitExpr = getAnnotationMemberValue(annotation,
+			PsiAnnotationMemberValue jitterUnitExpr = getAnnotationMemberValueExpression(annotation,
 					JITTER_DELAY_UNIT_RETRY_ANNOTATION_MEMBER);
-
 
 			int delayNum = delayExpr instanceof PsiLiteral && ((PsiLiteral) delayExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) delayExpr).getValue() : 0;
 			int maxDurationNum = maxDurationExpr instanceof PsiLiteral && ((PsiLiteral) maxDurationExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) maxDurationExpr).getValue() : 0;
 			int jitterNum = jitterExpr instanceof PsiLiteral && ((PsiLiteral) jitterExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) jitterExpr).getValue() : 0;
 
-			String delayUnit = delayUnitExpr != null ? delayUnitExpr.split("\\.")[1] : null;
-			String maxDurationUnit = durationUnitExpr != null ? durationUnitExpr.split("\\.")[1] : null;
-			String jitterDelayUnit = jitterDelayUnitExpr != null ? jitterDelayUnitExpr.split("\\.")[1]
-					: null;
+			Duration delayValue = findDurationUnit(delayUnitExpr, delayNum);
+			Duration maxDurationValue = findDurationUnit(durationUnitExpr,
+					maxDurationNum);
+			Duration jitterValue = findDurationUnit(jitterUnitExpr, jitterNum);
 
-			Duration delayValue = delayUnitExpr != null ? Duration.of(delayNum, ChronoUnit.valueOf(delayUnit))
-					: Duration.of(delayNum, ChronoUnit.MILLIS);
-			Duration maxDurationValue = durationUnitExpr != null
-					? Duration.of(maxDurationNum, ChronoUnit.valueOf(maxDurationUnit))
-					: Duration.of(maxDurationNum, ChronoUnit.MILLIS);
-			Duration jitterValue = jitterDelayUnitExpr != null
-					? Duration.of(jitterNum, ChronoUnit.valueOf(jitterDelayUnit))
-					: Duration.of(jitterNum, ChronoUnit.MILLIS);
+			if (delayValue == null || maxDurationValue == null
+					|| jitterValue == null) {
+				return;
+			}
+
 			Duration maxDelayValue = delayValue.plus(jitterValue);
 
 			if (maxDelayValue.compareTo(maxDurationValue) >= 0) {
-				super.addDiagnostic(RETRY_ERROR_MESSAGE, DIAGNOSTIC_SOURCE, delayExpr, DELAY_EXCEEDS_MAX_DURATION,
-						DiagnosticSeverity.Error);
+				super.addDiagnostic(RETRY_WARNING_MESSAGE, DIAGNOSTIC_SOURCE,
+						delayExpr, DELAY_EXCEEDS_MAX_DURATION,
+						DiagnosticSeverity.Warning);
 			}
 		}
 	}
 
+	private Duration findDurationUnit(PsiAnnotationMemberValue memberUnitExpr,
+									  int memberUnitNum) {
+		String memberUnit = null;
+		if (memberUnitExpr != null && memberUnitExpr instanceof PsiReferenceExpression) {
+			memberUnit = ((PsiReferenceExpression) memberUnitExpr).getReferenceName();
+		}
+		Duration memberValue = null;
+		try {
+			memberValue = memberUnit != null
+					? Duration.of(memberUnitNum, ChronoUnit.valueOf(memberUnit))
+					: Duration.of(memberUnitNum, ChronoUnit.MILLIS);
+		} catch (UnsupportedTemporalTypeException
+				 | IllegalArgumentException e) {
+			return null;
+		}
+		return memberValue;
+	}
 
 	private boolean isAllowedReturnTypeForAsynchronousAnnotation(String returnType) {
 		return allowedReturnTypesForAsynchronousAnnotation.stream().filter(s -> returnType.startsWith(s)).findFirst().isPresent();
