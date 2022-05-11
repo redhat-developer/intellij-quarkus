@@ -145,4 +145,19 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
 				h("`greeting.number = 100` *in* [application.properties](" + propertiesFileUri + ")", 26, 28, 43));
 	}
+
+	@Test
+	public void testPerProfileConfigPropertyFile() throws Exception {
+
+		Module javaProject = createMavenModule("config-hover", new File("projects/quarkus/projects/maven/config-hover"));
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application-foo.properties").toURI());
+
+		saveFile("application-foo.properties", "greeting.message = hello from foo profile\n",
+				javaProject);
+		assertJavaHover(new Position(14, 29), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+				h("`%foo.greeting.message = hello from foo profile` *in* [application-foo.properties](" + propertiesFileUri + ")  \n`greeting.message` is not set", 14, 28, 44));
+
+	}
+
 }
