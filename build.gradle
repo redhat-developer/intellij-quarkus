@@ -178,7 +178,7 @@ task downloadAndUnzipQuteProjects(dependsOn: downloadQuteProjectsZipFile, type: 
 
 task downloadQuarkusProjectsZipFile(type: Download) {
     src 'https://download.jboss.org/jbosstools/vscode/stable/builds/quarkus-jdt/2022-03-25_16-18-49-B95/all/repo/com.redhat.microprofile.jdt.quarkus.test-0.11.1-SNAPSHOT-projects.zip'
-    dest new File(buildDir, 'com.redhat.qute.jdt.test-projects.zip')
+    dest new File(buildDir, 'com.redhat.microprofile.jdt.quarkus.test-projects')
 }
 
 task downloadAndUnzipQuarkusProjects(dependsOn: downloadQuarkusProjectsZipFile, type: Copy) {

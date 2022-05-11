@@ -245,6 +245,12 @@
     <!-- Quarkus Cache support -->
     <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.cache.properties.QuarkusCacheResultProvider"/>
 
+    <!-- Quarkus Scheduled annotation -->
+    <javaASTValidator.validator implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusSchedulerASTVisitor"/>
+    <javaASTValidator.annotationValidator annotation="io.quarkus.scheduler.Scheduled" source="quarkus">
+      <attribute name="delay" range="0" /> <!-- x >=0 -->
+    </javaASTValidator.annotationValidator>
+
     <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider"/>
 
     <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator"/>

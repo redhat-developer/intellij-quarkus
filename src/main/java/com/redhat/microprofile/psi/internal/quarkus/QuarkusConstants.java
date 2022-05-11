@@ -49,6 +49,14 @@ public class QuarkusConstants {
 	 * The Quarkus @Scheduled annotation
 	 */
 	public static final String SCHEDULED_ANNOTATION = "io.quarkus.scheduler.Scheduled";
+	public static final String SCHEDULED_ANNOTATION_CRON = "cron";
+	public static final String SCHEDULED_ANNOTATION_EVERY = "every";
+	public static final String SCHEDULED_ANNOTATION_IDENTITY = "identity";
+	public static final String SCHEDULED_ANNOTATION_DELAY = "delay";
+	public static final String SCHEDULED_ANNOTATION_DELAY_UNIT = "delayUnit";
+	public static final String SCHEDULED_ANNOTATION_DELAYED = "delayed";
+	public static final String SCHEDULED_ANNOTATION_CONCURRENT_EXECUTION = "concurrentExecution";
+	public static final String SCHEDULED_ANNOTATION_SKIP_EXECUTION_IF = "skipExecutionIf";
 
 	/**
 	 * The Quarkus @CacheResult annotation

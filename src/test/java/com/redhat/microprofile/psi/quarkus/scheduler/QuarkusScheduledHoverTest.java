@@ -11,7 +11,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.psi.quarkus;
+package com.redhat.microprofile.psi.quarkus.scheduler;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -19,6 +19,7 @@ import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4j.Position;
 import org.junit.Test;
 
@@ -38,13 +39,11 @@ public class QuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testConfigFirstPropertyNameHover() throws Exception {
 
-		Module javaProject = createMavenModule("scheduler-quickstart", new File("projects/quarkus/maven/scheduler-quickstart"));
+		Module javaProject = createMavenModule(QuarkusMavenProjectName.scheduler_quickstart, new File("projects/quarkus/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
 		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
 		String propertiesFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
-				"cron.expr=*/5 * * * * ?\r\n",
-				javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "cron.expr=*/5 * * * * ?\r\n", javaProject);
 
 		// Position(29, 25) is the character after the | symbol:
 		// @Scheduled(cron = "{c|ron.expr}", every = "{every.expr}")
@@ -55,13 +54,11 @@ public class QuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testConfigSecondPropertyNameHover() throws Exception {
 
-		Module javaProject = createMavenModule("scheduler-quickstart", new File("projects/quarkus/maven/scheduler-quickstart"));
+		Module javaProject = createMavenModule(QuarkusMavenProjectName.scheduler_quickstart, new File("projects/quarkus/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
 		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
 		String propertiesFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
-		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
-				"every.expr=*/5 * * * * ?\r\n",
-				javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "every.expr=*/5 * * * * ?\r\n", javaProject);
 
 		// Position(29, 48) is the character after the | symbol:
 		// @Scheduled(cron = "{cron.expr}", every = "{e|very.expr}")
