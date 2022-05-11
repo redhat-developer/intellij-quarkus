@@ -18,15 +18,25 @@ import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.PropertiesHoverParticipant;
 import com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants;
 
+import java.util.function.Function;
+
 public class QuarkusScheduledHoverParticipant extends PropertiesHoverParticipant {
 
 	public QuarkusScheduledHoverParticipant() {
 		super(QuarkusConstants.SCHEDULED_ANNOTATION,
-				new String [] { "cron", "every", "delay", "delayed", "delayUnit"}, null);
+				new String [] {
+						"cron", "every", "delay", "delayed", "delayUnit"
+				}, null, createPropertyReplacer());
 	}
 
 	@Override
 	protected boolean isAdaptableFor(PsiElement hoverElement) {
 		return hoverElement instanceof PsiMethod;
+	}
+
+	private static Function<String, String> createPropertyReplacer() {
+		Function<String, String> propertyReplacer = propertyKey -> propertyKey.replace("{", "").replace("}", "")
+				.replace("$", "");
+		return propertyReplacer;
 	}
 }

@@ -45,7 +45,9 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance
 public class MicroProfileFaultToleranceDefinitionParticipant extends AbstractAnnotationDefinitionParticipant {
 
 	public MicroProfileFaultToleranceDefinitionParticipant() {
-		super(FALLBACK_ANNOTATION, FALLBACK_METHOD_FALLBACK_ANNOTATION_MEMBER);
+		super(FALLBACK_ANNOTATION, new String[] {
+				FALLBACK_METHOD_FALLBACK_ANNOTATION_MEMBER
+		});
 	}
 
 	@Override

@@ -98,6 +98,18 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 		this.defaultValueAnnotationMemberName = defaultValueAnnotationMemberName;
 	}
 
+	/**
+	 * The definition participant constructor with a property replacer.
+	 *
+	 * @param annotationName                   the annotation name (ex :
+	 *                                         io.quarkus.scheduler.Scheduled)
+	 * @param annotationMembers                a list of annotation members (ex :
+	 *                                         cron, every, etc.
+	 * @param defaultValueAnnotationMemberName the annotation member name for
+	 *                                         default value and null otherwise.
+	 * @param propertyReplacer                 the replacer function for property
+	 *                                         expressions
+	 */
 	public PropertiesHoverParticipant(String annotationName, String[] annotationMembers,
 									  String defaultValueAnnotationMemberName, Function<String, String> propertyReplacer) {
 		this(annotationName, annotationMembers, defaultValueAnnotationMemberName);

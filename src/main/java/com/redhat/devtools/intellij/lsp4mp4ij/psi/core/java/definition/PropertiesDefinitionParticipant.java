@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.intellij.openapi.module.Module;
@@ -40,8 +41,13 @@ import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
  */
 public class PropertiesDefinitionParticipant extends AbstractAnnotationDefinitionParticipant {
 
-	public PropertiesDefinitionParticipant(String annotationName, String annotationAttributeName) {
-		super(annotationName, annotationAttributeName);
+	public PropertiesDefinitionParticipant(String annotationName, String[] annotationAttributeNames) {
+		super(annotationName, annotationAttributeNames);
+	}
+
+	public PropertiesDefinitionParticipant(String annotationName, String[] annotationAttributeNames,
+										   Function<String, String> propertyReplacer) {
+		super(annotationName, annotationAttributeNames, propertyReplacer);
 	}
 
 	@Override

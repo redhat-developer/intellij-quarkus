@@ -20,6 +20,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.PsiMethod;
+import com.redhat.devtools.intellij.lsp4mp4ij.commons.PropertyReplacerStrategy;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import org.eclipse.lsp4j.Position;
@@ -28,6 +30,7 @@ import org.eclipse.lsp4j.util.Ranges;
 import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
 
 import java.util.List;
+import java.util.function.Function;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
@@ -45,18 +48,34 @@ public abstract class AbstractAnnotationDefinitionParticipant implements IJavaDe
 
 	private final String annotationName;
 
-	private final String annotationMemberName;
+	private final String[] annotationMemberNames;
+
+	private final Function<String, String> propertyReplacer;
 
 	/**
 	 * The definition participant constructor.
 	 * 
 	 * @param annotationName       the annotation name (ex :
 	 *                             org.eclipse.microprofile.config.inject.ConfigProperty)
-	 * @param annotationMemberName the annotation member name (ex : name)
+	 * @param annotationMemberNames the annotation member name (ex : name)
 	 */
-	public AbstractAnnotationDefinitionParticipant(String annotationName, String annotationMemberName) {
+	public AbstractAnnotationDefinitionParticipant(String annotationName, String[] annotationMemberNames) {
+		this(annotationName, annotationMemberNames, PropertyReplacerStrategy.NULL_REPLACER);
+	}
+
+	/**
+	 * The definition participant constructor with a property replacer.
+	 *
+	 * @param annotationName       the annotation name (ex :
+	 *                             io.quarkus.scheduler.Scheduled)
+	 * @param annotationMemberNames the supported annotation member names (ex : cron)
+	 * @param propertyReplacer     the replacer function for property expressions
+	 */
+	public AbstractAnnotationDefinitionParticipant(String annotationName, String[] annotationMemberNames,
+												   Function<String, String> propertyReplacer) {
 		this.annotationName = annotationName;
-		this.annotationMemberName = annotationMemberName;
+		this.annotationMemberNames = annotationMemberNames;
+		this.propertyReplacer = propertyReplacer;
 	}
 
 	@Override
@@ -94,10 +113,18 @@ public abstract class AbstractAnnotationDefinitionParticipant implements IJavaDe
 
 		// Try to get the annotation member value
 		String annotationSource = annotation.getText();
-		String annotationMemberValue = getAnnotationMemberValue(annotation, annotationMemberName);
-
+		String annotationMemberValue = null;
+		for (String annotationMemberName : annotationMemberNames) {
+			annotationMemberValue = getAnnotationMemberValue(annotation, annotationMemberName);
+			if (annotationMemberValue != null) {
+				break;
+			}
+		}
 		if (annotationMemberValue == null) {
 			return null;
+		}
+		if (propertyReplacer != null) {
+			annotationMemberValue = propertyReplacer.apply(annotationMemberValue);
 		}
 
 		// Get the annotation member value range
@@ -134,7 +161,8 @@ public abstract class AbstractAnnotationDefinitionParticipant implements IJavaDe
 	 */
 	protected boolean isAdaptableFor(PsiElement hyperlinkedElement) {
 		return hyperlinkedElement instanceof PsiField
-				|| hyperlinkedElement instanceof PsiLocalVariable;
+				|| hyperlinkedElement instanceof PsiLocalVariable
+				|| hyperlinkedElement instanceof PsiMethod;
 	}
 
 	/**
