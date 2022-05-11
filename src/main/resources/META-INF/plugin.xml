@@ -184,6 +184,7 @@
     <!-- Qute -->
     <extensionPoint name="qute.dataModelProvider" beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean"/>
   </extensionPoints>
+
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <!--LSP4MP-->
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertyProvider"/>
@@ -220,22 +221,32 @@
     <javaCodeLensParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.MicroProfileRestClientCodeLensParticipant"/>
 
     <!--quarkus-ls-->
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusCoreProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusConfigRootProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusConfigPropertiesProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusKubernetesProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusHibernateORMProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusScheduledPropertiesProvider"/>
-
     <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
 
-    <javaHoverParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusScheduledHoverParticipant"/>
+    <!-- Quarkus Core support -->
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusCoreProvider"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigRootProvider"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigPropertiesProvider"/>
+    <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
 
+    <!-- Quarkus JAX-RS support -->
     <javaCodeLensParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
 
+    <!-- Quarkus @Scheduled annotation support -->
+    <javaHoverParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusScheduledHoverParticipant"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.properties.QuarkusScheduledPropertiesProvider"/>
+
+    <!-- Quarkus Kubernetes support -->
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.kubernetes.properties.QuarkusKubernetesProvider"/>
+
+    <!-- Quarkus Hibernate support -->
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.hibernate.properties.QuarkusHibernateORMProvider"/>
+
+    <!-- Quarkus Cache support -->
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.cache.properties.QuarkusCacheResultProvider"/>
+
     <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider"/>
-    <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
-    
+
     <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator"/>
     <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceASTValidator"/>
     <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.CircuitBreaker" source="microprofile-faulttolerance">

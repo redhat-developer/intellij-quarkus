@@ -7,7 +7,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.psi.internal.quarkus.providers;
+package com.redhat.microprofile.psi.internal.quarkus.core.properties;
 
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -23,6 +23,8 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesCollector;
+import com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusContext;
+import com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusSearchContext;
 import com.redhat.microprofile.psi.quarkus.PsiQuarkusUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.SearchContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
@@ -80,7 +82,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 									 SearchContext context) {
 		Map<VirtualFile, Properties> javadocCache = (Map<VirtualFile, Properties>) context
 				.get(JAVADOC_CACHE_KEY);
-		processConfigRoot(psiElement, annotation, javadocCache, context.getCollector());
+		QuarkusSearchContext quarkusContext = QuarkusSearchContext.getQuarkusContext(context);
+		processConfigRoot(psiElement, annotation, javadocCache, quarkusContext, context.getCollector());
 	}
 
 	// ------------- Process Quarkus ConfigRoot -------------
@@ -96,7 +99,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param collector            the properties to fill
 	 */
 	private void processConfigRoot(PsiModifierListOwner psiElement, PsiAnnotation configRootAnnotation,
-			Map<VirtualFile, Properties> javadocCache, IPropertiesCollector collector) {
+			Map<VirtualFile, Properties> javadocCache, QuarkusSearchContext quarkusContext, IPropertiesCollector collector) {
 		ConfigPhase configPhase = getConfigPhase(configRootAnnotation);
 		String configRootAnnotationName = getConfigRootName(configRootAnnotation);
 		String extension = getExtensionName(getSimpleName(psiElement), configRootAnnotationName, configPhase);
@@ -111,7 +114,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 
 		String baseKey = extension.isEmpty() ? QuarkusConstants.QUARKUS_PREFIX
 				: QuarkusConstants.QUARKUS_PREFIX + '.' + extension;
-		processConfigGroup(extensionName, psiElement, baseKey, configPhase, javadocCache, collector);
+		processConfigGroup(extensionName, psiElement, baseKey, configPhase, javadocCache, quarkusContext, collector);
 	}
 
 	/**
@@ -235,7 +238,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param collector     the properties to fill.
 	 */
 	private void processConfigGroup(String extensionName, PsiModifierListOwner psiElement, String baseKey,
-			ConfigPhase configPhase, Map<VirtualFile, Properties> javadocCache, IPropertiesCollector collector) {
+			ConfigPhase configPhase, Map<VirtualFile, Properties> javadocCache,
+									QuarkusSearchContext quarkusContext, IPropertiesCollector collector) {
 		if (psiElement instanceof PsiClass) {
 			PsiElement[] elements = psiElement.getChildren();
 			for (PsiElement child : elements) {
@@ -270,10 +274,11 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 					final PsiAnnotation configGroupAnnotation = AnnotationUtils.getAnnotation(fieldClass,
 							QuarkusConstants.CONFIG_GROUP_ANNOTATION);
 					if (configGroupAnnotation != null) {
-						processConfigGroup(extensionName, fieldClass, subKey, configPhase, javadocCache, collector);
+						processConfigGroup(extensionName, fieldClass, subKey, configPhase, javadocCache, quarkusContext,
+								collector);
 					} else {
 						addItemMetadata(extensionName, field, fieldTypeName, fieldClass, subKey, defaultValue,
-								javadocCache, configPhase, collector);
+								javadocCache, configPhase, quarkusContext, collector);
 					}
 				}
 			}
@@ -296,7 +301,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 
 	private void addItemMetadata(String extensionName, PsiField field, String fieldTypeName, PsiClass fieldClass,
 			String name, String defaultValue, Map<VirtualFile, Properties> javadocCache,
-			ConfigPhase configPhase, IPropertiesCollector collector) {
+			ConfigPhase configPhase, QuarkusSearchContext quarkusContext, IPropertiesCollector collector) {
 
 		// Class type
 		String type = PsiTypeUtils.getPropertyType(fieldClass, fieldTypeName);
@@ -329,7 +334,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 			if ((rawTypeParameters[0].trim().equals("java.lang.String"))) {
 				// The key Map must be a String
 				processMap(field, name, rawTypeParameters[1], description, extensionName, sourceType, configPhase,
-						javadocCache, collector);
+						javadocCache, 0, quarkusContext, collector);
 			}
 		} else if (PsiTypeUtils.isList(fieldTypeName)) {
 			item = super.addItemMetadata(collector, name, type, description, sourceType, sourceField, null,
@@ -360,15 +365,15 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	}
 
 	private void processMap(PsiField field, String baseKey, String mapValueClass, String docs, String extensionName,
-			String source, ConfigPhase configPhase, Map<VirtualFile, Properties> javadocCache,
-			IPropertiesCollector collector) {
-		final String subKey = baseKey + ".{*}";
+							String source, ConfigPhase configPhase, Map<VirtualFile, Properties> javadocCache, int keyIndex,
+							QuarkusSearchContext quarkusContext, IPropertiesCollector collector) {
+		final String subKey = baseKey + "." + quarkusContext.getPropertyMapKey(extensionName, baseKey, keyIndex);
 		if ("java.util.Map".equals(mapValueClass)) {
 			// ignore, Map must be parameterized
 		} else if (PsiTypeUtils.isMap(mapValueClass)) {
 			String[] rawTypeParameters = getRawTypeParameters(mapValueClass);
 			processMap(field, subKey, rawTypeParameters[1], docs, extensionName, source, configPhase, javadocCache,
-					collector);
+					keyIndex + 1, quarkusContext, collector);
 		} else if (PsiTypeUtils.isOptional(mapValueClass)) {
 			// Optionals are not allowed as a map value type
 		} else {
@@ -378,9 +383,9 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 				// - Simple type, like java.lang.String
 				// - Type which cannot be found (bad classpath?)
 				addItemMetadata(extensionName, field, mapValueClass, null, subKey, null, javadocCache, configPhase,
-						collector);
+						quarkusContext, collector);
 			} else {
-				processConfigGroup(extensionName, type, subKey, configPhase, javadocCache, collector);
+				processConfigGroup(extensionName, type, subKey, configPhase, javadocCache, quarkusContext, collector);
 			}
 		}
 	}

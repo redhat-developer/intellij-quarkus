@@ -11,7 +11,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.psi.internal.quarkus.providers;
+package com.redhat.microprofile.psi.internal.quarkus.scheduler.properties;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiMethod;

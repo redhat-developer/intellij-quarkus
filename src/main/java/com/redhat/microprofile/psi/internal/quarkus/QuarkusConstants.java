@@ -51,6 +51,13 @@ public class QuarkusConstants {
 	public static final String SCHEDULED_ANNOTATION = "io.quarkus.scheduler.Scheduled";
 
 	/**
+	 * The Quarkus @CacheResult annotation
+	 */
+	public static final String CACHE_RESULT_ANNOTATION = "io.quarkus.cache.CacheResult";
+
+	public static final String CACHE_RESULT_ANNOTATION_CACHE_NAME = "cacheName";
+
+	/**
 	 * The Quarkus @ConfigProperties annotation
 	 */
 	public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";

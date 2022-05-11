@@ -9,19 +9,21 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.microprofile.psi.internal.quarkus.providers;
+package com.redhat.microprofile.psi.internal.quarkus.hibernate.properties;
+
+import com.redhat.microprofile.psi.internal.quarkus.providers.AbstractStaticQuarkusPropertiesProvider;
 
 /**
- * Properties provider that provides static Quarkus properties
+ * Properties provider that provides static Quarkus Hibernate ORM properties
  * 
  * @author Angelo ZERR
  * 
  * @see https://github.com/eclipse/microprofile-health/blob/master/spec/src/main/asciidoc/protocol-wireformat.adoc
  *
  */
-public class QuarkusCoreProvider extends AbstractStaticQuarkusPropertiesProvider {
+public class QuarkusHibernateORMProvider extends AbstractStaticQuarkusPropertiesProvider {
 
-	public QuarkusCoreProvider() {
-		super("/static-properties/quarkus-core-metadata.json");
+	public QuarkusHibernateORMProvider() {
+		super("/static-properties/quarkus-hibernate-orm-metadata.json");
 	}
 }
