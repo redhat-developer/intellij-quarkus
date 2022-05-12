@@ -227,6 +227,7 @@
     <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusCoreProvider"/>
     <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigRootProvider"/>
     <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigPropertiesProvider"/>
+    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigMappingProvider"/>
     <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
 
     <!-- Quarkus JAX-RS support -->

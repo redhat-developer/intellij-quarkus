@@ -23,6 +23,7 @@ import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiAnnotationMethod;
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
@@ -59,21 +60,23 @@ public class PsiTypeUtils {
 
     private static final List<String> NUMBER_TYPES = Arrays.asList("short", "int", "long", "double", "float");
 
-    public static String getResolvedTypeName(PsiField field) {
-        return field.getType().getCanonicalText();
-    }
-
-    public static String getResolvedTypeName(PsiVariable variable) {
-        return variable.getType().getCanonicalText();
-    }
-
-    public static String getResolvedResultTypeName(PsiMethod method) {
-        //return method.getReturnType().getCanonicalText();
-        PsiType type = method.getReturnType();
+    public static String getResolvedTypeName(PsiType type) {
         while (type instanceof PsiArrayType) {
             type = ((PsiArrayType)type).getComponentType();
         }
         return type.getCanonicalText();
+    }
+
+    public static String getResolvedTypeName(PsiField field) {
+        return getResolvedTypeName(field.getType());
+    }
+
+    public static String getResolvedTypeName(PsiVariable variable) {
+        return getResolvedTypeName(variable.getType());
+    }
+
+    public static String getResolvedResultTypeName(PsiMethod method) {
+        return getResolvedTypeName(method.getReturnType());
     }
 
     public static String getResolvedTypeName(PsiElement element) {
@@ -151,7 +154,7 @@ public class PsiTypeUtils {
     }
 
     public static boolean isOptional(String fieldTypeName) {
-        return fieldTypeName.startsWith("java.util.Optional<");
+        return fieldTypeName.startsWith("java.util.Optional");
     }
 
     /**
@@ -275,5 +278,16 @@ public class PsiTypeUtils {
         // type's range
         return methodRange.getStartOffset() < typeRange.getStartOffset() || methodRange.getStartOffset() >= typeRange.getStartOffset()
                 && methodRange.getStartOffset() <= (typeRange.getStartOffset() + typeRange.getLength());
+    }
+
+    public static String getRawResolvedTypeName(PsiType type) {
+        if (type instanceof PsiClassType) {
+            type = ((PsiClassType) type).rawType();
+        }
+        return type.getCanonicalText();
+    }
+
+    public static String getRawResolvedTypeName(PsiMethod method) {
+        return getRawResolvedTypeName(method.getReturnType());
     }
 }

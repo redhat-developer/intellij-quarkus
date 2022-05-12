@@ -11,6 +11,7 @@ package com.redhat.microprofile.psi.quarkus;
 
 public class QuarkusMavenProjectName {
 
+	public static final String config_mapping = "config-mapping";
 	public static String cache_quickstart = "cache-quickstart";
 	public static String kubernetes = "kubernetes";
 	public static String quarkus_container_images = "quarkus-container-images";

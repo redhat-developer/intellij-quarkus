@@ -66,6 +66,36 @@ public class QuarkusConstants {
 	public static final String CACHE_RESULT_ANNOTATION_CACHE_NAME = "cacheName";
 
 	/**
+	 * The Quarkus @ConfigMapping annotation
+	 */
+	public static final String CONFIG_MAPPING_ANNOTATION = "io.smallrye.config.ConfigMapping";
+
+	public static final String CONFIG_MAPPING_ANNOTATION_PREFIX = "prefix";
+
+	public static final String CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY = "namingStrategy";
+
+	// The method name is used as is to map the configuration property.
+	public static final String CONFIG_MAPPING_NAMING_STRATEGY_VERBATIM = "VERBATIM";
+
+	// The method name is derived by replacing case changes with a dash to map the
+	// configuration property.
+	public static final String CONFIG_MAPPING_NAMING_STRATEGY_KEBAB_CASE = "KEBAB_CASE";
+
+	// The method name is derived by replacing case changes with an underscore to
+	// map the configuration property.
+	public static final String CONFIG_MAPPING_NAMING_STRATEGY_SNAKE_CASE = "SNAKE_CASE";
+
+	public static final String WITH_NAME_ANNOTATION = "io.smallrye.config.WithName";
+
+	public static final String WITH_NAME_ANNOTATION_VALUE = "value";
+
+	public static final String WITH_PARENT_NAME_ANNOTATION = "io.smallrye.config.WithParentName";
+
+	public static final String WITH_DEFAULT_ANNOTATION = "io.smallrye.config.WithDefault";
+
+	public static final String WITH_DEFAULT_ANNOTATION_VALUE = "value";
+
+	/**
 	 * The Quarkus @ConfigProperties annotation
 	 */
 	public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
