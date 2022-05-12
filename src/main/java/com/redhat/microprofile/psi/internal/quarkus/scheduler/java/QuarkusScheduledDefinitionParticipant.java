@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2020 Red Hat Inc. and others.
+* Copyright (c) 2021 Red Hat Inc. and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,25 +13,21 @@
 *******************************************************************************/
 package com.redhat.microprofile.psi.internal.quarkus.scheduler.java;
 
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.PropertiesHoverParticipant;
-import com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants;
-
-import java.util.function.Function;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.PropertiesDefinitionParticipant;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.commons.PropertyReplacerStrategy.EXPRESSION_REPLACER;
+import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.SCHEDULED_ANNOTATION;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS;
 
-public class QuarkusScheduledHoverParticipant extends PropertiesHoverParticipant {
+/**
+ * Quarkus applocation.properties Definition to navigate from Java
+ * file @Scheduled/cron, every to properties, yaml files where the property is
+ * declared.
+ *
+ */
+public class QuarkusScheduledDefinitionParticipant extends PropertiesDefinitionParticipant {
 
-	public QuarkusScheduledHoverParticipant() {
-		super(QuarkusConstants.SCHEDULED_ANNOTATION, SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS, null,
-				EXPRESSION_REPLACER);
-	}
-
-	@Override
-	protected boolean isAdaptableFor(PsiElement hoverElement) {
-		return hoverElement instanceof PsiMethod;
+	public QuarkusScheduledDefinitionParticipant() {
+		super(SCHEDULED_ANNOTATION, SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS, EXPRESSION_REPLACER);
 	}
 }

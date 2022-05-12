@@ -9,12 +9,20 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils;
 
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiModifierListOwner;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.util.Ranges;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Java annotations utilities.
@@ -97,4 +105,45 @@ public class AnnotationUtils {
 	public static PsiAnnotationMemberValue getAnnotationMemberValueExpression(PsiAnnotation annotation, String memberName) {
 		return annotation.findDeclaredAttributeValue(memberName);
 	}
+
+	/**
+	 * Retrieve the value and range of an annotation member given a supported list
+	 * of annotation members
+	 *
+	 * @param annotation            the annotation of the retrieved members
+	 * @param annotationSource      the qualified name of the annotation
+	 * @param annotationMemberNames the supported members of the annotation
+	 * @param position              the hover position
+	 * @param typeRoot              the java type root
+	 * @param utils                 the utility to retrieve the member range
+	 *
+	 * @return an AnnotationMemberInfo object if the member exists, null otherwise
+	 */
+	public static AnnotationMemberInfo getAnnotationMemberAt(PsiAnnotation annotation, String[] annotationMemberNames,
+															 Position position, PsiFile typeRoot, IPsiUtils utils) {
+		String annotationSource = annotation.getText();
+		TextRange r = annotation.getTextRange();
+		String annotationMemberValue = null;
+		for (String annotationMemberName : annotationMemberNames) {
+			annotationMemberValue = getAnnotationMemberValue(annotation, annotationMemberName);
+			if (annotationMemberValue != null) {
+				// A regex is used to match the member and member value to find the position
+				Pattern memberPattern = Pattern.compile(".*[^\"]\\s*(" + annotationMemberName + ")\\s*=.*",
+						Pattern.DOTALL);
+				Matcher match = memberPattern.matcher(annotationSource);
+				if (match.matches()) {
+					int offset = annotationSource.indexOf(annotationMemberValue, match.end(1));
+					Range range = utils.toRange(typeRoot, r.getStartOffset() + offset, annotationMemberValue.length());
+
+					if (!position.equals(range.getEnd()) && Ranges.containsPosition(range, position)) {
+						return new AnnotationMemberInfo(annotationMemberValue, range);
+					}
+				}
+			}
+		}
+
+		return null;
+
+	}
+
 }

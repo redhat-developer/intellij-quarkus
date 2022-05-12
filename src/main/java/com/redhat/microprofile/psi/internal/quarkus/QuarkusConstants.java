@@ -55,6 +55,11 @@ public class QuarkusConstants {
 	public static final String SCHEDULED_ANNOTATION_DELAY = "delay";
 	public static final String SCHEDULED_ANNOTATION_DELAY_UNIT = "delayUnit";
 	public static final String SCHEDULED_ANNOTATION_DELAYED = "delayed";
+
+	public static final String[] SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS = {
+			SCHEDULED_ANNOTATION_CRON, SCHEDULED_ANNOTATION_EVERY, SCHEDULED_ANNOTATION_DELAY,
+			SCHEDULED_ANNOTATION_DELAYED, SCHEDULED_ANNOTATION_DELAY_UNIT
+	};
 	public static final String SCHEDULED_ANNOTATION_CONCURRENT_EXECUTION = "concurrentExecution";
 	public static final String SCHEDULED_ANNOTATION_SKIP_EXECUTION_IF = "skipExecutionIf";
 
