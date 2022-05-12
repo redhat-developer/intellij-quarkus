@@ -66,4 +66,27 @@ public class QuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
 				h("`every.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 29, 46, 58));
 	}
 
+	@Test
+	public void testConfigPropertyExpressionHover() throws Exception {
+
+		Module javaProject = createMavenModule(QuarkusMavenProjectName.scheduler_quickstart, new File("projects/quarkus/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
+		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
+		String propertiesFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
+
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "cron.expr=*/5 * * * * ?\r\n", javaProject);
+
+		// Position(35, 26) is the character after the | symbol:
+		// @Scheduled(cron = "${c|ron.expr}", every = "${every.expr}")
+		assertJavaHover(new Position(35, 26), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+				h("`cron.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 35, 23, 35));
+
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "every.expr=*/5 * * * * ?\r\n", javaProject);
+
+		// Position(35, 50) is the character after the | symbol:
+		// @Scheduled(cron = "{cron.expr}", every = "{e|very.expr}")
+		assertJavaHover(new Position(35, 50), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+				h("`every.expr = */5 * * * * ?` *in* [application.properties](" + propertiesFileUri + ")", 35, 47, 60));
+	}
+
+
 }

@@ -32,4 +32,10 @@ public class CounterBean {
         counter.incrementAndGet();
         System.out.println("Cron expression configured in application.properties");
     }
+
+    @Scheduled(cron = "${cron.expr}", every = "${every.expr}")
+    void cronJobWithExpressionAlsoInConfig() {
+        counter.incrementAndGet();
+        System.out.println("Cron expression configured in application.properties");
+    }
 }

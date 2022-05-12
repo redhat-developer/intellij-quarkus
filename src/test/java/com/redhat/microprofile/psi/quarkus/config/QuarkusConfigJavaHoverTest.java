@@ -147,6 +147,18 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 	}
 
 	@Test
+	public void testConfigPropertyHoverPropertyExpression() throws Exception {
+
+		Module javaProject = createMavenModule("config-hover", new File("projects/quarkus/projects/maven/config-hover"));
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
+
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.hover = test", javaProject);
+
+		// no hover should show for property expression
+		assertJavaHover(new Position(31, 29), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), null);
+	}
+
+	@Test
 	public void testPerProfileConfigPropertyFile() throws Exception {
 
 		Module javaProject = createMavenModule("config-hover", new File("projects/quarkus/projects/maven/config-hover"));
