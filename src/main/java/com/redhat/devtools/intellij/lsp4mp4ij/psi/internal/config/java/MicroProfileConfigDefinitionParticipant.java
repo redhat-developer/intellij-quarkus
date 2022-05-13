@@ -32,6 +32,8 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.Propertie
 public class MicroProfileConfigDefinitionParticipant extends PropertiesDefinitionParticipant {
 
 	public MicroProfileConfigDefinitionParticipant() {
-		super(CONFIG_PROPERTY_ANNOTATION, CONFIG_PROPERTY_ANNOTATION_NAME);
+		super(CONFIG_PROPERTY_ANNOTATION, new String[] {
+				CONFIG_PROPERTY_ANNOTATION_NAME
+		});
 	}
 }

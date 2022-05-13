@@ -49,6 +49,56 @@ public class QuarkusConstants {
 	 * The Quarkus @Scheduled annotation
 	 */
 	public static final String SCHEDULED_ANNOTATION = "io.quarkus.scheduler.Scheduled";
+	public static final String SCHEDULED_ANNOTATION_CRON = "cron";
+	public static final String SCHEDULED_ANNOTATION_EVERY = "every";
+	public static final String SCHEDULED_ANNOTATION_IDENTITY = "identity";
+	public static final String SCHEDULED_ANNOTATION_DELAY = "delay";
+	public static final String SCHEDULED_ANNOTATION_DELAY_UNIT = "delayUnit";
+	public static final String SCHEDULED_ANNOTATION_DELAYED = "delayed";
+
+	public static final String[] SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS = {
+			SCHEDULED_ANNOTATION_CRON, SCHEDULED_ANNOTATION_EVERY, SCHEDULED_ANNOTATION_DELAY,
+			SCHEDULED_ANNOTATION_DELAYED, SCHEDULED_ANNOTATION_DELAY_UNIT
+	};
+	public static final String SCHEDULED_ANNOTATION_CONCURRENT_EXECUTION = "concurrentExecution";
+	public static final String SCHEDULED_ANNOTATION_SKIP_EXECUTION_IF = "skipExecutionIf";
+
+	/**
+	 * The Quarkus @CacheResult annotation
+	 */
+	public static final String CACHE_RESULT_ANNOTATION = "io.quarkus.cache.CacheResult";
+
+	public static final String CACHE_RESULT_ANNOTATION_CACHE_NAME = "cacheName";
+
+	/**
+	 * The Quarkus @ConfigMapping annotation
+	 */
+	public static final String CONFIG_MAPPING_ANNOTATION = "io.smallrye.config.ConfigMapping";
+
+	public static final String CONFIG_MAPPING_ANNOTATION_PREFIX = "prefix";
+
+	public static final String CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY = "namingStrategy";
+
+	// The method name is used as is to map the configuration property.
+	public static final String CONFIG_MAPPING_NAMING_STRATEGY_VERBATIM = "VERBATIM";
+
+	// The method name is derived by replacing case changes with a dash to map the
+	// configuration property.
+	public static final String CONFIG_MAPPING_NAMING_STRATEGY_KEBAB_CASE = "KEBAB_CASE";
+
+	// The method name is derived by replacing case changes with an underscore to
+	// map the configuration property.
+	public static final String CONFIG_MAPPING_NAMING_STRATEGY_SNAKE_CASE = "SNAKE_CASE";
+
+	public static final String WITH_NAME_ANNOTATION = "io.smallrye.config.WithName";
+
+	public static final String WITH_NAME_ANNOTATION_VALUE = "value";
+
+	public static final String WITH_PARENT_NAME_ANNOTATION = "io.smallrye.config.WithParentName";
+
+	public static final String WITH_DEFAULT_ANNOTATION = "io.smallrye.config.WithDefault";
+
+	public static final String WITH_DEFAULT_ANNOTATION_VALUE = "value";
 
 	/**
 	 * The Quarkus @ConfigProperties annotation

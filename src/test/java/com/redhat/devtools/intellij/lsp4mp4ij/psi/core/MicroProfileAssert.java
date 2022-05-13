@@ -18,7 +18,10 @@ import java.util.stream.Collectors;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -258,7 +261,11 @@ public class MicroProfileAssert {
 				0, result.size());
 	}
 
-    public static void saveFile(String name, String content, Module javaProject) throws IOException {
+	public static void saveFile(String name, String content, Module javaProject) throws IOException {
+		saveFile(name, content, javaProject, false);
+	}
+
+	public static void saveFile(String name, String content, Module javaProject, boolean inSource) throws IOException {
 		// For Mac OS, Linux OS, the call of Files.getLastModifiedTime is working for 1
 		// second.
 		// Here we wait for > 1s to be sure that call of Files.getLastModifiedTime will
@@ -271,15 +278,18 @@ public class MicroProfileAssert {
 		Application application = ApplicationManager.getApplication();
         application.invokeAndWait(() -> application.runWriteAction(() -> {
             try {
-				VirtualFile file = null;
-				for(VirtualFile folder : ModuleRootManager.getInstance(javaProject).getSourceRoots(false)) {
-					file = folder.findFileByRelativePath(name);
-					if (file != null) {
-						break;
+				VirtualFile folder;
+				if (!inSource) {
+					folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
+					if (folder == null) {
+						VfsUtil.createDirectoryIfMissing(CompilerPaths.getModuleOutputPath(javaProject, false));
+						folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
 					}
+				} else {
+					folder = ModuleRootManager.getInstance(javaProject).getSourceRoots()[0];
 				}
+				VirtualFile file = folder.findFileByRelativePath(name);
 				if (file == null) {
-					VirtualFile folder = ModuleRootManager.getInstance(javaProject).getSourceRoots(false)[0];
 					String[] comps = name.split("/");
 					if (comps.length > 1) {
 						folder = VfsUtil.createDirectoryIfMissing(folder, name.substring(0, name.lastIndexOf('/')));
@@ -290,6 +300,24 @@ public class MicroProfileAssert {
             } catch (IOException e) {}
         }));
     }
+
+	public static void deleteFile(String name, Module javaProject) throws IOException {
+		Application application = ApplicationManager.getApplication();
+		application.invokeAndWait(() -> application.runWriteAction(() -> {
+			try {
+				VirtualFile file = null;
+				for(VirtualFile folder : ModuleRootManager.getInstance(javaProject).getSourceRoots(false)) {
+					file = folder.findFileByRelativePath(name);
+					if (file != null) {
+						break;
+					}
+				}
+				if (file != null) {
+					file.delete(MicroProfileAssert.class);
+				}
+			} catch (IOException e) {}
+		}));
+	}
 
 	public static void assertHoverEquals(Hover expected, Hover actual) {
 		assertEquals(expected.getContents().getRight(), actual.getContents().getRight());

@@ -40,6 +40,18 @@ public class MicroProfileFaultToleranceConstants {
 
 	public static final String FALLBACK_METHOD_FALLBACK_ANNOTATION_MEMBER = "fallbackMethod";
 
+	public static final String DELAY_RETRY_ANNOTATION_MEMBER = "delay";
+
+	public static final String DELAY_UNIT_RETRY_ANNOTATION_MEMBER = "delayUnit";
+
+	public static final String MAX_DURATION_RETRY_ANNOTATION_MEMBER = "maxDuration";
+
+	public static final String DURATION_UNIT_RETRY_ANNOTATION_MEMBER = "durationUnit";
+
+	public static final String JITTER_RETRY_ANNOTATION_MEMBER = "jitter";
+
+	public static final String JITTER_DELAY_UNIT_RETRY_ANNOTATION_MEMBER = "jitterDelayUnit";
+
 	// MP_Fault_Tolerance_NonFallback_Enabled
 
 	public static final String MP_FAULT_TOLERANCE_NON_FALLBACK_ENABLED = "MP_Fault_Tolerance_NonFallback_Enabled";

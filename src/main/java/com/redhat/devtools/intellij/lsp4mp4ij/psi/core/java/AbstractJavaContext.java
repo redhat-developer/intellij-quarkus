@@ -88,4 +88,15 @@ public abstract class AbstractJavaContext {
 		return cache.get(key);
 	}
 
+	public PsiFile getASTRoot() {
+		return getTypeRoot();
+	}
+
+	/**
+	 * @param root The ASTRoot to set.
+	 */
+	public void setASTRoot(PsiFile root) {
+	}
+
+
 }

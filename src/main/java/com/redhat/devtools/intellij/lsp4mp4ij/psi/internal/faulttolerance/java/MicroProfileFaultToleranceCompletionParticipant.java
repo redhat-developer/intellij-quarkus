@@ -71,7 +71,10 @@ public class MicroProfileFaultToleranceCompletionParticipant implements IJavaCom
 		}
 		List<CompletionItem> completionItems = new ArrayList<>();
 		for (PsiMethod m : method.getContainingClass().getMethods()) {
-			completionItems.add(makeMethodCompletionItem(m.getName(), range));
+			PsiMethod owningMethod = PsiTreeUtil.getParentOfType(fallbackAnnotation, PsiMethod.class);
+			if (!m.equals(owningMethod)) {
+				completionItems.add(makeMethodCompletionItem(m.getName(), range));
+			}
 		}
 		return completionItems;
 	}

@@ -9,12 +9,12 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.IConfigSource;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.PropertiesConfigSource;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.YamlConfigSource;
+import com.intellij.openapi.vfs.VirtualFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,17 +29,13 @@ import java.util.stream.Collectors;
  */
 public class PsiMicroProfileProject {
 
-	public static final String MICROPROFILE_CONFIG_PROPERTIES_FILE = "META-INF/microprofile-config.properties";
-	public static final String APPLICATION_PROPERTIES_FILE = "application.properties";
-	public static final String APPLICATION_YAML_FILE = "application.yaml";
 
-	private final List<IConfigSource> configSources;
+	private final Module javaProject;
+
+	private List<IConfigSource> configSources;
 
 	public PsiMicroProfileProject(Module javaProject) {
-		this.configSources = new ArrayList<IConfigSource>(3);
-		configSources.add(new YamlConfigSource(APPLICATION_YAML_FILE, javaProject));
-		configSources.add(new PropertiesConfigSource(APPLICATION_PROPERTIES_FILE, javaProject));
-		configSources.add(new PropertiesConfigSource(MICROPROFILE_CONFIG_PROPERTIES_FILE, javaProject));
+		this.javaProject = javaProject;
 	}
 
 	/**
@@ -54,7 +50,7 @@ public class PsiMicroProfileProject {
 	 *         defined in this project
 	 */
 	public String getProperty(String propertyKey, String defaultValue) {
-		for (IConfigSource configSource : configSources) {
+		for (IConfigSource configSource : getConfigSources()) {
 			String propertyValue = configSource.getProperty(propertyKey);
 			if (propertyValue != null) {
 				return propertyValue;
@@ -77,7 +73,7 @@ public class PsiMicroProfileProject {
 	}
 
 	public Integer getPropertyAsInteger(String key, Integer defaultValue) {
-		for (IConfigSource configSource : configSources) {
+		for (IConfigSource configSource : getConfigSources()) {
 			Integer property = configSource.getPropertyAsInt(key);
 			if (property != null) {
 				return property;
@@ -87,29 +83,105 @@ public class PsiMicroProfileProject {
 	}
 
 	/**
-	 * Returns a list of the property information (values for each profile and where
-	 * they are assigned) for a given property
+	 * Returns a list of all values for properties and different profiles that are
+	 * defined in this project.
+	 *
+	 * <p>
+	 * This list contains information for the property (ex : greeting.message) and
+	 * profile property (ex : %dev.greeting.message).
+	 * </p>
+	 *
+	 * <p>
+	 * When several properties file (ex : microprofile-config.properties,
+	 * application.properties, etc) define the same property, it's the file which
+	 * have the bigger ordinal (see {@link IConfigSource#getOrdinal()} which is
+	 * returned.
+	 * </p>
 	 *
 	 * @param propertyKey the name of the property to collect the values for
 	 * @return a list of all values for properties and different profiles that are
-	 *         defined in this project
+	 *         defined in this project.
 	 */
 	public List<MicroProfileConfigPropertyInformation> getPropertyInformations(String propertyKey) {
 		// Use a map to override property values
 		// eg. if application.yaml defines a value for a property it should override the
 		// value defined in application.properties
 		Map<String, MicroProfileConfigPropertyInformation> propertyToInfoMap = new HashMap<>();
-		IConfigSource configSource;
 		// Go backwards so that application.properties replaces
 		// microprofile-config.properties, etc.
+		List<IConfigSource> configSources = getConfigSources();
 		for (int i = configSources.size() - 1; i >= 0; i--) {
-			configSource = configSources.get(i);
-			propertyToInfoMap.putAll(configSource.getPropertyInformations(propertyKey));
+			IConfigSource configSource = configSources.get(i);
+			List<MicroProfileConfigPropertyInformation> propertyInformations = configSource
+					.getPropertyInformations(propertyKey);
+			if (propertyInformations != null) {
+				for (MicroProfileConfigPropertyInformation propertyInformation : propertyInformations) {
+					propertyToInfoMap.put(propertyInformation.getPropertyNameWithProfile(), propertyInformation);
+				}
+			}
 		}
 		return propertyToInfoMap.values().stream() //
 				.sorted((a, b) -> {
 					return a.getPropertyNameWithProfile().compareTo(b.getPropertyNameWithProfile());
 				}) //
 				.collect(Collectors.toList());
+	}
+
+	private List<IConfigSource> getConfigSources() {
+		if (configSources == null) {
+			configSources = loadConfigSources(javaProject);
+		}
+		return configSources;
+	}
+
+	/**
+	 * Evict the config sources cache as soon as one of properties, yaml file is
+	 * saved.
+	 */
+	public void evictConfigSourcesCache() {
+		configSources = null;
+	}
+
+	/**
+	 * Load config sources from the given project and sort it by using
+	 * {@link IConfigSource#getOrdinal()}
+	 *
+	 * @param javaProject the Java project
+	 * @return the loaded config sources.
+	 */
+	private synchronized List<IConfigSource> loadConfigSources(Module javaProject) {
+		if (configSources != null) {
+			// Case when there are several Threads which load config sources, the second
+			// Thread should not reload the config sources again.
+			return configSources;
+		}
+		List<IConfigSource> configSources = new ArrayList<>();
+		VirtualFile outputFile = CompilerPaths.getModuleOutputDirectory(javaProject, false);
+		if (outputFile != null && outputFile.exists() && outputFile.isDirectory()) {
+			for (IConfigSourceProvider provider : IConfigSourceProvider.EP_NAME.getExtensions()) {
+				configSources.addAll(provider.getConfigSources(javaProject, outputFile));
+			}
+		}
+		Collections.sort(configSources, (a, b) -> b.getOrdinal() - a.getOrdinal());
+		return configSources;
+	}
+
+
+	/**
+	 * Returns true if the given property has a value declared for any profile, and
+	 * false otherwise.
+	 *
+	 * @param property the property to check if there is a value for
+	 * @return true if the given property has a value declared for any profile, and
+	 *         false otherwise
+	 */
+	public boolean hasProperty(String property) {
+		List<IConfigSource> configSources = getConfigSources();
+		for (IConfigSource configSource : configSources) {
+			if (configSource.getPropertyInformations(property) != null) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

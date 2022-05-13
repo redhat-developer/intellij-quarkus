@@ -96,18 +96,18 @@ public class MicroProfileMetricsDiagnosticsParticipant implements IJavaDiagnosti
 		if (hasInvalidScopeAnnotation) {
 			for (PsiElement element : classType.getChildren()) {
 				if (element instanceof PsiMethod) {
-					PsiMethod field = (PsiMethod) element;
-					validateField(classType, field, diagnostics, context);
+					PsiMethod method = (PsiMethod) element;
+					validateMethod(classType, method, diagnostics, context);
 				}
 			}
 		}
 	}
 
-	private static void validateField(PsiClass classType, PsiMethod field, List<Diagnostic> diagnostics,
-			JavaDiagnosticsContext context) {
+	private static void validateMethod(PsiClass classType, PsiMethod method, List<Diagnostic> diagnostics,
+									   JavaDiagnosticsContext context) {
 		String uri = context.getUri();
 		DocumentFormat documentFormat = context.getDocumentFormat();
-		boolean hasGaugeAnnotation = AnnotationUtils.hasAnnotation(field, GAUGE_ANNOTATION);
+		boolean hasGaugeAnnotation = AnnotationUtils.hasAnnotation(method, GAUGE_ANNOTATION);
 
 		// Diagnostic 1: display @Gauge annotation diagnostic message if
 		// the underlying bean is annotated with @RequestScoped, @SessionScoped or

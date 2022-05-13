@@ -88,5 +88,4 @@ public class QuteJavaDefinitionAction extends QuteAction {
         }
         return null;
     }
-
 }

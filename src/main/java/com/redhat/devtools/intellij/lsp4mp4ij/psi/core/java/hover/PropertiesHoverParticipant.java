@@ -17,6 +17,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUt
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,7 +55,9 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 
 	private final String defaultValueAnnotationMemberName;
 
-	private final String [] annotationMembers;
+	private final String[] annotationMembers;
+
+	private Function<String, String> propertyReplacer;
 
 	public PropertiesHoverParticipant(String annotationName, String annotationMemberName) {
 		this(annotationName, annotationMemberName, null);
@@ -72,7 +75,9 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 	 */
 	public PropertiesHoverParticipant(String annotationName, String annotationMemberName,
 									  String defaultValueAnnotationMemberName) {
-		this(annotationName, new String [] { annotationMemberName }, defaultValueAnnotationMemberName);
+		this(annotationName, new String[] {
+				annotationMemberName
+		}, defaultValueAnnotationMemberName);
 	}
 
 	/**
@@ -86,11 +91,29 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 	 *                                         default value and null otherwise.
 	 *
 	 */
-	public PropertiesHoverParticipant(String annotationName, String [] annotationMembers,
+	public PropertiesHoverParticipant(String annotationName, String[] annotationMembers,
 									  String defaultValueAnnotationMemberName) {
 		this.annotationName = annotationName;
 		this.annotationMembers = annotationMembers;
 		this.defaultValueAnnotationMemberName = defaultValueAnnotationMemberName;
+	}
+
+	/**
+	 * The definition participant constructor with a property replacer.
+	 *
+	 * @param annotationName                   the annotation name (ex :
+	 *                                         io.quarkus.scheduler.Scheduled)
+	 * @param annotationMembers                a list of annotation members (ex :
+	 *                                         cron, every, etc.
+	 * @param defaultValueAnnotationMemberName the annotation member name for
+	 *                                         default value and null otherwise.
+	 * @param propertyReplacer                 the replacer function for property
+	 *                                         expressions
+	 */
+	public PropertiesHoverParticipant(String annotationName, String[] annotationMembers,
+									  String defaultValueAnnotationMemberName, Function<String, String> propertyReplacer) {
+		this(annotationName, annotationMembers, defaultValueAnnotationMemberName);
+		this.propertyReplacer = propertyReplacer;
 	}
 
 	@Override
@@ -127,7 +150,8 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 			propertyKey = getAnnotationMemberValue(annotation, annotationMemberName);
 			if (propertyKey != null) {
 				TextRange r = annotation.getTextRange();
-				Pattern memberPattern = Pattern.compile(".*[^\"]\\s*(" + annotationMemberName + ")\\s*=.*", Pattern.DOTALL);
+				Pattern memberPattern = Pattern.compile(".*[^\"]\\s*(" + annotationMemberName + ")\\s*=.*",
+						Pattern.DOTALL);
 				Matcher match = memberPattern.matcher(annotationSource);
 				if (match.matches()) {
 					int offset = annotationSource.indexOf(propertyKey);
@@ -153,9 +177,10 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 		}
 
 		// property references may be surrounded by curly braces in Java file
-		propertyKey = propertyKey.replace("{", "").replace("}", "");
-
-		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance()
+		if (propertyReplacer != null) {
+			propertyKey = propertyReplacer.apply(propertyKey);
+		}
+		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject())
 				.getJDTMicroProfileProject(javaProject);
 		List<MicroProfileConfigPropertyInformation> propertyInformation = getConfigPropertyInformation(propertyKey,
 				annotation, defaultValueAnnotationMemberName, typeRoot, mpProject, utils);

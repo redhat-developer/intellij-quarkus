@@ -49,6 +49,7 @@ import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDefinitionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsSettings;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaFileInfoParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
 import org.eclipse.lsp4j.Diagnostic;
@@ -286,13 +287,13 @@ public class PropertiesManagerForJava {
             List<Diagnostic> diagnostics = new ArrayList<>();
             PublishDiagnosticsParams publishDiagnostic = new PublishDiagnosticsParams(uri, diagnostics);
             publishDiagnostics.add(publishDiagnostic);
-            collectDiagnostics(uri, utils, documentFormat, diagnostics);
+            collectDiagnostics(uri, utils, documentFormat, params.getSettings(), diagnostics);
         }
         return publishDiagnostics;
     }
 
     private void collectDiagnostics(String uri, IPsiUtils utils, DocumentFormat documentFormat,
-                                    List<Diagnostic> diagnostics) {
+                                    MicroProfileJavaDiagnosticsSettings settings, List<Diagnostic> diagnostics) {
         PsiFile typeRoot = ApplicationManager.getApplication().runReadAction((Computable<PsiFile>) () -> resolveTypeRoot(uri, utils));
         if (typeRoot == null) {
             return;
@@ -302,7 +303,7 @@ public class PropertiesManagerForJava {
             Module module = ApplicationManager.getApplication().runReadAction((ThrowableComputable<Module, IOException>) () -> utils.getModule(uri));
             DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
                 // Collect all adapted diagnostics participant
-                JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, module, documentFormat);
+                JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, module, documentFormat, settings);
                 List<IJavaDiagnosticsParticipant> definitions = IJavaDiagnosticsParticipant.EP_NAME.extensions()
                         .filter(definition -> definition.isAdaptedForDiagnostics(context))
                         .collect(Collectors.toList());

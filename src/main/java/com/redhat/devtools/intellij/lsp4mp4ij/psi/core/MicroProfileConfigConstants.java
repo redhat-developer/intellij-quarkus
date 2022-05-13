@@ -23,9 +23,11 @@ public class MicroProfileConfigConstants {
 	private MicroProfileConfigConstants() {
 	}
 
+	public static final String MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE = "microprofile-config";
+
 	public static final String INJECT_ANNOTATION = "javax.inject.Inject";
 
-	// MicroProfile Core annotations
+	// @ConfigProperty annotation
 
 	public static final String CONFIG_PROPERTY_ANNOTATION = "org.eclipse.microprofile.config.inject.ConfigProperty";
 
@@ -33,4 +35,19 @@ public class MicroProfileConfigConstants {
 
 	public static final String CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE = "defaultValue";
 
+	// @ConfigProperties annotation
+
+	public static final String CONFIG_PROPERTIES_ANNOTATION = "org.eclipse.microprofile.config.inject.ConfigProperties";
+
+	public static final String CONFIG_PROPERTIES_ANNOTATION_PREFIX = "prefix";
+
+	public static final String CONFIG_PROPERTIES_ANNOTATION_UNCONFIGURED_PREFIX = "org.eclipse.microprofile.config.inject.configproperties.unconfiguredprefix";
+
+	// @Asynchronous annotation
+
+	public static final String FUTURE_TYPE_UTILITY = "java.util.concurrent.Future";
+
+	public static final String COMPLETION_STAGE_TYPE_UTILITY = "java.util.concurrent.CompletionStage";
+
+	public static final String UNI_TYPE_UTILITY = "io.smallrye.mutiny.Uni";
 }

@@ -25,6 +25,7 @@ import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiSubstitutor;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiVariable;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
 
@@ -65,7 +66,7 @@ public class PsiTypeUtils {
 	 *         otherwise
 	 */
 	public static String getResolvedTypeName(PsiElement javaElement) {
-		if (javaElement instanceof PsiLocalVariable) {
+		if (javaElement instanceof PsiVariable) {
 			return getResolvedTypeName((PsiLocalVariable) javaElement);
 		} else if (javaElement instanceof PsiField) {
 			return getResolvedTypeName((PsiField) javaElement);
