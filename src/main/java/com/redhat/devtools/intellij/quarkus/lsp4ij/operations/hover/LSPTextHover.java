@@ -11,10 +11,14 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover;
 
 import com.intellij.lang.documentation.DocumentationProviderEx;
+import com.intellij.lang.documentation.ExternalDocumentationHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -38,6 +42,8 @@ import java.awt.Color;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +53,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class LSPTextHover extends DocumentationProviderEx {
+public class LSPTextHover extends DocumentationProviderEx implements ExternalDocumentationHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPTextHover.class);
 
     private static final String HEAD = "<head>"; //$NON-NLS-1$
@@ -247,6 +253,39 @@ public class LSPTextHover extends DocumentationProviderEx {
     @Nullable
     @Override
     public PsiElement getCustomDocumentationElement(@NotNull Editor editor, @NotNull PsiFile file, @Nullable PsiElement contextElement) {
+        return null;
+    }
+
+    @Override
+    public boolean handleExternal(PsiElement element, PsiElement originalElement) {
+        return false;
+    }
+
+    @Override
+    public boolean handleExternalLink(PsiManager psiManager, String link, PsiElement context) {
+        VirtualFile file = getFile(link);
+        if (file != null) {
+            FileEditorManager.getInstance(psiManager.getProject()).openFile(file, true, true);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean canFetchDocumentationLink(String link) {
+        return false;
+    }
+
+    private VirtualFile getFile(String link) {
+        try {
+            return VfsUtil.findFileByURL(new URL(link));
+        } catch (MalformedURLException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public @NotNull String fetchExternalDocumentation(@NotNull String link, @Nullable PsiElement element) {
         return null;
     }
 }
