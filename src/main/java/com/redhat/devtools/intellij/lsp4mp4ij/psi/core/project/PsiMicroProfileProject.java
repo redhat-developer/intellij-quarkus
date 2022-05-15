@@ -157,10 +157,8 @@ public class PsiMicroProfileProject {
 		}
 		List<IConfigSource> configSources = new ArrayList<>();
 		VirtualFile outputFile = CompilerPaths.getModuleOutputDirectory(javaProject, false);
-		if (outputFile != null && outputFile.exists() && outputFile.isDirectory()) {
-			for (IConfigSourceProvider provider : IConfigSourceProvider.EP_NAME.getExtensions()) {
-				configSources.addAll(provider.getConfigSources(javaProject, outputFile));
-			}
+		for (IConfigSourceProvider provider : IConfigSourceProvider.EP_NAME.getExtensions()) {
+			configSources.addAll(provider.getConfigSources(javaProject, outputFile));
 		}
 		Collections.sort(configSources, (a, b) -> b.getOrdinal() - a.getOrdinal());
 		return configSources;

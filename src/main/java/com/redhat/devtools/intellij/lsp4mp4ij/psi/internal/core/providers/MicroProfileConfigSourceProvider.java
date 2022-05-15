@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSource;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PropertiesConfigSource;
@@ -45,14 +46,16 @@ public class MicroProfileConfigSourceProvider implements IConfigSourceProvider {
 	@Override
 	public List<IConfigSource> getConfigSources(Module javaProject, VirtualFile outputFolder) {
 		List<IConfigSource> configSources = new ArrayList<>();
-		VirtualFile metaInfDir = outputFolder.findChild(META_INF_FOLDER);
-		if (metaInfDir != null && metaInfDir.exists() && metaInfDir.isDirectory()) {
-			for (VirtualFile file : metaInfDir.getChildren()) {
-				if (!file.isDirectory()) {
-					String fileName = file.getName();
-					IConfigSource configSource = createConfigSource(fileName, javaProject);
-					if (configSource != null) {
-						configSources.add(configSource);
+		for(VirtualFile folder : ModuleRootManager.getInstance(javaProject).getSourceRoots(false)) {
+			VirtualFile metaInfDir = folder.findChild(META_INF_FOLDER);
+			if (metaInfDir != null && metaInfDir.exists() && metaInfDir.isDirectory()) {
+				for (VirtualFile file : metaInfDir.getChildren()) {
+					if (!file.isDirectory()) {
+						String fileName = file.getName();
+						IConfigSource configSource = createConfigSource(fileName, javaProject);
+						if (configSource != null) {
+							configSources.add(configSource);
+						}
 					}
 				}
 			}
