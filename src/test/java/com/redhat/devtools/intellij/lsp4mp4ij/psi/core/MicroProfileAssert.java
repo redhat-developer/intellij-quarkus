@@ -262,7 +262,7 @@ public class MicroProfileAssert {
 	}
 
 	public static void saveFile(String name, String content, Module javaProject) throws IOException {
-		saveFile(name, content, javaProject, false);
+		saveFile(name, content, javaProject, true);
 	}
 
 	public static void saveFile(String name, String content, Module javaProject, boolean inSource) throws IOException {
@@ -278,7 +278,7 @@ public class MicroProfileAssert {
 		Application application = ApplicationManager.getApplication();
         application.invokeAndWait(() -> application.runWriteAction(() -> {
             try {
-				VirtualFile folder;
+				VirtualFile folder = null;
 				if (!inSource) {
 					folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
 					if (folder == null) {
@@ -286,7 +286,15 @@ public class MicroProfileAssert {
 						folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
 					}
 				} else {
-					folder = ModuleRootManager.getInstance(javaProject).getSourceRoots()[0];
+					for(VirtualFile dir : ModuleRootManager.getInstance(javaProject).getSourceRoots()) {
+						if (dir.findFileByRelativePath(name) != null) {
+							folder = dir;
+							break;
+						}
+					}
+					if (folder == null) {
+						folder = ModuleRootManager.getInstance(javaProject).getSourceRoots()[0];
+					}
 				}
 				VirtualFile file = folder.findFileByRelativePath(name);
 				if (file == null) {

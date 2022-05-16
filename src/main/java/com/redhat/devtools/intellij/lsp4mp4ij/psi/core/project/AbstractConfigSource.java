@@ -112,7 +112,9 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
 			if (output != null) {
 				output = output.findFileByRelativePath(configFileName);
 				if (output != null) {
-					outputConfigFile = output;
+					if (sourceConfigFile == null || output.getModificationStamp() >= sourceConfigFile.getModificationStamp()) {
+						outputConfigFile = output;
+					}
 				}
 			}
 			return outputConfigFile;

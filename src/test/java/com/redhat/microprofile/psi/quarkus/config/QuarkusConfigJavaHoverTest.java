@@ -39,7 +39,7 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameRespectsPrecendence() throws Exception {
-		Module javaProject = createMavenModule("config-quickstart", new File("projects/quarkus/projects/maven/config-quickstart"), true);
+		Module javaProject = createMavenModule("config-quickstart", new File("projects/quarkus/projects/maven/config-quickstart"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
