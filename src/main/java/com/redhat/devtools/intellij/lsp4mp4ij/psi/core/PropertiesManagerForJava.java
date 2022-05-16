@@ -294,7 +294,7 @@ public class PropertiesManagerForJava {
 
     private void collectDiagnostics(String uri, IPsiUtils utils, DocumentFormat documentFormat,
                                     MicroProfileJavaDiagnosticsSettings settings, List<Diagnostic> diagnostics) {
-        PsiFile typeRoot = ApplicationManager.getApplication().runReadAction((Computable<PsiFile>) () -> resolveTypeRoot(uri, utils));
+        PsiFile typeRoot = PsiDocumentManager.getInstance(utils.getProject()).commitAndRunReadAction((Computable<PsiFile>) () -> resolveTypeRoot(uri, utils));
         if (typeRoot == null) {
             return;
         }
