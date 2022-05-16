@@ -262,7 +262,7 @@ public class MicroProfileAssert {
 	}
 
 	public static void saveFile(String name, String content, Module javaProject) throws IOException {
-		saveFile(name, content, javaProject, true);
+		saveFile(name, content, javaProject, false);
 	}
 
 	public static void saveFile(String name, String content, Module javaProject, boolean inSource) throws IOException {

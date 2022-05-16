@@ -15,7 +15,9 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,15 +48,22 @@ public class MicroProfileConfigSourceProvider implements IConfigSourceProvider {
 	@Override
 	public List<IConfigSource> getConfigSources(Module javaProject, VirtualFile outputFolder) {
 		List<IConfigSource> configSources = new ArrayList<>();
-		for(VirtualFile folder : ModuleRootManager.getInstance(javaProject).getSourceRoots(false)) {
+		List<VirtualFile> folders = new ArrayList<>();
+		folders.addAll(Arrays.asList(ModuleRootManager.getInstance(javaProject).getSourceRoots(false)));
+		if (outputFolder != null) {
+			folders.add(outputFolder);
+		}
+		Set<String> fileNames = new HashSet<>();
+		for(VirtualFile folder : folders) {
 			VirtualFile metaInfDir = folder.findChild(META_INF_FOLDER);
 			if (metaInfDir != null && metaInfDir.exists() && metaInfDir.isDirectory()) {
 				for (VirtualFile file : metaInfDir.getChildren()) {
-					if (!file.isDirectory()) {
+					if (!file.isDirectory() && !fileNames.contains(file.getName())) {
 						String fileName = file.getName();
 						IConfigSource configSource = createConfigSource(fileName, javaProject);
 						if (configSource != null) {
 							configSources.add(configSource);
+							fileNames.add(file.getName());
 						}
 					}
 				}

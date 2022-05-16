@@ -45,6 +45,7 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 		//fix for having application.yaml being part of the QuarkusConfigSourceProvider
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
 		// microprofile-config.properties exists
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,
