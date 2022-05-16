@@ -15,11 +15,14 @@ package com.redhat.devtools.intellij.quarkus.psi.internal.providers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSource;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider;
@@ -42,12 +45,21 @@ public class QuarkusConfigSourceProvider implements IConfigSourceProvider {
 	@Override
 	public List<IConfigSource> getConfigSources(Module javaProject, VirtualFile outputFolder) {
 		List<IConfigSource> configSources = new ArrayList<>();
-		for (VirtualFile file : outputFolder.getChildren()) {
-			if (!file.isDirectory()) {
-				String fileName = file.getName();
-				IConfigSource configSource = createConfigSource(fileName, javaProject);
-				if (configSource != null) {
-					configSources.add(configSource);
+		List<VirtualFile> folders = new ArrayList<>();
+		folders.addAll(Arrays.asList(ModuleRootManager.getInstance(javaProject).getSourceRoots(false)));
+		if (outputFolder != null) {
+			folders.add(outputFolder);
+		}
+		Set<String> fileNames = new HashSet<>();
+		for(VirtualFile folder : folders) {
+			for (VirtualFile file : folder.getChildren()) {
+				if (!file.isDirectory() && !fileNames.contains(file.getName())) {
+					String fileName = file.getName();
+					IConfigSource configSource = createConfigSource(fileName, javaProject);
+					if (configSource != null) {
+						configSources.add(configSource);
+						fileNames.add(file.getName());
+					}
 				}
 			}
 		}

@@ -39,12 +39,13 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameRespectsPrecendence() throws Exception {
-		Module javaProject = createMavenModule("config-quickstart", new File("projects/quarkus/projects/maven/config-quickstart"), true);
+		Module javaProject = createMavenModule("config-quickstart", new File("projects/quarkus/projects/maven/config-quickstart"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
 		//fix for having application.yaml being part of the QuarkusConfigSourceProvider
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
+		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
 		// microprofile-config.properties exists
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,

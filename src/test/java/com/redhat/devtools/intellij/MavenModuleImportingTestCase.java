@@ -57,19 +57,6 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     return module;
   }
 
-  protected void executeGoal(VirtualFile dir, String goal) throws Exception {
-    MavenRunnerParameters rp = new MavenRunnerParameters(true, dir.getPath(), (String)null, Collections.singletonList(goal), Collections.emptyList());
-    MavenRunnerSettings rs = new MavenRunnerSettings();
-    Semaphore wait = new Semaphore(1);
-    wait.acquire();
-    MavenRunner.getInstance(myProject).run(rp, rs, () -> {
-      wait.release();
-    });
-    boolean tryAcquire = wait.tryAcquire(1, TimeUnit.MINUTES);
-    assertTrue( "Maven execution failed", tryAcquire);
-  }
-
-
   /**
    * Create a new module into the test project from existing project folder.
    *
@@ -77,7 +64,7 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
    * @param projectDir the project folder
    * @return the created module
    */
-  protected Module createMavenModule(String name, File projectDir, boolean processResources) throws Exception {
+  protected Module createMavenModule(String name, File projectDir) throws Exception {
     Module module = null;
     Project project = myTestFixture.getProject();
     File moduleDir = new File(project.getBasePath());
@@ -91,15 +78,8 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     if (modules.length > 0) {
       module = modules[modules.length - 1];
       QuarkusModuleUtil.ensureQuarkusLibrary(module);
-      if (processResources) {
-        executeGoal(pomFile.getParent(), "resources:resources");
-      }
     }
     return module;
-  }
-
-  protected Module createMavenModule(String name, File projectDir) throws Exception {
-    return createMavenModule(name, projectDir, false);
   }
 
   /**
