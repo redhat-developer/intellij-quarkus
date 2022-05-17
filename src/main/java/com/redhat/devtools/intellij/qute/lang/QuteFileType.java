@@ -49,7 +49,7 @@ public class QuteFileType extends LanguageFileType {
     @Override
     public @NotNull
     String getDescription() {
-        return null;
+        return "Qute";
     }
 
     @Override
