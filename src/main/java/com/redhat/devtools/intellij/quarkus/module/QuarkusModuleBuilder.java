@@ -136,4 +136,9 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
         this.wizardContext = wizardContext;
         return super.createFinishingSteps(wizardContext, modulesProvider);
     }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
 }
