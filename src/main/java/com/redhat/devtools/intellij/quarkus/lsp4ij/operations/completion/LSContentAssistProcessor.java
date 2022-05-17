@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
@@ -84,12 +85,15 @@ public class LSContentAssistProcessor extends CompletionContributor {
     private Collection<? extends LookupElement> toProposals(Project project, Editor editor, Document document,
                                                             int offset, Either<List<CompletionItem>,
             CompletionList> completion, LanguageServer languageServer) {
-        List<CompletionItem> items = completion.isLeft()?completion.getLeft():completion.getRight().getItems();
-        boolean isIncomplete = completion.isLeft()?false:completion.getRight().isIncomplete();
-        return items.stream().map(item -> createLookupItem(project, editor, offset, item, isIncomplete, languageServer)).
-                filter(item -> item.validate(document, offset, null)).
-                map(item -> PrioritizedLookupElement.withGrouping(item, item.getItem().getKind().getValue())).
-                collect(Collectors.toList());
+        if (completion != null) {
+            List<CompletionItem> items = completion.isLeft()?completion.getLeft():completion.getRight().getItems();
+            boolean isIncomplete = completion.isLeft()?false:completion.getRight().isIncomplete();
+            return items.stream().map(item -> createLookupItem(project, editor, offset, item, isIncomplete, languageServer)).
+                    filter(item -> item.validate(document, offset, null)).
+                    map(item -> PrioritizedLookupElement.withGrouping(item, item.getItem().getKind().getValue())).
+                    collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     private LSIncompleteCompletionProposal createLookupItem(Project project, Editor editor, int offset,

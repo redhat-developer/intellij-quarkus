@@ -29,14 +29,11 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 
 import java.text.MessageFormat;
-import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.UnsupportedTemporalTypeException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -78,14 +75,14 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 
 	private final Map<PsiClass, Set<String>> methodsCache;
 
-	private final List<String> allowedReturnTypesForAsynchronousAnnotation;
+	private final Set<String> allowedReturnTypesForAsynchronousAnnotation;
 
 	private static Logger LOGGER = Logger.getLogger(MicroProfileFaultToleranceASTValidator.class.getName());
 
 	public MicroProfileFaultToleranceASTValidator() {
 		super();
 		this.methodsCache = new HashMap<>();
-		this.allowedReturnTypesForAsynchronousAnnotation = new ArrayList<>(
+		this.allowedReturnTypesForAsynchronousAnnotation = new HashSet<>(
 				Arrays.asList(FUTURE_TYPE_UTILITY, COMPLETION_STAGE_TYPE_UTILITY));
 	}
 
