@@ -20,6 +20,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiUtilCore;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
@@ -71,7 +72,12 @@ public class LSPLocalInspectionTool extends LocalInspectionTool {
                         RangeHighlighter[] highlighters = LSPDiagnosticsToMarkers.getMarkers(editor, wrapper.serverDefinition.id);
                         if (highlighters != null) {
                             for(RangeHighlighter highlighter : highlighters) {
-                                PsiElement element = new LSPPSiElement(editor.getProject(), file, highlighter.getStartOffset(), highlighter.getEndOffset(), editor.getDocument().getText(new TextRange(highlighter.getStartOffset(), highlighter.getEndOffset())));
+                                PsiElement element;
+                                if (highlighter.getEndOffset() - highlighter.getStartOffset() > 0) {
+                                    element = new LSPPSiElement(editor.getProject(), file, highlighter.getStartOffset(), highlighter.getEndOffset(), editor.getDocument().getText(new TextRange(highlighter.getStartOffset(), highlighter.getEndOffset())));
+                                } else {
+                                    element = PsiUtilCore.getElementAtOffset(file, highlighter.getStartOffset());
+                                }
                                 ProblemHighlightType highlightType = getHighlighType(((Diagnostic)highlighter.getErrorStripeTooltip()).getSeverity());
                                 problemDescriptors.add(manager.createProblemDescriptor(element, ((Diagnostic)highlighter.getErrorStripeTooltip()).getMessage(), true, highlightType, isOnTheFly));
                             }
