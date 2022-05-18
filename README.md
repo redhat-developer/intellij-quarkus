@@ -137,6 +137,11 @@ Wrong property key names or values are reported
 
 ![](images/quarkus-tools14.png)
 
+## Qute templates
+
+The [Qute templating engine](https://quarkus.io/guides/qute-reference) is supported in Java file and templates.
+
+![](images/1.11.0/quarkus-tools1.png)
 
 ## Quarkus project wizards
   * Generate a Quarkus Maven project, based on https://code.quarkus.io/
