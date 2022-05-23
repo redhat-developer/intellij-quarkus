@@ -1,6 +1,7 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
 import com.intellij.lang.Language;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -41,6 +42,8 @@ public class DocumentContentSynchronizer implements DocumentListener {
     private DidChangeTextDocumentParams changeParams;
     private long modificationStamp;
     final @Nonnull CompletableFuture<Void> didOpenFuture;
+
+    Runnable sendAfterCommit;
 
     public DocumentContentSynchronizer(@Nonnull LanguageServerWrapper languageServerWrapper,
                                        @Nonnull Document document,
@@ -83,14 +86,25 @@ public class DocumentContentSynchronizer implements DocumentListener {
         }
 
         if (changeParams != null) {
-            PsiDocumentManager.getInstance(languageServerWrapper.getProject()).performForCommittedDocument(event.getDocument(), () -> {
-                final DidChangeTextDocumentParams changeParamsToSend = changeParams;
-                changeParams = null;
+            if (ApplicationManager.getApplication().isUnitTestMode()) {
+                sendDidChangeEvent();
+            } else {
+                if (sendAfterCommit == null) {
+                    sendAfterCommit = () -> sendDidChangeEvent();
+                    PsiDocumentManager.getInstance(languageServerWrapper.getProject()).performForCommittedDocument(event.getDocument(), sendAfterCommit);
+                }
+            }
+        }
+    }
 
-                changeParamsToSend.getTextDocument().setVersion(++version);
-                languageServerWrapper.getInitializedServer()
-                        .thenAcceptAsync(ls -> ls.getTextDocumentService().didChange(changeParamsToSend));
-            });
+    private void sendDidChangeEvent() {
+        final DidChangeTextDocumentParams changeParamsToSend = changeParams;
+        changeParams = null;
+
+        if (changeParamsToSend != null) {
+            changeParamsToSend.getTextDocument().setVersion(++version);
+            languageServerWrapper.getInitializedServer()
+                    .thenAcceptAsync(ls -> ls.getTextDocumentService().didChange(changeParamsToSend));
         }
     }
 
