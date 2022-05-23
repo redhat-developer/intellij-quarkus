@@ -6,6 +6,7 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
@@ -82,12 +83,14 @@ public class DocumentContentSynchronizer implements DocumentListener {
         }
 
         if (changeParams != null) {
-            final DidChangeTextDocumentParams changeParamsToSend = changeParams;
-            changeParams = null;
+            PsiDocumentManager.getInstance(languageServerWrapper.getProject()).performForCommittedDocument(event.getDocument(), () -> {
+                final DidChangeTextDocumentParams changeParamsToSend = changeParams;
+                changeParams = null;
 
-            changeParamsToSend.getTextDocument().setVersion(++version);
-            languageServerWrapper.getInitializedServer()
-                    .thenAcceptAsync(ls -> ls.getTextDocumentService().didChange(changeParamsToSend));
+                changeParamsToSend.getTextDocument().setVersion(++version);
+                languageServerWrapper.getInitializedServer()
+                        .thenAcceptAsync(ls -> ls.getTextDocumentService().didChange(changeParamsToSend));
+            });
         }
     }
 
