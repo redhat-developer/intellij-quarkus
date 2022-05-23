@@ -11,6 +11,12 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.11.0</b></p>
+    <ul>
+      <li>Add support for Qute templating engine</li>
+      <li>MicroProfile 2.0 support</li>
+      <li>IntelliJ 2022.1 compatibility</li>
+    </ul>
     <p><b>1.10.0</b></p>
     <ul>
       <li>Add Quarkus configuration support to run and debug Quarkus applications</li>
