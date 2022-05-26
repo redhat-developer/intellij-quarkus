@@ -28,6 +28,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JsonRpcHelpers;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
@@ -111,7 +112,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public Location toLocation(PsiElement psiMember) {
-        PsiElement sourceElement = psiMember.getNavigationElement();
+        PsiElement sourceElement = psiMember instanceof PsiNameIdentifierOwner ? ((PsiNameIdentifierOwner) psiMember).getNameIdentifier().getNavigationElement() : psiMember.getNavigationElement();
         if (sourceElement != null) {
             PsiFile file = sourceElement.getContainingFile();
             Location location = new Location();
