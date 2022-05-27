@@ -11,7 +11,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.javadoc;
 
-import org.jsoup.helper.StringUtil;
+import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
