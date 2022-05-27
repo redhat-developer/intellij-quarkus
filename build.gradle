@@ -119,7 +119,7 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.10.8'
     compile 'org.zeroturnaround:zt-zip:1.14'
     compile 'com.kotcrab.remark:remark:1.2.0'
-    compile 'org.jsoup:jsoup:1.15.1'
+    compile 'org.jsoup:jsoup:1.14.2'
     compile("io.quarkus:quarkus-core:$quarkusVersion") {
         transitive = false
     }
