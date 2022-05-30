@@ -129,6 +129,7 @@ public class QuteLanguageClient extends LanguageClientImpl implements QuteLangua
       } catch (IndexNotReadyException e) {
       } catch (Throwable t) {
         future.completeExceptionally(t);
+        done = true;
       }
     }
     if (!done) {
