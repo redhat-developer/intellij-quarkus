@@ -86,8 +86,11 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 	@Override
 	public void visitField(PsiField node) {
 		if (node.getType() instanceof PsiClassType) {
-			if (TEMPLATE_CLASS.equals(((PsiClassType) node.getType()).resolve().getQualifiedName())) {
-				processTemplateLink(node);
+			PsiClass clazz = ((PsiClassType) node.getType()).resolve();
+			if (clazz != null) {
+				if (TEMPLATE_CLASS.equals(clazz.getQualifiedName())) {
+					processTemplateLink(node);
+				}
 			}
 		}
 		super.visitField(node);
