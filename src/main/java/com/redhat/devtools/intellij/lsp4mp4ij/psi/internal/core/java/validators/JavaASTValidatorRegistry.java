@@ -13,9 +13,9 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.validators;
 
-import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidatorExtensionPointBean;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationAttributeRule;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationRule;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationRuleAttributeExtensionPointBean;
@@ -25,6 +25,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotatio
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.RangeExpressionException;
 import org.eclipse.lsp4j.Diagnostic;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -69,7 +70,7 @@ public class JavaASTValidatorRegistry extends AnnotationValidator {
 	private boolean extensionProvidersLoaded;
 	private boolean registryListenerIntialized;
 
-	private final List<JavaASTValidator> validatorsFromClass;
+	private final List<JavaASTValidatorExtensionPointBean> validatorsFromClass;
 
 	private JavaASTValidatorRegistry() {
 		super();
@@ -134,8 +135,13 @@ public class JavaASTValidatorRegistry extends AnnotationValidator {
 	public Collection<JavaASTValidator> getValidators(JavaDiagnosticsContext context, List<Diagnostic> diagnostics) {
 		List<JavaASTValidator> validators = new ArrayList<>();
 		addValidator(new AnnotationRulesJavaASTValidator(getRules()), context, diagnostics, validators);
-		for (JavaASTValidator ce : validatorsFromClass) {
-			addValidator(ce, context, diagnostics, validators);
+		for (JavaASTValidatorExtensionPointBean ce : validatorsFromClass) {
+			try {
+				addValidator(ce.createValidator(), context, diagnostics, validators);
+			} catch (ClassNotFoundException | NoSuchMethodException |
+					 InvocationTargetException | InstantiationException | IllegalAccessException e) {
+				LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
+			}
 		}
 		return validators;
 	}
