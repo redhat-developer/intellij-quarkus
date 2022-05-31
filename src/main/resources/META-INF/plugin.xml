@@ -184,7 +184,7 @@
     <extensionPoint name="javaCompletionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
     <extensionPoint name="javaCodeLensParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant"/>
     <extensionPoint name="configSourceProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider"/>
-    <extensionPoint name="javaASTValidator.validator" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator"/>
+    <extensionPoint name="javaASTValidator.validator" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidatorExtensionPointBean"/>
     <extensionPoint name="javaASTValidator.annotationValidator" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationRuleExtensionPointBean"/>
 
     <!-- Qute -->
