@@ -52,11 +52,11 @@ import java.util.logging.Logger;
  * @author Angelo ZERR
  *
  */
-public class JavaASTValidator extends JavaRecursiveElementVisitor {
+public class JavaASTValidator extends JavaRecursiveElementVisitor implements Cloneable {
 
 	private static final Logger LOGGER = Logger.getLogger(JavaASTValidator.class.getName());
 
-	public static final ExtensionPointName<JavaASTValidator> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaASTValidator.validator");
+	public static final ExtensionPointName<JavaASTValidatorExtensionPointBean> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaASTValidator.validator");
 
 	private List<Diagnostic> diagnostics;
 
