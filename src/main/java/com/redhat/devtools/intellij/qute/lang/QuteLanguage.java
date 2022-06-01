@@ -12,12 +12,20 @@ package com.redhat.devtools.intellij.qute.lang;
 
 import com.intellij.lang.InjectableLanguage;
 import com.intellij.lang.Language;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.templateLanguages.TemplateLanguage;
+import org.jetbrains.annotations.NotNull;
 
 public class QuteLanguage extends Language implements TemplateLanguage, InjectableLanguage {
     public static final QuteLanguage INSTANCE = new QuteLanguage();
 
     private QuteLanguage() {
-        super("Qute");
+        super("Qute_");
+    }
+
+    @Override
+    public @NotNull
+    @NlsSafe String getDisplayName() {
+        return "Qute";
     }
 }
