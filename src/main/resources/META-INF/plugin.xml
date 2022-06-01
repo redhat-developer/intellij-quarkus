@@ -159,14 +159,14 @@
     <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
     <library.type implementation="com.redhat.devtools.intellij.qute.facet.QuteLibraryType"/>
     <framework.type implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkType"/>
-    <fileType name="Qute"
-              language="Qute"
+    <fileType name="Qute_"
+              language="Qute_"
               instance="QUTE"
               extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml"
               implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileType"/>
-    <lang.fileViewProviderFactory language="Qute"
+    <lang.fileViewProviderFactory language="Qute_"
                                   implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileViewProviderFactory"/>
-    <lang.parserDefinition language="Qute" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteParserDefinition"/>
+    <lang.parserDefinition language="Qute_" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteParserDefinition"/>
     <pom.declarationSearcher implementation="com.redhat.devtools.intellij.qute.lang.QuteDeclarationSearcher"/>
     <lang.substitutor language="HTML" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
     <lang.substitutor language="TEXT" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
