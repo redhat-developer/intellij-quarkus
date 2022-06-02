@@ -12,7 +12,7 @@
 
     <!-- Qute LSP -->
     <server id="qute" class="com.redhat.devtools.intellij.qute.lsp.QuteServer" clientImpl="com.redhat.devtools.intellij.qute.lsp.QuteLanguageClient" serverInterface="com.redhat.qute.ls.api.QuteLanguageServerAPI"/>
-    <languageMapping language="Qute" serverId="qute"/>
+    <languageMapping language="Qute_" serverId="qute"/>
     <languageMapping language="JAVA" serverId="qute"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
@@ -28,12 +28,12 @@
     <codeInsight.inlayProvider language="JAVA" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
 
     <!-- Qute -->
-    <lang.documentationProvider id="LSPTextHoverQute" language="Qute" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverQute" language="Qute_" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <lang.documentationProvider id="LSPTextHoverHTML" language="HTML" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <lang.documentationProvider id="LSPTextHoverYAML" language="yaml" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <lang.documentationProvider id="LSPTextHoverJSON" language="JSON" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <lang.documentationProvider id="LSPTextHoverTEXT" language="TEXT" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
-    <codeInsight.inlayProvider language="Qute" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
+    <codeInsight.inlayProvider language="Qute_" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
     <codeInsight.inlayProvider language="HTML" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
     <codeInsight.inlayProvider language="yaml" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
     <codeInsight.inlayProvider language="JSON" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider"/>
