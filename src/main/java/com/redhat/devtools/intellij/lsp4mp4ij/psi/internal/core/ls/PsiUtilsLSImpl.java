@@ -84,11 +84,8 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public Module getModule(VirtualFile file) {
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
-            if (module != null) {
-                return module;
-            }
+        if (file != null) {
+            return ProjectFileIndex.getInstance(project).getModuleForFile(file);
         }
         return null;
     }
