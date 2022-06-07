@@ -22,8 +22,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class QuarkusExtensionsTest {
-    private static final String AMAZON_DYNAMODB_CLIENT_EXPERIMENTAL_LABEL = "Amazon DynamoDB client (Experimental)";
-    private static final String AMAZON_DYNAMODB_CLIENT_PREVIEW_LABEL = "Amazon DynamoDB client (Preview)";
+    private static final String AMAZON_DYNAMODB_CLIENT_EXPERIMENTAL_LABEL = "Amazon DynamoDB client [experimental]";
+    private static final String AMAZON_DYNAMODB_CLIENT_PREVIEW_LABEL = "Amazon DynamoDB client [preview]";
     private static final String AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME = "Amazon DynamoDB client";
     private static final String RESTEASY_JAX_RS_EXTENSION_NAME = "RESTEasy JAX-RS";
 
@@ -103,7 +103,7 @@ public class QuarkusExtensionsTest {
         assertEquals(1, model.getCategories().size());
         assertEquals(1, model.getCategories().get(0).getExtensions().size());
         assertEquals(AMAZON_DYNAMODB_CLIENT_EXTENSION_NAME, model.getCategories().get(0).getExtensions().get(0).getName());
-        assertEquals("Amazon DynamoDB client (Preview,Experimental)", model.getCategories().get(0).getExtensions().get(0).asLabel());
+        assertEquals("Amazon DynamoDB client [preview,experimental]", model.getCategories().get(0).getExtensions().get(0).asLabel());
     }
 
 

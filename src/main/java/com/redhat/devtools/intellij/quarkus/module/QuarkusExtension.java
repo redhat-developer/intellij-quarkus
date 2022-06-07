@@ -182,9 +182,9 @@ public class QuarkusExtension {
             }
             String labels = tags.stream().
                     filter(tag -> !"provides-example".equals(tag)).
-                    map(tag -> Character.toUpperCase(tag.charAt(0)) + tag.substring(1)).collect(Collectors.joining(","));
+                    collect(Collectors.joining(","));
             if (StringUtils.isNotBlank(labels)) {
-                builder.append('(').append(labels).append(')');
+                builder.append('[').append(labels).append(']');
             }
         } else {
             String st = getStatus();
@@ -192,7 +192,7 @@ public class QuarkusExtension {
                 if (withName) {
                     builder.append(' ');
                 }
-                builder.append("(").append(Character.toUpperCase(st.charAt(0))).append(st.substring(1)).append(')');
+                builder.append("[").append(st).append(']');
             }
         }
         return builder.toString();
