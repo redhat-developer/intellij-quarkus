@@ -18,6 +18,8 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Annotation validator registry which hosts rules for attribute value of
@@ -29,6 +31,8 @@ import java.util.Map;
 public class AnnotationValidator {
 
 	public static final ExtensionPointName<AnnotationRuleExtensionPointBean> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaASTValidator.annotationValidator");
+
+	private static final Logger LOGGER = Logger.getLogger(AnnotationValidator.class.getName());
 
 	private final Map<String /* annotation name */, AnnotationRule> rulesByAnnotation;
 
@@ -81,10 +85,15 @@ public class AnnotationValidator {
 	 * @return the error message of the validation result of the attribute value and null otherwise.
 	 */
 	public String validate(String value, AnnotationAttributeRule rule) {
-		if (rule == null) {
+		try {
+			if (rule == null) {
+				return null;
+			}
+			return rule.validate(value);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
 			return null;
 		}
-		return rule.validate(value);
 	}
 
 	/**
