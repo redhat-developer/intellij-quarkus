@@ -3,6 +3,7 @@ package com.redhat.devtools.intellij.quarkus.lsp4ij;
 import com.intellij.lang.Language;
 import com.intellij.lang.LanguageUtil;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -41,7 +42,7 @@ public class LSPIJUtils {
 
     @Nonnull
     public static Language getFileLanguage(@Nonnull VirtualFile file, Project project) {
-        return LanguageUtil.getLanguageForPsi(project, file);
+        return ReadAction.compute(() -> LanguageUtil.getLanguageForPsi(project, file));
     }
 
     private static <T extends TextDocumentPositionParams> T toTextDocumentPositionParamsCommon(T param, int offset, Document document) {
