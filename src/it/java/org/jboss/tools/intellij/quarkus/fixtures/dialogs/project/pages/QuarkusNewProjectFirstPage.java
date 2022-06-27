@@ -15,6 +15,7 @@ import com.intellij.remoterobot.data.RemoteComponent;
 import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.pages.NewProjectFirstPage;
+import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "MyDialog type", xpath = "//div[@class='DialogRootPane']")
+@DefaultXpath(by = "MyDialog type", xpath = XPathDefinitions.DIALOG_ROOT_PANE)
 @FixtureName(name = "New Project Dialog")
 public class QuarkusNewProjectFirstPage extends NewProjectFirstPage {
     public QuarkusNewProjectFirstPage(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
