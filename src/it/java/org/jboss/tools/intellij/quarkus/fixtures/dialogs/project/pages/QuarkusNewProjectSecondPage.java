@@ -16,7 +16,8 @@ import com.intellij.remoterobot.fixtures.ComboBoxFixture;
 import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.DefaultXpath;
 import com.intellij.remoterobot.fixtures.FixtureName;
-import org.jboss.tools.intellij.quarkus.utils.Enums;
+import org.jboss.tools.intellij.quarkus.utils.BuildTool;
+import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -28,7 +29,7 @@ import static com.intellij.remoterobot.search.locators.Locators.byXpath;
  *
  * @author zcervink@redhat.com
  */
-@DefaultXpath(by = "MyDialog type", xpath = "//div[@class='DialogRootPane']")
+@DefaultXpath(by = "MyDialog type", xpath = XPathDefinitions.DIALOG_ROOT_PANE)
 @FixtureName(name = "New Project Dialog")
 public class QuarkusNewProjectSecondPage extends CommonContainerFixture {
     public QuarkusNewProjectSecondPage(@NotNull RemoteRobot remoteRobot, @NotNull RemoteComponent remoteComponent) {
@@ -38,8 +39,8 @@ public class QuarkusNewProjectSecondPage extends CommonContainerFixture {
     /**
      * Set the build tool
      */
-    public void setBuildTool(Enums.BuildTool buildTool) {
-        ComboBoxFixture comboBoxFixture = comboBox(byXpath("//div[@accessiblename='Tool:' and @class='ComboBox']"), Duration.ofSeconds(10));
+    public void setBuildTool(BuildTool buildTool) {
+        ComboBoxFixture comboBoxFixture = comboBox(byXpath(XPathDefinitions.SET_BUILD_TOOL_COMBO_BOX), Duration.ofSeconds(10));
         if (!comboBoxFixture.selectedText().contains(buildTool.toString())) {
             comboBoxFixture.click(); // extra click needed due to an issue - https://github.com/JetBrains/intellij-ui-test-robot/issues/112
             comboBoxFixture.selectItem(buildTool.toString());
