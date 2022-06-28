@@ -197,16 +197,18 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             extensionsTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
                 @Override
                 public void valueChanged(TreeSelectionEvent e) {
-                    Object comp = ((DefaultMutableTreeNode) e.getNewLeadSelectionPath().getLastPathComponent()).getUserObject();
-                    if (comp instanceof QuarkusExtension) {
-                        StringBuilder builder = new StringBuilder("<html><body>" + ((QuarkusExtension) comp).getDescription() + ".");
-                        if (StringUtils.isNotBlank(((QuarkusExtension) comp).getGuide())) {
-                            builder.append(" <a href=\"" + ((QuarkusExtension) comp).getGuide() + "\">Click to open guide</a>");
+                    if (e.getNewLeadSelectionPath() != null) {
+                        Object comp = ((DefaultMutableTreeNode) e.getNewLeadSelectionPath().getLastPathComponent()).getUserObject();
+                        if (comp instanceof QuarkusExtension) {
+                            StringBuilder builder = new StringBuilder("<html><body>" + ((QuarkusExtension) comp).getDescription() + ".");
+                            if (StringUtils.isNotBlank(((QuarkusExtension) comp).getGuide())) {
+                                builder.append(" <a href=\"" + ((QuarkusExtension) comp).getGuide() + "\">Click to open guide</a>");
+                            }
+                            builder.append("</body></html>");
+                            extensionDetailTextPane.setText(builder.toString());
+                        } else {
+                            extensionDetailTextPane.setText("");
                         }
-                        builder.append("</body></html>");
-                        extensionDetailTextPane.setText(builder.toString());
-                    } else {
-                        extensionDetailTextPane.setText("");
                     }
                 }
             });
