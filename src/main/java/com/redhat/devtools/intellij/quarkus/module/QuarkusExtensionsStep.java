@@ -14,6 +14,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckboxTreeListener;
@@ -49,10 +50,13 @@ import javax.swing.text.EditorKit;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -169,8 +173,10 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             filter.addDocumentListener(new DocumentAdapter() {
                 @Override
                 protected void textChanged(@NotNull DocumentEvent e) {
-                    extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter)));
-
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter)));
+                        expandTree(extensionsTree);
+                    });
                 }
             });
             extensionDetailTextPane.addHyperlinkListener(new HyperlinkListener() {
@@ -206,6 +212,18 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             });
         }
         return panel;
+    }
+
+    private void expandTree(JTree tree) {
+            TreeNode root = (TreeNode) tree.getModel().getRoot();
+            TreePath rootPath = new TreePath(root);
+
+                Enumeration<? extends TreeNode> enumeration = root.children();
+                while (enumeration.hasMoreElements()) {
+                    TreeNode treeNode = enumeration.nextElement();
+                    TreePath treePath = rootPath.pathByAddingChild(treeNode);
+                    tree.expandPath(treePath);
+        }
     }
 
     private CheckedTreeNode getModel(List<QuarkusCategory> categories, SearchTextField filter) {
