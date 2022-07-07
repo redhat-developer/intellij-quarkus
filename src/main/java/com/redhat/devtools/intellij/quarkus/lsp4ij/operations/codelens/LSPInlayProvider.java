@@ -57,11 +57,13 @@ import java.awt.Component;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPInlayProvider.class);
@@ -124,6 +126,7 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
                     if (docURI != null) {
                         CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
                         BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
+                        List<Pair<Integer,Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
                         CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(psiElement.getProject())
                                 .getLanguageServers(editor.getDocument(), capabilities -> capabilities.getCodeLensProvider() != null)
                                 .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
@@ -141,9 +144,13 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
                             Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
                             if (pair != null) {
                                 int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), editor.getDocument());
-                                inlayHintsSink.addBlockElement(offset, true, true, 0, toPresentation(editor, offset, pair.getSecond(), getFactory(), pair.getFirst()));
+                                codelenses.add(Pair.create(offset, pair));
                             }
                         }
+                        Map<Integer, List<Pair<Integer,Pair<CodeLens, LanguageServer>>>> elements = codelenses.stream().collect(Collectors.groupingBy(p -> p.first));
+                        elements.forEach((offset,list) -> inlayHintsSink.addBlockElement(offset, true,
+                                true, 0, toPresentation(editor, offset, list, getFactory())));
+                        //inlayHintsSink.addBlockElement(offset, true, true, 0, toPresentation(editor, offset, pair.getSecond(), getFactory(), pair.getFirst()));
                     }
                 } catch (InterruptedException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);
@@ -154,16 +161,20 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
         };
     }
 
-    private InlayPresentation toPresentation(Editor editor, int offset, LanguageServer languageServer, PresentationFactory factory, CodeLens codeLens) {
+    private InlayPresentation toPresentation(Editor editor, int offset,
+                                             List<Pair<Integer, Pair<CodeLens, LanguageServer>>> elements,
+                                             PresentationFactory factory) {
         int line = editor.getDocument().getLineNumber(offset);
         int column = offset - editor.getDocument().getLineStartOffset(line);
         List<InlayPresentation> presentations = new ArrayList<>();
         presentations.add(factory.textSpacePlaceholder(column, true));
-        presentations.add(factory.onClick(factory.text(getCodeLensString(codeLens)), MouseButton.Left, (event,point) -> {
-            executeClientCommand(languageServer, codeLens, (Component) event.getSource(), editor.getProject());
-            return null;
-
-        }));
+        elements.forEach(p -> {
+            presentations.add(factory.onClick(factory.text(getCodeLensString(p.second.first)), MouseButton.Left, (event, point) -> {
+                executeClientCommand(p.second.second, p.second.first, (Component) event.getSource(), editor.getProject());
+                return null;
+            }));
+            presentations.add(factory.textSpacePlaceholder(1, true));
+        });
         return new SequencePresentation(presentations);
     }
 
