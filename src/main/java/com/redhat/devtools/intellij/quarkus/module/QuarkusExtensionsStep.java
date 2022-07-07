@@ -14,20 +14,21 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.BooleanTableCellRenderer;
+import com.intellij.ui.CheckboxTree;
+import com.intellij.ui.CheckboxTreeListener;
+import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.ColoredTableCellRenderer;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.TableUtil;
+import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,116 +39,52 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.JTextPane;
-import javax.swing.ListSelectionModel;
+import javax.swing.JTree;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumn;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.EditorKit;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposable {
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusExtensionsStep.class);
     private static final Icon CODESTARTS_ICON = IconLoader.findIcon("/images/fighter-jet-solid.svg");
 
-    private JBSplitter panel;
+    private JPanel panel;
     private final WizardContext wizardContext;
 
-    private class ExtensionsTable extends JBTable {
-        private class Model extends AbstractTableModel {
-            private List<QuarkusExtension> extensions;
-
-            private Model(List<QuarkusExtension> extensions) {
-                this.extensions = extensions;
-            }
-            @Override
-            public int getRowCount() {
-                return extensions.size();
-            }
-
-            @Override
-            public int getColumnCount() {
-                return 2;
-            }
-
-            @Override
-            public Object getValueAt(int rowIndex, int columnIndex) {
-                QuarkusExtension extension = extensions.get(rowIndex);
-                if (columnIndex == 0) {
-                    return extension.isDefaultExtension() || extension.isSelected();
-                } else {
-                    return extension;
-                }
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                QuarkusExtension extension = extensions.get(rowIndex);
-                return columnIndex == 0 && !extension.isDefaultExtension();
-            }
-
-            @Override
-            public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-                QuarkusExtension extension = extensions.get(rowIndex);
-                extension.setSelected((Boolean) aValue);
-                fireTableCellUpdated(rowIndex, columnIndex);
-            }
-
-            @Override
-            public Class<?> getColumnClass(int columnIndex) {
-                return columnIndex == 0?Boolean.class:String.class;
-            }
-
-            public void setExtensions(List<QuarkusExtension> extensions) {
-                this.extensions = extensions;
-                fireTableDataChanged();
-            }
-
-            public QuarkusExtension getElementAt(int index) {
-                return extensions.get(index);
+    private class ExtensionsTreeCellRenderer extends CheckboxTree.CheckboxTreeCellRenderer {
+        @Override
+        public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+            Object userObject = ((DefaultMutableTreeNode) value).getUserObject();
+            if (userObject instanceof QuarkusCategory) {
+                getTextRenderer().append(((QuarkusCategory) userObject).getName());
+            } else if (userObject instanceof QuarkusExtension)  {
+                getTextRenderer().append(((QuarkusExtension) userObject).asLabel());
             }
         }
+    }
 
-        private ExtensionsTable() {
-            setShowGrid(false);
-            setShowVerticalLines(false);
-            this.setCellSelectionEnabled(false);
-            this.setRowSelectionAllowed(true);
-            this.setSelectionMode(0);
-            this.setTableHeader(null);
-            setModel(new Model(new ArrayList<>()));
-            TableColumn selectedColumn = columnModel.getColumn(0);
-            TableUtil.setupCheckboxColumn(this, 0);
-            selectedColumn.setCellRenderer(new BooleanTableCellRenderer());
-            TableColumn extensionColumn = columnModel.getColumn(1);
-            extensionColumn.setCellRenderer(new ColoredTableCellRenderer() {
+    private class ExtensionsTree extends CheckboxTree {
 
-                @Override
-                protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean b, boolean b1, int i, int i1) {
-                    QuarkusExtension extension = (QuarkusExtension) value;
-                    append(extension.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, null));
-                    append(" ");
-                    append(extension.asLabel(false), new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
-                    if (extension.isProvidesExampleCode()) {
-                        setIcon(CODESTARTS_ICON);
-                        setIconOnTheRight(true);
-                    }
-                }
-            });
-        }
-
-        public void setExtensions(List<QuarkusExtension> extensions) {
-            ((Model)getModel()).setExtensions(extensions);
+        public ExtensionsTree(CheckedTreeNode root) {
+            super(new ExtensionsTreeCellRenderer(), root);
         }
     }
 
@@ -183,44 +120,38 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
     @Override
     public JComponent getComponent() {
         if (panel == null && wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY) != null) {
-            panel = new JBSplitter(false, 0.8f);
+            panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            JLabel label1 = new JLabel("Filter extensions");
+            label1.setAlignmentX(Component.LEFT_ALIGNMENT);
+            panel.add(label1);
+            SearchTextField filter = new SearchTextField() {
+                @Override
+                public Dimension getMaximumSize() {
+                    Dimension size = super.getPreferredSize();
+                    size.height = JBUI.scale(30);
+                    return size;
+                }
+            };
+            filter.setAlignmentX(Component.LEFT_ALIGNMENT);
+            panel.add(filter);
+
+            JBSplitter extensionsPanel = new JBSplitter(false, 0.8f);
+            extensionsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
             //categories component
             List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY).getCategories();
-            JBList<QuarkusCategory> categoriesList = new JBList<>(categories);
-            categoriesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            ColoredListCellRenderer<QuarkusCategory> categoryRender = new ColoredListCellRenderer<QuarkusCategory>() {
-                @Override
-                protected void customizeCellRenderer(@NotNull JList<? extends QuarkusCategory> list, QuarkusCategory category, int index, boolean selected, boolean hasFocus) {
-                    append(category.getName());
-                }
-            };
-            categoriesList.setCellRenderer(categoryRender);
-            JBSplitter leftPanel = new JBSplitter(false, 0.5f);
-            leftPanel.setFirstComponent(new JBScrollPane(categoriesList));
 
             //extensions component
-            ExtensionsTable extensionsTable = new ExtensionsTable();
+            CheckedTreeNode root = getModel(categories, filter);
+            CheckboxTree extensionsTree = new ExtensionsTree(root);
             JTextPane extensionDetailTextPane = new JTextPane();
             extensionDetailTextPane.setEditorKit(getHtmlEditorKit());
-            extensionDetailTextPane.addHyperlinkListener(new HyperlinkListener() {
-                @Override
-                public void hyperlinkUpdate(HyperlinkEvent e) {
-                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                        BrowserUtil.browse(e.getURL());
-                    }
-                }
-            });
             extensionDetailTextPane.setEditable(false);
             JBSplitter extensionsSplitter = new JBSplitter(true, 0.8f);
-            extensionsSplitter.setFirstComponent(new JBScrollPane(extensionsTable));
+            extensionsSplitter.setFirstComponent(new JBScrollPane(extensionsTree));
             extensionsSplitter.setSecondComponent(extensionDetailTextPane);
-            leftPanel.setSecondComponent(extensionsSplitter);
-            categoriesList.addListSelectionListener(e -> extensionsTable.setExtensions(categoriesList.getSelectedValue().getExtensions()));
-            if (!categories.isEmpty()) {
-                categoriesList.setSelectedIndex(0);
-            }
-            panel.setFirstComponent(leftPanel);
+            extensionsPanel.setFirstComponent(extensionsSplitter);
             JBList<QuarkusExtension> selectedExtensions = new JBList<>();
             selectedExtensions.setModel(new SelectedExtensionsModel(categories));
             ColoredListCellRenderer<QuarkusExtension> selectedExtensionRenderer = new ColoredListCellRenderer<QuarkusExtension>() {
@@ -236,34 +167,84 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             label.setFont(label.getFont().deriveFont(label.getFont().getStyle() | Font.BOLD));
             selectedExtensionsPanel.add(label);
             selectedExtensionsPanel.add(selectedExtensions);
-            panel.setSecondComponent(new JBScrollPane(selectedExtensionsPanel));
-            extensionsTable.getModel().addTableModelListener(new TableModelListener() {
+            extensionsPanel.setSecondComponent(new JBScrollPane(selectedExtensionsPanel));
+            panel.add(extensionsPanel);
+
+            filter.addDocumentListener(new DocumentAdapter() {
                 @Override
-                public void tableChanged(TableModelEvent e) {
-                    if (e.getType() == TableModelEvent.UPDATE) {
-                        selectedExtensions.setModel(new SelectedExtensionsModel(categories));
+                protected void textChanged(@NotNull DocumentEvent e) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter)));
+                        expandTree(extensionsTree);
+                    });
+                }
+            });
+            extensionDetailTextPane.addHyperlinkListener(new HyperlinkListener() {
+                @Override
+                public void hyperlinkUpdate(HyperlinkEvent e) {
+                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                        BrowserUtil.browse(e.getURL());
                     }
                 }
             });
-            extensionsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            extensionsTree.addCheckboxTreeListener(new CheckboxTreeListener() {
                 @Override
-                public void valueChanged(ListSelectionEvent e) {
-                    int index = extensionsTable.getSelectedRow();
-                    if (index >=0) {
-                        QuarkusExtension extension = ((ExtensionsTable.Model)extensionsTable.getModel()).getElementAt(index);
-                        StringBuilder builder = new StringBuilder("<html><body>" + extension.getDescription() + ".");
-                        if (StringUtils.isNotBlank(extension.getGuide())) {
-                            builder.append(" <a href=\"" + extension.getGuide() + "\">Click to open guide</a>");
+                public void nodeStateChanged(@NotNull CheckedTreeNode node) {
+                    ((QuarkusExtension) node.getUserObject()).setSelected(node.isChecked());
+                    selectedExtensions.setModel(new SelectedExtensionsModel(categories));
+                }
+            });
+            extensionsTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+                @Override
+                public void valueChanged(TreeSelectionEvent e) {
+                    if (e.getNewLeadSelectionPath() != null) {
+                        Object comp = ((DefaultMutableTreeNode) e.getNewLeadSelectionPath().getLastPathComponent()).getUserObject();
+                        if (comp instanceof QuarkusExtension) {
+                            StringBuilder builder = new StringBuilder("<html><body>" + ((QuarkusExtension) comp).getDescription() + ".");
+                            if (StringUtils.isNotBlank(((QuarkusExtension) comp).getGuide())) {
+                                builder.append(" <a href=\"" + ((QuarkusExtension) comp).getGuide() + "\">Click to open guide</a>");
+                            }
+                            builder.append("</body></html>");
+                            extensionDetailTextPane.setText(builder.toString());
+                        } else {
+                            extensionDetailTextPane.setText("");
                         }
-                        builder.append("</body></html>");
-                        extensionDetailTextPane.setText(builder.toString());
-                    } else {
-                        extensionDetailTextPane.setText("");
                     }
                 }
             });
         }
         return panel;
+    }
+
+    private void expandTree(JTree tree) {
+            TreeNode root = (TreeNode) tree.getModel().getRoot();
+            TreePath rootPath = new TreePath(root);
+
+                Enumeration<? extends TreeNode> enumeration = root.children();
+                while (enumeration.hasMoreElements()) {
+                    TreeNode treeNode = enumeration.nextElement();
+                    TreePath treePath = rootPath.pathByAddingChild(treeNode);
+                    tree.expandPath(treePath);
+        }
+    }
+
+    private CheckedTreeNode getModel(List<QuarkusCategory> categories, SearchTextField filter) {
+        Pattern pattern = Pattern.compile(".*" + filter.getText() + ".*", Pattern.CASE_INSENSITIVE);
+        CheckedTreeNode root = new CheckedTreeNode();
+        for(QuarkusCategory category : categories) {
+            DefaultMutableTreeNode categoryNode = new DefaultMutableTreeNode(category);
+            for(QuarkusExtension extension : category.getExtensions()) {
+                if (pattern.matcher(extension.getName()).matches()) {
+                    CheckedTreeNode extensionNode = new CheckedTreeNode(extension);
+                    extensionNode.setChecked(extension.isSelected());
+                    categoryNode.add(extensionNode);
+                }
+            }
+            if (categoryNode.getChildCount() > 0) {
+                root.add(categoryNode);
+            }
+        }
+        return root;
     }
 
     /**

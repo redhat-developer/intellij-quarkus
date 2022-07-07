@@ -98,6 +98,12 @@ public class BasicTest extends AbstractQuarkusTest {
         quarkusNewProjectSecondPage.setBuildTool(buildTool);
         newProjectDialogWizard.next();
         newProjectDialogWizard.next();
+        try {
+            Thread.sleep(1000L);
+        } catch (InterruptedException e) {
+            Thread.interrupted();
+            throw new RuntimeException(e);
+        }
 
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
