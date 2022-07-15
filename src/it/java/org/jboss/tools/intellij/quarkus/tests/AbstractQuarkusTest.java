@@ -12,9 +12,13 @@ package org.jboss.tools.intellij.quarkus.tests;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
+import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
+import com.redhat.devtools.intellij.commonuitest.utils.runner.IntelliJVersion;
 import com.redhat.devtools.intellij.commonuitest.utils.testextension.ScreenshotAfterTestFailExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.time.Duration;
 
 /**
  * Abstract test class
@@ -29,9 +33,13 @@ abstract public class AbstractQuarkusTest {
     @BeforeAll
     protected static void startIntelliJ() {
         if (!intelliJHasStarted) {
-            remoteRobot = UITestRunner.runIde(UITestRunner.IdeaVersion.COMMUNITY_V_2020_3, 8580);
+            remoteRobot = UITestRunner.runIde(IntelliJVersion.COMMUNITY_V_2022_1, 8580);
             intelliJHasStarted = true;
             Runtime.getRuntime().addShutdownHook(new CloseIntelliJBeforeQuit());
+
+            FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
+            flatWelcomeFrame.disableNotifications();
+            flatWelcomeFrame.preventTipDialogFromOpening();
         }
     }
 
