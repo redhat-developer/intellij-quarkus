@@ -12,6 +12,8 @@ package com.redhat.devtools.intellij.quarkus.run;
 
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -25,7 +27,10 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
@@ -34,6 +39,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
@@ -50,6 +56,8 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
+
+import static com.intellij.execution.runners.ExecutionUtil.createEnvironment;
 
 public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigurationModule, QuarkusRunConfigurationOptions> {
     private final static Logger LOGGER = LoggerFactory.getLogger(QuarkusRunConfiguration.class);
@@ -129,7 +137,8 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
             RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(getModule(), this);
             if (settings != null) {
                 long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
-                ExecutionUtil.runConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId);
+                doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId, null,
+                        desc -> desc.getComponent().putClientProperty(QuarkusConstants.QUARKUS_RUN_CONTEXT_KEY, new QuarkusRunContext(getModule())));
             }
         } else {
             telemetry.property("tool", "not found");
@@ -201,4 +210,31 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     public int getPort() {
         return port;
     }
+
+    private static void doRunConfiguration(@NotNull RunnerAndConfigurationSettings configuration,
+                                          @NotNull Executor executor,
+                                          @Nullable ExecutionTarget targetOrNullForDefault,
+                                          @Nullable Long executionId,
+                                          @Nullable DataContext dataContext,
+                                           ProgramRunner.Callback callback) {
+        ExecutionEnvironmentBuilder builder = createEnvironment(executor, configuration);
+        if (builder == null) {
+            return;
+        }
+
+        if (targetOrNullForDefault != null) {
+            builder.target(targetOrNullForDefault);
+        }
+        else {
+            builder.activeTarget();
+        }
+        if (executionId != null) {
+            builder.executionId(executionId);
+        }
+        if (dataContext != null) {
+            builder.dataContext(dataContext);
+        }
+        ExecutionManager.getInstance(configuration.getConfiguration().getProject()).restartRunProfile(builder.build(callback));
+    }
+
 }
