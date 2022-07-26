@@ -229,7 +229,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 	}
 
 	@Test
-	public void retryClientForValidation() throws Exception {
+	public void testRetryClientForValidation() throws Exception {
 		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
@@ -282,11 +282,23 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
 
-		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3, d4, d5, d6, d7, d8);
+		Diagnostic d9 = d(103, 19, 25,
+				"The effective delay may exceed the `maxDuration` member value.",
+				DiagnosticSeverity.Warning,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileFaultToleranceErrorCode.DELAY_EXCEEDS_MAX_DURATION);
+
+		Diagnostic d10 = d(108, 19, 23,
+				"The value `-12` must be greater than or equal to `0`.",
+				DiagnosticSeverity.Error,
+				MicroProfileFaultToleranceConstants.DIAGNOSTIC_SOURCE, null);
+
+
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3, d4, d10, d5, d6, d7, d8, d9);
 	}
 
 	@Test
-	public void retryClientForValidationClass() throws Exception {
+	public void testRetryClientForValidationClass() throws Exception {
 		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 

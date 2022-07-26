@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
@@ -208,10 +209,9 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 			PsiAnnotationMemberValue jitterUnitExpr = getAnnotationMemberValueExpression(annotation,
 					JITTER_DELAY_UNIT_RETRY_ANNOTATION_MEMBER);
 
-			Object delayConstant = delayExpr instanceof PsiLiteral ? ((PsiLiteral) delayExpr).getValue() : null;
-			Object maxDurationConstant = maxDurationExpr instanceof PsiLiteral ? ((PsiLiteral) maxDurationExpr).getValue()
-					: null;
-			Object jitterConstant = jitterExpr instanceof PsiLiteral ? ((PsiLiteral) jitterExpr).getValue() : null;
+			Object delayConstant = JavaPsiFacade.getInstance(getContext().getJavaProject().getProject()).getConstantEvaluationHelper().computeConstantExpression(delayExpr);
+			Object maxDurationConstant = JavaPsiFacade.getInstance(getContext().getJavaProject().getProject()).getConstantEvaluationHelper().computeConstantExpression(maxDurationExpr);
+			Object jitterConstant = JavaPsiFacade.getInstance(getContext().getJavaProject().getProject()).getConstantEvaluationHelper().computeConstantExpression(jitterExpr);
 
 
 			long delayNum = delayConstant instanceof Integer ? (long) (int) delayConstant

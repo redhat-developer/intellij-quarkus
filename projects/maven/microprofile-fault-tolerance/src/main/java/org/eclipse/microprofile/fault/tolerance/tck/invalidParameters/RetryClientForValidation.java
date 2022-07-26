@@ -100,4 +100,14 @@ public class RetryClientForValidation {
     public Connection invalidI() {
         return null;
     }
+
+    @Retry(delay = 5*1000, maxDuration = +1000)
+    public Connection invalidJ() {
+        return null;
+    }
+
+    @Retry(delay = -2*6, maxDuration = 1000)
+    public Connection invalidK() {
+        return null;
+    }
 }
