@@ -18,9 +18,7 @@ import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.PropertiesHoverParticipant;
 import com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants;
 
-import java.util.function.Function;
-
-import static com.redhat.devtools.intellij.lsp4mp4ij.commons.PropertyReplacerStrategy.EXPRESSION_REPLACER;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.PropertyReplacerStrategy.EXPRESSION_REPLACER;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS;
 
 public class QuarkusScheduledHoverParticipant extends PropertiesHoverParticipant {

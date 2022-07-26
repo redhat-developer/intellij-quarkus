@@ -20,7 +20,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiMethod;
-import com.redhat.devtools.intellij.lsp4mp4ij.commons.PropertyReplacerStrategy;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.PropertyReplacerStrategy;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationMemberInfo;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;

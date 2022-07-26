@@ -15,7 +15,7 @@ package com.redhat.microprofile.psi.internal.quarkus.scheduler.java;
 
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.PropertiesDefinitionParticipant;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.commons.PropertyReplacerStrategy.EXPRESSION_REPLACER;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.PropertyReplacerStrategy.EXPRESSION_REPLACER;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.SCHEDULED_ANNOTATION;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.SCHEDULED_SUPPORTED_PARTICIPANT_MEMBERS;
 

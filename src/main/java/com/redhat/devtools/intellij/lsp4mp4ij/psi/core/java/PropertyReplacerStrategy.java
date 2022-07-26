@@ -11,7 +11,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.commons;
+package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java;
 
 import java.util.function.Function;
 

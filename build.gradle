@@ -138,13 +138,13 @@ dependencies {
     compile("io.quarkus:quarkus-arc:$quarkusVersion") {
         transitive = false
     }
-    compile 'org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.4.0'
+    compile 'org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.5.0'
     compile 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.12.0'
     //required by lsp4j as the version from IJ is incompatible
     compile 'com.google.code.gson:gson:2.8.9'
     compile 'com.vladsch.flexmark:flexmark:0.50.50'
     testCompile 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.1.0'
-    lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.4.0:uber') {
+    lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.5.0:uber') {
         transitive = false
     }
     lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.11.1') {
