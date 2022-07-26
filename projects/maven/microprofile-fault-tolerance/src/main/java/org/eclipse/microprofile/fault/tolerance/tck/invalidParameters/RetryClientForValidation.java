@@ -85,4 +85,19 @@ public class RetryClientForValidation {
     public Connection validE() {
         return null;
     }
+    
+    @Retry(delay = 1000, maxDuration = 1000, jitter = "invalidType")
+    public Connection invalidG() {
+        return null;
+    }
+    
+    @Retry(delay = 1000, maxDuration = "invalidType")
+    public Connection invalidH() {
+        return null;
+    }
+    
+    @Retry(delay = 50000000000L, maxDuration = 1000, jitter = "invalidType")
+    public Connection invalidI() {
+        return null;
+    }
 }
