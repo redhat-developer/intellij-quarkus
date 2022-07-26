@@ -135,8 +135,9 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
 											  PsiField parent) {
 		if (defaultValueExpr instanceof PsiLiteral && ((PsiLiteral) defaultValueExpr).getValue() instanceof String && parent != null) {
 			String defValue = (String) ((PsiLiteral) defaultValueExpr).getValue();
+			Module javaProject = getContext().getJavaProject();
 			PsiType fieldBinding = parent.getType();
-			if (fieldBinding != null && !isAssignable(fieldBinding, defValue)) {
+			if (fieldBinding != null && !isAssignable(fieldBinding, javaProject, defValue)) {
 				String message = MessageFormat.format(EXPECTED_TYPE_ERROR_MESSAGE, defValue, fieldBinding.getPresentableText());
 				super.addDiagnostic(message, MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE, defaultValueExpr,
 						MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE, DiagnosticSeverity.Error);
@@ -186,11 +187,11 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
 		return false;
 	}
 
-	private boolean isAssignable(PsiType fieldBinding, String defValue) {
+	private boolean isAssignable(PsiType fieldBinding, Module javaProject, String defValue) {
 		String fqn = fieldBinding.getCanonicalText();
 		try {
 			if (fqn.startsWith("java.lang.Class")) {
-				return Class.forName(defValue) != null;
+				return PsiTypeUtils.findType(javaProject, defValue) != null;
 			} else {
 				switch (fqn) {
 					case "boolean":
@@ -218,14 +219,14 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
 					case "java.lang.Character":
 						return Character.valueOf(defValue.charAt(0)) != null;
 					case "java.lang.Class":
-						return  Class.forName(defValue) != null;
+						return  PsiTypeUtils.findType(javaProject, defValue) != null;
 					case "java.lang.String":
 						return true;
 					default:
 						return false;
 				}
 			}
-		} catch (NumberFormatException | ClassNotFoundException e) {
+		} catch (NumberFormatException e) {
 			return false;
 		}
 	}
