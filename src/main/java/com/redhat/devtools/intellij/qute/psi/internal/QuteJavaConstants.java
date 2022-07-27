@@ -51,6 +51,10 @@ public class QuteJavaConstants {
 
 	public static final String TEMPLATE_DATA_ANNOTATION_NAMESPACE = "namespace";
 
+	// @TemplateEnum
+
+	public static final String TEMPLATE_ENUM_ANNOTATION = "io.quarkus.qute.TemplateEnum";
+
 	// @io.quarkus.runtime.annotations.RegisterForReflection
 
 	public static final String REGISTER_FOR_REFLECTION_ANNOTATION = "io.quarkus.runtime.annotations.RegisterForReflection";

@@ -59,6 +59,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		testValueResolversFromTemplateExtension(resolvers);
 		testValueResolversFromInject(resolvers);
 		testValueResolversFromTemplateData(resolvers);
+		testValueResolversFromTemplateEnum(resolvers);
 	}
 
 	private static void testTemplates(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -297,6 +298,18 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// public static String staticMethod(String state) {
 		assertValueResolver("FOO", "staticMethod(state : java.lang.String) : java.lang.String",
 				"org.acme.qute.Statuses", resolvers);
+	}
+
+	private static void testValueResolversFromTemplateEnum(List<ValueResolverInfo> resolvers) {
+
+		// @TemplateEnum
+		// public enum StatusesEnum {
+
+		// ON,
+		assertValueResolver("StatusesEnum", "ON : org.acme.qute.StatusesEnum", "org.acme.qute.StatusesEnum", resolvers);
+		// OFF
+		assertValueResolver("StatusesEnum", "OFF : org.acme.qute.StatusesEnum", "org.acme.qute.StatusesEnum",
+				resolvers);
 	}
 
 	private static void assertValueResolver(String namespace, String signature, String sourceType,
