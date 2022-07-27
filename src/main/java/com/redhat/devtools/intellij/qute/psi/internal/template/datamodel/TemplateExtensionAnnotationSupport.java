@@ -31,6 +31,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
@@ -114,7 +115,7 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 	private static boolean isTemplateExtensionMethod(PsiMethod method) {
 		try {
 			return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
-					&& !"void".equals(method.getReturnType().getCanonicalText());
+					&& PsiTypeUtils.isVoidReturnType(method);
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.SEVERE, "Error while getting method information of '" + method.getName() + "'.", e);
 			return false;

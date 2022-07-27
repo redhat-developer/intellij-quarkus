@@ -60,6 +60,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		testValueResolversFromInject(resolvers);
 		testValueResolversFromTemplateData(resolvers);
 		testValueResolversFromTemplateEnum(resolvers);
+		testValueResolversFromTemplateGlobal(resolvers);
 	}
 
 	private static void testTemplates(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -312,13 +313,42 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 				resolvers);
 	}
 
+	private static void testValueResolversFromTemplateGlobal(List<ValueResolverInfo> resolvers) {
+
+		// @TemplateGlobal
+		// public class Globals {
+
+		// static int age = 40;
+		assertValueResolver(null, "age : int", "org.acme.qute.Globals", null, true, resolvers);
+
+		// static String name;
+		assertValueResolver(null, "name : java.lang.String", "org.acme.qute.Globals", null, true, resolvers);
+
+		// static Color[] myColors() {
+		// return new Color[] { Color.RED, Color.BLUE };
+		// }
+		assertValueResolver(null, "myColors() : org.acme.qute.Color[]", "org.acme.qute.Globals", null, true, resolvers);
+
+		// @TemplateGlobal(name = "currentUser")
+		// static String user() {
+		// return "Mia";
+		// }
+		assertValueResolver(null, "user() : java.lang.String", "org.acme.qute.Globals", "currentUser", true, resolvers);
+		// }
+	}
+
 	private static void assertValueResolver(String namespace, String signature, String sourceType,
 			List<ValueResolverInfo> resolvers) {
 		assertValueResolver(namespace, signature, sourceType, null, resolvers);
 	}
 
 	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-			List<ValueResolverInfo> resolvers) {
+											List<ValueResolverInfo> resolvers) {
+		assertValueResolver(namespace, signature, sourceType, named, false, resolvers);
+	}
+
+	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
+			boolean globalVariable, List<ValueResolverInfo> resolvers) {
 		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
 				.findFirst();
 		Assert.assertFalse("Find '" + signature + "' value resolver.", result.isEmpty());
@@ -326,6 +356,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		Assert.assertEquals(namespace, resolver.getNamespace());
 		Assert.assertEquals(signature, resolver.getSignature());
 		Assert.assertEquals(sourceType, resolver.getSourceType());
+		Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
 	}
 
 	private static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,

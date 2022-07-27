@@ -24,6 +24,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import org.apache.commons.lang3.StringUtils;
 
@@ -122,7 +123,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 	private void collectResolversForTemplateData(PsiMember member, String namespace, List<ValueResolverInfo> resolvers,
 												 ITypeResolver typeResolver, ProgressIndicator monitor) {
 		try {
-			if (member.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC) && member.getModifierList().hasExplicitModifier(PsiModifier.STATIC)) {
+			if (PsiTypeUtils.isPublicMember(member) && PsiTypeUtils.isStaticMember(member)) {
 				// The field or method is public and static
 				String sourceType = member.getContainingClass().getQualifiedName();
 				ValueResolverInfo resolver = new ValueResolverInfo();
