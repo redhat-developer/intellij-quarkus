@@ -147,11 +147,11 @@ dependencies {
     lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.5.0:uber') {
         transitive = false
     }
-    lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.11.1') {
+    lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.12.1') {
         transitive = false
     }
-    compile 'com.redhat.microprofile:com.redhat.qute.ls:0.12.0-SNAPSHOT'
-    lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.11.1:uber') {
+    compile 'com.redhat.microprofile:com.redhat.qute.ls:0.12.1'
+    lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.12.1:uber') {
         transitive = false
     }
     compile files(new File(buildDir, 'server')) {
@@ -168,7 +168,7 @@ task copyDeps(type: Copy) {
 }
 
 task downloadQuteProjectsZipFile(type: Download) {
-    src 'https://download.jboss.org/jbosstools/vscode/stable/builds/qute-jdt/2022-03-25_16-18-49-B95/all/repo/com.redhat.qute.jdt.test-0.11.1-SNAPSHOT-projects.zip'
+    src 'https://download.jboss.org/jbosstools/vscode/stable/builds/qute-jdt/2022-07-25_16-50-21-B140/all/repo/com.redhat.qute.jdt.test-0.12.1-projects.zip'
     dest new File(buildDir, 'com.redhat.qute.jdt.test-projects.zip')
 }
 
@@ -178,7 +178,7 @@ task downloadAndUnzipQuteProjects(dependsOn: downloadQuteProjectsZipFile, type: 
 }
 
 task downloadQuarkusProjectsZipFile(type: Download) {
-    src 'https://download.jboss.org/jbosstools/vscode/stable/builds/quarkus-jdt/2022-03-25_16-18-49-B95/all/repo/com.redhat.microprofile.jdt.quarkus.test-0.11.1-SNAPSHOT-projects.zip'
+    src 'https://download.jboss.org/jbosstools/vscode/stable/builds/quarkus-jdt/2022-07-25_16-50-21-B140/all/repo/com.redhat.microprofile.jdt.quarkus.test-0.12.1-projects.zip'
     dest new File(buildDir, 'com.redhat.microprofile.jdt.quarkus.test-projects')
 }
 

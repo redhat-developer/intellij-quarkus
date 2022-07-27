@@ -45,6 +45,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.template.JavaTypesSearch;
 import com.redhat.devtools.intellij.qute.psi.internal.template.QuarkusIntegrationForQute;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.QuteReflectionAnnotationUtils;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.InvalidMethodReason;
@@ -407,6 +408,7 @@ public class QuteSupportForTemplate {
 			resolvedType.setMethods(methodsInfo);
 			resolvedType.setInvalidMethods(invalidMethods);
 			resolvedType.setExtendedTypes(extendedTypes);
+			QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type);
 			return resolvedType;
 		}
 		return null;
