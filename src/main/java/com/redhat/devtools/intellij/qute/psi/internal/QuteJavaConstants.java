@@ -51,6 +51,12 @@ public class QuteJavaConstants {
 
 	public static final String TEMPLATE_DATA_ANNOTATION_NAMESPACE = "namespace";
 
+	public static final String TEMPLATE_DATA_ANNOTATION_TARGET = "target";
+
+	public static final String TEMPLATE_DATA_ANNOTATION_IGNORE = "ignore";
+
+	public static final String TEMPLATE_DATA_ANNOTATION_PROPERTIES = "properties";
+
 	// @TemplateEnum
 
 	public static final String TEMPLATE_ENUM_ANNOTATION = "io.quarkus.qute.TemplateEnum";
@@ -68,4 +74,6 @@ public class QuteJavaConstants {
 	public static final String REGISTER_FOR_REFLECTION_ANNOTATION_FIELDS = "fields";
 
 	public static final String REGISTER_FOR_REFLECTION_ANNOTATION_METHODS = "methods";
+
+	public static final String REGISTER_FOR_REFLECTION_ANNOTATION_TARGETS = "targets";
 }

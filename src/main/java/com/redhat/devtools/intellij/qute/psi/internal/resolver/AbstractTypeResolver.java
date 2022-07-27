@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.resolver;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
@@ -100,6 +102,11 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 					e);
 		}
 		return signature.toString();
+	}
+
+	@Override
+	public String resolveTypeSignature(String typeSignature, Module javaProject) {
+		return PsiTypeUtils.getFullQualifiedName(typeSignature, javaProject, new EmptyProgressIndicator());
 	}
 
 	protected abstract String resolveSimpleType(String name);

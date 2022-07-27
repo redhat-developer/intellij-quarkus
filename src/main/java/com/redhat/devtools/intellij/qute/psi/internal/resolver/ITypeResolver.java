@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.resolver;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiVariable;
@@ -22,6 +23,27 @@ import com.intellij.psi.PsiVariable;
  *
  */
 public interface ITypeResolver {
+
+	/**
+	 * Returns the resolved Java type signature from the given String <code>typeSignature</code>.
+	 *
+	 * Example:
+	 *
+	 * <code>
+	 * String
+	 * </code>
+	 *
+	 * will returns:
+	 *
+	 * <code>
+	 * java.lang.String
+	 * </code>
+	 *
+	 * @param typeSignature the Java type signature.
+	 *
+	 * @return the resolved  Java type signature from the given String <code>typeSignature</code>.
+	 */
+	String resolveTypeSignature(String typeSignature, Module javaProject);
 
 	/**
 	 * Returns the Java field signature from the given JDT <code>field</code>.
