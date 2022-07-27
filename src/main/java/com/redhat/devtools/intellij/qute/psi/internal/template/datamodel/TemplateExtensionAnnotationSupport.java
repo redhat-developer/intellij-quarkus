@@ -115,7 +115,7 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 	private static boolean isTemplateExtensionMethod(PsiMethod method) {
 		try {
 			return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
-					&& PsiTypeUtils.isVoidReturnType(method);
+					&& !PsiTypeUtils.isVoidReturnType(method);
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.SEVERE, "Error while getting method information of '" + method.getName() + "'.", e);
 			return false;

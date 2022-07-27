@@ -170,8 +170,10 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		// Methods
 		Assert.assertNotNull(result.getMethods());
-		Assert.assertEquals(1, result.getMethods().size());
+		Assert.assertEquals(2, result.getMethods().size());
 		Assert.assertEquals("getDerivedItems() : org.acme.qute.Item[]", result.getMethods().get(0).getSignature());
+		Assert.assertEquals("varArgsMethod(index : int, elements : java.lang.String...) : java.lang.String",
+				result.getMethods().get(1).getSignature());
 
 		// Invalid methods(static method)
 		JavaMethodInfo discountedPriceMethod = findMethod(result, "staticMethod");

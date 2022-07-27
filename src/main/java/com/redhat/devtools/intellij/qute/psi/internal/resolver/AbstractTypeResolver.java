@@ -73,14 +73,18 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		signature.append('(');
 		try {
 			PsiParameter[] parameters = method.getParameterList().getParameters();
-			for (int i = 0; i < parameters.length; i++) {
-				if (i > 0) {
-					signature.append(", ");
+			if (parameters.length > 0) {
+				boolean varargs = method.isVarArgs();
+				for (int i = 0; i < parameters.length; i++) {
+					if (i > 0) {
+						signature.append(", ");
+					}
+					PsiParameter parameter = parameters[i];
+					signature.append(parameter.getName());
+					signature.append(" : ");
+					signature.append(PsiTypeUtils.resolveSignature(parameter, method.getContainingClass(),
+							varargs && i == parameters.length - 1));
 				}
-				PsiParameter parameter = parameters[i];
-				signature.append(parameter.getName());
-				signature.append(" : ");
-				signature.append(PsiTypeUtils.resolveSignature(parameter, method.getContainingClass()));
 			}
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.SEVERE,

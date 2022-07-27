@@ -215,10 +215,10 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 
 		// from io.quarkus.qute.runtime.extensions.StringTemplateExtensions
 		assertValueResolver(null,
-				"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object[]) : java.lang.String",
+				"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object...) : java.lang.String",
 				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
 		assertValueResolver("str",
-				"fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object[]) : java.lang.String",
+				"fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object...) : java.lang.String",
 				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.TimeTemplateExtensions

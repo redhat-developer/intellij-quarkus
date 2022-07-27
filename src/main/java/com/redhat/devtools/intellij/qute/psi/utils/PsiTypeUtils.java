@@ -149,17 +149,21 @@ public class PsiTypeUtils {
 		return method.getName() + method.getSignature(PsiSubstitutor.EMPTY);
 	}
 
-	private static String resolveSignature(PsiType type) {
+	private static String resolveSignature(PsiType type, boolean varargs) {
 		if (type instanceof PsiArrayType) {
-			return resolveSignature(((PsiArrayType) type).getComponentType()) + "[]";
+			return resolveSignature(((PsiArrayType) type).getComponentType(), false) + (varargs?"...":"[]");
 		}
 		return type.getCanonicalText(true);
 		//return ClassUtil.getBinaryPresentation(methodParameter.getType());
 
 	}
 
+	public static String resolveSignature(PsiParameter methodParameter, PsiClass type, boolean varargs) {
+		return resolveSignature(methodParameter.getType(), varargs);
+	}
+
 	public static String resolveSignature(PsiParameter methodParameter, PsiClass type) {
-		return resolveSignature(methodParameter.getType());
+		return resolveSignature(methodParameter, type, false);
 	}
 
 	/**
