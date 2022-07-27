@@ -56,8 +56,9 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		Assert.assertNotNull(resolvers);
 		Assert.assertFalse(resolvers.isEmpty());
 
-		testValueResolversFomTemplateExtension(resolvers);
-		testValueResolversFomInject(resolvers);
+		testValueResolversFromTemplateExtension(resolvers);
+		testValueResolversFromInject(resolvers);
+		testValueResolversFromTemplateData(resolvers);
 	}
 
 	private static void testTemplates(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -184,7 +185,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		assertParameter("name", "java.lang.String", false, hello3Parameters);
 	}
 
-	private static void testValueResolversFomTemplateExtension(List<ValueResolverInfo> resolvers) {
+	private static void testValueResolversFromTemplateExtension(List<ValueResolverInfo> resolvers) {
 
 		// Resolver from Java sources
 		assertValueResolver(null, "discountedPrice(item : org.acme.qute.Item) : java.math.BigDecimal",
@@ -228,7 +229,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 
 	}
 
-	private void testValueResolversFomInject(List<ValueResolverInfo> resolvers) {
+	private void testValueResolversFromInject(List<ValueResolverInfo> resolvers) {
 		Assert.assertNotNull(resolvers);
 		Assert.assertFalse(resolvers.isEmpty());
 
@@ -265,6 +266,37 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 				"io.quarkus.vertx.http.runtime.CurrentRequestProducer", //
 				"vertxRequest", resolvers);
 
+	}
+
+	private static void testValueResolversFromTemplateData(List<ValueResolverInfo> resolvers) {
+
+		// @TemplateData(target = BigDecimal.class)
+		// @TemplateData(ignoreSuperclasses = true)
+		// public class ItemWithTemplateData {
+
+		// public static BigDecimal staticMethod(Item item) {
+		assertValueResolver("org_acme_qute_ItemWithTemplateData",
+				"staticMethod(item : org.acme.qute.Item) : java.math.BigDecimal", "org.acme.qute.ItemWithTemplateData",
+				resolvers);
+
+		// public static String count;
+		assertValueResolver("org_acme_qute_ItemWithTemplateData", "count : java.lang.String",
+				"org.acme.qute.ItemWithTemplateData", resolvers);
+
+		// @TemplateData
+		// @TemplateData(namespace = "FOO")
+		// @TemplateData(namespace = "BAR")
+		// public class Statuses {
+
+		// public static final String ON = "on";
+		assertValueResolver("FOO", "ON : java.lang.String", "org.acme.qute.Statuses", resolvers);
+
+		// public static final String OFF = "off";
+		assertValueResolver("FOO", "OFF : java.lang.String", "org.acme.qute.Statuses", resolvers);
+
+		// public static String staticMethod(String state) {
+		assertValueResolver("FOO", "staticMethod(state : java.lang.String) : java.lang.String",
+				"org.acme.qute.Statuses", resolvers);
 	}
 
 	private static void assertValueResolver(String namespace, String signature, String sourceType,

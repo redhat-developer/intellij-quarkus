@@ -49,6 +49,8 @@ public class QuteJavaConstants {
 
 	public static final String TEMPLATE_DATA_ANNOTATION_IGNORE_SUPER_CLASSES = "ignoreSuperclasses";
 
+	public static final String TEMPLATE_DATA_ANNOTATION_NAMESPACE = "namespace";
+
 	// @io.quarkus.runtime.annotations.RegisterForReflection
 
 	public static final String REGISTER_FOR_REFLECTION_ANNOTATION = "io.quarkus.runtime.annotations.RegisterForReflection";

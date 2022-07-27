@@ -23,7 +23,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
@@ -44,9 +43,9 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
  * @see <a href="https://quarkus.io/guides/qute-reference#template_extension_methods">https://quarkus.io/guides/qute-reference#template_extension_methods</a>
  *
  */
-public class TemplateExtensionSupport extends AbstractAnnotationTypeReferenceDataModelProvider {
+public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeReferenceDataModelProvider {
 
-	private static final Logger LOGGER = Logger.getLogger(TemplateExtensionSupport.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(TemplateExtensionAnnotationSupport.class.getName());
 
 	private static final String[] ANNOTATION_NAMES = { TEMPLATE_EXTENSION_ANNOTATION };
 
