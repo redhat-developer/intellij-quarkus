@@ -162,7 +162,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 											+ " is not a getter method since it defined parameters");
 							continue;
 						}
-						if (PsiType.VOID.equals(method.getReturnType())) {
+						if (PsiTypeUtils.isVoidReturnType(method)) {
 							LOGGER.info("Method " + method.getName() + " of interface "
 											+ method.getContainingClass().getQualifiedName()
 											+ " is not a getter method since it returns void");
