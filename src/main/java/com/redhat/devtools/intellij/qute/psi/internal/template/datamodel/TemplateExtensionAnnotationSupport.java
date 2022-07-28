@@ -23,7 +23,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
@@ -32,6 +31,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
@@ -44,9 +44,9 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
  * @see <a href="https://quarkus.io/guides/qute-reference#template_extension_methods">https://quarkus.io/guides/qute-reference#template_extension_methods</a>
  *
  */
-public class TemplateExtensionSupport extends AbstractAnnotationTypeReferenceDataModelProvider {
+public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeReferenceDataModelProvider {
 
-	private static final Logger LOGGER = Logger.getLogger(TemplateExtensionSupport.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(TemplateExtensionAnnotationSupport.class.getName());
 
 	private static final String[] ANNOTATION_NAMES = { TEMPLATE_EXTENSION_ANNOTATION };
 
@@ -115,7 +115,7 @@ public class TemplateExtensionSupport extends AbstractAnnotationTypeReferenceDat
 	private static boolean isTemplateExtensionMethod(PsiMethod method) {
 		try {
 			return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
-					&& !"void".equals(method.getReturnType().getCanonicalText());
+					&& !PsiTypeUtils.isVoidReturnType(method);
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.SEVERE, "Error while getting method information of '" + method.getName() + "'.", e);
 			return false;

@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLiteralValue;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Range;
@@ -49,12 +50,12 @@ public class QuteJavaDocumentLinkCollector extends AbstractQuteTemplateLinkColle
 	}
 
 	@Override
-	protected void processTemplateLink(PsiElement fieldOrMethod, PsiClass type, String className,
+	protected void collectTemplateLink(PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className,
 									   String fieldOrMethodName, String location, VirtualFile templateFile, String templateFilePath)
 			{
 		String templateUri = templateFile != null?templateFile.getUrl():getVirtualFileUrl(utils.getModule(), templateFilePath, PREFERRED_SUFFIX);
 		String tooltip = getTooltip(templateFile, templateFilePath);
-		Range range = createRange(fieldOrMethod);
+		Range range = createRange(locationAnnotation != null ? locationAnnotation : fieldOrMethod);
 		DocumentLink link = new DocumentLink(range, templateUri, null, tooltip);
 		links.add(link);
 	}

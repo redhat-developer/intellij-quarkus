@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
@@ -208,9 +209,19 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 			PsiAnnotationMemberValue jitterUnitExpr = getAnnotationMemberValueExpression(annotation,
 					JITTER_DELAY_UNIT_RETRY_ANNOTATION_MEMBER);
 
-			int delayNum = delayExpr instanceof PsiLiteral && ((PsiLiteral) delayExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) delayExpr).getValue() : -1;
-			int maxDurationNum = maxDurationExpr instanceof PsiLiteral && ((PsiLiteral) maxDurationExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) maxDurationExpr).getValue() : -1;
-			int jitterNum = jitterExpr instanceof PsiLiteral && ((PsiLiteral) jitterExpr).getValue() instanceof Integer ? (int) ((PsiLiteral) jitterExpr).getValue() : 0;
+			Object delayConstant = JavaPsiFacade.getInstance(getContext().getJavaProject().getProject()).getConstantEvaluationHelper().computeConstantExpression(delayExpr);
+			Object maxDurationConstant = JavaPsiFacade.getInstance(getContext().getJavaProject().getProject()).getConstantEvaluationHelper().computeConstantExpression(maxDurationExpr);
+			Object jitterConstant = JavaPsiFacade.getInstance(getContext().getJavaProject().getProject()).getConstantEvaluationHelper().computeConstantExpression(jitterExpr);
+
+
+			long delayNum = delayConstant instanceof Integer ? (long) (int) delayConstant
+					: (delayConstant instanceof Long ? (long) delayConstant : -1);
+
+			long maxDurationNum = maxDurationConstant instanceof Integer ? (long) (int) maxDurationConstant
+					: (maxDurationConstant instanceof Long ? (long) maxDurationConstant : -1);
+
+			long jitterNum = jitterConstant instanceof Integer ? (long) (int) jitterConstant
+					: (jitterConstant instanceof Long ? (long) jitterConstant : 0);
 
 			if (delayNum != -1 && maxDurationNum != -1) {
 				double delayValue = findDurationUnit(delayUnitExpr, delayNum);
@@ -232,7 +243,7 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 	}
 
 	private double findDurationUnit(PsiAnnotationMemberValue memberUnitExpr,
-									int memberUnitNum) {
+									long memberUnitNum) {
 		String memberUnit = null;
 		if (memberUnitExpr != null) {
 			if (memberUnitExpr != null && memberUnitExpr instanceof PsiReferenceExpression) {

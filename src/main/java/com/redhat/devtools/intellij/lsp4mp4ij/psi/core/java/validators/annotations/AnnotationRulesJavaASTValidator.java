@@ -13,8 +13,13 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations;
 
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiBinaryExpression;
+import com.intellij.psi.PsiLiteral;
+import com.intellij.psi.PsiPrefixExpression;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.validators.JavaASTValidatorRegistry;
@@ -75,9 +80,14 @@ public class AnnotationRulesJavaASTValidator extends JavaASTValidator {
 		if (attributeValueExpr == null) {
 			return;
 		}
+		// Ensure value of AST attribute is a valid integer or an expression that can be evaluated
+		if (!isInteger(attributeValueExpr) && !isInfixIntegerExpression(attributeValueExpr)) {
+			return;
+		}
 
 		// Get the value of the AST attribute
-		String valueAsString = attributeValueExpr.getText();
+		Object valueAsObject = JavaPsiFacade.getInstance(getContext().getJavaProject().getProject()).getConstantEvaluationHelper().computeConstantExpression(attributeValueExpr);
+		String valueAsString = valueAsObject != null ? valueAsObject.toString() : null;
 		if (StringUtils.isEmpty(valueAsString)) {
 			return;
 		}
@@ -90,4 +100,24 @@ public class AnnotationRulesJavaASTValidator extends JavaASTValidator {
 		}
 	}
 
+	private static boolean isInteger(PsiAnnotationMemberValue attributeValueExpr) {
+		if ((attributeValueExpr instanceof PsiLiteral && ((PsiLiteral) attributeValueExpr).getValue() instanceof Number) || (attributeValueExpr instanceof PsiPrefixExpression
+				&& (((PsiPrefixExpression) attributeValueExpr).getOperationTokenType() == JavaTokenType.MINUS
+				|| ((PsiPrefixExpression) attributeValueExpr).getOperationTokenType() == JavaTokenType.PLUS))) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean isInfixIntegerExpression(PsiAnnotationMemberValue attributeValueExpr) {
+		if (attributeValueExpr instanceof PsiBinaryExpression
+				&& (((PsiBinaryExpression) attributeValueExpr).getOperationTokenType() == JavaTokenType.ASTERISK
+				|| ((PsiBinaryExpression) attributeValueExpr).getOperationTokenType() == JavaTokenType.DIV
+				|| ((PsiBinaryExpression) attributeValueExpr).getOperationTokenType() == JavaTokenType.PERC
+				|| ((PsiBinaryExpression) attributeValueExpr).getOperationTokenType() == JavaTokenType.PLUS
+				|| ((PsiBinaryExpression) attributeValueExpr).getOperationTokenType() == JavaTokenType.MINUS)) {
+			return true;
+		}
+		return false;
+	}
 }

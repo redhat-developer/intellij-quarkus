@@ -12,9 +12,9 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.commons;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.commons.PropertyReplacerStrategy.BRACKET_REPLACER;
-import static com.redhat.devtools.intellij.lsp4mp4ij.commons.PropertyReplacerStrategy.EXPRESSION_REPLACER;
-import static com.redhat.devtools.intellij.lsp4mp4ij.commons.PropertyReplacerStrategy.NULL_REPLACER;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.PropertyReplacerStrategy.BRACKET_REPLACER;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.PropertyReplacerStrategy.EXPRESSION_REPLACER;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.PropertyReplacerStrategy.NULL_REPLACER;
 
 import org.junit.Assert;
 import org.junit.Test;

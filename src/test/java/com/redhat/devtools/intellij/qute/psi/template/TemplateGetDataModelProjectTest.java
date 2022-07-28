@@ -56,8 +56,11 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		Assert.assertNotNull(resolvers);
 		Assert.assertFalse(resolvers.isEmpty());
 
-		testValueResolversFomTemplateExtension(resolvers);
-		testValueResolversFomInject(resolvers);
+		testValueResolversFromTemplateExtension(resolvers);
+		testValueResolversFromInject(resolvers);
+		testValueResolversFromTemplateData(resolvers);
+		testValueResolversFromTemplateEnum(resolvers);
+		testValueResolversFromTemplateGlobal(resolvers);
 	}
 
 	private static void testTemplates(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -184,7 +187,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		assertParameter("name", "java.lang.String", false, hello3Parameters);
 	}
 
-	private static void testValueResolversFomTemplateExtension(List<ValueResolverInfo> resolvers) {
+	private static void testValueResolversFromTemplateExtension(List<ValueResolverInfo> resolvers) {
 
 		// Resolver from Java sources
 		assertValueResolver(null, "discountedPrice(item : org.acme.qute.Item) : java.math.BigDecimal",
@@ -212,10 +215,10 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 
 		// from io.quarkus.qute.runtime.extensions.StringTemplateExtensions
 		assertValueResolver(null,
-				"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object[]) : java.lang.String",
+				"fmtInstance(format : java.lang.String, ignoredPropertyName : java.lang.String, args : java.lang.Object...) : java.lang.String",
 				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
 		assertValueResolver("str",
-				"fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object[]) : java.lang.String",
+				"fmt(ignoredPropertyName : java.lang.String, format : java.lang.String, args : java.lang.Object...) : java.lang.String",
 				"io.quarkus.qute.runtime.extensions.StringTemplateExtensions", resolvers);
 
 		// from io.quarkus.qute.runtime.extensions.TimeTemplateExtensions
@@ -228,7 +231,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 
 	}
 
-	private void testValueResolversFomInject(List<ValueResolverInfo> resolvers) {
+	private void testValueResolversFromInject(List<ValueResolverInfo> resolvers) {
 		Assert.assertNotNull(resolvers);
 		Assert.assertFalse(resolvers.isEmpty());
 
@@ -267,13 +270,85 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 
 	}
 
+	private static void testValueResolversFromTemplateData(List<ValueResolverInfo> resolvers) {
+
+		// @TemplateData(target = BigDecimal.class)
+		// @TemplateData(ignoreSuperclasses = true)
+		// public class ItemWithTemplateData {
+
+		// public static BigDecimal staticMethod(Item item) {
+		assertValueResolver("org_acme_qute_ItemWithTemplateData",
+				"staticMethod(item : org.acme.qute.Item) : java.math.BigDecimal", "org.acme.qute.ItemWithTemplateData",
+				resolvers);
+
+		// public static String count;
+		assertValueResolver("org_acme_qute_ItemWithTemplateData", "count : java.lang.String",
+				"org.acme.qute.ItemWithTemplateData", resolvers);
+
+		// @TemplateData
+		// @TemplateData(namespace = "FOO")
+		// @TemplateData(namespace = "BAR")
+		// public class Statuses {
+
+		// public static final String ON = "on";
+		assertValueResolver("FOO", "ON : java.lang.String", "org.acme.qute.Statuses", resolvers);
+
+		// public static final String OFF = "off";
+		assertValueResolver("FOO", "OFF : java.lang.String", "org.acme.qute.Statuses", resolvers);
+
+		// public static String staticMethod(String state) {
+		assertValueResolver("FOO", "staticMethod(state : java.lang.String) : java.lang.String",
+				"org.acme.qute.Statuses", resolvers);
+	}
+
+	private static void testValueResolversFromTemplateEnum(List<ValueResolverInfo> resolvers) {
+
+		// @TemplateEnum
+		// public enum StatusesEnum {
+
+		// ON,
+		assertValueResolver("StatusesEnum", "ON : org.acme.qute.StatusesEnum", "org.acme.qute.StatusesEnum", resolvers);
+		// OFF
+		assertValueResolver("StatusesEnum", "OFF : org.acme.qute.StatusesEnum", "org.acme.qute.StatusesEnum",
+				resolvers);
+	}
+
+	private static void testValueResolversFromTemplateGlobal(List<ValueResolverInfo> resolvers) {
+
+		// @TemplateGlobal
+		// public class Globals {
+
+		// static int age = 40;
+		assertValueResolver(null, "age : int", "org.acme.qute.Globals", null, true, resolvers);
+
+		// static String name;
+		assertValueResolver(null, "name : java.lang.String", "org.acme.qute.Globals", null, true, resolvers);
+
+		// static Color[] myColors() {
+		// return new Color[] { Color.RED, Color.BLUE };
+		// }
+		assertValueResolver(null, "myColors() : org.acme.qute.Color[]", "org.acme.qute.Globals", null, true, resolvers);
+
+		// @TemplateGlobal(name = "currentUser")
+		// static String user() {
+		// return "Mia";
+		// }
+		assertValueResolver(null, "user() : java.lang.String", "org.acme.qute.Globals", "currentUser", true, resolvers);
+		// }
+	}
+
 	private static void assertValueResolver(String namespace, String signature, String sourceType,
 			List<ValueResolverInfo> resolvers) {
 		assertValueResolver(namespace, signature, sourceType, null, resolvers);
 	}
 
 	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-			List<ValueResolverInfo> resolvers) {
+											List<ValueResolverInfo> resolvers) {
+		assertValueResolver(namespace, signature, sourceType, named, false, resolvers);
+	}
+
+	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
+			boolean globalVariable, List<ValueResolverInfo> resolvers) {
 		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
 				.findFirst();
 		Assert.assertFalse("Find '" + signature + "' value resolver.", result.isEmpty());
@@ -281,6 +356,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		Assert.assertEquals(namespace, resolver.getNamespace());
 		Assert.assertEquals(signature, resolver.getSignature());
 		Assert.assertEquals(sourceType, resolver.getSourceType());
+		Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
 	}
 
 	private static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,

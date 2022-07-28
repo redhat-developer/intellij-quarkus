@@ -19,23 +19,22 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiDeclarationStatement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.PsiLiteral;
-import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.PsiLiteralValue;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.intellij.qute.psi.internal.AnnotationLocationSupport;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.Range;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +44,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
-import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.LOCATION_ANNOTATION;
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.TEMPLATE_CLASS;
 
@@ -68,7 +66,9 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 	private static String[] suffixes = { ".qute.html", ".qute.json", ".qute.txt", ".qute.yaml", ".html", ".json",
 			".txt", ".yaml" };
 
-	protected static final String PREFERRED_SUFFIX = ".html"; //TODO make it configurable
+	protected static final String PREFERRED_SUFFIX = ".html"; // TODO make it configurable
+
+	private static final String TEMPLATE_TYPE = "Template";
 
 	protected final PsiFile typeRoot;
 	protected final IPsiUtils utils;
@@ -76,8 +76,13 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 
 	private int levelTypeDecl;
 
+	private AnnotationLocationSupport annotationLocationSupport;
+
+	private PsiFile compilationUnit;
+
 	public AbstractQuteTemplateLinkCollector(PsiFile typeRoot, IPsiUtils utils, ProgressIndicator monitor) {
 		this.typeRoot = typeRoot;
+		this.compilationUnit = typeRoot;
 		this.utils = utils;
 		this.monitor = monitor;
 		this.levelTypeDecl = 0;
@@ -85,15 +90,46 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 
 	@Override
 	public void visitField(PsiField node) {
-		if (node.getType() instanceof PsiClassType) {
-			PsiClass clazz = ((PsiClassType) node.getType()).resolve();
-			if (clazz != null) {
-				if (TEMPLATE_CLASS.equals(clazz.getQualifiedName())) {
-					processTemplateLink(node);
+		PsiType type = node.getType();
+		if (isTemplateType(type)) {
+			// The field type is the Qute template
+			// private Template items;
+
+			// Try to get the @Location annotation
+			// @Location("detail/items2_v1.html")
+			// Template items2;
+			PsiLiteralValue locationExpression = AnnotationLocationSupport.getLocationExpression(node, node.getModifierList());
+
+				if (locationExpression == null) {
+					// The field doesn't declare @Location,
+					// try to find the @Location declared in the constructor parameter which
+					// initializes the field
+
+					// private final Template page;
+					// public SomePage(@Location("foo/bar/page.qute.html") Template page) {
+					// this.page = requireNonNull(page, "page is required");
+					// }
+					locationExpression = getAnnotationLocationSupport()
+							.getLocationExpressionFromConstructorParameter(node.getName());
 				}
+				String fieldName = node.getName();
+				collectTemplateLink(node, locationExpression, getTypeDeclaration(node), null, fieldName);
 			}
-		}
 		super.visitField(node);
+	}
+
+	/**
+	 * Returns the @Location support.
+	 *
+	 * @return the @Location support.
+	 */
+	private AnnotationLocationSupport getAnnotationLocationSupport() {
+		if (annotationLocationSupport == null) {
+			// Initialize the @Location support to try to find an @Location in the
+			// constructor which initializes some fields
+			annotationLocationSupport = new AnnotationLocationSupport(compilationUnit);
+		}
+		return annotationLocationSupport;
 	}
 
 	@Override
@@ -106,7 +142,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 				// public static class Templates {
 				// public static native TemplateInstance book(Book book);
 				for(PsiMethod method : node.getMethods()) {
-					processTemplateLink(method, node);
+					collectTemplateLink(method, node);
 				}
 			}
 		}
@@ -114,38 +150,25 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 		levelTypeDecl--;
 	}
 
-	private void processTemplateLink(PsiField node) {
-		PsiAnnotation[] annotations = node.getAnnotations();
-		for(PsiAnnotation annotation : annotations) {
-			if (AnnotationUtils.isMatchAnnotation(annotation, LOCATION_ANNOTATION)) {
-				// @Location("/items/my.items.qute.html")
-				// Template items;
-				PsiAnnotationMemberValue expression = annotation.findAttributeValue("value");
-				if (expression instanceof PsiLiteral) {
-					String location = AnnotationUtils.getAnnotationMemberValue(annotation, "value");
-					if (StringUtils.isNotBlank(location)) {
-						processTemplateLink(node, (PsiClass) node.getParent(), null, null, location);
-					}
-					return;
-				}
-			}
-		}
-		processTemplateLink(node, (PsiClass) node.getParent(), null, node.getName(), null);
+	private static PsiClass getTypeDeclaration(PsiElement node) {
+		return PsiTreeUtil.getParentOfType(node, PsiClass.class);
 	}
 
-	private void processTemplateLink(PsiMethod methodDeclaration, PsiClass type) {
+
+	private void collectTemplateLink(PsiMethod methodDeclaration, PsiClass type) {
 		String className = null;
 		boolean innerClass = levelTypeDecl > 1;
 		if (innerClass) {
 			className = PsiTypeUtils.getSimpleClassName(typeRoot.getName());
 		}
 		String methodName = methodDeclaration.getName();
-		processTemplateLink(methodDeclaration, type, className, methodName, null);
+		collectTemplateLink(methodDeclaration, null, type, className, methodName);
 	}
 
-	private void processTemplateLink(PsiElement fieldOrMethod, PsiClass type, String className,
-									 String fieldOrMethodName, String location) {
+	private void collectTemplateLink(PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className,
+									 String fieldOrMethodName) {
 		try {
+			String location = locationAnnotation != null && locationAnnotation.getValue() instanceof String ? (String) locationAnnotation.getValue() : null;
 			Module project = utils.getModule();
 			String templateFilePath = location != null ? PsiQuteProjectUtils.getTemplatePath(null, location)
 					: PsiQuteProjectUtils.getTemplatePath(className, fieldOrMethodName);
@@ -156,8 +179,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 			} else {
 				templateFile = getVirtualFile(project, templateFilePath, "");
 			}
-			processTemplateLink(fieldOrMethod, type, className, fieldOrMethodName, location, templateFile,
-					templateFilePath);
+			collectTemplateLink(fieldOrMethod, locationAnnotation, type, className, fieldOrMethodName, location,
+					templateFile, templateFilePath);
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.SEVERE, "Error while creating Qute CodeLens for Java file.", e);
 		}
@@ -206,18 +229,31 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 			return templateFilePath + PREFERRED_SUFFIX;
 		}
 	}
-
-	protected abstract void processTemplateLink(PsiElement node, PsiClass type, String className,
-			String fieldOrMethodName, String location, VirtualFile templateFile, String templateFilePath);
-
 	protected Range createRange(PsiElement fieldOrMethod) {
 		if (fieldOrMethod instanceof PsiField) {
 			TextRange tr = ((PsiField) fieldOrMethod).getNameIdentifier().getTextRange();
+			return utils.toRange(typeRoot, tr.getStartOffset(), tr.getLength());
+		}
+		if (fieldOrMethod instanceof PsiLiteralValue) {
+			TextRange tr = ((PsiLiteralValue) fieldOrMethod).getTextRange();
 			return utils.toRange(typeRoot, tr.getStartOffset(), tr.getLength());
 		}
 		PsiMethod method = (PsiMethod) fieldOrMethod;
 		PsiIdentifier methodName = method.getNameIdentifier();
 		TextRange tr = methodName.getTextRange();
 		return utils.toRange(typeRoot, tr.getStartOffset(), tr.getLength());
+	}
+
+	protected abstract void collectTemplateLink(PsiElement node, PsiLiteralValue locationAnnotation, PsiClass type,
+												String className, String fieldOrMethodName, String location, VirtualFile templateFile, String templateFilePath);
+
+	private static boolean isTemplateType(PsiType type) {
+		if (type instanceof PsiClassType) {
+			PsiClass clazz = ((PsiClassType) type).resolve();
+			if (clazz != null) {
+				return TEMPLATE_CLASS.equals(clazz.getQualifiedName());
+			}
+		}
+		return false;
 	}
 }

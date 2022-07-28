@@ -45,6 +45,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.template.JavaTypesSearch;
 import com.redhat.devtools.intellij.qute.psi.internal.template.QuarkusIntegrationForQute;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.QuteReflectionAnnotationUtils;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.InvalidMethodReason;
@@ -63,6 +64,9 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
+
+import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.findType;
+import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.getFullQualifiedName;
 
 /**
  * Qute support for Template file.
@@ -306,7 +310,7 @@ public class QuteSupportForTemplate {
 			}
 
 			String iterableOf = typeName.substring(index + 1, typeName.length() - 1);
-			iterableOf = getFullQualifiedName(monitor, javaProject, iterableOf);
+			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
 			iterableClassName = iterableType.getQualifiedName();
 			typeName = iterableClassName + "<" + iterableOf + ">";
 			return createIterableType(typeName, iterableClassName, iterableOf);
@@ -317,7 +321,7 @@ public class QuteSupportForTemplate {
 			if (iterableOfType == null) {
 				return null;
 			}
-			iterableOf = getFullQualifiedName(monitor, javaProject, iterableOf);
+			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
 			typeName = iterableOf + "[]";
 			return createIterableType(typeName, null, iterableOf);
 		}
@@ -407,35 +411,8 @@ public class QuteSupportForTemplate {
 			resolvedType.setMethods(methodsInfo);
 			resolvedType.setInvalidMethods(invalidMethods);
 			resolvedType.setExtendedTypes(extendedTypes);
+			QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver, javaProject);
 			return resolvedType;
-		}
-		return null;
-	}
-
-	private String getFullQualifiedName(ProgressIndicator monitor, Module javaProject, String name) {
-		if (name.indexOf('.') != -1) {
-			return name;
-		}
-		PsiClass nameType = findType(name, javaProject, monitor);
-		if (nameType != null && nameType.isValid()) {
-			return AbstractTypeResolver.resolveJavaTypeSignature(nameType);
-		}
-		return name;
-	}
-
-	private PsiClass findType(String className, Module javaProject, ProgressIndicator monitor) {
-		try {
-			PsiClass type = JavaPsiFacade.getInstance(javaProject.getProject()).findClass(className.replace('$', '.'), javaProject.getModuleWithDependenciesAndLibrariesScope(true));
-			if (type != null) {
-				return type;
-			}
-			if (className.indexOf('.') == -1) {
-				// No package, try with java.lang package
-				// ex : if className = String we should find type of java.lang.String
-				return JavaPsiFacade.getInstance(javaProject.getProject()).findClass("java.lang." + className, javaProject.getModuleWithDependenciesAndLibrariesScope(true));
-			}
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while finding type for '" + className + "'.", e);
 		}
 		return null;
 	}

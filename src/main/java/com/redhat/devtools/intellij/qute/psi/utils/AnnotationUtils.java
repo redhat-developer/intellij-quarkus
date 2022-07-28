@@ -11,11 +11,13 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.utils;
 
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiNameValuePair;
 
 import javax.annotation.Nullable;
 
@@ -123,11 +125,40 @@ public class AnnotationUtils {
 	 */
 	public static String getAnnotationMemberValue(PsiAnnotation annotation, String memberName) {
 		PsiAnnotationMemberValue member = annotation.findDeclaredAttributeValue(memberName);
+		return getValueAsString(member);
+	}
+
+	private static String getValueAsString(PsiAnnotationMemberValue member) {
 		String value = member != null && member.getText() != null ? member.getText() : null;
 		if (value != null && value.length() > 1 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
 			value = value.substring(1, value.length() - 1);
 		}
 		return value;
+	}
+
+	public static String getValueAsString(PsiNameValuePair pair) {
+		return pair.getValue() != null ? getValueAsString(pair.getValue()) : null;
+	}
+
+	public static Boolean getValueAsBoolean(PsiNameValuePair pair) {
+		if (pair.getValue() == null) {
+			return null;
+		}
+		Object resolvedValue = JavaPsiFacade.getInstance(pair.getProject()).getConstantEvaluationHelper().computeConstantExpression(pair.getValue());
+		return resolvedValue instanceof Boolean ? (Boolean) resolvedValue : Boolean.FALSE;
+	}
+
+	public static Object[] getValueAsArray(PsiNameValuePair pair) {
+		if (pair.getValue() == null) {
+			return null;
+		}
+		Object valueObject = JavaPsiFacade.getInstance(pair.getProject()).getConstantEvaluationHelper().computeConstantExpression(pair.getValue());
+		if (valueObject instanceof Object[]) {
+			// @TemplateData(ignore = {"title", "id"})
+			return (Object[]) valueObject;
+		}
+		// @TemplateData(ignore = "title")
+		return new Object[] { valueObject };
 	}
 
 	/**

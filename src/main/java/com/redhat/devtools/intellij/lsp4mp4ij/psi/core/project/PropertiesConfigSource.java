@@ -36,8 +36,8 @@ public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 		super(configFileName, javaProject);
 	}
 
-	public PropertiesConfigSource(String configFileName, int profile, Module javaProject) {
-		super(configFileName, profile, javaProject);
+	public PropertiesConfigSource(String configFileName, int ordinal, Module javaProject) {
+		super(configFileName, ordinal, javaProject);
 	}
 
 	@Override

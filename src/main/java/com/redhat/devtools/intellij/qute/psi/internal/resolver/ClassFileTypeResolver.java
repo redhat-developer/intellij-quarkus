@@ -22,7 +22,6 @@ import com.intellij.psi.PsiClass;
 public class ClassFileTypeResolver extends AbstractTypeResolver {
 
 	public ClassFileTypeResolver(PsiClass classFile) {
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

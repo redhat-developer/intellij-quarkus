@@ -12,6 +12,7 @@
 package com.redhat.devtools.intellij.qute.psi.utils;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
@@ -21,6 +22,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiSubstitutor;
@@ -28,9 +30,12 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiVariable;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
+import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResolver;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * JDT Type utilities.
@@ -40,7 +45,7 @@ import java.util.List;
  */
 public class PsiTypeUtils {
 
-	private static final List<String> NUMBER_TYPES = Arrays.asList("short", "int", "long", "double", "float");
+	private static final Logger LOGGER = Logger.getLogger(PsiTypeUtils.class.getName());
 
 	public static String getSimpleClassName(String className) {
 		if (className.endsWith(".java")) {
@@ -148,16 +153,89 @@ public class PsiTypeUtils {
 		return method.getName() + method.getSignature(PsiSubstitutor.EMPTY);
 	}
 
-	private static String resolveSignature(PsiType type) {
+	private static String resolveSignature(PsiType type, boolean varargs) {
 		if (type instanceof PsiArrayType) {
-			return resolveSignature(((PsiArrayType) type).getComponentType()) + "[]";
+			return resolveSignature(((PsiArrayType) type).getComponentType(), false) + (varargs?"...":"[]");
 		}
 		return type.getCanonicalText(true);
 		//return ClassUtil.getBinaryPresentation(methodParameter.getType());
 
 	}
 
+	public static String resolveSignature(PsiParameter methodParameter, PsiClass type, boolean varargs) {
+		return resolveSignature(methodParameter.getType(), varargs);
+	}
+
 	public static String resolveSignature(PsiParameter methodParameter, PsiClass type) {
-		return resolveSignature(methodParameter.getType());
+		return resolveSignature(methodParameter, type, false);
+	}
+
+	public static String getFullQualifiedName(String name, Module javaProject, ProgressIndicator monitor) {
+		if (name.indexOf('.') != -1) {
+			return name;
+		}
+		PsiClass nameType = findType(name, javaProject, monitor);
+		if (nameType != null && nameType.isValid()) {
+			return AbstractTypeResolver.resolveJavaTypeSignature(nameType);
+		}
+		return name;
+	}
+
+	public static PsiClass findType(String className, Module javaProject, ProgressIndicator monitor) {
+		try {
+			PsiClass type = JavaPsiFacade.getInstance(javaProject.getProject()).findClass(className.replace('$', '.'), javaProject.getModuleWithDependenciesAndLibrariesScope(true));
+			if (type != null) {
+				return type;
+			}
+			if (className.indexOf('.') == -1) {
+				// No package, try with java.lang package
+				// ex : if className = String we should find type of java.lang.String
+				return JavaPsiFacade.getInstance(javaProject.getProject()).findClass("java.lang." + className, javaProject.getModuleWithDependenciesAndLibrariesScope(true));
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while finding type for '" + className + "'.", e);
+		}
+		return null;
+	}
+
+
+	/**
+	 * Return true if member is static, and false otherwise
+	 *
+	 * @param member the member to check for static
+	 * @return
+	 */
+	public static boolean isStaticMember(PsiMember member) {
+		return member.getModifierList().hasExplicitModifier(PsiModifier.STATIC);
+	}
+
+	/**
+	 * Return true if member is private, and false otherwise
+	 *
+	 * @param member the member to check for private access modifier
+	 * @return
+	 */
+	public static boolean isPrivateMember(PsiMember member) {
+		return member.getModifierList().hasExplicitModifier(PsiModifier.PRIVATE);
+	}
+
+	/**
+	 * Return true if member is public, and false otherwise
+	 *
+	 * @param member the member to check for public access modifier
+	 * @return
+	 */
+	public static boolean isPublicMember(PsiMember member) {
+		return member.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
+	}
+
+	/**
+	 * Return true if method returns `void`, and false otherwise
+	 *
+	 * @param method the method to check return value of
+	 * @return
+	 */
+	public static boolean isVoidReturnType(PsiMethod method) {
+		return PsiType.VOID.equals(method.getReturnType());
 	}
 }

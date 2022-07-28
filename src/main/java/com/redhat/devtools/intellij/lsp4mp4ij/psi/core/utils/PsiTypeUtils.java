@@ -290,4 +290,14 @@ public class PsiTypeUtils {
     public static String getRawResolvedTypeName(PsiMethod method) {
         return getRawResolvedTypeName(method.getReturnType());
     }
+
+    /**
+     * Return true if method returns `void`, and false otherwise
+     *
+     * @param method the method to check return value of
+     * @return
+     */
+    public static boolean isVoidReturnType(PsiMethod method) {
+        return PsiType.VOID.equals(method.getReturnType());
+    }
 }

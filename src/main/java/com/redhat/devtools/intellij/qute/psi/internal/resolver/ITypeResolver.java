@@ -11,7 +11,9 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.resolver;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiVariable;
 
@@ -22,6 +24,43 @@ import com.intellij.psi.PsiVariable;
  *
  */
 public interface ITypeResolver {
+	/**
+	 * Returns the Java signature from the given JDT <code>javaElement</code>.
+	 *
+	 * @param javaElement the Java element (field, method).
+	 *
+	 * @return the Java signature from the given JDT <code>javaElement</code>.
+	 */
+	default String resolveSignature(PsiMember javaElement) {
+		if (javaElement instanceof PsiField) {
+			return resolveFieldSignature((PsiField) javaElement);
+		} else if (javaElement instanceof PsiMethod) {
+			return resolveMethodSignature((PsiMethod) javaElement);
+		}
+		throw new UnsupportedOperationException("Unsupported java element type: " + javaElement.getClass());
+	}
+
+
+	/**
+	 * Returns the resolved Java type signature from the given String <code>typeSignature</code>.
+	 *
+	 * Example:
+	 *
+	 * <code>
+	 * String
+	 * </code>
+	 *
+	 * will returns:
+	 *
+	 * <code>
+	 * java.lang.String
+	 * </code>
+	 *
+	 * @param typeSignature the Java type signature.
+	 *
+	 * @return the resolved  Java type signature from the given String <code>typeSignature</code>.
+	 */
+	String resolveTypeSignature(String typeSignature, Module javaProject);
 
 	/**
 	 * Returns the Java field signature from the given JDT <code>field</code>.

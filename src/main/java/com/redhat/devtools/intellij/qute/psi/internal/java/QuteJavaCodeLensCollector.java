@@ -14,6 +14,7 @@ package com.redhat.devtools.intellij.qute.psi.internal.java;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -23,6 +24,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLiteralValue;
 import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
@@ -64,7 +66,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 	}
 
 	@Override
-	protected void processTemplateLink(PsiElement fieldOrMethod, PsiClass type, String className, String fieldOrMethodName,
+	protected void collectTemplateLink(PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className, String fieldOrMethodName,
 									   String location, VirtualFile templateFile, String templateFilePath) {
 		Command command = null;
 		if (templateFile != null) {
@@ -87,19 +89,19 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
 		lenses.add(codeLens);
 	}
 
-	private List<DataModelParameter> createParameters(PsiElement node) {
-		if (node instanceof PsiField) {
-			return createParameter((PsiField) node);
+	private static List<DataModelParameter> createParameters(PsiElement node) {
+		if (node instanceof PsiMethod) {
+			return createParameter((PsiMethod) node);
 		}
-		return createParameter((PsiMethod) node);
+		return Collections.emptyList();
 	}
 
-	private List<DataModelParameter> createParameter(PsiField node) {
+	private static List<DataModelParameter> createParameter(PsiField node) {
 		List<DataModelParameter> parameters = new ArrayList<>();
 		return parameters;
 	}
 
-	private List<DataModelParameter> createParameter(PsiMethod method) {
+	private static List<DataModelParameter> createParameter(PsiMethod method) {
 		List<DataModelParameter> parameters = new ArrayList<>();
 		@SuppressWarnings("rawtypes")
 		PsiParameter[] methodParameters = method.getParameterList().getParameters();

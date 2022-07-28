@@ -65,6 +65,16 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
 		//
 		// @Location("detail/items2_v1.html")
 		// Template hallo;
+		//
+		// Template bonjour;
+		//
+		// Template aurevoir;
+		//
+		// public HelloResource(@Location("detail/page1.html") Template page1,
+		// @Location("detail/page2.html") Template page2) {
+		// this.bonjour = page1;
+		// this.aurevoir = requireNonNull(page2, "page is required");
+		// }
 
 		QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
 		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/HelloResource.java");
@@ -75,14 +85,17 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
 		assertEquals(1, publishDiagnostics.size());
 
 		List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
-		assertEquals(2, diagnostics.size());
+		assertEquals(3, diagnostics.size());
 
 		assertDiagnostic(diagnostics, //
 				new Diagnostic(r(20, 10, 20, 17),
 						"No template matching the path goodbye could be found for: org.acme.qute.HelloResource",
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
-				new Diagnostic(r(24, 10, 24, 15),
+				new Diagnostic(r(22, 11, 22, 34),
 						"No template matching the path detail/items2_v1.html could be found for: org.acme.qute.HelloResource",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+				new Diagnostic(r(32, 79, 32, 98),
+						"No template matching the path detail/page2.html could be found for: org.acme.qute.HelloResource",
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
 	}
 

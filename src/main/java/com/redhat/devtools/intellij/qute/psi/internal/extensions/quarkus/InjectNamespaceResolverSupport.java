@@ -116,18 +116,8 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setNamed(named);
 		resolver.setSourceType(javaMember.getContainingClass().getQualifiedName());
-		resolver.setSignature(getSignature(javaMember, typeResolver));
+		resolver.setSignature(typeResolver.resolveSignature(javaMember));
 		resolver.setNamespace(INJECT_NAMESPACE);
 		resolvers.add(resolver);
 	}
-
-	private static String getSignature(PsiMember javaMember, ITypeResolver typeResolver) {
-		if (javaMember instanceof PsiField) {
-			return typeResolver.resolveFieldSignature((PsiField) javaMember);
-		} else if (javaMember instanceof PsiMethod) {
-			return typeResolver.resolveMethodSignature((PsiMethod) javaMember);
-		}
-		return null;
-	}
-
 }
