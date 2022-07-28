@@ -69,11 +69,13 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
 
 		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
 				new EmptyProgressIndicator());
-		assertEquals(3, links.size());
+		assertEquals(5, links.size());
 
 		String helloTemplateUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/hello.qute.html").toURI().toString();
 		String goodbyeTemplateUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/hello2.qute.html").toURI().toString();
 		String halloTemplateUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/detail/items2_v1.html").toURI().toString();
+		String bonjourTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/detail/page1.html").toURI().toString();
+		String aurevoirTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/detail/page2.html").toURI().toString();
 
 		
 		assertDocumentLink(links, //
@@ -81,8 +83,12 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
 						helloTemplateUri, "Open `src/main/resources/templates/hello.qute.html`"),
 				dl(r(20, 10, 20, 17), //
 						goodbyeTemplateUri, "Open `src/main/resources/templates/goodbye.qute.html`"), //
-				dl(r(24, 10, 24, 15), //
-						halloTemplateUri, "Open `src/main/resources/templates/detail/items2_v1.html`"));
+				dl(r(22, 11, 22, 34), //
+						halloTemplateUri, "Open `src/main/resources/templates/detail/items2_v1.html`"), //
+				dl(r(32, 32, 32, 51), //
+						bonjourTemplateFileUri, "Open `src/main/resources/templates/detail/page1.html`"), //
+				dl(r(32, 79, 32, 98), //
+						aurevoirTemplateFileUri, "Create `src/main/resources/templates/detail/page2.html`"));
 	}
 
 	@Test

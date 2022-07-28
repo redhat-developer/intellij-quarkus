@@ -16,13 +16,18 @@ import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.T
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.getTemplatePath;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLiteralValue;
+import com.redhat.devtools.intellij.qute.psi.internal.AnnotationLocationSupport;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractFieldDeclarationTypeReferenceDataModelProvider;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
@@ -58,6 +63,8 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 
 	private static final String[] TYPE_NAMES = { TEMPLATE_CLASS };
 
+	private static final String KEY = TemplateFieldSupport.class.getName() + "#";
+
 	@Override
 	protected String[] getTypeNames() {
 		// Pattern to retrieve Template field
@@ -66,19 +73,44 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 
 	@Override
 	protected void processField(PsiField field, SearchContext context, ProgressIndicator monitor) {
-		collectDataModelTemplateForTemplateField(field, context.getDataModelProject().getTemplates(), monitor);
+		PsiFile compilationUnit = field.getContainingFile();
+		AnnotationLocationSupport annotationLocationSupport = getAnnotationLocationSupport(compilationUnit, context);
+		PsiLiteralValue location = annotationLocationSupport
+				.getLocationExpressionFromConstructorParameter(field.getName());
+		collectDataModelTemplateForTemplateField(field, context.getDataModelProject().getTemplates(),
+				location != null ? (String) location.getValue() : null, monitor);
+	}
+
+	private static AnnotationLocationSupport getAnnotationLocationSupport(PsiFile compilationUnit,
+																		  SearchContext context) {
+		@SuppressWarnings("unchecked")
+		Map<PsiFile, AnnotationLocationSupport> allSupport = (Map<PsiFile, AnnotationLocationSupport>) context
+				.get(KEY);
+		if (allSupport == null) {
+			allSupport = new HashMap<>();
+			context.put(KEY, allSupport);
+		}
+
+		AnnotationLocationSupport unitSupport = allSupport.get(compilationUnit);
+		if (unitSupport == null) {
+			@SuppressWarnings("restriction")
+			PsiFile root = compilationUnit;
+			unitSupport = new AnnotationLocationSupport(root);
+			allSupport.put(compilationUnit, unitSupport);
+		}
+		return unitSupport;
 	}
 
 	private static void collectDataModelTemplateForTemplateField(PsiField field,
-			List<DataModelTemplate<DataModelParameter>> templates, ProgressIndicator monitor) {
-		DataModelTemplate<DataModelParameter> template = createTemplateDataModel(field, monitor);
+			List<DataModelTemplate<DataModelParameter>> templates, String location, ProgressIndicator monitor) {
+		DataModelTemplate<DataModelParameter> template = createTemplateDataModel(field, location, monitor);
 		templates.add(template);
 	}
 
-	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(PsiField field,
+	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(PsiField field, String locationFromConstructorParameter,
 			ProgressIndicator monitor) {
 
-		String location = getLocation(field);
+		String location = locationFromConstructorParameter != null ? locationFromConstructorParameter : getLocation(field);
 		String fieldName = field.getName();
 		// src/main/resources/templates/${methodName}.qute.html
 		String templateUri = getTemplatePath(null, location != null ? location : fieldName);

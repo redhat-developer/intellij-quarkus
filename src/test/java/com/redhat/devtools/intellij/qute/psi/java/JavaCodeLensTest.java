@@ -57,16 +57,28 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testtemplateField() throws Exception {
 		// public class HelloResource {
-		
+
 		// [Open `src/main/resources/templates/hello.qute.html`]
 		// Template hello;
-		
+
 		// [Create `src/main/resources/templates/goodbye.qute.html`]
 		// Template goodbye;
-		
+
 		// [Create `src/main/resources/templates/detail/items2_v1.html`]
 		// @Location("detail/items2_v1.html")
 		// Template hallo;
+		//
+		// [Open `src/main/resources/templates/detail/page1.html`]
+		// Template bonjour;
+		//
+		// [Create `src/main/resources/templates/detail/page2.html`]
+		// Template aurevoir;
+		//
+		// public HelloResource(@Location("detail/page1.html") Template page1,
+		// @Location("detail/page2.html") Template page2) {
+		// this.bonjour = page1;
+		// this.aurevoir = requireNonNull(page2, "page is required");
+		// }
 
 		QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
 		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/HelloResource.java");
@@ -74,11 +86,13 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
 
 		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
 				new EmptyProgressIndicator());
-		assertEquals(3, lenses.size());
+		assertEquals(5, lenses.size());
 
 		String helloTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/hello.qute.html").toURI().toString();
 		String goodbyeTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/goodbye.qute.html").toURI().toString();
 		String halloTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/detail/items2_v1.html").toURI().toString();
+		String bonjourTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/detail/page1.html").toURI().toString();
+		String aurevoirTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/detail/page2.html").toURI().toString();
 		
 		assertCodeLens(lenses, //
 				cl(r(16, 1, 17, 16), //
@@ -89,7 +103,13 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
 						"qute.command.generate.template.file", Arrays.asList(goodbyeTemplateFileUri)), //
 				cl(r(22, 1, 24, 16), //
 						"Create `src/main/resources/templates/detail/items2_v1.html`", //
-						"qute.command.generate.template.file", Arrays.asList(halloTemplateFileUri)));
+						"qute.command.generate.template.file", Arrays.asList(halloTemplateFileUri)), //
+				cl(r(26, 1, 27, 18), //
+						"Open `src/main/resources/templates/detail/page1.html`", //
+						"qute.command.open.uri", Arrays.asList(bonjourTemplateFileUri)), //
+				cl(r(29, 1, 30, 19), //
+						"Create `src/main/resources/templates/detail/page2.html`", //
+						"qute.command.generate.template.file", Arrays.asList(aurevoirTemplateFileUri)));
 	}
 
 	@Test

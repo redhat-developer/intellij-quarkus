@@ -18,6 +18,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLiteralValue;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import org.eclipse.lsp4j.Diagnostic;
@@ -48,7 +49,7 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 	}
 
 	@Override
-	protected void processTemplateLink(PsiElement fieldOrMethod, PsiClass type, String className,
+	protected void collectTemplateLink(PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className,
 									   String fieldOrMethodName, String location, VirtualFile templateFile, String templateFilePath)
 			{
 		if (templateFile == null) {
@@ -57,7 +58,7 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
 			String path = createPath(className, fieldOrMethodName, location);
 			//ITypeBinding binding = type.resolveBinding();
 			String fullQualifiedName = PsiTypeUtils.getSourceType(type);
-			Range range = createRange(fieldOrMethod);
+			Range range = createRange(locationAnnotation != null ? locationAnnotation : fieldOrMethod);
 			Diagnostic diagnostic = createDiagnostic(range, DiagnosticSeverity.Error, QuteErrorCode.NoMatchingTemplate,
 					path, fullQualifiedName);
 			this.diagnostics.add(diagnostic);
