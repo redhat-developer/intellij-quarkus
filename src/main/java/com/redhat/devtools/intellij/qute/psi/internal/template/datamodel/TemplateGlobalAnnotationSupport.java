@@ -121,7 +121,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			String sourceType = member.getContainingClass().getQualifiedName();
 			ValueResolverInfo resolver = new ValueResolverInfo();
 			resolver.setSourceType(sourceType);
-			resolver.setSignature(getSignature(member, typeResolver));
+			resolver.setSignature(typeResolver.resolveSignature(member));
 			// Constant value for {@link #name()} indicating that the field/method name
 			// should be used
 			try {
@@ -179,21 +179,4 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			return false;
 		}
 	}
-
-	/**
-	 * Assign the signature based on the IMember type
-	 *
-	 * @param javaMember   Java member to return signature for
-	 * @param typeResolver type resolver to declare signature
-	 * @return the Java member type signature
-	 */
-	private static String getSignature(PsiMember javaMember, ITypeResolver typeResolver) {
-		if (javaMember instanceof PsiField) {
-			return typeResolver.resolveFieldSignature((PsiField) javaMember);
-		} else if (javaMember instanceof PsiMethod) {
-			return typeResolver.resolveMethodSignature((PsiMethod) javaMember);
-		}
-		return null;
-	}
-
 }

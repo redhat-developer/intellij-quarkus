@@ -128,7 +128,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 				String sourceType = member.getContainingClass().getQualifiedName();
 				ValueResolverInfo resolver = new ValueResolverInfo();
 				resolver.setSourceType(sourceType);
-				resolver.setSignature(getSignature(member, typeResolver));
+				resolver.setSignature(typeResolver.resolveSignature(member));
 				resolver.setNamespace(StringUtils.isNotEmpty(namespace) ? namespace : sourceType.replace('.', '_'));
 				if (!resolvers.contains(resolver)) {
 					resolvers.add(resolver);
@@ -138,21 +138,5 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 			LOGGER.log(Level.SEVERE,
 					"Error while getting annotation member value of '" + member.getName() + "'.", e);
 		}
-	}
-
-	/**
-	 * Assign the signature based on the IMember type
-	 *
-	 * @param javaMember   Java member to return signature for
-	 * @param typeResolver type resolver to declare signature
-	 * @return the Java member type signature
-	 */
-	private static String getSignature(PsiMember javaMember, ITypeResolver typeResolver) {
-		if (javaMember instanceof PsiField){
-			return typeResolver.resolveFieldSignature((PsiField) javaMember);
-		} else if (javaMember instanceof PsiMethod) {
-			return typeResolver.resolveMethodSignature((PsiMethod) javaMember);
-		}
-		return null;
 	}
 }
