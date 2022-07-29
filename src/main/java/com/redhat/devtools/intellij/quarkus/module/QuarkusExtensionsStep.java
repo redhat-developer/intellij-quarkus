@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.AbstractListModel;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -64,7 +65,7 @@ import java.util.regex.Pattern;
 
 public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposable {
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusExtensionsStep.class);
-    private static final Icon CODESTARTS_ICON = IconLoader.findIcon("/images/fighter-jet-solid.svg");
+    private static final Icon PLATFORM_ICON = IconLoader.findIcon("/images/platform-icon.svg");
 
     private JPanel panel;
     private final WizardContext wizardContext;
@@ -77,6 +78,9 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                 getTextRenderer().append(((QuarkusCategory) userObject).getName());
             } else if (userObject instanceof QuarkusExtension)  {
                 getTextRenderer().append(((QuarkusExtension) userObject).asLabel());
+                if (((QuarkusExtension) userObject).isPlatform()) {
+                    getTextRenderer().setIcon(PLATFORM_ICON);
+                }
             }
         }
     }
@@ -136,6 +140,11 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             filter.setAlignmentX(Component.LEFT_ALIGNMENT);
             panel.add(filter);
 
+            JCheckBox platformChecbox = new JCheckBox();
+            platformChecbox.setSelected(true);
+            platformChecbox.setText("Platform only extensions");
+            panel.add(platformChecbox);
+
             JBSplitter extensionsPanel = new JBSplitter(false, 0.8f);
             extensionsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -143,7 +152,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY).getCategories();
 
             //extensions component
-            CheckedTreeNode root = getModel(categories, filter);
+            CheckedTreeNode root = getModel(categories, filter, platformChecbox.isSelected());
             CheckboxTree extensionsTree = new ExtensionsTree(root);
             JTextPane extensionDetailTextPane = new JTextPane();
             extensionDetailTextPane.setEditorKit(getHtmlEditorKit());
@@ -174,10 +183,16 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                 @Override
                 protected void textChanged(@NotNull DocumentEvent e) {
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter)));
+                        extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter, platformChecbox.isSelected())));
                         expandTree(extensionsTree);
                     });
                 }
+            });
+            platformChecbox.addItemListener(e -> {
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter, platformChecbox.isSelected())));
+                    expandTree(extensionsTree);
+                });
             });
             extensionDetailTextPane.addHyperlinkListener(new HyperlinkListener() {
                 @Override
@@ -228,13 +243,13 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
         }
     }
 
-    private CheckedTreeNode getModel(List<QuarkusCategory> categories, SearchTextField filter) {
+    private CheckedTreeNode getModel(List<QuarkusCategory> categories, SearchTextField filter, boolean platform) {
         Pattern pattern = Pattern.compile(".*" + filter.getText() + ".*", Pattern.CASE_INSENSITIVE);
         CheckedTreeNode root = new CheckedTreeNode();
         for(QuarkusCategory category : categories) {
             DefaultMutableTreeNode categoryNode = new DefaultMutableTreeNode(category);
             for(QuarkusExtension extension : category.getExtensions()) {
-                if (pattern.matcher(extension.getName()).matches()) {
+                if (pattern.matcher(extension.getName()).matches() && (!platform || extension.isPlatform())) {
                     CheckedTreeNode extensionNode = new CheckedTreeNode(extension);
                     extensionNode.setChecked(extension.isSelected());
                     categoryNode.add(extensionNode);
