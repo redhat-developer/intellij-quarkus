@@ -61,6 +61,9 @@ public class QuarkusExtension {
     @JsonProperty("providesExampleCode")
     private boolean providesExampleCode;
 
+    @JsonProperty("platform")
+    private boolean platform;
+
     public String getCategory() {
         return category;
     }
@@ -171,6 +174,14 @@ public class QuarkusExtension {
 
     public void setProvidesExampleCode(boolean providesExampleCode) {
         this.providesExampleCode = providesExampleCode;
+    }
+
+    public boolean isPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(boolean platform) {
+        this.platform = platform;
     }
 
     public String asLabel(boolean withName) {

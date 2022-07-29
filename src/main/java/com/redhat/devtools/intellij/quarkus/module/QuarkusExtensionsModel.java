@@ -22,7 +22,7 @@ public class QuarkusExtensionsModel {
 
     public QuarkusExtensionsModel(String key, List<QuarkusExtension> extensions) {
         this.key = key;
-        Collections.sort(extensions, (e1, e2) -> e1.getOrder() - e1.getOrder());
+        Collections.sort(extensions, (e1, e2) -> e1.getOrder() - e2.getOrder());
         Map<String, QuarkusExtension> extensionIds = new HashMap<>();
         final QuarkusCategory[] currentCategory = {null};
         extensions.forEach(e -> {

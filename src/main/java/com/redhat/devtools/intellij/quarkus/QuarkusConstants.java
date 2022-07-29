@@ -96,6 +96,8 @@ public class QuarkusConstants {
 
     public static final String CODE_STREAM_PARAMETER_NAME = "streamKey";
 
+    public static final String PLATFORM_ONLY_PARAMETER = "platformOnly";
+
     public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME = "Client-Name";
     public static final String CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE = "IntelliJ Quarkus Tools";
     public static final String CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME = "Client-Contact-Email";

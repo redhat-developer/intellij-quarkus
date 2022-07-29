@@ -46,6 +46,7 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_STREAM_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_TOOL_PARAMETER_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_VERSION_PARAMETER_NAME;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.PLATFORM_ONLY_PARAMETER;
 
 public class QuarkusModelRegistry {
     private static final String EXTENSIONS_SUFFIX = "/api/extensions/stream/";
@@ -113,7 +114,7 @@ public class QuarkusModelRegistry {
         indicator.setText("Looking up Quarkus extensions from endpoint " + endPointURL + " and key " + key);
         QuarkusExtensionsModel model = null;
             try {
-                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(normalizedEndPointURL + EXTENSIONS_SUFFIX + key).userAgent(USER_AGENT).tuner(request -> {
+                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(normalizedEndPointURL + EXTENSIONS_SUFFIX + key + "?" + PLATFORM_ONLY_PARAMETER + "=false").userAgent(USER_AGENT).tuner(request -> {
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
                 }).connect(request -> {
