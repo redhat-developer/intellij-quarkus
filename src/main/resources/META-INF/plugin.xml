@@ -11,6 +11,14 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.12.0</b></p>
+    <ul>
+      <li>New Quarkus project wizard allows to filter extensions by name and by being part of the Quarkus platform</li>
+      <li>Improved CodeLens support</li>
+      <li>Open Quarkus DevUI and application from Quarkus run or debug configuration console</li>
+      <li>LSP4MP 0.5.0 and quarkus-ls 0.12.1 based</li>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.11.1</b></p>
     <ul>
       <li>Fix incompatibilty with JetBrains Quarkus plugin</li>
