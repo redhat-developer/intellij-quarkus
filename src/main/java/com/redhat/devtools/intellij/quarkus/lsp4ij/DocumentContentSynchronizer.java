@@ -43,14 +43,12 @@ public class DocumentContentSynchronizer implements DocumentListener {
     private long modificationStamp;
     final @Nonnull CompletableFuture<Void> didOpenFuture;
 
-    Runnable sendAfterCommit;
-
     public DocumentContentSynchronizer(@Nonnull LanguageServerWrapper languageServerWrapper,
                                        @Nonnull Document document,
                                        TextDocumentSyncKind syncKind) {
         this.languageServerWrapper = languageServerWrapper;
         this.fileUri = LSPIJUtils.toUri(document);
-        this.modificationStamp = new File(fileUri).lastModified();
+        this.modificationStamp = -1;
         this.syncKind = syncKind != null ? syncKind : TextDocumentSyncKind.Full;
 
         this.document = document;
@@ -89,10 +87,7 @@ public class DocumentContentSynchronizer implements DocumentListener {
             if (ApplicationManager.getApplication().isUnitTestMode()) {
                 sendDidChangeEvent();
             } else {
-                if (sendAfterCommit == null) {
-                    sendAfterCommit = () -> sendDidChangeEvent();
-                    PsiDocumentManager.getInstance(languageServerWrapper.getProject()).performForCommittedDocument(event.getDocument(), sendAfterCommit);
-                }
+                PsiDocumentManager.getInstance(languageServerWrapper.getProject()).performForCommittedDocument(event.getDocument(), this::sendDidChangeEvent);
             }
         }
     }

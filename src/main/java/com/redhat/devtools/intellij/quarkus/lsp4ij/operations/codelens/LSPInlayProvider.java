@@ -180,7 +180,7 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
 
     private void executeClientCommand(LanguageServer languageServer, CodeLens codeLens, Component source, Project project) {
         if (LanguageServiceAccessor.getInstance(project).checkCapability(languageServer,
-                capabilites -> capabilites.getCodeLensProvider().getResolveProvider())) {
+                capabilites -> Boolean.TRUE.equals(capabilites.getCodeLensProvider().getResolveProvider()))) {
             languageServer.getTextDocumentService().resolveCodeLens(codeLens).thenAcceptAsync(resolvedCodeLens -> {
                 executeClientCommand(source, resolvedCodeLens);
             });
