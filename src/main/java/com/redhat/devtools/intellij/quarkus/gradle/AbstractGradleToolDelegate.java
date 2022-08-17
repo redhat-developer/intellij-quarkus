@@ -129,9 +129,6 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
 
     private String getModuleDirPath(Module module) {
         VirtualFile dir = QuarkusModuleUtil.getModuleDirPath(module);
-        if (dir != null) {
-            dir.refresh(false, false);
-        }
         VirtualFile script = dir!=null?dir.findChild(getScriptName()):null;
         if (script != null && script.exists()) {
             return dir.getPath();
