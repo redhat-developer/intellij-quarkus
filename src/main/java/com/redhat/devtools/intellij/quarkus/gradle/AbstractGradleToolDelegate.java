@@ -235,7 +235,7 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             content = IOUtils.toString(reader);
         } catch (IOException e) {}
-        content += System.lineSeparator() + "rootProject.buildFileName ='" + customBuildFile.getFileName().toFile().getName() + "'";
+        content += System.lineSeparator() + "rootProject.buildFileName =\"" + customBuildFile.getFileName().toFile().getName() + "\"";
         Path customPath = Files.createTempFile(base, null, getScriptExtension());
         try (Writer writer = Files.newBufferedWriter(customPath, StandardCharsets.UTF_8)) {
             IOUtils.write(content, writer);
