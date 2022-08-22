@@ -51,7 +51,6 @@ public class LSPIJUtils {
         param.setPosition(start);
         TextDocumentIdentifier id = new TextDocumentIdentifier();
         if (uri != null) {
-            param.setUri(uri.toString());
             id.setUri(uri.toString());
         }
         param.setTextDocument(id);
@@ -176,7 +175,6 @@ public class LSPIJUtils {
         Position start = toPosition(offset, document);
         CompletionParams param = new CompletionParams();
         param.setPosition(start);
-        param.setUri(fileUri.toString());
         TextDocumentIdentifier id = new TextDocumentIdentifier();
         id.setUri(fileUri.toString());
         param.setTextDocument(id);

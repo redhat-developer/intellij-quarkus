@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
 import org.eclipse.lsp4j.ClientCapabilities;
+import org.eclipse.lsp4j.ClientInfo;
 import org.eclipse.lsp4j.CodeActionCapabilities;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.CodeActionKindCapabilities;
@@ -303,7 +304,7 @@ public class LanguageServerWrapper {
                     .setSynchronization(new SynchronizationCapabilities(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
             initParams.setCapabilities(
                     new ClientCapabilities(workspaceClientCapabilities, textDocumentClientCapabilities, lspStreamProvider.getExperimentalFeaturesPOJO()));
-            initParams.setClientName(CLIENT_NAME);
+            initParams.setClientInfo(new ClientInfo(CLIENT_NAME));
 
             initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
             initParams.setTrace(this.lspStreamProvider.getTrace(rootURI));
