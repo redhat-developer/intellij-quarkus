@@ -144,10 +144,10 @@ The [Qute templating engine](https://quarkus.io/guides/qute-reference) is suppor
 ![](images/1.11.0/quarkus-tools1.png)
 
 ## Quarkus project wizards
-  * Generate a Quarkus Maven project, based on https://code.quarkus.io/
-    - Call `File -> New -> Module -> Quarkus`
-  * ~~Add Quarkus extensions to current Maven-based Quarkus project~~
-    - NYI
+
+Generate a Quarkus Maven project, based on https://code.quarkus.io/. Call `File -> New -> Module -> Quarkus`. It is possible to filter the list of displayed Quarkus extension by name pattern and allow or disallow the inclusion of non platforms Quarkus extensions.
+
+![](images/1.12.0/quarkus-tools2.gif)
 
 ## Quarkus `application.properties` Features
   * Completion support for Quarkus properties
@@ -177,6 +177,11 @@ The click the `OK` button. The configuration will now appear on the top right si
 If you click the Run icon, it will start the Quarkus application in dev mode. If you click the Debug button, it will start the Quarkus application in dev mode and connect a local Java debugger to the running application.
 
 ![](images/1.10.0/quarkus-tools4.png)
+
+When the console is running, you can open a browser to either the Quarkus DevUI or to the Quarkus application. When the Quarkus application has been started, right click in the console and a sub menu `Quarkus` will be displayed. It has 2 sub menus `Open DevUI` and `Open application`. When one of these menus are selected, a new browser window is opened to the desired location.
+
+![](images/1.12.0/quarkus-tools1.gif)
+
 
 ## Quarkus code snippets
 
