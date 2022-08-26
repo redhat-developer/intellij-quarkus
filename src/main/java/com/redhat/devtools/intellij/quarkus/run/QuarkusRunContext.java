@@ -20,6 +20,8 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfilePr
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 
+import javax.swing.JComponent;
+
 public class QuarkusRunContext {
     private final PsiMicroProfileProject project;
 
@@ -31,7 +33,8 @@ public class QuarkusRunContext {
         Project project = PlatformDataKeys.PROJECT.getData(e.getDataContext());
         RunContentManager contentManager = RunContentManager.getInstance(project);
         RunContentDescriptor selectedContent = contentManager.getSelectedContent();
-        return (QuarkusRunContext) selectedContent.getComponent().getClientProperty(QuarkusConstants.QUARKUS_RUN_CONTEXT_KEY);
+        JComponent component = selectedContent.getComponent();
+        return (component == null) ? null : (QuarkusRunContext) component.getClientProperty(QuarkusConstants.QUARKUS_RUN_CONTEXT_KEY);
     }
 
     private String getProperty(String name, String defaultValue) {
