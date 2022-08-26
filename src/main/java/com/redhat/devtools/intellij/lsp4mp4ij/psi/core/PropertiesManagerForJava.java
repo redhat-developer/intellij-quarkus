@@ -37,6 +37,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaDia
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.JavaHoverContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.CodeActionHandler;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CompletionItem;
@@ -80,6 +81,12 @@ public class PropertiesManagerForJava {
 
     public static PropertiesManagerForJava getInstance() {
         return INSTANCE;
+    }
+
+    private final CodeActionHandler codeActionHandler;
+
+    private PropertiesManagerForJava() {
+        this.codeActionHandler = new CodeActionHandler();
     }
 
     /**
@@ -448,7 +455,16 @@ public class PropertiesManagerForJava {
         return utils.resolveCompilationUnit(uri);
     }
 
+    /**
+     * Returns the codeAction list according the given codeAction parameters.
+     *
+     * @param params  the codeAction parameters
+     * @param utils   the utilities class
+     * @return the codeAction list according the given codeAction parameters.
+     */
     public List<? extends CodeAction> codeAction(MicroProfileJavaCodeActionParams params, IPsiUtils utils) {
-        return Collections.emptyList();
+        return ApplicationManager.getApplication().runReadAction((Computable<List<? extends CodeAction>>) () -> {
+            return codeActionHandler.codeAction(params, utils);
+        });
     }
 }

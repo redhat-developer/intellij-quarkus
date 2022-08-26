@@ -32,24 +32,26 @@ public class PsiUtils {
     private static Set<String> SILENCED_CODEGENS = Collections.singleton("lombok");
 
     public static Range toRange(PsiElement element, int offset, int length) {
+        Document buffer = PsiDocumentManager.getInstance(element.getProject()).getCachedDocument(element.getContainingFile());
+        return toRange(buffer, offset, length);
+    }
+
+    public static Range toRange(Document document, int offset, int length) {
         Range range = newRange();
-        if (offset > 0 || length > 0) {
-            int[] loc = null;
-            int[] endLoc = null;
-            Document buffer = PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
-            if (buffer != null) {
-                loc = JsonRpcHelpers.toLine(buffer, offset);
-                endLoc = JsonRpcHelpers.toLine(buffer, offset + length);
-            }
-            if (loc == null) {
-                loc = new int[2];
-            }
-            if (endLoc == null) {
-                endLoc = new int[2];
-            }
-            setPosition(range.getStart(), loc);
-            setPosition(range.getEnd(), endLoc);
+        int[] loc = null;
+        int[] endLoc = null;
+        if (document != null && (offset > 0 || length > 0)) {
+            loc = JsonRpcHelpers.toLine(document, offset);
+            endLoc = JsonRpcHelpers.toLine(document, offset + length);
         }
+        if (loc == null) {
+            loc = new int[2];
+        }
+        if (endLoc == null) {
+            endLoc = new int[2];
+        }
+        setPosition(range.getStart(), loc);
+        setPosition(range.getEnd(), endLoc);
         return range;
     }
 

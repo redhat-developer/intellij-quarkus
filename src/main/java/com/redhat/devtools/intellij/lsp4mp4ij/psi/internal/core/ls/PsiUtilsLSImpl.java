@@ -153,6 +153,11 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     }
 
     @Override
+    public Range toRange(Document document, int offset, int length) {
+        return PsiUtils.toRange(document, offset, length);
+    }
+
+    @Override
     public int toOffset(Document document, int line, int character) {
         return JsonRpcHelpers.toOffset(document, line, character);
     }
