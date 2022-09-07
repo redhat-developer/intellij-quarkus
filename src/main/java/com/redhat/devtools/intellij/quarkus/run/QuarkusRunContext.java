@@ -33,7 +33,7 @@ public class QuarkusRunContext {
         Project project = PlatformDataKeys.PROJECT.getData(e.getDataContext());
         RunContentManager contentManager = RunContentManager.getInstance(project);
         RunContentDescriptor selectedContent = contentManager.getSelectedContent();
-        JComponent component = selectedContent.getComponent();
+        JComponent component = selectedContent == null ? null : selectedContent.getComponent();
         return (component == null) ? null : (QuarkusRunContext) component.getClientProperty(QuarkusConstants.QUARKUS_RUN_CONTEXT_KEY);
     }
 
