@@ -10,26 +10,20 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens;
 
-import com.intellij.codeInsight.hints.ChangeListener;
 import com.intellij.codeInsight.hints.FactoryInlayHintsCollector;
-import com.intellij.codeInsight.hints.ImmediateConfigurable;
 import com.intellij.codeInsight.hints.InlayHintsCollector;
-import com.intellij.codeInsight.hints.InlayHintsProvider;
 import com.intellij.codeInsight.hints.InlayHintsSink;
 import com.intellij.codeInsight.hints.NoSettings;
-import com.intellij.codeInsight.hints.SettingsKey;
 import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.codeInsight.hints.presentation.MouseButton;
 import com.intellij.codeInsight.hints.presentation.PresentationFactory;
 import com.intellij.codeInsight.hints.presentation.SequencePresentation;
 import com.intellij.ide.DataManager;
-import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.editor.Editor;
@@ -38,8 +32,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.layout.LCFlags;
-import com.intellij.ui.layout.LayoutKt;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.AbstractLSPInlayProvider;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
 import org.eclipse.lsp4j.CodeLens;
@@ -52,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JComponent;
 import java.awt.Component;
 import java.net.URI;
 import java.util.ArrayList;
@@ -65,60 +57,16 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LSPInlayProvider.class);
-
-    public static final DataKey<Command> LSP_COMMAND = DataKey.create("com.redhat.devtools.intellij.quarkus.lsp4ij.command");
-    private static final long TIMEOUT = 5L;
-
-    private SettingsKey<NoSettings> key = new SettingsKey<>("LSP.hints");
-
-    @Override
-    public boolean isVisibleInSettings() {
-        return true;
-    }
-
-    @NotNull
-    @Override
-    public SettingsKey<NoSettings> getKey() {
-        return key;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-        return "LSP";
-    }
+public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LSPCodelensInlayProvider.class);
 
     @Nullable
     @Override
-    public String getPreviewText() {
-        return "Preview";
-    }
-
-    @NotNull
-    @Override
-    public ImmediateConfigurable createConfigurable(@NotNull NoSettings o) {
-        return new ImmediateConfigurable() {
-            @NotNull
-            @Override
-            public JComponent createComponent(@NotNull ChangeListener changeListener) {
-                return LayoutKt.panel(new LCFlags[0], "LSP", builder -> {
-                    return null;
-                });
-            }
-        };
-    }
-
-    @NotNull
-    @Override
-    public NoSettings createSettings() {
-        return new NoSettings();
-    }
-
-    @Nullable
-    @Override
-    public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull NoSettings o, @NotNull InlayHintsSink inlayHintsSink) {return new FactoryInlayHintsCollector(editor) {
+    public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile,
+                                               @NotNull Editor editor,
+                                               @NotNull NoSettings o,
+                                               @NotNull InlayHintsSink inlayHintsSink) {
+        return new FactoryInlayHintsCollector(editor) {
             @Override
             public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
                 try {
@@ -207,10 +155,5 @@ public class LSPInlayProvider implements InlayHintsProvider<NoSettings> {
             return null;
         }
         return command.getTitle();
-    }
-
-    @Override
-    public boolean isLanguageSupported(@NotNull Language language) {
-        return true;
     }
 }

@@ -21,7 +21,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPInlayProvider;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import org.eclipse.lsp4j.Command;
@@ -43,7 +43,7 @@ public class QuteJavaDefinitionAction extends QuteAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         try {
-            Command command = e.getData(LSPInlayProvider.LSP_COMMAND);
+            Command command = e.getData(LSPCodelensInlayProvider.LSP_COMMAND);
             QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command.getArguments());
             if (params != null) {
                 Location location = QuteSupportForTemplate.getInstance().getJavaDefinition(params, PsiUtilsLSImpl.getInstance(e.getProject()), new EmptyProgressIndicator());
