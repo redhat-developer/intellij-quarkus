@@ -18,14 +18,6 @@ import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.codeInsight.hints.presentation.MouseButton;
 import com.intellij.codeInsight.hints.presentation.PresentationFactory;
 import com.intellij.codeInsight.hints.presentation.SequencePresentation;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -130,22 +122,10 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
         if (LanguageServiceAccessor.getInstance(project).checkCapability(languageServer,
                 capabilites -> Boolean.TRUE.equals(capabilites.getCodeLensProvider().getResolveProvider()))) {
             languageServer.getTextDocumentService().resolveCodeLens(codeLens).thenAcceptAsync(resolvedCodeLens -> {
-                executeClientCommand(source, resolvedCodeLens);
+                executeClientCommand(source, resolvedCodeLens.getCommand());
             });
         } else {
-            executeClientCommand(source, codeLens);
-        }
-    }
-
-    private void executeClientCommand(Component source, CodeLens resolvedCodeLens) {
-        if (resolvedCodeLens.getCommand() != null) {
-            AnAction action = ActionManager.getInstance().getAction(resolvedCodeLens.getCommand().getCommand());
-            if (action != null) {
-                DataContext context = SimpleDataContext.getSimpleContext(LSP_COMMAND.getName(), resolvedCodeLens.getCommand(), DataManager.getInstance().getDataContext(source));
-                action.actionPerformed(new AnActionEvent(null, context,
-                        ActionPlaces.UNKNOWN, new Presentation(),
-                        ActionManager.getInstance(), 0));
-            }
+            executeClientCommand(source, codeLens.getCommand());
         }
     }
 

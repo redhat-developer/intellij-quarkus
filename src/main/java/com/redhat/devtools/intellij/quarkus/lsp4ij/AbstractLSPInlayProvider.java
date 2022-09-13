@@ -15,8 +15,16 @@ import com.intellij.codeInsight.hints.ImmediateConfigurable;
 import com.intellij.codeInsight.hints.InlayHintsProvider;
 import com.intellij.codeInsight.hints.NoSettings;
 import com.intellij.codeInsight.hints.SettingsKey;
+import com.intellij.ide.DataManager;
 import com.intellij.lang.Language;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataKey;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.ui.layout.LCFlags;
 import com.intellij.ui.layout.LayoutKt;
 import org.eclipse.lsp4j.Command;
@@ -24,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
+import java.awt.Component;
 
 public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoSettings> {
     public static final DataKey<Command> LSP_COMMAND = DataKey.create("com.redhat.devtools.intellij.quarkus.lsp4ij.command");
@@ -76,5 +85,17 @@ public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoS
     @Override
     public boolean isLanguageSupported(@NotNull Language language) {
         return true;
+    }
+
+    protected void executeClientCommand(Component source, Command command) {
+        if (command != null) {
+            AnAction action = ActionManager.getInstance().getAction(command.getCommand());
+            if (action != null) {
+                DataContext context = SimpleDataContext.getSimpleContext(LSP_COMMAND.getName(), command, DataManager.getInstance().getDataContext(source));
+                action.actionPerformed(new AnActionEvent(null, context,
+                        ActionPlaces.UNKNOWN, new Presentation(),
+                        ActionManager.getInstance(), 0));
+            }
+        }
     }
 }
