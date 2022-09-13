@@ -15,10 +15,12 @@ import com.intellij.codeInsight.hints.InlayHintsCollector;
 import com.intellij.codeInsight.hints.InlayHintsSink;
 import com.intellij.codeInsight.hints.NoSettings;
 import com.intellij.codeInsight.hints.presentation.InlayPresentation;
+import com.intellij.codeInsight.hints.presentation.MouseButton;
 import com.intellij.codeInsight.hints.presentation.PresentationFactory;
 import com.intellij.codeInsight.hints.presentation.SequencePresentation;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -28,6 +30,7 @@ import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
 import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.InlayHintLabelPart;
 import org.eclipse.lsp4j.InlayHintParams;
+import org.eclipse.lsp4j.InlayHintRegistrationOptions;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
@@ -38,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.Component;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,10 +111,47 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
                                              PresentationFactory factory) {
         List<InlayPresentation> presentations = new ArrayList<>();
         elements.forEach(p -> {
-            presentations.add(factory.roundWithBackground(factory.smallText(getInlayHintString(p.second.first))));
+            Either<String, List<InlayHintLabelPart>> label = p.second.first.getLabel();
+            if (label.isLeft()) {
+                presentations.add(factory.smallText(label.getLeft()));
+            } else {
+                int index = 0;
+                for(InlayHintLabelPart part : label.getRight()) {
+                    InlayPresentation presentation = factory.smallText(part.getValue());
+                    if (part.getCommand() != null) {
+                        int finalIndex = index;
+                        presentation = factory.onClick(presentation, MouseButton.Left, (event, point) -> {
+                            executeClientCommand(p.second.second, p.second.first, finalIndex, (Component) event.getSource(), editor.getProject());
+                            return null;
+                        });
+                        if (part.getTooltip() != null && part.getTooltip().isLeft()) {
+                            presentation = factory.withTooltip(part.getTooltip().getLeft(), presentation);
+                        }
+                    }
+                    presentations.add(presentation);
+                    index++;
+                }
+            }
         });
-        return new SequencePresentation(presentations);
+        return factory.roundWithBackground(new SequencePresentation(presentations));
     }
+
+    private void executeClientCommand(LanguageServer languageServer, InlayHint inlayHint, int index, Component source,
+                                      Project project) {
+        if (LanguageServiceAccessor.getInstance(project).checkCapability(languageServer,
+                capabilites -> isResolveSupported(capabilites.getInlayHintProvider()))) {
+            languageServer.getTextDocumentService().resolveInlayHint(inlayHint).thenAcceptAsync(resolvedInlayHint -> {
+                executeClientCommand(source, resolvedInlayHint.getLabel().getRight().get(index).getCommand());
+            });
+        } else {
+            executeClientCommand(source, inlayHint.getLabel().getRight().get(index).getCommand());
+        }
+    }
+
+    private boolean isResolveSupported(Either<Boolean, InlayHintRegistrationOptions> provider) {
+        return provider.isRight() && provider.getRight().getResolveProvider();
+    }
+
 
     private String getInlayHintString(InlayHint inlayHint) {
         Either<String, List<InlayHintLabelPart>> label = inlayHint.getLabel();

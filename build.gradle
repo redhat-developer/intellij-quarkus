@@ -156,7 +156,7 @@ dependencies {
         transitive = false
     }
     compile 'com.redhat.microprofile:com.redhat.qute.ls:0.12.1'
-    lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.12.1:uber') {
+    lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.13.0-SNAPSHOT:uber') {
         transitive = false
     }
     compile files(new File(buildDir, 'server')) {
