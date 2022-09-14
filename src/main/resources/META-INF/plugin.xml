@@ -11,6 +11,13 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.13.0</b></p>
+    <ul>
+      <li>Add support for InlayHint including clickable hints</li>
+      <li>Add support for documentHighlight</li>
+      <li>Security fixes</li>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.12.0</b></p>
     <ul>
       <li>New Quarkus project wizard allows to filter extensions by name and by being part of the Quarkus platform</li>
