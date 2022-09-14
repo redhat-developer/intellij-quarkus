@@ -58,6 +58,18 @@ Clicking on the CodeLens URL will open the URL in your default browser.
 
 ![](images/quarkus-tools15.gif)
 
+#### InLayHint
+
+InlayHint is now a supported feature. It allows to add inline information about parameters and variables. This is very useful for Qute templates to get type information. InlayHints may also be clickable.
+
+![](images/1.13.0/quarkus-tools1.gif)
+
+## DocumentHighlight
+
+DocumentHightlight allows to hightlight parts of the document that are related to the current selection. This is useful for Qute templates to highlight matching part of a Qute section.
+
+![](images/1.13.0/quarkus-tools2.gif)
+
 ### MicroProfile Health 
 
 Syntax validation is being performed for Java files using the MicroProfile Health assets:
