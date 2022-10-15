@@ -142,7 +142,7 @@ public class MavenToolDelegate implements ToolDelegate {
                 List<MavenArtifactInfo> infos = deploymentIds.stream().map(id -> new MavenArtifactInfo(id, "jar", classifier)).collect(Collectors.toList());
                 result = serverWrapper.resolveTransitively(infos, mavenProject.getRemoteRepositories());
             }
-        } catch (MavenProcessCanceledException e) {
+        } catch (MavenProcessCanceledException | RuntimeException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return result;
