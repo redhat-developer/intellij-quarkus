@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <artifacts>
-    <artifact version="2.13.2.Final" name="Quarkus">
-        <item name="quarkus-core-2.13.2.Final.jar" md5=""
-              url="https://repo1.maven.org/maven2/io/quarkus/quarkus-core/2.13.2.Final/quarkus-core-2.13.2.Final.jar">
+    <artifact version="2.13.3.Final" name="Quarkus">
+        <item name="quarkus-core-2.13.3.Final.jar" md5=""
+              url="https://repo1.maven.org/maven2/io/quarkus/quarkus-core/2.13.3.Final/quarkus-core-2.13.3.Final.jar">
             <required-class fqn="io.quarkus.runtime.Quarkus"/>
         </item>
     </artifact>
