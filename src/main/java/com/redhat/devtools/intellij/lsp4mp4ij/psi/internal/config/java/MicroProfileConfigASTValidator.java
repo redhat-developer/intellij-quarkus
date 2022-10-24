@@ -30,6 +30,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfilePr
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertyProvider;
+import com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.utils.AntPathMatcher;
@@ -97,6 +98,12 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
 		for(PsiAnnotation annotation : typeDeclaration.getAnnotations()) {
 			if (AnnotationUtils.isMatchAnnotation(annotation, CONFIG_PROPERTIES_ANNOTATION)) {
 				PsiAnnotationMemberValue prefixExpr = getAnnotationMemberValueExpression(annotation, MicroProfileConfigConstants.CONFIG_PROPERTIES_ANNOTATION_PREFIX);
+				if (prefixExpr instanceof PsiLiteral && ((PsiLiteral) prefixExpr).getValue() instanceof String) {
+					currentPrefix = (String) ((PsiLiteral) prefixExpr).getValue();
+				}
+
+			} else if (AnnotationUtils.isMatchAnnotation(annotation, QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION)) {
+				PsiAnnotationMemberValue prefixExpr = getAnnotationMemberValueExpression(annotation, QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION_PREFIX);
 				if (prefixExpr instanceof PsiLiteral && ((PsiLiteral) prefixExpr).getValue() instanceof String) {
 					currentPrefix = (String) ((PsiLiteral) prefixExpr).getValue();
 				}

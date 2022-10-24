@@ -105,6 +105,8 @@ public class QuarkusConstants {
 	 */
 	public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
 
+	public static final String CONFIG_PROPERTIES_ANNOTATION_PREFIX = "prefix";
+
 	public static final String CONFIG_PROPERTIES_ANNOTATION_NAMING_STRATEGY = "namingStrategy";
 
 	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM = CONFIG_PROPERTIES_ANNOTATION

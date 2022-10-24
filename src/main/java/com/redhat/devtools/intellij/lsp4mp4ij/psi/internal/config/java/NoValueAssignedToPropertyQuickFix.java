@@ -29,6 +29,7 @@ import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.CodeActionFactory;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSource;
@@ -39,7 +40,6 @@ import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.TextDocumentItem;
-import org.eclipse.lsp4mp.ls.commons.CodeActionFactory;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

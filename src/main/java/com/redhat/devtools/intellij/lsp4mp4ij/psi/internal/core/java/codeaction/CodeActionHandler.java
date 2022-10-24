@@ -87,6 +87,7 @@ public class CodeActionHandler {
 				// Get list of code action definition for the given kind
 				List<JavaCodeActionDefinition> codeActionDefinitions = JavaCodeActionDefinition.EP.extensions()
 						.filter(definition -> definition.isAdaptedForCodeAction(context))
+						.filter(definition -> codeActionKind.equals(definition.getKind()))
 						.collect(Collectors.toList());
 				if (codeActionDefinitions != null) {
 					// Loop for each code action definition
