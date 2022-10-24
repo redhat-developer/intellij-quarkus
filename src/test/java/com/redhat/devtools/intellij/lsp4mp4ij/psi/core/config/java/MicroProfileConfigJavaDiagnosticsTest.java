@@ -11,6 +11,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.config.java;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -164,19 +165,25 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 		String javaUri = fixURI(javaFile.toURI());
 		String propertiesUri = fixURI(propertiesFile.toURI());
 
+		String lineSeparator = CodeStyleSettingsManager.getInstance(javaProject.getProject()).getMainProjectCodeStyle().
+				getLineSeparator();
+		if (lineSeparator == null) {
+			lineSeparator = System.lineSeparator();
+		}
+
 		MicroProfileJavaCodeActionParams codeActionParams1 = createCodeActionParams(javaUri, d1);
 		assertJavaCodeAction(codeActionParams1, utils, //
 				ca(javaUri, "Insert 'defaultValue' attribute", d1, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\", defaultValue = \"\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\")\n        private String url;\n    }\n}\n")),
 				ca(propertiesUri, "Insert 'foo' property in 'META-INF/microprofile-config.properties'", d1, //
-						te(0, 0, 0, 0, "foo=\r\n")));
+						te(0, 0, 0, 0, "foo=" + lineSeparator)));
 
 		MicroProfileJavaCodeActionParams codeActionParams2 = createCodeActionParams(javaUri, d2);
 		assertJavaCodeAction(codeActionParams2, utils, //
 				ca(javaUri, "Insert 'defaultValue' attribute", d2, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\", defaultValue = \"\")\n        private String url;\n    }\n}\n")),
 				ca(propertiesUri, "Insert 'server.url' property in 'META-INF/microprofile-config.properties'", d2, //
-						te(0, 0, 0, 0, "server.url=\r\n")));
+						te(0, 0, 0, 0, "server.url=" + lineSeparator)));
 
 		// Same code actions but with exclude
 		Diagnostic d1_1 = d(8, 24, 29,
@@ -197,7 +204,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 				ca(javaUri, "Insert 'defaultValue' attribute", d1_1, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\", defaultValue = \"\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\")\n        private String url;\n    }\n}\n")),
 				ca(propertiesUri, "Insert 'foo' property in 'META-INF/microprofile-config.properties'", d1_1, //
-						te(0, 0, 0, 0, "foo=\r\n")));
+						te(0, 0, 0, 0, "foo=" + lineSeparator)));
 
 		MicroProfileJavaCodeActionParams codeActionParams2_1 = createCodeActionParams(javaUri, d2_1);
 		codeActionParams2_1.setCommandConfigurationUpdateSupported(true);
@@ -206,7 +213,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 				ca(javaUri, "Insert 'defaultValue' attribute", d2_1, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\", defaultValue = \"\")\n        private String url;\n    }\n}\n")),
 				ca(propertiesUri, "Insert 'server.url' property in 'META-INF/microprofile-config.properties'", d2_1, //
-						te(0, 0, 0, 0, "server.url=\r\n")));
+						te(0, 0, 0, 0, "server.url=" + lineSeparator)));
 
 	}
 
