@@ -15,6 +15,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.MicroProfileHealthErrorCode;
@@ -31,8 +32,11 @@ import org.junit.Test;
 import java.io.File;
 import java.util.Arrays;
 
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaCodeAction;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDiagnostics;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.ca;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.d;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.te;
 
 /**
  * Java diagnostics and code action for MicroProfile Health.
@@ -46,6 +50,8 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 	public void testImplementHealthCheck() throws Exception {
 
 		Module module = createMavenModule("microprofile-health-quickstart", new File("projects/maven/microprofile-health-quickstart"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/health/DontImplementHealthCheck.java");
 
@@ -60,22 +66,19 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 		assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
 				d);
 
-		/*String uri = javaFile.getUrl();
+		/*String uri = javaFile.getUrl();*/
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Let 'DontImplementHealthCheck' implement 'org.eclipse.microprofile.health.HealthCheck'", d, //
-						te(2, 50, 9, 37, "\r\n\r\n" + //
-								"import org.eclipse.microprofile.health.HealthCheck;\r\n" + //
-								"import org.eclipse.microprofile.health.HealthCheckResponse;\r\n" + //
-								"import org.eclipse.microprofile.health.Liveness;\r\n\r\n@Liveness\r\n" + //
-								"@ApplicationScoped\r\n" + //
-								"public class DontImplementHealthCheck implements HealthCheck")));*/
+						te(0, 0, 16, 0, "package org.acme.health;\n\nimport javax.enterprise.context.ApplicationScoped;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\n@ApplicationScoped\npublic class DontImplementHealthCheck implements HealthCheck {\n\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n} \n")));
 	}
 
 	@Test
 	public void testHealthAnnotationMissing() throws Exception {
 
 		Module module = createMavenModule("microprofile-health-quickstart", new File("projects/maven/microprofile-health-quickstart"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/health/ImplementHealthCheck.java");
 		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
@@ -89,22 +92,15 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 		assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
 				d);
 
-		/*MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
+		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @Health", d, //
-						te(2, 0, 5, 0, "import org.eclipse.microprofile.health.Health;\r\n" + //
-								"import org.eclipse.microprofile.health.HealthCheck;\r\n" + //
-								"import org.eclipse.microprofile.health.HealthCheckResponse;\r\n\r\n" + //
-								"@Health\r\n")),
+						te(0, 0, 13, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.Health;\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\n\n@Health\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")),
 				ca(uri, "Insert @Liveness", d, //
-						te(3, 59, 5, 0, "\r\n" + //
-								"import org.eclipse.microprofile.health.Liveness;\r\n\r\n" + //
-								"@Liveness\r\n")), //
+						te(0, 0, 13, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")), //
 				ca(uri, "Insert @Readiness", d, //
-						te(3, 59, 5, 0, "\r\n" + //
-								"import org.eclipse.microprofile.health.Readiness;\r\n\r\n" + //
-								"@Readiness\r\n")) //
-		);*/
+						te(0, 0, 13, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")) //
+		);
 	}
 
 	private MicroProfileJavaCodeActionParams createCodeActionParams(String uri, Diagnostic d) {
