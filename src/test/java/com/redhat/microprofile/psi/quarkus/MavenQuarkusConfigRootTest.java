@@ -63,7 +63,7 @@ public class MavenQuarkusConfigRootTest extends MavenModuleImportingTestCase {
     }
 
     public void testAllQuarkusExtensions() throws Exception {
-        Module module = createMavenModule("all-quarkus-extensions", new File("projects/quarkus/maven/all-quarkus-extensions"));
+        Module module = createMavenModule("all-quarkus-extensions", new File("projects/quarkus/projects/maven/all-quarkus-extensions"));
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
         assertProperties(info,
 
