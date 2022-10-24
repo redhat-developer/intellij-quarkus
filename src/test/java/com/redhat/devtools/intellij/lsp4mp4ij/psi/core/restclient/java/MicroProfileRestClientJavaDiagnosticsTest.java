@@ -126,7 +126,7 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @RegisterRestClient", d, //
-						te(0, 28, 2, 0,
-								"\r\n\r\nimport org.eclipse.microprofile.rest.client.inject.RegisterRestClient;\r\n\r\n@RegisterRestClient\r\n")));
+						te(0, 0, 5, 0,
+								"package org.acme.restclient;\n\nimport org.eclipse.microprofile.rest.client.inject.RegisterRestClient;\n\n@RegisterRestClient\npublic interface MyService {\n\n}\n")));
 	}
 }
