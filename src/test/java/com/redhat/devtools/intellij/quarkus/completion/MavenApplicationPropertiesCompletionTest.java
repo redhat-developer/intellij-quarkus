@@ -30,7 +30,7 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 
 	@Test
 	public void testBooleanCompletion() throws Exception {
-		Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+		Module module = createMavenModule("config-quickstart", new File("projects/quarkus/projects/maven/config-quickstart"));
 		VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/application.properties");
 		codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
