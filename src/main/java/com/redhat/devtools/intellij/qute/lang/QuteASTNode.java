@@ -29,7 +29,7 @@ public class QuteASTNode extends CompositeElement {
         int end = node.getStart();
         for(Node child : getChildren(node)) {
             if (end != -1 && end < child.getStart()) {
-                rawAddChildrenWithoutNotifications(new LeafPsiElement(new QuteElementType("TEXT"), child.getOwnerTemplate().getText(end, child.getStart())));
+                rawAddChildrenWithoutNotifications(new LeafPsiElement(QuteElementTypes.QUTE_TEXT, child.getOwnerTemplate().getText(end, child.getStart())));
             }
             rawAddChildrenWithoutNotifications(getNode(child));
             end = child.getEnd();
@@ -41,7 +41,7 @@ public class QuteASTNode extends CompositeElement {
 
     @NotNull
     public static TreeElement getNode(Node child) {
-        return getChildren(child).isEmpty()?new LeafPsiElement(new QuteElementType(child.getNodeName()), child.getOwnerTemplate().getText(child.getStart(), child.getEnd())):new QuteASTNode(child);
+        return getChildren(child).isEmpty()?new LeafPsiElement(QuteElementTypes.fromNode(child), child.getOwnerTemplate().getText(child.getStart(), child.getEnd())):new QuteASTNode(child);
     }
 
     private static List<Node> getChildren(Node node) {
