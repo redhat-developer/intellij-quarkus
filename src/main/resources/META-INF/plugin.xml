@@ -213,6 +213,7 @@
     <extensionPoint name="configSourceProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider"/>
     <extensionPoint name="javaASTValidator.validator" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidatorExtensionPointBean"/>
     <extensionPoint name="javaASTValidator.annotationValidator" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationRuleExtensionPointBean"/>
+    <extensionPoint name="javaCodeActionParticipant" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.JavaCodeActionDefinition"/>
 
     <!-- Qute -->
     <extensionPoint name="qute.dataModelProvider" beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean"/>
@@ -252,6 +253,36 @@
 
     <javaCodeLensParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java.JaxRsCodeLensParticipant"/>
     <javaCodeLensParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.MicroProfileRestClientCodeLensParticipant"/>
+
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-config#NO_VALUE_ASSIGNED_TO_PROPERTY"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.NoValueAssignedToPropertyQuickFix"/>
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-config#NO_VALUE_ASSIGNED_TO_PROPERTY"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.InsertDefaultValueAnnotationAttributeQuickFix"/>
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-health#ImplementHealthCheck"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.ImplementHealthCheckQuickFix"/>
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-health#HealthAnnotationMissing"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.HealthAnnotationMissingQuickFix"/>
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-metrics#ApplicationScopedAnnotationMissing"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.java.ApplicationScopedAnnotationMissingQuickFix"/>
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-restclient#InjectAnnotationMissing"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.InjectAnnotationMissingQuickFix"/>
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-restclient#RestClientAnnotationMissing"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.RestClientAnnotationMissingQuickFix"/>
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-restclient#InjectAndRestClientAnnotationMissing"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.InjectAndRestClientAnnotationMissingQuickFix"/>
+    <javaCodeActionParticipant kind="quickfix"
+                               targetDiagnostic="microprofile-restclient#RegisterRestClientAnnotationMissing"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.RegisterRestClientAnnotationMissingQuickFix"/>
+    <javaCodeActionParticipant kind="source"
+                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.java.MicroProfileGenerateOpenAPIOperation"/>
 
     <!--quarkus-ls-->
     <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>

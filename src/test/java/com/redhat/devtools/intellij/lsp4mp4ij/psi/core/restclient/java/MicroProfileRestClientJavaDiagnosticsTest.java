@@ -22,14 +22,19 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfi
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
 
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaCodeAction;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDiagnostics;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.ca;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.createCodeActionParams;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.d;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.te;
 
 /**
  * Java diagnostics for MicroProfile RestClient.
@@ -78,22 +83,22 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 				d4, //
 				d5);
 
-		/*String uri = javaFile.getLocation().toFile().toURI().toString();
+		/*String uri = javaFile.getLocation().toFile().toURI().toString();*/
 
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d3);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @RestClient", d3, //
-						te(14, 1, 14, 1, "@RestClient\r\n\t")));
+						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @RestClient\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
 
 		codeActionParams = createCodeActionParams(uri, d4);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @Inject", d4, //
-						te(17, 1, 17, 1, "@Inject\r\n\t")));
+						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport javax.inject.Inject;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @Inject\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
 
 		codeActionParams = createCodeActionParams(uri, d5);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @Inject, @RestClient", d5, //
-						te(20, 1, 20, 1, "@RestClient\r\n\t@Inject\r\n\t")));*/
+						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    @RestClient\n    @Inject\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
 	}
 
 	@Test
@@ -117,11 +122,11 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 		assertJavaDiagnostics(params, utils, //
 				d);
 
-		/*String uri = javaFile.getLocation().toFile().toURI().toString();
+		/*String uri = javaFile.getLocation().toFile().toURI().toString();*/
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @RegisterRestClient", d, //
-						te(0, 28, 2, 0,
-								"\r\n\r\nimport org.eclipse.microprofile.rest.client.inject.RegisterRestClient;\r\n\r\n@RegisterRestClient\r\n")));*/
+						te(0, 0, 5, 0,
+								"package org.acme.restclient;\n\nimport org.eclipse.microprofile.rest.client.inject.RegisterRestClient;\n\n@RegisterRestClient\npublic interface MyService {\n\n}\n")));
 	}
 }

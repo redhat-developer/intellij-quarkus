@@ -43,6 +43,8 @@ public interface IPsiUtils {
 
     Range toRange(PsiElement element, int offset, int length);
 
+    Range toRange(Document document, int offset, int length);
+
     PsiFile resolveCompilationUnit(String uri);
 
     int toOffset(Document document, int line, int character);

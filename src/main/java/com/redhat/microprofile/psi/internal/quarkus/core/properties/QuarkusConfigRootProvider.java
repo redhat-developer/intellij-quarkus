@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getEnclosedType;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.lowerCase;
@@ -314,7 +315,8 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		String sourceField = PsiTypeUtils.getSourceField(field);
 
 		// Enumerations
-		super.updateHint(collector, fieldClass);
+		PsiClass enclosedType = getEnclosedType(fieldClass, type, field.getManager());
+		super.updateHint(collector, enclosedType);
 
 		ItemMetadata item = null;
 		// Default value for primitive type
@@ -353,7 +355,7 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 		if (item != null) {
 			item.setPhase(getPhase(configPhase));
 		}
-		PsiQuarkusUtils.updateConverterKinds(item, field, fieldClass);
+		PsiQuarkusUtils.updateConverterKinds(item, field, enclosedType);
 	}
 
 	private static String[] getRawTypeParameters(String fieldTypeName) {

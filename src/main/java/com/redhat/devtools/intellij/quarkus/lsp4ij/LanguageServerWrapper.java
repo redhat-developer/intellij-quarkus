@@ -25,6 +25,7 @@ import org.eclipse.lsp4j.CodeActionCapabilities;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.CodeActionKindCapabilities;
 import org.eclipse.lsp4j.CodeActionLiteralSupportCapabilities;
+import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.CodeLensCapabilities;
 import org.eclipse.lsp4j.ColorProviderCapabilities;
 import org.eclipse.lsp4j.CompletionCapabilities;
@@ -756,6 +757,10 @@ public class LanguageServerWrapper {
                     serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider.getRight());
                     addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
                 }
+            } else if ("textDocument/codeAction".equals(reg.getMethod())) { //$NON-NLS-1$
+                final Either<Boolean, CodeActionOptions> beforeRegistration = serverCapabilities.getCodeActionProvider();
+                serverCapabilities.setCodeActionProvider(Boolean.TRUE);
+                addRegistration(reg, () -> serverCapabilities.setCodeActionProvider(beforeRegistration));
             }
         });
     }

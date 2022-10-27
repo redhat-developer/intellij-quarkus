@@ -11,6 +11,7 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import org.eclipse.lsp4j.Diagnostic;
@@ -25,8 +26,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,12 +86,18 @@ public class LSPDiagnosticsToMarkers implements Consumer<PublishDiagnosticsParam
 
     @NotNull
     private Map<String, RangeHighlighter[]> getAllMarkers(Editor editor) {
-        Map<String, RangeHighlighter[]> allMarkers = editor.getUserData(LSP_MARKER_KEY_PREFIX);
-        if (allMarkers == null) {
-            allMarkers = new HashMap<>();
-            editor.putUserData(LSP_MARKER_KEY_PREFIX, allMarkers);
+        if (editor instanceof UserDataHolderBase) {
+            return ((UserDataHolderBase) editor).putUserDataIfAbsent(LSP_MARKER_KEY_PREFIX, new HashMap<>());
+        } else {
+            synchronized (editor) {
+                Map<String, RangeHighlighter[]> allMarkers = editor.getUserData(LSP_MARKER_KEY_PREFIX);
+                if (allMarkers == null) {
+                    allMarkers = new HashMap<>();
+                    editor.putUserData(LSP_MARKER_KEY_PREFIX, allMarkers);
+                }
+                return allMarkers;
+            }
         }
-        return allMarkers;
     }
 
     private EffectType getEffectType(DiagnosticSeverity severity) {

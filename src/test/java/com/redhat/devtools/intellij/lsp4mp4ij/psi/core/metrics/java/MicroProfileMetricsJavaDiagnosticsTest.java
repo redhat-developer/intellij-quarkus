@@ -30,17 +30,20 @@ import org.junit.Test;
 import java.io.File;
 import java.util.Arrays;
 
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaCodeAction;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDiagnostics;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.ca;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.createCodeActionParams;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.d;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.fixURI;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.te;
 
 /**
  * Java diagnostics and code action for MicroProfile Metrics.
  * 
  * @author Kathryn Kodama
  */
-public class JavaDiagnosticsMicroProfileMetricsTest extends MavenModuleImportingTestCase {
+public class MicroProfileMetricsJavaDiagnosticsTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testApplicationScopedAnnotationMissing() throws Exception {
@@ -63,11 +66,9 @@ public class JavaDiagnosticsMicroProfileMetricsTest extends MavenModuleImporting
 		String uri = javaFileUri;
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		// check for MicroProfile metrics quick fix code action associated with diagnostic warning
-		/*assertJavaCodeAction(codeActionParams, utils, //
+		assertJavaCodeAction(codeActionParams, utils, //
 			ca(uri, "Replace current scope with @ApplicationScoped", d, //
-				te(4, 57, 9, 0, "\n\nimport javax.enterprise.context.ApplicationScoped;\n" + //
-					"import javax.enterprise.context.RequestScoped;\n\n" + //
-					"@ApplicationScoped\n")));*/
+				te(0, 0, 18, 0, "package org.acme;\n\nimport javax.enterprise.context.ApplicationScoped;\nimport javax.ws.rs.Path;\n\nimport org.eclipse.microprofile.metrics.MetricUnits;\nimport org.eclipse.microprofile.metrics.annotation.Gauge;\n\n@ApplicationScoped\n@Path(\"/\")\npublic class IncorrectScope {\n\n    @Gauge(name = \"Return Int\", unit = MetricUnits.NONE, description = \"Test method for Gauge annotation\")\n    public int returnInt() {\n        return 2;\n    }\n\n}\n")));
 	}
 	
 }

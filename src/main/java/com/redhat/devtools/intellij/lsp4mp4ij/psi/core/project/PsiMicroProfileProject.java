@@ -127,7 +127,7 @@ public class PsiMicroProfileProject {
 				.collect(Collectors.toList());
 	}
 
-	private List<IConfigSource> getConfigSources() {
+	public List<IConfigSource> getConfigSources() {
 		if (configSources == null) {
 			configSources = loadConfigSources(javaProject);
 		}

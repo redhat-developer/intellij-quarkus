@@ -49,7 +49,7 @@ public class ConfigItemIntBoolDefaultValueTest extends MavenModuleImportingTestC
 		String intDefault = "0";
 
 		assertProperties(infoFromClasspath,
-				259 + 18 /* properties from Java sources with ConfigProperty */ + //
+				259 + 20 /* properties from Java sources with ConfigProperty */ + //
 				7 /* static properties from microprofile-context-propagation-api */,
 
 				// GreetingConstructorResource(
