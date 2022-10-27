@@ -32,6 +32,8 @@ public class QuteElementTypes {
      */
     public static final IElementType QUTE_COMMENT = new QuteElementType("#comment");
 
+    public static final IElementType QUTE_TEXT = new QuteElementType("TEXT");
+
     /*
      Qute block in non Qute PSI file
      */
