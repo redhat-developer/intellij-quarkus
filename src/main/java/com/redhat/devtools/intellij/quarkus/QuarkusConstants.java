@@ -30,6 +30,13 @@ public class QuarkusConstants {
     public static final String CONFIG_ITEM_ANNOTATION = "io.quarkus.runtime.annotations.ConfigItem";
     public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
 
+    /**
+     * As ConfigProperties is not part anymore of Quarkus since 2.14.0.Final,
+     * we defined this constant to be compatible with project based on previous Quarkus
+     * releases
+     */
+    public static final String CONFIG_PROPERTIES_UNSET_PREFIX = "<< unset >>";
+
     public static final String CONFIG_ANNOTATION_NAME = "name";
     public static final String CONFIG_ROOT_ANNOTATION_PHASE = "phase";
     public static final String CONFIG_ITEM_ANNOTATION_DEFAULT_VALUE = "defaultValue";

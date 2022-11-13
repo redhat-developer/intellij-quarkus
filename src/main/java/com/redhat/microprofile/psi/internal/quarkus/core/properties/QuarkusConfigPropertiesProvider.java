@@ -29,7 +29,6 @@ import com.redhat.microprofile.psi.quarkus.PsiQuarkusUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.SearchContext;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
-import io.quarkus.arc.config.ConfigProperties;
 import io.quarkus.deployment.bean.JavaBeanUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -362,7 +361,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 		if (value == null) {
 			return null;
 		}
-		if (ConfigProperties.UNSET_PREFIX.equals(value) || value.isEmpty()) {
+		if (QuarkusConstants.CONFIG_PROPERTIES_UNSET_PREFIX.equals(value) || value.isEmpty()) {
 			return null;
 		}
 		return value;
