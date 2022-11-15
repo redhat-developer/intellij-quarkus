@@ -70,6 +70,23 @@ DocumentHightlight allows to hightlight parts of the document that are related t
 
 ![](images/1.13.0/quarkus-tools2.gif)
 
+### CodeActions / Quick Fixes
+
+When an error is detected on one of your Quarkus project files, it is highlighted in the source editor
+(example when you define one property through `@ConfigProperty` but it is not defined.).
+
+If this error can be fixed through an automatic action, it will be available from the `More actions`
+context menu or through the `Alt+Enter` key binding.
+
+In this example, we will add a default value for a property defined though `@ConfigProperty`
+
+![](images/1.14.0/quarkus-tools1.gif)
+
+In this another example, a Microprofile REST Client is defined and bound to a REST resource but the
+`RestClient` annotation is missing from the binding.
+
+![](images/1.14.0/quarkus-tools2.gif)
+
 ### MicroProfile Health 
 
 Syntax validation is being performed for Java files using the MicroProfile Health assets:

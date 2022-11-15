@@ -11,6 +11,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.14.0</b></p>
+    <ul>
+      <li>Add support for CodeActions / QuickFixes</li>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.13.1</b></p>
     <ul>
       <li>Some Maven projects could not be loaded because of conflicting dependencies</li>
