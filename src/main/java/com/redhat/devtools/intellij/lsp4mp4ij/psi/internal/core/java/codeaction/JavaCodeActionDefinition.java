@@ -57,7 +57,7 @@ public class JavaCodeActionDefinition extends BaseKeyedLazyInstance<IJavaCodeAct
 		try {
 			return getInstance().isAdaptedForCodeAction(context);
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while calling isAdaptedForCodeAction", e);
+			LOGGER.log(Level.WARNING, "Error while calling isAdaptedForCodeAction", e);
 			return false;
 		}
 	}
@@ -68,7 +68,7 @@ public class JavaCodeActionDefinition extends BaseKeyedLazyInstance<IJavaCodeAct
 			List<? extends CodeAction> codeActions = getInstance().getCodeActions(context, diagnostic);
 			return codeActions != null ? codeActions : Collections.emptyList();
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while calling getCodeActions", e);
+			LOGGER.log(Level.WARNING, "Error while calling getCodeActions", e);
 			return Collections.emptyList();
 		}
 	}
