@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.HEALTH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.HEALTH_CHECK_INTERFACE;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.HEALTH_CHECK_INTERFACE_NAME;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.LIVENESS_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.READINESS_ANNOTATION;
@@ -67,7 +68,7 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 		// Collection of diagnostics for MicroProfile Health is done only if
 		// microprofile-health is on the classpath
 		Module javaProject = context.getJavaProject();
-		return PsiTypeUtils.findType(javaProject, HEALTH_ANNOTATION) != null;
+		return PsiTypeUtils.findType(javaProject, HEALTH_CHECK_INTERFACE) != null;
 	}
 
 	@Override
