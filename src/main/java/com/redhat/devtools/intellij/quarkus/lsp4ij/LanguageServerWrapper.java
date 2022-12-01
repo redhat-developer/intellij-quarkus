@@ -423,7 +423,9 @@ public class LanguageServerWrapper {
         this.languageServer = null;
 
         EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(fileBufferListener);
-        messageBusConnection.disconnect();
+        if (messageBusConnection != null) {
+            messageBusConnection.disconnect();
+        }
     }
 
     /**
