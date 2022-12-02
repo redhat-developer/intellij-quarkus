@@ -187,11 +187,14 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     }
 
     public static ClasspathKind getClasspathKind(VirtualFile file, Module module) {
-        return ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(file)?ClasspathKind.TEST:ClasspathKind.SRC;
+        if (module != null) {
+            return ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(file)?ClasspathKind.TEST:ClasspathKind.SRC;
+        }
+        return ClasspathKind.NONE;
     }
 
     public static String getProjectURI(Module module) {
-        return module.getModuleFilePath();
+        return module != null?module.getModuleFilePath():null;
     }
 
     @Override

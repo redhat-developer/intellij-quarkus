@@ -39,7 +39,7 @@ public class MicroProfileConfigJavaDefinitionTest extends MavenModuleImportingTe
 	@Test
 	public void testConfigPropertyNameDefinition() throws Exception {
 
-		Module javaProject = createMavenModule("config-hover", new File("projects/maven/config-hover"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-hover"));
 
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());

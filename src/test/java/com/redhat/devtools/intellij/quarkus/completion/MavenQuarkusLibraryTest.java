@@ -30,7 +30,7 @@ public class MavenQuarkusLibraryTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testQuarkusLibraryDoesNotReplicateExistingDependencies() throws Exception {
-		Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+		Module module = createMavenModule(new File("projects/maven/config-quickstart"));
 		ModifiableRootModel model = ReadAction.compute(() -> ModuleRootManager.getInstance(module).getModifiableModel());
 		LibraryTable table = model.getModuleLibraryTable();
 		Library library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);

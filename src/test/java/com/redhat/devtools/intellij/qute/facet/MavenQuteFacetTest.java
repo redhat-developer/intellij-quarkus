@@ -27,7 +27,7 @@ public class MavenQuteFacetTest extends MavenModuleImportingTestCase {
 	@Test
 	@Ignore("Task are missing for Qute")
 	public void QuteFacet() throws Exception {
-		Module module = createMavenModule("qute", new File("projects/maven/qute"));
+		Module module = createMavenModule(new File("projects/maven/qute"));
 		FacetManager manager = FacetManager.getInstance(module);
 		QuteFacet facet = manager.getFacetByType(QuteFacet.FACET_TYPE_ID);
 		assertNotNull(facet);

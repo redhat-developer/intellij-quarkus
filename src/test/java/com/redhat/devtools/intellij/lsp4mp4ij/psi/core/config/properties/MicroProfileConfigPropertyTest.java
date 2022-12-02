@@ -34,7 +34,7 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUIL
  */
 public class MicroProfileConfigPropertyTest extends MavenModuleImportingTestCase {
     public void testConfigQuickstartFromClasspath() throws Exception {
-        Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+        Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
         MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar");
@@ -114,7 +114,7 @@ public class MicroProfileConfigPropertyTest extends MavenModuleImportingTestCase
     }
 
     public void testConfigQuickstartFromJavaSources() throws Exception {
-        Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+        Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
         MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
         assertProperties(infoFromJavaSources, 20 /* properties from Java sources with ConfigProperty */ + //

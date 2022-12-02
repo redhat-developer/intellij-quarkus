@@ -45,7 +45,7 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
-		Module javaProject = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/rest-client-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
@@ -84,7 +84,7 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 
 	@Test
 	public void testUrlCodeLensPropertiesWithAnnotationBaseUri() throws Exception {
-		Module javaProject = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/rest-client-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file
@@ -117,7 +117,7 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 
 	@Test
 	public void testUrlCodeLensYaml() throws Exception {
-		Module javaProject = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/rest-client-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		// Initialize file

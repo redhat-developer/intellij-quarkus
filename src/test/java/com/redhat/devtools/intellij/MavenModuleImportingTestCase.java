@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -27,14 +28,13 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.idea.maven.MavenImportingTestCase;
-import org.jetbrains.idea.maven.execution.MavenRunner;
-import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
-import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class MavenModuleImportingTestCase extends MavenImportingTestCase {
 
@@ -57,29 +57,35 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     return module;
   }
 
+  private static int counter = 0;
+
   /**
    * Create a new module into the test project from existing project folder.
    *
-   * @param name the new module name
-   * @param projectDir the project folder
-   * @return the created module
+   * @param projectDirs the project folders
+   * @return the created modules
    */
-  protected Module createMavenModule(String name, File projectDir) throws Exception {
-    Module module = null;
+  protected List<Module> createMavenModules(List<File> projectDirs) throws Exception {
     Project project = myTestFixture.getProject();
-    File moduleDir = new File(project.getBasePath());
-    FileUtils.copyDirectory(projectDir, moduleDir);
-    VirtualFile pomFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleDir).findFileByRelativePath("pom.xml");
-    importProject(pomFile);
-    Module[] modules = ModuleManager.getInstance(myTestFixture.getProject()).getModules();
-    for(Module module1 : modules) {
-      setupJdkForModule(module1.getName());
+    List<VirtualFile> pomFiles = new ArrayList<>();
+    for(File projectDir : projectDirs) {
+      File moduleDir = new File(project.getBasePath(), projectDir.getName() + counter++);
+      FileUtils.copyDirectory(projectDir, moduleDir);
+      VirtualFile pomFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleDir).findFileByRelativePath("pom.xml");
+      pomFiles.add(pomFile);
+
     }
-    if (modules.length > 0) {
-      module = modules[modules.length - 1];
+    importProjects(pomFiles.toArray(VirtualFile[]::new));
+    Module[] modules = ModuleManager.getInstance(myTestFixture.getProject()).getModules();
+    for(Module module : modules) {
+      setupJdkForModule(module.getName());
       QuarkusModuleUtil.ensureQuarkusLibrary(module);
     }
-    return module;
+    return Arrays.asList(modules).stream().skip(1).collect(Collectors.toList());
+  }
+  protected Module createMavenModule(File projectDir) throws Exception {
+    List<Module> modules = createMavenModules(Collections.singletonList(projectDir));
+    return modules.get(modules.size() - 1);
   }
 
   /**

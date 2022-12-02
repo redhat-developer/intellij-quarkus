@@ -38,7 +38,7 @@ public class MicroProfileLRATest extends MavenModuleImportingTestCase {
 	@Test
 	public void testMicroprofileLRA() throws Exception {
 
-		Module module = createMavenModule("microprofile-lra", new File("projects/maven/microprofile-lra"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-lra"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,

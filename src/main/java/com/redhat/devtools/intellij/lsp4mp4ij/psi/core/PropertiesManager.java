@@ -88,16 +88,18 @@ public class PropertiesManager {
                                                               DocumentFormat documentFormat) {
         MicroProfileProjectInfo info = createInfo(module, classpathKind);
         long startTime = System.currentTimeMillis();
-        boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
-        PropertiesCollector collector = new PropertiesCollector(info, scopes);
-        SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
-        SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat);
-        DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
-            Query<PsiModifierListOwner> query = createSearchQuery(context);
-            beginSearch(context);
-            query.forEach((Consumer<? super PsiModifierListOwner>) psiMember -> collectProperties(psiMember, context));
-            endSearch(context);
-        });
+            boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
+            PropertiesCollector collector = new PropertiesCollector(info, scopes);
+        if (module != null) {
+            SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
+            SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat);
+            DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
+                Query<PsiModifierListOwner> query = createSearchQuery(context);
+                beginSearch(context);
+                query.forEach((Consumer<? super PsiModifierListOwner>) psiMember -> collectProperties(psiMember, context));
+                endSearch(context);
+            });
+        }
         LOGGER.info("End computing MicroProfile properties for '" + info.getProjectURI() + "' in "
                 + (System.currentTimeMillis() - startTime) + "ms.");
         return info;
@@ -135,10 +137,10 @@ public class PropertiesManager {
         for (MicroProfilePropertiesScope scope : scopes) {
             switch (scope) {
                 case sources:
-                    searchScope = searchScope.union(module.getModuleScope(!excludeTestCode));
+                    searchScope = module!=null?searchScope.union(module.getModuleScope(!excludeTestCode)):searchScope;
                     break;
                 case dependencies:
-                    searchScope = searchScope.union(module.getModuleWithLibrariesScope());
+                    searchScope = module!=null?searchScope.union(module.getModuleWithLibrariesScope()):searchScope;
                     break;
                 /*added missing default case */
                 default:

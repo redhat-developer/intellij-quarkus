@@ -40,7 +40,7 @@ public class QuarkusScheduledDefinitionTest extends MavenModuleImportingTestCase
 	@Test
 	public void testConfigCronPropertyDefinition() throws Exception {
 
-		Module javaProject = createMavenModule(QuarkusMavenProjectName.scheduler_quickstart, new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
 		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
@@ -57,7 +57,7 @@ public class QuarkusScheduledDefinitionTest extends MavenModuleImportingTestCase
 	@Test
 	public void testConfigEveryPropertyNameDefinition() throws Exception {
 
-		Module javaProject = createMavenModule(QuarkusMavenProjectName.scheduler_quickstart, new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
 		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
@@ -73,7 +73,7 @@ public class QuarkusScheduledDefinitionTest extends MavenModuleImportingTestCase
 	@Test
 	public void testConfigPropertyExpressionDefinition() throws Exception {
 
-		Module javaProject = createMavenModule(QuarkusMavenProjectName.scheduler_quickstart, new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
 		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());

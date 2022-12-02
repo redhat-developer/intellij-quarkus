@@ -42,7 +42,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		module = createMavenModule("qute-quickstart", new File("projects/qute/projects/maven/qute-quickstart"));
+		module = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
 	}
 
 	@Test
@@ -216,7 +216,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 	public void testrecord() throws Exception {
 
 		if (Integer.parseInt(System.getProperty("java.specification.version")) >= 17) {
-			createMavenModule(QuteMavenProjectName.qute_java17, new File("projects/qute/projects/maven/" + QuteMavenProjectName.qute_java17));
+			createMavenModule(new File("projects/qute/projects/maven/" + QuteMavenProjectName.qute_java17));
 
 			QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.RecordItem",
 					QuteMavenProjectName.qute_java17);

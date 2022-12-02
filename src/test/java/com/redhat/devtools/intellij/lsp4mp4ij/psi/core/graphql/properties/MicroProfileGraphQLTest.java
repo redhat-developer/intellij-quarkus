@@ -36,7 +36,7 @@ public class MicroProfileGraphQLTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testMicroprofileGraphQL() throws Exception {
 
-		Module module = createMavenModule("microprofile-graphql", new File("projects/maven/microprofile-graphql"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-graphql"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,

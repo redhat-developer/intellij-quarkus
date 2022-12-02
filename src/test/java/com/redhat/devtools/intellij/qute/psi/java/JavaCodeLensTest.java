@@ -51,7 +51,7 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		module = createMavenModule(QuteMavenProjectName.qute_quickstart, new File("projects/qute/projects/maven/" + QuteMavenProjectName.qute_quickstart));
+		module = createMavenModule(new File("projects/qute/projects/maven/" + QuteMavenProjectName.qute_quickstart));
 	}
 
 	@Test

@@ -39,7 +39,7 @@ public class QuarkusConfigJavaDefinitionTest extends MavenModuleImportingTestCas
 	@Test
 	public void testConfigPropertyNameDefinitionYml() throws Exception {
 
-		Module javaProject = createMavenModule("config-hover", new File("projects/quarkus/projects/maven/config-hover"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 		String applicationYmlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.yml").toURI());
 

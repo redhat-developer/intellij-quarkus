@@ -41,7 +41,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 	@Test
 	public void testquteQuickStart() throws Exception {
 
-		Module module = createMavenModule("qute-quickstart", new File("projects/qute/projects/maven/qute-quickstart"));
+		Module module = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
 
 		QuteDataModelProjectParams params = new QuteDataModelProjectParams("qute-quickstart");
 		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()

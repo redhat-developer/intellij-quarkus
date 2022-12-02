@@ -20,8 +20,6 @@ import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.eclipse.lsp4mp.commons.metadata.ItemHint;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
-import org.jetbrains.idea.maven.model.MavenId;
-import org.jetbrains.idea.maven.utils.MavenArtifactUtil;
 import org.junit.Assert;
 
 import java.io.File;
@@ -42,7 +40,7 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_
  */
 public class MavenQuarkusConfigRootTest extends MavenModuleImportingTestCase {
     public void testHibernateOrmResteasy() throws Exception {
-        Module module = createMavenModule("hibernate-orm-resteasy", new File("projects/quarkus/maven/hibernate-orm-resteasy"));
+        Module module = createMavenModule(new File("projects/quarkus/maven/hibernate-orm-resteasy"));
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
         assertProperties(info,
 
@@ -63,7 +61,7 @@ public class MavenQuarkusConfigRootTest extends MavenModuleImportingTestCase {
     }
 
     public void testAllQuarkusExtensions() throws Exception {
-        Module module = createMavenModule("all-quarkus-extensions", new File("projects/quarkus/projects/maven/all-quarkus-extensions"));
+        Module module = createMavenModule(new File("projects/quarkus/projects/maven/all-quarkus-extensions"));
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
         assertProperties(info,
 

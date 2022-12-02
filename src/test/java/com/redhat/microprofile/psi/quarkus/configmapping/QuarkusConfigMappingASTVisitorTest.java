@@ -43,7 +43,7 @@ public class QuarkusConfigMappingASTVisitorTest extends MavenModuleImportingTest
 	@Test
 	public void testExpectedInterface() throws Exception {
 
-		Module javaProject = createMavenModule(QuarkusMavenProjectName.config_mapping, new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.config_mapping));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.config_mapping));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 

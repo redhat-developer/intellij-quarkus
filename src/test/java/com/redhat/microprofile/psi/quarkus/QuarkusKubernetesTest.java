@@ -39,7 +39,7 @@ public class QuarkusKubernetesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testKubernetes() throws Exception {
-		Module module = createMavenModule("kubernetes", new File("projects/maven/kubernetes"));
+		Module module = createMavenModule(new File("projects/maven/kubernetes"));
 		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 
 		assertProperties(info,
@@ -99,7 +99,7 @@ public class QuarkusKubernetesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testOpenshift() throws Exception {
-		Module module = createMavenModule("kubernetes", new File("projects/maven/kubernetes"));
+		Module module = createMavenModule(new File("projects/maven/kubernetes"));
 		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 
 		assertProperties(info,
@@ -153,7 +153,7 @@ public class QuarkusKubernetesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void s2i() throws Exception {
-		Module module = createMavenModule("kubernetes", new File("projects/maven/kubernetes"));
+		Module module = createMavenModule(new File("projects/maven/kubernetes"));
 		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 
 		assertProperties(info,
@@ -190,7 +190,7 @@ public class QuarkusKubernetesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void docker() throws Exception {
-		Module module = createMavenModule("kubernetes", new File("projects/maven/kubernetes"));
+		Module module = createMavenModule(new File("projects/maven/kubernetes"));
 		MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 
 		assertProperties(info,

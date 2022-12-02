@@ -42,7 +42,7 @@ public class QuarkusScheduledASTVisitorTest extends MavenModuleImportingTestCase
 	@Test
 	public void testScheduledAnnotationTest() throws Exception {
 
-		Module javaProject = createMavenModule(QuarkusMavenProjectName.scheduler_diagnostic, new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_diagnostic));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_diagnostic));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 

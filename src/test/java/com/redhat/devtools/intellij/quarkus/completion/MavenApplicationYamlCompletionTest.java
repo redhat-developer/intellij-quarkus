@@ -33,7 +33,7 @@ public class MavenApplicationYamlCompletionTest extends MavenModuleImportingTest
 
 	@Test
 	public void testApplicationYamlFile() throws Exception {
-		Module module = createMavenModule("hibernate-orm-resteasy-yaml", new File("projects/maven/hibernate-orm-resteasy-yaml"));
+		Module module = createMavenModule(new File("projects/maven/hibernate-orm-resteasy-yaml"));
 		((CodeInsightTestFixture)myTestFixture).setTestDataPath(ModuleUtilCore.getModuleDirPath(module));
 		((CodeInsightTestFixture)myTestFixture).configureByFile("src/main/resources/application.yaml");
 		QuarkusProjectService.getInstance(module.getProject()).getSchema(module);

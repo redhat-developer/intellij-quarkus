@@ -38,7 +38,7 @@ public class MicroProfileMetricsTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testMicroprofileMetrics() throws Exception {
 
-		Module module = createMavenModule("microprofile-metrics", new File("projects/maven/microprofile-metrics"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-metrics"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,

@@ -38,7 +38,7 @@ public class MicroProfileFaultToleranceJavaDefinitionTest extends MavenModuleImp
 
 	@Test
 	public void testFallbackMethodsDefinition() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 

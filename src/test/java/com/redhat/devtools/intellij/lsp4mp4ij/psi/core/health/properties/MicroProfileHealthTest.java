@@ -36,7 +36,7 @@ public class MicroProfileHealthTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testMicroprofileHealth() throws Exception {
 
-		Module module = createMavenModule("microprofile-health", new File("projects/maven/microprofile-health"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-health-quickstart"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
