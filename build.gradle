@@ -120,6 +120,10 @@ tasks.withType(Test) {
     systemProperty 'idea.maven.test.mirror', 'https://repo1.maven.org/maven2'
 }
 
+tasks.withType(Copy) {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 dependencies {
     implementation 'org.zeroturnaround:zt-zip:1.14'
     implementation 'com.kotcrab.remark:remark:1.2.0'
