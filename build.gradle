@@ -1,6 +1,6 @@
 
 plugins {
-    id "org.jetbrains.intellij" version "1.5.2"
+    id "org.jetbrains.intellij" version "1.9.0"
     id 'idea'
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.6.0'
@@ -120,14 +120,18 @@ tasks.withType(Test) {
     systemProperty 'idea.maven.test.mirror', 'https://repo1.maven.org/maven2'
 }
 
+tasks.withType(Copy) {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 dependencies {
-    compile 'org.zeroturnaround:zt-zip:1.14'
-    compile 'com.kotcrab.remark:remark:1.2.0'
-    compile 'org.jsoup:jsoup:1.14.2'
-    compile("io.quarkus:quarkus-core:$quarkusVersion") {
+    implementation 'org.zeroturnaround:zt-zip:1.14'
+    implementation 'com.kotcrab.remark:remark:1.2.0'
+    implementation 'org.jsoup:jsoup:1.14.2'
+    implementation("io.quarkus:quarkus-core:$quarkusVersion") {
         transitive = false
     }
-    compile("io.quarkus:quarkus-core-deployment:$quarkusVersion") {
+    implementation("io.quarkus:quarkus-core-deployment:$quarkusVersion") {
     	exclude group: 'org.aesh'
     	exclude group: 'org.apache.commons'
     	exclude group: 'org.wildfly.common'
@@ -139,29 +143,29 @@ dependencies {
     	exclude group: 'org.junit.platform'
     	exclude group: 'org.junit.jupiter'
     }
-    compile("io.quarkus:quarkus-arc:$quarkusVersion") {
+    implementation("io.quarkus:quarkus-arc:$quarkusVersion") {
         transitive = false
     }
-    compile 'org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.5.0'
-    compile 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.15.0'
+    implementation 'org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.5.0'
+    implementation 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.15.0'
     //required by lsp4j as the version from IJ is incompatible
-    compile 'com.google.code.gson:gson:2.8.9'
-    compile 'com.vladsch.flexmark:flexmark:0.50.50'
-    testCompile 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0'
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.vladsch.flexmark:flexmark:0.50.50'
+    testImplementation 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0'
     lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.5.0:uber') {
         transitive = false
     }
     lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.12.1') {
         transitive = false
     }
-    compile 'com.redhat.microprofile:com.redhat.qute.ls:0.12.1'
+    implementation 'com.redhat.microprofile:com.redhat.qute.ls:0.12.1'
     lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.13.0:uber') {
         transitive = false
     }
-    compile files(new File(buildDir, 'server')) {
+    implementation files(new File(buildDir, 'server')) {
         builtBy 'copyDeps'
     }
-    testCompile 'org.assertj:assertj-core:3.19.0'
+    testImplementation 'org.assertj:assertj-core:3.19.0'
 }
 
 
