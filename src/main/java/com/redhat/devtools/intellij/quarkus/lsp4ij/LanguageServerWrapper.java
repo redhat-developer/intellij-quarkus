@@ -68,7 +68,9 @@ import org.eclipse.lsp4j.WorkspaceEditCapabilities;
 import org.eclipse.lsp4j.WorkspaceFoldersChangeEvent;
 import org.eclipse.lsp4j.WorkspaceFoldersOptions;
 import org.eclipse.lsp4j.WorkspaceServerCapabilities;
+import org.eclipse.lsp4j.jsonrpc.JsonRpcException;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.jsonrpc.MessageIssueException;
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
@@ -235,12 +237,16 @@ public class LanguageServerWrapper {
             Launcher<? extends LanguageServer> launcher = Launcher.createLauncher(client,
                     serverDefinition.getServerInterface(), this.lspStreamProvider.getInputStream(),
                     this.lspStreamProvider.getOutputStream(), executorService, consumer -> (message -> {
-                        consumer.consume(message);
-                        logMessage(message);
-                        URI root = initParams.getRootUri() != null ? URI.create(initParams.getRootUri()) : null;
-                        final StreamConnectionProvider currentConnectionProvider = this.lspStreamProvider;
-                        if (currentConnectionProvider != null && isActive()) {
-                            currentConnectionProvider.handleMessage(message, this.languageServer, root);
+                        try {
+                            consumer.consume(message);
+                            logMessage(message);
+                            URI root = initParams.getRootUri() != null ? URI.create(initParams.getRootUri()) : null;
+                            final StreamConnectionProvider currentConnectionProvider = this.lspStreamProvider;
+                            if (currentConnectionProvider != null && isActive()) {
+                                currentConnectionProvider.handleMessage(message, this.languageServer, root);
+                            }
+                        } catch (Exception e) {
+                            LOGGER.warn(e.getLocalizedMessage(), e);
                         }
                     }));
 
