@@ -32,14 +32,14 @@ public class ServerExtensionPointBean extends BaseKeyedLazyInstance<StreamConnec
 
     public Class getClientImpl() throws ClassNotFoundException {
         if (clientClass == null) {
-            clientClass = ApplicationManager.getApplication().loadClass(clientImpl, getPluginDescriptor());
+            clientClass = getPluginDescriptor().getPluginClassLoader().loadClass(clientImpl);
         }
         return clientClass;
     }
 
     public Class getServerInterface() throws ClassNotFoundException {
         if (serverClass == null) {
-            serverClass = ApplicationManager.getApplication().loadClass(serverInterface, getPluginDescriptor());
+            serverClass = getPluginDescriptor().getPluginClassLoader().loadClass(clientImpl);
         }
         return serverClass;
     }
