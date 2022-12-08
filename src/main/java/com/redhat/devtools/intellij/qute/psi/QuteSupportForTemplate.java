@@ -391,7 +391,7 @@ public class QuteSupportForTemplate {
 			}
 		} else {
 			// ex : String implements CharSequence, ....
-			PsiClass[] interfaces = findImplementedInterfaces(type, monitor);
+			PsiClass[] interfaces = findImplementedInterfacesAndSuper(type, monitor);
 			if (interfaces != null && interfaces.length > 0) {
 				extendedTypes = Stream.of(interfaces) //
 						.map(superType -> superType.getQualifiedName()) //
@@ -525,6 +525,15 @@ public class QuteSupportForTemplate {
 	private static PsiClass[] findImplementedInterfaces(PsiClass type, ProgressIndicator progressMonitor) {
 		List<PsiClass> result = new ArrayList<>();
 		findImplementedInterfaces(type, result, progressMonitor);
+		return result.toArray(new PsiClass[result.size()]);
+	}
+
+	private static PsiClass[] findImplementedInterfacesAndSuper(PsiClass type, ProgressIndicator progressMonitor) {
+		List<PsiClass> result = new ArrayList<>();
+		findImplementedInterfaces(type, result, progressMonitor);
+		if (type.getSuperClass() != null) {
+			result.add(type.getSuperClass());
+		}
 		return result.toArray(new PsiClass[result.size()]);
 	}
 
