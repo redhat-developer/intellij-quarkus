@@ -11,6 +11,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.15.0</b></p>
+    <ul>
+      <li>Emergency release for 2022.3 as it breaks Quarkus Tools and numerous other plugins</li>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.14.1</b></p>
     <ul>
       <li>Bug fixes</li>
