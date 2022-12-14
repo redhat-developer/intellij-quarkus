@@ -18,6 +18,7 @@ import com.redhat.qute.parser.template.Node;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class QuteElementTypes {
     public static final IFileElementType QUTE_FILE = new IFileElementType("QUTE_FILE", QuteLanguage.INSTANCE);
@@ -44,7 +45,7 @@ public class QuteElementTypes {
      the OuterLanguageElement so that it is not used by completion,...
      */
     public static final IElementType QUTE_FILE_DATA = new TemplateDataElementType("QUTE_FILE_DATA", QuteLanguage.INSTANCE, QUTE_CONTENT, QUTE_BLOCK);
-    private static final Map<String, IElementType> types = new HashMap<>();
+    private static final Map<String, IElementType> types = new ConcurrentHashMap<>();
 
     static {
         types.put("#text", QUTE_CONTENT);
