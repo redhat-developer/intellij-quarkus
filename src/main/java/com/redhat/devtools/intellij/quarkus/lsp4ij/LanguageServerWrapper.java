@@ -724,52 +724,54 @@ public class LanguageServerWrapper {
     }
 
     void registerCapability(RegistrationParams params) {
-        params.getRegistrations().forEach(reg -> {
-            if ("workspace/didChangeWorkspaceFolders".equals(reg.getMethod())) { //$NON-NLS-1$
-                assert serverCapabilities != null :
-                        "Dynamic capability registration failed! Server not yet initialized?"; //$NON-NLS-1$
-                if (initiallySupportsWorkspaceFolders) {
-                    // Can treat this as a NOP since nothing can disable it dynamically if it was
-                    // enabled on initialization.
-                } else if (supportsWorkspaceFolders(serverCapabilities)) {
-                    LOGGER.warn(
-                            "Dynamic registration of 'workspace/didChangeWorkspaceFolders' ignored. It was already enabled before"); //$NON-NLS-1$);
-                } else {
-                    addRegistration(reg, () -> setWorkspaceFoldersEnablement(false));
-                    setWorkspaceFoldersEnablement(true);
+        initializeFuture.thenRun(() -> {
+            params.getRegistrations().forEach(reg -> {
+                if ("workspace/didChangeWorkspaceFolders".equals(reg.getMethod())) { //$NON-NLS-1$
+                    assert serverCapabilities != null :
+                            "Dynamic capability registration failed! Server not yet initialized?"; //$NON-NLS-1$
+                    if (initiallySupportsWorkspaceFolders) {
+                        // Can treat this as a NOP since nothing can disable it dynamically if it was
+                        // enabled on initialization.
+                    } else if (supportsWorkspaceFolders(serverCapabilities)) {
+                        LOGGER.warn(
+                                "Dynamic registration of 'workspace/didChangeWorkspaceFolders' ignored. It was already enabled before"); //$NON-NLS-1$);
+                    } else {
+                        addRegistration(reg, () -> setWorkspaceFoldersEnablement(false));
+                        setWorkspaceFoldersEnablement(true);
+                    }
+                } else if ("workspace/executeCommand".equals(reg.getMethod())) { //$NON-NLS-1$
+                    Gson gson = new Gson(); // TODO? retrieve the GSon used by LS
+                    ExecuteCommandOptions executeCommandOptions = gson.fromJson((JsonObject) reg.getRegisterOptions(),
+                            ExecuteCommandOptions.class);
+                    List<String> newCommands = executeCommandOptions.getCommands();
+                    if (!newCommands.isEmpty()) {
+                        addRegistration(reg, () -> unregisterCommands(newCommands));
+                        registerCommands(newCommands);
+                    }
+                } else if ("textDocument/formatting".equals(reg.getMethod())) { //$NON-NLS-1$
+                    final Either<Boolean, DocumentFormattingOptions> documentFormattingProvider  = serverCapabilities.getDocumentFormattingProvider();
+                    if (documentFormattingProvider == null || documentFormattingProvider.isLeft()) {
+                        serverCapabilities.setDocumentFormattingProvider(Boolean.TRUE);
+                        addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider ));
+                    } else {
+                        serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider.getRight());
+                        addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider ));
+                    }
+                } else if ("textDocument/rangeFormatting".equals(reg.getMethod())) { //$NON-NLS-1$
+                    final Either<Boolean, DocumentRangeFormattingOptions> documentRangeFormattingProvider  = serverCapabilities.getDocumentRangeFormattingProvider();
+                    if (documentRangeFormattingProvider == null || documentRangeFormattingProvider.isLeft()) {
+                        serverCapabilities.setDocumentRangeFormattingProvider(Boolean.TRUE);
+                        addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
+                    } else {
+                        serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider.getRight());
+                        addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
+                    }
+                } else if ("textDocument/codeAction".equals(reg.getMethod())) { //$NON-NLS-1$
+                    final Either<Boolean, CodeActionOptions> beforeRegistration = serverCapabilities.getCodeActionProvider();
+                    serverCapabilities.setCodeActionProvider(Boolean.TRUE);
+                    addRegistration(reg, () -> serverCapabilities.setCodeActionProvider(beforeRegistration));
                 }
-            } else if ("workspace/executeCommand".equals(reg.getMethod())) { //$NON-NLS-1$
-                Gson gson = new Gson(); // TODO? retrieve the GSon used by LS
-                ExecuteCommandOptions executeCommandOptions = gson.fromJson((JsonObject) reg.getRegisterOptions(),
-                        ExecuteCommandOptions.class);
-                List<String> newCommands = executeCommandOptions.getCommands();
-                if (!newCommands.isEmpty()) {
-                    addRegistration(reg, () -> unregisterCommands(newCommands));
-                    registerCommands(newCommands);
-                }
-            } else if ("textDocument/formatting".equals(reg.getMethod())) { //$NON-NLS-1$
-                final Either<Boolean, DocumentFormattingOptions> documentFormattingProvider  = serverCapabilities.getDocumentFormattingProvider();
-                if (documentFormattingProvider == null || documentFormattingProvider.isLeft()) {
-                    serverCapabilities.setDocumentFormattingProvider(Boolean.TRUE);
-                    addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider ));
-                } else {
-                    serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider.getRight());
-                    addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider ));
-                }
-            } else if ("textDocument/rangeFormatting".equals(reg.getMethod())) { //$NON-NLS-1$
-                final Either<Boolean, DocumentRangeFormattingOptions> documentRangeFormattingProvider  = serverCapabilities.getDocumentRangeFormattingProvider();
-                if (documentRangeFormattingProvider == null || documentRangeFormattingProvider.isLeft()) {
-                    serverCapabilities.setDocumentRangeFormattingProvider(Boolean.TRUE);
-                    addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
-                } else {
-                    serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider.getRight());
-                    addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
-                }
-            } else if ("textDocument/codeAction".equals(reg.getMethod())) { //$NON-NLS-1$
-                final Either<Boolean, CodeActionOptions> beforeRegistration = serverCapabilities.getCodeActionProvider();
-                serverCapabilities.setCodeActionProvider(Boolean.TRUE);
-                addRegistration(reg, () -> serverCapabilities.setCodeActionProvider(beforeRegistration));
-            }
+            });
         });
     }
 
