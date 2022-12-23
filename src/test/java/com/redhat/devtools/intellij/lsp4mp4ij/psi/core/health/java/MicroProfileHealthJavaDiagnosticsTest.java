@@ -49,7 +49,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 	@Test
 	public void testImplementHealthCheck() throws Exception {
 
-		Module module = createMavenModule("microprofile-health-quickstart", new File("projects/maven/microprofile-health-quickstart"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-health-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -76,7 +76,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 	@Test
 	public void testHealthAnnotationMissing() throws Exception {
 
-		Module module = createMavenModule("microprofile-health-quickstart", new File("projects/maven/microprofile-health-quickstart"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-health-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();

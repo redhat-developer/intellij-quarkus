@@ -54,7 +54,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 
 	@Test
 	public void testImproperDefaultValues() throws Exception {
-		Module javaProject = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -88,7 +88,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 
 	@Test
 	public void testNoValueAssignedWithIgnore() throws Exception {
-		Module javaProject = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -115,7 +115,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 
 	@Test
 	public void testUnassignedWithConfigproperties() throws Exception {
-		Module javaProject = createMavenModule("microprofile-config", new File("projects/maven/microprofile-configproperties"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-configproperties"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -134,7 +134,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 
 	@Test
 	public void testCodeActionForUnassigned() throws Exception {
-		Module javaProject = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "", javaProject);
@@ -220,7 +220,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 
 	@Test
 	public void testEmptyNameKeyValue() throws Exception {
-		Module javaProject = createMavenModule("microprofile-config", new File("projects/maven/microprofile-configproperties"));
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-configproperties"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();

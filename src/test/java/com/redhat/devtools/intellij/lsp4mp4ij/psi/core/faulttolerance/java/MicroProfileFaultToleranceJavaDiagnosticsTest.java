@@ -43,7 +43,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testFallbackMethodsMissing() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
@@ -61,7 +61,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testAsynchronousNonFutureOrCompletionStage() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -92,7 +92,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testAsynchronousClassNonFutureOrCompletionStage() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -123,7 +123,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testFallbackMethodValidationFaultTolerant() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/OtherFaultTolerantResource.java").toURI());
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
@@ -135,7 +135,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testCircuitBreakerClientForValidationDelay() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -158,7 +158,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testBulkheadClientForValidation() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -207,7 +207,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testTimeoutClientForValidation() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -230,7 +230,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testRetryClientForValidation() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -299,7 +299,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testRetryClientForValidationClass() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -338,7 +338,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 	@Test
 	public void testRetryClientForValidationChronoUnit() throws Exception {
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -373,8 +373,4 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
 
 		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2, d3, d4);
 	}
-
-
-
-
 }

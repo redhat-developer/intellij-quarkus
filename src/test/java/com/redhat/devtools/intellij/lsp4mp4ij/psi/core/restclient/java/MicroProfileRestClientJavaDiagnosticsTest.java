@@ -47,7 +47,7 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 	@Test
 	public void testRestClientAnnotationMissingForFields() throws Exception {
 
-		Module module = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/rest-client-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
@@ -104,7 +104,7 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 	@Test
 	public void testRestClientAnnotationMissingForInterface() throws Exception {
 
-		Module module = createMavenModule("rest-client-quickstart", new File("projects/maven/rest-client-quickstart"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/rest-client-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();

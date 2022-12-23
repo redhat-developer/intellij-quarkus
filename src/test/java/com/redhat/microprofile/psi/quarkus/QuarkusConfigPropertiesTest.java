@@ -50,7 +50,7 @@ public class QuarkusConfigPropertiesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertiesNoDefaultNamingStrategy() throws Exception {
-		Module javaProject = createMavenModule("config-properties", new File("projects/quarkus/projects/maven/config-properties"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-properties"));
 		// no quarkus.arc.config-properties-default-naming-strategy
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
@@ -173,7 +173,7 @@ public class QuarkusConfigPropertiesTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertiesVerbatimDefaultNamingStrategy() throws Exception {
-		Module javaProject = createMavenModule("config-properties", new File("projects/quarkus/projects/maven/config-properties"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-properties"));
 		// quarkus.arc.config-properties-default-naming-strategy = verbatim
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE,
 				"quarkus.arc.config-properties-default-naming-strategy = verbatim", javaProject);

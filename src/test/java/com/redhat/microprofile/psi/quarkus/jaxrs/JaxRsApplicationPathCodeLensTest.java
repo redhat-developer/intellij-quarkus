@@ -40,7 +40,7 @@ public class JaxRsApplicationPathCodeLensTest extends MavenModuleImportingTestCa
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
-		Module javaProject = createMavenModule("microprofile-applicationpath", new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 

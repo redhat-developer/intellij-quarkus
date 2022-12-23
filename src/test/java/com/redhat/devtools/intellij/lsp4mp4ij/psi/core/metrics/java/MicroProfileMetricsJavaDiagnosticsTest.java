@@ -47,7 +47,7 @@ public class MicroProfileMetricsJavaDiagnosticsTest extends MavenModuleImporting
 
 	@Test
 	public void testApplicationScopedAnnotationMissing() throws Exception {
-		Module module = createMavenModule("microprofile-metrics", new File("projects/maven/microprofile-metrics"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-metrics"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();

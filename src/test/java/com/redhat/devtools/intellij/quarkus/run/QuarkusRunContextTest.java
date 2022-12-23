@@ -31,7 +31,7 @@ public class QuarkusRunContextTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testDevUIURL() throws Exception {
-		Module javaProject = createMavenModule("microprofile-applicationpath", new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
 
 		QuarkusRunContext context = new QuarkusRunContext(javaProject);
 
@@ -53,7 +53,7 @@ public class QuarkusRunContextTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testApplicationURL() throws Exception {
-		Module javaProject = createMavenModule("microprofile-applicationpath", new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
 
 		QuarkusRunContext context = new QuarkusRunContext(javaProject);
 

@@ -38,7 +38,7 @@ public class MavenQuarkusHibernateORMPropertyTest extends MavenModuleImportingTe
 	@Test
 	public void testQuarkusContainerImages() throws Exception {
 
-		Module module = createMavenModule("hibernate-orm-resteasy", new File("projects/quarkus/maven/hibernate-orm-resteasy"));
+		Module module = createMavenModule(new File("projects/quarkus/projects/maven/hibernate-orm-resteasy"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,

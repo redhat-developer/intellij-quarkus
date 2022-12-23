@@ -13,7 +13,10 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -41,6 +44,24 @@ public class ProjectLabelManager {
 
 	private ProjectLabelManager() {
 
+	}
+
+	/**
+	 * Returns project label results for all projects in the workspace
+	 *
+	 * @return project label results for all projects in the workspace
+	 */
+	public List<ProjectLabelInfoEntry> getProjectLabelInfo(IPsiUtils utils) {
+		List<ProjectLabelInfoEntry> results = new ArrayList<>();
+		for(Project project : ProjectManager.getInstance().getOpenProjects()) {
+			for(Module module : ModuleManager.getInstance(project).getModules()) {
+				ProjectLabelInfoEntry info = getProjectLabelInfo(module, null, utils);
+				if (info != null) {
+					results.add(info);
+				}
+			}
+		}
+		return results;
 	}
 
 	/**

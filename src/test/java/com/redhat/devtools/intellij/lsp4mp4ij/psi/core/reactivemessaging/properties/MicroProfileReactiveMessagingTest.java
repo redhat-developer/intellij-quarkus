@@ -41,7 +41,7 @@ public class MicroProfileReactiveMessagingTest extends MavenModuleImportingTestC
 	@Test
 	public void testMicroprofileReactiveMessagingPropertiesTest() throws Exception {
 
-		Module module = createMavenModule("microprofile-reactive-messaging", new File("projects/maven/microprofile-reactive-messaging"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-reactive-messaging"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,

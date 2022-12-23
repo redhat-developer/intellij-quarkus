@@ -38,7 +38,7 @@ public class MicroProfileOpenAPITest extends MavenModuleImportingTestCase {
 	@Test
 	public void testMicroprofileOpenAPI() throws Exception {
 
-		Module module = createMavenModule("microprofile-openapi", new File("projects/maven/microprofile-openapi"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-openapi"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,

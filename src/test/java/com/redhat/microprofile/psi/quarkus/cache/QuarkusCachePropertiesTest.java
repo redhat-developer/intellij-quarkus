@@ -39,7 +39,7 @@ public class QuarkusCachePropertiesTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testCacheQuickstartFromClasspath() throws Exception {
 
-		Module javaProject = createMavenModule(QuarkusMavenProjectName.cache_quickstart, new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.cache_quickstart));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.cache_quickstart));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(
 				javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,

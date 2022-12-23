@@ -45,7 +45,7 @@ public class MicroProfileFaultTolerancePropertiesTest extends MavenModuleImporti
 	@Test
 	public void testMicroprofileFaultTolerancePropertiesTest() throws Exception {
 
-		Module module = createMavenModule("microprofile-fault-tolerance", new File("projects/maven/microprofile-fault-tolerance"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
 
 		assertProperties(infoFromClasspath,

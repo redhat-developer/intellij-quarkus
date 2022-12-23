@@ -5,7 +5,6 @@ plugins {
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.6.0'
     id 'jacoco'
-    id "de.undercouch.download" version "5.0.2"
 }
 
 sourceCompatibility = '1.8'
@@ -175,26 +174,6 @@ task copyDeps(type: Copy) {
     rename '^(.*)(-[0-9]+.[0-9]+.[0-9]+(-SNAPSHOT)?)(.*)$', '$1$4'
 }
 
-task downloadQuteProjectsZipFile(type: Download) {
-    src 'https://download.jboss.org/jbosstools/vscode/stable/builds/qute-jdt/2022-07-25_16-50-21-B140/all/repo/com.redhat.qute.jdt.test-0.12.1-projects.zip'
-    dest new File(buildDir, 'com.redhat.qute.jdt.test-projects.zip')
-}
-
-task downloadAndUnzipQuteProjects(dependsOn: downloadQuteProjectsZipFile, type: Copy) {
-    from zipTree(downloadQuteProjectsZipFile.dest)
-    into new File(projectDir, 'projects/qute')
-}
-
-task downloadQuarkusProjectsZipFile(type: Download) {
-    src 'https://download.jboss.org/jbosstools/vscode/stable/builds/quarkus-jdt/2022-07-25_16-50-21-B140/all/repo/com.redhat.microprofile.jdt.quarkus.test-0.12.1-projects.zip'
-    dest new File(buildDir, 'com.redhat.microprofile.jdt.quarkus.test-projects')
-}
-
-task downloadAndUnzipQuarkusProjects(dependsOn: downloadQuarkusProjectsZipFile, type: Copy) {
-    from zipTree(downloadQuarkusProjectsZipFile.dest)
-    into new File(projectDir, 'projects/quarkus')
-}
-
 runIde {
     systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'debug'
     systemProperties['com.redhat.devtools.intellij.quarkus.trace'] = 'true'
@@ -216,7 +195,6 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
-test.dependsOn downloadAndUnzipQuarkusProjects, downloadAndUnzipQuteProjects
 
 group 'com.redhat.devtools.intellij'
 version projectVersion // Plugin version

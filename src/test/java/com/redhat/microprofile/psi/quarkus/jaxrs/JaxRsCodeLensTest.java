@@ -42,7 +42,7 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
-		Module javaProject = createMavenModule("hibernate-orm-resteasy", new File("projects/quarkus/maven/hibernate-orm-resteasy"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/hibernate-orm-resteasy"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
@@ -96,7 +96,7 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensYaml() throws Exception {
-		Module javaProject = createMavenModule("hibernate-orm-resteasy", new File("projects/quarkus/maven/hibernate-orm-resteasy"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/hibernate-orm-resteasy"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();

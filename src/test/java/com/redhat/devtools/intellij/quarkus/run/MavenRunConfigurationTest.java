@@ -26,7 +26,7 @@ public class MavenRunConfigurationTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testDefaultRunConfiguration() throws Exception {
-		Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+		Module module = createMavenModule(new File("projects/maven/config-quickstart"));
 		RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " (Maven)", QuarkusRunConfigurationType.class);
 		QuarkusRunConfiguration configuration = (QuarkusRunConfiguration) settings.getConfiguration();
 		configuration.setModule(module);
@@ -44,7 +44,7 @@ public class MavenRunConfigurationTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testRunConfigurationWithProfile() throws Exception {
-		Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+		Module module = createMavenModule(new File("projects/maven/config-quickstart"));
 		RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " (Maven)", QuarkusRunConfigurationType.class);
 		QuarkusRunConfiguration configuration = (QuarkusRunConfiguration) settings.getConfiguration();
 		configuration.setModule(module);
@@ -58,7 +58,7 @@ public class MavenRunConfigurationTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testRunConfigurationWithEnv() throws Exception {
-		Module module = createMavenModule("config-quickstart", new File("projects/maven/config-quickstart"));
+		Module module = createMavenModule(new File("projects/maven/config-quickstart"));
 		RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " (Maven)", QuarkusRunConfigurationType.class);
 		QuarkusRunConfiguration configuration = (QuarkusRunConfiguration) settings.getConfiguration();
 		configuration.setModule(module);

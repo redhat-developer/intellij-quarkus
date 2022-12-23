@@ -39,7 +39,7 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameRespectsPrecendence() throws Exception {
-		Module javaProject = createMavenModule("config-quickstart", new File("projects/quarkus/projects/maven/config-quickstart"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-quickstart"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
@@ -73,7 +73,7 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameYaml() throws Exception {
-		Module javaProject = createMavenModule("config-hover", new File("projects/quarkus/projects/maven/config-hover"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 		String yamlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.yaml").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
@@ -111,7 +111,7 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameYml() throws Exception {
-		Module javaProject = createMavenModule("config-hover", new File("projects/quarkus/projects/maven/config-hover"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 		String ymlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.yml").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
@@ -150,7 +150,7 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testConfigPropertyHoverPropertyExpression() throws Exception {
 
-		Module javaProject = createMavenModule("config-hover", new File("projects/quarkus/projects/maven/config-hover"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.hover = test", javaProject);
@@ -162,7 +162,7 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testPerProfileConfigPropertyFile() throws Exception {
 
-		Module javaProject = createMavenModule("config-hover", new File("projects/quarkus/projects/maven/config-hover"));
+		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
 		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application-foo.properties").toURI());
 

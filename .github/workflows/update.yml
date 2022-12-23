@@ -27,7 +27,7 @@ jobs:
             git checkout -b "${branch_name}"
             git config user.email jbosstoolsci@jboss.org
             git config user.name "jbosstoolsci Bot"
-            find . -path ./.git -prune -false -o -type f -exec sed -i '' -e "s/$plugin_quarkus_version/$last_quarkus_version/g" {} \;
+            find . \(-path ./.git -o -path ./projects/lsp4mp -o -path ./projects/quarkus -o -path ./projects/qute \) -prune -false -o -type f -exec sed -i '' -e "s/$plugin_quarkus_version/$last_quarkus_version/g" {} \;
             git add -A
             git commit -s -m "fix: Update the Quarkus runtime used by the plugin to version $last_quarkus_version"
             git push origin "${branch_name}:${branch_name}"

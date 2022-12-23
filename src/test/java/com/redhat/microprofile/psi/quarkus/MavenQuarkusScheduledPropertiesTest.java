@@ -33,7 +33,7 @@ public class MavenQuarkusScheduledPropertiesTest extends MavenModuleImportingTes
 	@Test
 	public void testConfigQuickstartFromClasspath() throws Exception {
 
-		Module module = createMavenModule("scheduler-quickstart", new File("projects/quarkus/maven/scheduler-quickstart"));
+		Module module = createMavenModule(new File("projects/quarkus/projects/maven/scheduler-quickstart"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
@@ -50,7 +50,7 @@ public class MavenQuarkusScheduledPropertiesTest extends MavenModuleImportingTes
 	@Test
 	public void testConfigQuickstartFromJavaSources() throws Exception {
 
-		Module module = createMavenModule("scheduler-quickstart", new File("projects/quarkus/maven/scheduler-quickstart"));
+		Module module = createMavenModule(new File("projects/quarkus/projects/maven/scheduler-quickstart"));
 		MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromJavaSources,

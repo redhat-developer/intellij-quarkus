@@ -42,7 +42,7 @@ public class MicroProfileOpenTracingTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testMicroprofileOpenTracing() throws Exception {
 
-		Module module = createMavenModule("microprofile-opentracing", new File("projects/maven/microprofile-opentracing"));
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-opentracing"));
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,
