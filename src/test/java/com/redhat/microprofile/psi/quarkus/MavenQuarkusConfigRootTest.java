@@ -40,7 +40,7 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_
  */
 public class MavenQuarkusConfigRootTest extends MavenModuleImportingTestCase {
     public void testHibernateOrmResteasy() throws Exception {
-        Module module = createMavenModule(new File("projects/quarkus/maven/hibernate-orm-resteasy"));
+        Module module = createMavenModule(new File("projects/quarkus/projects/maven/hibernate-orm-resteasy"));
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
         assertProperties(info,
 
