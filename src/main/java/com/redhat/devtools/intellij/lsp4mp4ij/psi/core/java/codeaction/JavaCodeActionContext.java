@@ -53,8 +53,8 @@ public class JavaCodeActionContext extends AbstractJavaContext implements IInvoc
 	}
 
 	public JavaCodeActionContext(PsiFile typeRoot, int selectionOffset, int selectionLength, IPsiUtils utils,
-								 Module module, MicroProfileJavaCodeActionParams params) {
-		this(typeRoot, selectionOffset, selectionLength,utils, module, params, null);
+								 MicroProfileJavaCodeActionParams params) {
+		this(typeRoot, selectionOffset, selectionLength,utils, utils.getModule(), params, null);
 		this.source = this;
 	}
 
@@ -63,7 +63,7 @@ public class JavaCodeActionContext extends AbstractJavaContext implements IInvoc
 	 *
 	 * @return the new context
 	 */
-	public JavaCodeActionContext oopy() {
+	public JavaCodeActionContext copy() {
 		return new JavaCodeActionContext(getTypeRoot().getViewProvider().clone().getPsi(getTypeRoot().getLanguage()), selectionOffset,
 				selectionLength, getUtils(), getJavaProject(), params, this.source);
 	}
@@ -125,4 +125,14 @@ public class JavaCodeActionContext extends AbstractJavaContext implements IInvoc
 		codeAction.setDiagnostics(Arrays.asList(diagnostics));
 		return codeAction;
 	}
+
+	public WorkspaceEdit convertToWorkspaceEdit(ChangeCorrectionProposal proposal) {
+		WorkspaceEdit edit = ChangeUtil.convertToWorkspaceEdit(proposal.getChange(), getUri(), getUtils(),
+				params.isResourceOperationSupported());
+		if (!ChangeUtil.hasChanges(edit)) {
+			return null;
+		}
+		return edit;
+	}
+
 }

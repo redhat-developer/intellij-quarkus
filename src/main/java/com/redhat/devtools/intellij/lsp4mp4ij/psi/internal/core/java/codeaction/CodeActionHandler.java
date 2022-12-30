@@ -15,13 +15,18 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction
 
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.ExtendedCodeAction;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionResolveContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.corrections.DiagnosticsHelper;
 import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4mp.commons.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
 
 import java.io.IOException;
@@ -43,10 +48,16 @@ import java.util.stream.Collectors;
 public class CodeActionHandler {
 
 	/**
+	 * Returns all the code actions applicable for the context given by the
+	 * parameters.
 	 *
-	 * @param params
-	 * @param utils
-	 * @return
+	 * The workspace edit will be resolved if code action resolve isn't supported.
+	 * Otherwise it will be null.
+	 *
+	 * @param params  the parameters for code actions
+	 * @param utils   the JDT utils
+	 * @return all the code actions applicable for the context given by the
+	 *         parameters
 	 */
 	public List<? extends CodeAction> codeAction(MicroProfileJavaCodeActionParams params, IPsiUtils utils) {
 		try {
@@ -63,7 +74,7 @@ public class CodeActionHandler {
 			int start = DiagnosticsHelper.getStartOffset(unit, params.getRange(), utils);
 			int end = DiagnosticsHelper.getEndOffset(unit, params.getRange(), utils);
 			JavaCodeActionContext context = new JavaCodeActionContext(unit, start, end - start, utils,
-					utils.getModule(), params);
+					params);
 			context.setASTRoot(getASTRoot(unit));
 
 			// Collect the available code action kinds
@@ -104,7 +115,7 @@ public class CodeActionHandler {
 							definitionsFor.add(definition);
 						} else {
 							// Collect the code actions
-							codeActions.addAll(definition.getCodeActions(context.oopy(), null));
+							codeActions.addAll(definition.getCodeActions(context.copy(), null));
 						}
 					}
 				}
@@ -125,11 +136,26 @@ public class CodeActionHandler {
 						if (definitionsFor != null) {
 							for (JavaCodeActionDefinition definition : definitionsFor) {
 								// Collect the code actions to fix the given diagnostic
-								codeActions.addAll(definition.getCodeActions(context.oopy(), diagnostic));
+								codeActions.addAll(definition.getCodeActions(context.copy(), diagnostic));
 							}
 						}
 					}
 				});
+			}
+			if (!params.isResolveSupported()) {
+				IPsiUtils finalUtils = utils;
+				List<CodeAction> resolvedCodeActions = codeActions.stream()
+						.map(codeAction -> {
+							if (codeAction.getEdit() != null || codeAction.getCommand() != null) {
+								// CodeAction is already resolved
+								// (eg. command to update settings to ignore a property from validation)
+								return codeAction;
+							}
+							return this.resolveCodeAction(codeAction, finalUtils);
+						}).collect(Collectors.toList());
+
+				ExtendedCodeAction.sort(resolvedCodeActions);
+				return resolvedCodeActions;
 			}
 			// sort code actions by relevant
 			ExtendedCodeAction.sort(codeActions);
@@ -138,6 +164,48 @@ public class CodeActionHandler {
 			return Collections.emptyList();
 		}
 	}
+
+	/**
+	 * Returns the given unresolved CodeAction with the workspace edit resolved.
+	 *
+	 * @param unresolved the unresolved CodeAction
+	 * @param utils      the JDT utils
+	 * @return the given unresolved CodeAction with the workspace edit resolved
+	 */
+	public CodeAction resolveCodeAction(CodeAction unresolved, IPsiUtils utils) {
+		CodeActionResolveData data = (CodeActionResolveData) unresolved.getData();
+		String participantId = data.getParticipantId();
+		String uri = data.getDocumentUri();
+
+		PsiFile unit = utils.resolveCompilationUnit(uri);
+		if (unit == null) {
+			return null;
+		}
+
+		int start = DiagnosticsHelper.getStartOffset(unit, data.getRange(), utils);
+		int end = DiagnosticsHelper.getEndOffset(unit, data.getRange(), utils);
+
+		var params = new MicroProfileJavaCodeActionParams();
+		params.setContext(new CodeActionContext(
+				unresolved.getDiagnostics() == null ? Collections.emptyList() : unresolved.getDiagnostics()));
+		params.setResourceOperationSupported(data.isResourceOperationSupported());
+		params.setCommandConfigurationUpdateSupported(data.isCommandConfigurationUpdateSupported());
+		params.setRange(data.getRange());
+		params.setTextDocument(new VersionedTextDocumentIdentifier(uri, null));
+
+		/*JavaCodeActionResolveContext context = new JavaCodeActionResolveContext(unit, start, end - start, utils, params,
+				unresolved);*/
+		JavaCodeActionResolveContext context = new JavaCodeActionResolveContext(unit.getViewProvider().clone().getPsi(unit.getLanguage()),
+				start, end - start, utils, params, unresolved);
+		context.setASTRoot(getASTRoot(unit));
+
+		IJavaCodeActionParticipant participant = JavaCodeActionDefinition.EP.extensions()
+				.filter(definition -> unresolved.getKind().startsWith(definition.getKind()))
+				.filter(definition -> participantId.equals(definition.getParticipantId()))
+				.findFirst().orElse(null);
+		return participant.resolveCodeAction(context);
+	}
+
 
 	private static PsiFile getASTRoot(PsiFile unit) {
 		return unit;

@@ -34,4 +34,9 @@ public class RegisterRestClientAnnotationMissingQuickFix extends InsertAnnotatio
 		super(true, MicroProfileRestClientConstants.REGISTER_REST_CLIENT_ANNOTATION);
 	}
 
+	@Override
+	public String getParticipantId() {
+		return RegisterRestClientAnnotationMissingQuickFix.class.getName();
+	}
+
 }

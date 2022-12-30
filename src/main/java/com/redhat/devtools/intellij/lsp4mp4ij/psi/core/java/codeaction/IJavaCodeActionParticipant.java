@@ -27,6 +27,13 @@ import org.eclipse.lsp4j.Diagnostic;
 public interface IJavaCodeActionParticipant {
 
 	/**
+	 * Returns the unique identifier of this code action participant.
+	 *
+	 * @return the unique identifier of this code action participant
+	 */
+	String getParticipantId();
+
+	/**
 	 * Returns true if the code actions are adaptable for the given context and false
 	 * otherwise.
 	 *
@@ -52,4 +59,12 @@ public interface IJavaCodeActionParticipant {
 	 * @return the code action list for a given compilation unit and null otherwise.
 	 */
 	List<? extends CodeAction> getCodeActions(JavaCodeActionContext context, Diagnostic diagnostic);
+
+	/**
+	 * Returns the code action with the TextEdits filled in.
+	 *
+	 * @param context the code action context to resolve
+	 * @return the code action with the TextEdits filled in
+	 */
+	CodeAction resolveCodeAction(JavaCodeActionResolveContext context);
 }

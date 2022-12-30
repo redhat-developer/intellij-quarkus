@@ -36,4 +36,9 @@ public class InjectAndRestClientAnnotationMissingQuickFix extends InsertAnnotati
 				MicroProfileRestClientConstants.REST_CLIENT_ANNOTATION);
 	}
 
+	@Override
+	public String getParticipantId() {
+		return InjectAndRestClientAnnotationMissingQuickFix.class.getName();
+	}
+
 }

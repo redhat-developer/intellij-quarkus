@@ -36,4 +36,9 @@ public class HealthAnnotationMissingQuickFix extends InsertAnnotationMissingQuic
 		super(MicroProfileHealthConstants.LIVENESS_ANNOTATION, MicroProfileHealthConstants.READINESS_ANNOTATION,
 				MicroProfileHealthConstants.HEALTH_ANNOTATION);
 	}
+
+	@Override
+	public String getParticipantId() {
+		return HealthAnnotationMissingQuickFix.class.getName();
+	}
 }

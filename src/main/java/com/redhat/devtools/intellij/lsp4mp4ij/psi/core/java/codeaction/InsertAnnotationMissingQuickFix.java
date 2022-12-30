@@ -14,10 +14,14 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiVariable;
@@ -25,7 +29,10 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.ChangeCorrectionProposal;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.InsertAnnotationProposal;
 import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4mp.commons.CodeActionResolveData;
 
 /**
  * QuickFix for inserting annotations.
@@ -33,7 +40,11 @@ import org.eclipse.lsp4j.Diagnostic;
  * @author Angelo ZERR
  *
  */
-public class InsertAnnotationMissingQuickFix implements IJavaCodeActionParticipant {
+public abstract class InsertAnnotationMissingQuickFix implements IJavaCodeActionParticipant {
+
+	private static final Logger LOGGER = Logger.getLogger(InsertAnnotationMissingQuickFix.class.getName());
+
+	private static final String ANNOTATION_KEY = "annotation";
 
 	private final String[] annotations;
 
@@ -67,15 +78,34 @@ public class InsertAnnotationMissingQuickFix implements IJavaCodeActionParticipa
 
 	@Override
 	public List<? extends CodeAction> getCodeActions(JavaCodeActionContext context, Diagnostic diagnostic) {
+		List<CodeAction> codeActions = new ArrayList<>();
+		insertAnnotations(diagnostic, context, codeActions);
+		return codeActions;
+	}
+
+	@Override
+	public CodeAction resolveCodeAction(JavaCodeActionResolveContext context) {
+
+		CodeAction toResolve = context.getUnresolved();
+		CodeActionResolveData data = (CodeActionResolveData) toResolve.getData();
+		String[] resolveAnnotations = (String[]) data.getExtendedDataEntry(ANNOTATION_KEY);
+		String name = getLabel(resolveAnnotations);
 		PsiElement node = context.getCoveringNode();
 		PsiModifierListOwner parentType = getBinding(node);
-		if (parentType != null) {
-			List<CodeAction> codeActions = new ArrayList<>();
-			insertAnnotations(diagnostic, context, parentType, codeActions);
-			return codeActions;
+
+		ChangeCorrectionProposal proposal = new InsertAnnotationProposal(name, context.getCompilationUnit(),
+				context.getASTRoot(), parentType, 0, context.getSource().getCompilationUnit(),
+				resolveAnnotations);
+		try {
+			WorkspaceEdit we = context.convertToWorkspaceEdit(proposal);
+			toResolve.setEdit(we);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Unable to create workspace edit for code action to insert missing annotation", e);
 		}
-		return null;
+
+		return toResolve;
 	}
+
 
 	protected PsiModifierListOwner getBinding(PsiElement node) {
 		PsiModifierListOwner binding = PsiTreeUtil.getParentOfType(node, PsiVariable.class);
@@ -89,34 +119,34 @@ public class InsertAnnotationMissingQuickFix implements IJavaCodeActionParticipa
 		return this.annotations;
 	}
 
-	protected void insertAnnotations(Diagnostic diagnostic, JavaCodeActionContext context, PsiModifierListOwner parentType,
+	protected void insertAnnotations(Diagnostic diagnostic, JavaCodeActionContext context,
 			List<CodeAction> codeActions) {
 		if (generateOnlyOneCodeAction) {
-			insertAnnotation(diagnostic, context, parentType, codeActions, annotations);
+			insertAnnotation(diagnostic, context, codeActions, annotations);
 		} else {
 			for (String annotation : annotations) {
-				JavaCodeActionContext annotationContext = context.oopy();
-				PsiElement node = annotationContext.getCoveringNode();
-				PsiModifierListOwner targetParentType = getBinding(node);
-				if (targetParentType != null) {
-					insertAnnotation(diagnostic, annotationContext, targetParentType, codeActions, annotation);
-				}
+				JavaCodeActionContext annotationContext = context.copy();
+				insertAnnotation(diagnostic, annotationContext, codeActions, annotation);
 			}
 		}
 	}
 
-	protected static void insertAnnotation(Diagnostic diagnostic, JavaCodeActionContext context, PsiModifierListOwner parentType,
+	protected void insertAnnotation(Diagnostic diagnostic, JavaCodeActionContext context,
 			List<CodeAction> codeActions, String... annotations) {
-		// Insert the annotation and the proper import by using JDT Core Manipulation
-		// API
 		String name = getLabel(annotations);
-		ChangeCorrectionProposal proposal = new InsertAnnotationProposal(name, context.getCompilationUnit(),
-				context.getASTRoot(), parentType, 0, context.getSource().getCompilationUnit(), annotations);
-		// Convert the proposal to LSP4J CodeAction
-		CodeAction codeAction = context.convertToCodeAction(proposal, diagnostic);
-		if (codeAction != null) {
-			codeActions.add(codeAction);
-		}
+		ExtendedCodeAction codeAction = new ExtendedCodeAction(name);
+		codeAction.setRelevance(0);
+		codeAction.setDiagnostics(Collections.singletonList(diagnostic));
+		codeAction.setKind(CodeActionKind.QuickFix);
+
+		Map<String, Object> extendedData = new HashMap<>();
+		extendedData.put(ANNOTATION_KEY, annotations);
+		codeAction.setData(new CodeActionResolveData(context.getUri(), getParticipantId(),
+				context.getParams().getRange(), extendedData,
+				context.getParams().isResourceOperationSupported(),
+				context.getParams().isCommandConfigurationUpdateSupported()));
+
+		codeActions.add(codeAction);
 	}
 
 	private static String getLabel(String[] annotations) {
