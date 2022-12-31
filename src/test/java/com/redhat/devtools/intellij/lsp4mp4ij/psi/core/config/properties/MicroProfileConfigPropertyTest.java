@@ -43,7 +43,8 @@ public class MicroProfileConfigPropertyTest extends MavenModuleImportingTestCase
         assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //
                         20 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */ + //
-                        7 /* static properties from microprofile-context-propagation-api */,
+                        7 /* static properties from microprofile-context-propagation-api */ +
+                        1 /* static property from microprofile config_ordinal */,
 
                 // io.quarkus.deployment.ApplicationConfig
                 p("quarkus-core", "quarkus.application.name", "java.util.Optional<java.lang.String>",

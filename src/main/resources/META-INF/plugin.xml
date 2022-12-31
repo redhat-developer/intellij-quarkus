@@ -300,6 +300,10 @@
     <javaCodeActionParticipant kind="source"
                                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.java.MicroProfileGenerateOpenAPIOperation"/>
 
+    <!-- Microprofile Config Static Property support -->
+    
+    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigStaticPropertyProvider"/>
+
     <!--quarkus-ls-->
     <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
     <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>

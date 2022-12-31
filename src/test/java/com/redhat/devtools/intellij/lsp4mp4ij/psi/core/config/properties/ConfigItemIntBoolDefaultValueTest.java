@@ -50,7 +50,8 @@ public class ConfigItemIntBoolDefaultValueTest extends MavenModuleImportingTestC
 
 		assertProperties(infoFromClasspath,
 				259 + 20 /* properties from Java sources with ConfigProperty */ + //
-				7 /* static properties from microprofile-context-propagation-api */,
+				7 /* static properties from microprofile-context-propagation-api */ +
+				1 /* static property from microprofile config_ordinal */,
 
 				// GreetingConstructorResource(
 				// 		@ConfigProperty(name = "greeting.constructor.message") String message,
