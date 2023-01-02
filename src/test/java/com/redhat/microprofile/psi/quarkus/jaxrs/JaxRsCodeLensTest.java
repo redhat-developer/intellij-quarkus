@@ -143,7 +143,7 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 	private static void assertCodeLenses(int port, String rootPath, MicroProfileJavaCodeLensParams params, IPsiUtils utils)
 			 {
 		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
-		Assert.assertEquals(2, lenses.size());
+		Assert.assertEquals(5, lenses.size());
 
 		// @GET
 		// public Fruit[] get() {

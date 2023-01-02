@@ -233,7 +233,7 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 
 	private static void assertCodeLenses(String baseURL, MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
 		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
-		Assert.assertEquals(2, lenses.size());
+		Assert.assertEquals(8, lenses.size());
 
 		// @GET
 		// @Path("/name/{name}")
@@ -248,6 +248,48 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 		CodeLens lensForGetSingle = lenses.get(1);
 		Assert.assertNotNull(lensForGetSingle.getCommand());
 		Assert.assertEquals(baseURL + "/v2/name/{name}", lensForGetSingle.getCommand().getTitle());
+
+		// @POST
+		// @Path("/post")
+		// String post();
+		CodeLens lensForPost = lenses.get(2);
+		Assert.assertNotNull(lensForPost.getCommand());
+		Assert.assertEquals(baseURL + "/v2/post", lensForPost.getCommand().getTitle());
+
+		// @PUT
+		// @Path("/put")
+		// String put();
+		CodeLens lensForPut = lenses.get(3);
+		Assert.assertNotNull(lensForPut.getCommand());
+		Assert.assertEquals(baseURL + "/v2/put", lensForPut.getCommand().getTitle());
+
+		// @DELETE
+		// @Path("/delete")
+		// String delete();
+		CodeLens lensForDelete = lenses.get(4);
+		Assert.assertNotNull(lensForDelete.getCommand());
+		Assert.assertEquals(baseURL + "/v2/delete", lensForDelete.getCommand().getTitle());
+
+		// @HEAD
+		// @Path("/head")
+		// String head();
+		CodeLens lensForHead = lenses.get(5);
+		Assert.assertNotNull(lensForHead.getCommand());
+		Assert.assertEquals(baseURL + "/v2/head", lensForHead.getCommand().getTitle());
+
+		// @OPTIONS
+		// @Path("/options")
+		// String options();
+		CodeLens lensForOptions = lenses.get(6);
+		Assert.assertNotNull(lensForOptions.getCommand());
+		Assert.assertEquals(baseURL + "/v2/options", lensForOptions.getCommand().getTitle());
+
+		// @PATCH
+		// @Path("/patch")
+		// String patch();
+		CodeLens lensForPatch = lenses.get(7);
+		Assert.assertNotNull(lensForPatch.getCommand());
+		Assert.assertEquals(baseURL + "/v2/patch", lensForPatch.getCommand().getTitle());
 	}
 
 }
