@@ -14,7 +14,13 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java;
 
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.InsertAnnotationMissingQuickFix;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants;
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.Diagnostic;
+
+import java.util.List;
 
 /**
  * QuickFix for fixing
@@ -40,5 +46,25 @@ public class HealthAnnotationMissingQuickFix extends InsertAnnotationMissingQuic
 	@Override
 	public String getParticipantId() {
 		return HealthAnnotationMissingQuickFix.class.getName();
+	}
+
+	@Override
+	protected void insertAnnotations(Diagnostic diagnostic, JavaCodeActionContext context, List<CodeAction> codeActions) {
+		boolean generateOnlyOneCodeAction = isGenerateOnlyOneCodeAction();
+		String[] annotations = getAnnotations();
+		if (generateOnlyOneCodeAction) {
+			for (String annotation : annotations) {
+				if (PsiTypeUtils.findType(context.getJavaProject(), annotation) == null) {
+					return;
+				}
+			}
+			insertAnnotation(diagnostic, context, codeActions, getAnnotations());
+		} else {
+			for (String annotation : annotations) {
+				if (PsiTypeUtils.findType(context.getJavaProject(), annotation) != null) {
+					insertAnnotation(diagnostic, context, codeActions, annotation);
+				}
+			}
+		}
 	}
 }

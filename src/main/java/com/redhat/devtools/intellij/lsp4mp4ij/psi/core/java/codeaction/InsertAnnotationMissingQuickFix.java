@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -88,14 +89,15 @@ public abstract class InsertAnnotationMissingQuickFix implements IJavaCodeAction
 
 		CodeAction toResolve = context.getUnresolved();
 		CodeActionResolveData data = (CodeActionResolveData) toResolve.getData();
-		String[] resolveAnnotations = (String[]) data.getExtendedDataEntry(ANNOTATION_KEY);
-		String name = getLabel(resolveAnnotations);
+		List<String> resolveAnnotations = (List<String>) data.getExtendedDataEntry(ANNOTATION_KEY);
+		String[] resolveAnnotationsArray = resolveAnnotations.toArray(String[]::new);
+		String name = getLabel(resolveAnnotationsArray);
 		PsiElement node = context.getCoveringNode();
 		PsiModifierListOwner parentType = getBinding(node);
 
 		ChangeCorrectionProposal proposal = new InsertAnnotationProposal(name, context.getCompilationUnit(),
 				context.getASTRoot(), parentType, 0, context.getSource().getCompilationUnit(),
-				resolveAnnotations);
+				resolveAnnotationsArray);
 		try {
 			WorkspaceEdit we = context.convertToWorkspaceEdit(proposal);
 			toResolve.setEdit(we);
@@ -140,7 +142,7 @@ public abstract class InsertAnnotationMissingQuickFix implements IJavaCodeAction
 		codeAction.setKind(CodeActionKind.QuickFix);
 
 		Map<String, Object> extendedData = new HashMap<>();
-		extendedData.put(ANNOTATION_KEY, annotations);
+		extendedData.put(ANNOTATION_KEY, Arrays.asList(annotations));
 		codeAction.setData(new CodeActionResolveData(context.getUri(), getParticipantId(),
 				context.getParams().getRange(), extendedData,
 				context.getParams().isResourceOperationSupported(),
@@ -161,6 +163,19 @@ public abstract class InsertAnnotationMissingQuickFix implements IJavaCodeAction
 			name.append(annotationName);
 		}
 		return name.toString();
+	}
+
+	/**
+	 * Returns true if all the listed annotations should be added in one code
+	 * action, and false if separate code actions should be generated for each
+	 * annotation.
+	 *
+	 * @return true if all the listed annotations should be added in one code
+	 *         action, and false if separate code actions should be generated for
+	 *         each annotation
+	 */
+	protected boolean isGenerateOnlyOneCodeAction() {
+		return this.generateOnlyOneCodeAction;
 	}
 
 }
