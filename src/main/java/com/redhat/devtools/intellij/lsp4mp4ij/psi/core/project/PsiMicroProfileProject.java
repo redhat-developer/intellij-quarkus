@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -239,6 +240,27 @@ public class PsiMicroProfileProject {
 
 	private IConfigSourcePropertiesProvider getAggregatedPropertiesProvider() {
 		List<IConfigSource> configSources = getConfigSources();
+		if (configSources.size() == 0) {
+			// Return an empty IConfigSourcePropertiesProvider
+			return new IConfigSourcePropertiesProvider() {
+
+				@Override
+				public Set<String> keys() {
+					return Collections.emptySet();
+				}
+
+				@Override
+				public boolean hasKey(String key) {
+					return false;
+				}
+
+				@Override
+				public String getValue(String key) {
+					return null;
+				}
+
+			};
+		}
 		IConfigSourcePropertiesProvider provider = new ConfigSourcePropertiesProvider(
 				configSources.get(configSources.size() - 1));
 		for (int i = configSources.size() - 2; i >= 0; i--) {
