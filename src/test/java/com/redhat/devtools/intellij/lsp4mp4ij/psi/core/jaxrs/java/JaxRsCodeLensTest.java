@@ -30,6 +30,8 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.r;
+
 /**
  * JAX-RS URL Codelens test for Java file.
  *
@@ -102,11 +104,18 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 		Assert.assertEquals("http://localhost:" + port + "/fruits/{id}", lensForPut.getCommand().getTitle());
 
 		//@DELETE
-		//@Path("{id}")
-		//public Response delete(@PathParam Integer id) {
+		//@Transactional
+		//@Path(
+		//"{id}"
+		//)
+		//--> code lens should appear here
+		//public
+		//Response
+		//delete(@PathParam Integer id) {
 		CodeLens lensForDelete = lenses.get(4);
 		Assert.assertNotNull(lensForDelete.getCommand());
 		Assert.assertEquals("http://localhost:" + port + "/fruits/{id}", lensForDelete.getCommand().getTitle());
+		Assert.assertEquals(r(81, 9, 81, 9), lensForDelete.getRange());
 	}
 
 }

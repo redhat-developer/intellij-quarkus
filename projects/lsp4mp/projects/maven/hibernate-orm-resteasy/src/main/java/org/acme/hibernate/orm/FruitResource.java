@@ -75,9 +75,13 @@ public class FruitResource {
     }
 
     @DELETE
-    @Path("{id}")
     @Transactional
-    public Response delete(@PathParam Integer id) {
+    @Path(
+        "{id}"
+        )
+    public
+    Response
+    delete(@PathParam Integer id) {
         Fruit entity = entityManager.getReference(Fruit.class, id);
         if (entity == null) {
             throw new WebApplicationException("Fruit with id of " + id + " does not exist.", 404);

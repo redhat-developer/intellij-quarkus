@@ -20,6 +20,7 @@ import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 
 import java.util.Collections;
@@ -127,12 +128,18 @@ public class JaxRsUtils {
 	}
 
 	private static CodeLens createURLCodeLens(PsiMethod method, IPsiUtils utils) {
-		TextRange r = method.getTextRange();
-		if (r == null) {
+		PsiAnnotation[] annotations = method.getAnnotations();
+		if (annotations == null) {
 			return null;
 		}
+		TextRange r = annotations[annotations.length - 1].getTextRange();
+
 		CodeLens lens = new CodeLens();
 		final Range range = utils.toRange(method, r.getStartOffset(), r.getLength());
+		// Increment line number for code lens to appear on the line right after the last annotation
+		Position codeLensPosition = new Position(range.getEnd().getLine() + 1, range.getEnd().getCharacter());
+		range.setStart(codeLensPosition);
+		range.setEnd(codeLensPosition);
 		lens.setRange(range);
 		return lens;
 	}
