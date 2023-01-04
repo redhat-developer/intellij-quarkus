@@ -43,9 +43,11 @@ import com.redhat.devtools.intellij.qute.psi.internal.resolver.ClassFileTypeReso
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.template.JavaTypesSearch;
 import com.redhat.devtools.intellij.qute.psi.internal.template.QuarkusIntegrationForQute;
+import com.redhat.devtools.intellij.qute.psi.internal.template.QuteSupportForTemplateGenerateMissingJavaMemberHandler;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.QuteReflectionAnnotationUtils;
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.InvalidMethodReason;
@@ -64,6 +66,7 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
+import org.eclipse.lsp4j.WorkspaceEdit;
 
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.findType;
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.getFullQualifiedName;
@@ -543,6 +546,22 @@ public class QuteSupportForTemplate {
 				: new ClassFileTypeResolver((IClassFile) member.getAncestor(IJavaElement.CLASS_FILE));*/
 		ITypeResolver typeResolver = new ClassFileTypeResolver(member.getContainingClass());
 		return typeResolver;
+	}
+
+	/**
+	 * Returns the workspace edit to generate the given java member for the given
+	 * type.
+	 *
+	 * @param params  the parameters needed to resolve the workspace edit
+	 * @param utils   the jdt utils
+	 * @param monitor the progress monitor
+	 * @return the workspace edit to generate the given java member for the given
+	 *         type
+	 */
+	public WorkspaceEdit generateMissingJavaMember(GenerateMissingJavaMemberParams params, IPsiUtils utils,
+												   ProgressIndicator monitor) {
+		return QuteSupportForTemplateGenerateMissingJavaMemberHandler.handleGenerateMissingJavaMember(params, utils,
+				monitor);
 	}
 
 }
