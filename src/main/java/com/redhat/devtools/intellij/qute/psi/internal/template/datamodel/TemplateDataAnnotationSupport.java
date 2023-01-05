@@ -26,6 +26,7 @@ import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -130,6 +131,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 				resolver.setSourceType(sourceType);
 				resolver.setSignature(typeResolver.resolveSignature(member));
 				resolver.setNamespace(StringUtils.isNotEmpty(namespace) ? namespace : sourceType.replace('.', '_'));
+				resolver.setKind(ValueResolverKind.TemplateData);
 				if (!resolvers.contains(resolver)) {
 					resolvers.add(resolver);
 				}

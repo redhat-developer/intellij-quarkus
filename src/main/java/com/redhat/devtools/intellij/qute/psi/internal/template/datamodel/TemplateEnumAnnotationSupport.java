@@ -22,6 +22,7 @@ import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractAnnotati
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -101,6 +102,7 @@ public class TemplateEnumAnnotationSupport extends AbstractAnnotationTypeReferen
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setSourceType(field.getContainingClass().getQualifiedName());
 		resolver.setSignature(typeResolver.resolveFieldSignature(field));
+		resolver.setKind(ValueResolverKind.TemplateEnum);
 		// This annotation is functionally equivalent to @TemplateData(namespace =
 		// TemplateData.SIMPLENAME),
 		// i.e. a namespace resolver is automatically generated for the target enum and

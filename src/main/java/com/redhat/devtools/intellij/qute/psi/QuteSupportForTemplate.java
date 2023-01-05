@@ -338,9 +338,6 @@ public class QuteSupportForTemplate {
 
 		ITypeResolver typeResolver = createTypeResolver(type);
 
-		// Find if the type is a source or binary file
-		boolean isTypeSource = !(type instanceof PsiCompiledElement);
-
 		// 1) Collect fields
 		List<JavaFieldInfo> fieldsInfo = new ArrayList<>();
 
@@ -413,7 +410,7 @@ public class QuteSupportForTemplate {
 		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
 		if (typeSignature != null) {
 			ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
-			resolvedType.setSource(isTypeSource);
+			resolvedType.setBinary(type instanceof PsiCompiledElement);
 			resolvedType.setSignature(typeSignature);
 			resolvedType.setFields(fieldsInfo);
 			resolvedType.setMethods(methodsInfo);

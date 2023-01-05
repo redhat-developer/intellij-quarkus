@@ -14,27 +14,21 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootManagerEx;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiCompiledElement;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.Query;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
-import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.devtools.intellij.qute.psi.utils.TextEditConverter;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
@@ -49,11 +43,9 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -234,30 +226,20 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 			IPsiUtils utils, ProgressIndicator monitor) {
 
 		Module project = getJavaProjectFromProjectUri(params.getProjectUri(), utils);
-		Query<PsiModifierListOwner> searchPattern = createTemplateExtensionSearchPattern(project, utils);
-		List<Object> matches = new ArrayList<>();
-
+		PsiClass type = null;
 		try {
-			for(PsiModifierListOwner match : searchPattern) {
-				if (match instanceof PsiClass) {
-					matches.add(match);
-				}
-			}
-		} catch (Exception _e) {
+			type = utils.findClass(project, params.getTemplateClass());
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING,
+					String.format("JavaModelException while trying to locate template extension class {0}",
+							params.getTemplateClass()),
+					e);
 		}
 
-		if (matches.size() == 0) {
-			return createNewTemplateExtensionFile(params, utils, project, monitor);
-		} else {
-			Object match = matches.get(0);
-			PsiClass type = (PsiClass) match;
-			if (type == null) {
-				LOGGER.severe(
-						"Could not locate the underlying type for the @TemplateExtension annotation that was located by the SearchEngine");
-				return null;
-			}
-			return addTemplateExtensionToFile(params, utils, project, type, monitor);
+		if (type == null) {
+			return null;
 		}
+		return addTemplateExtensionToFile(params, utils, project, type, monitor);
 	}
 
 	private static WorkspaceEdit createNewTemplateExtensionsFile(GenerateMissingJavaMemberParams params,
@@ -401,12 +383,6 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 			return null;
 		}
 		return javaType.getContainingFile().getViewProvider().clone().getPsi(javaType.getLanguage());
-	}
-
-	private static Query<PsiModifierListOwner> createTemplateExtensionSearchPattern(Module project, IPsiUtils utils) {
-		PsiClass annotationClass = utils.findClass(project, QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION);
-		return AnnotatedElementsSearch.searchElements(annotationClass,
-				GlobalSearchScope.moduleScope(project), PsiModifierListOwner.class);
 	}
 
 	private static Module getJavaProjectFromProjectUri(String projectName, IPsiUtils utils) {

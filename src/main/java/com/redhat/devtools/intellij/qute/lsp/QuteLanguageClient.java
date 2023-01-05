@@ -22,6 +22,7 @@ import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaCodeLensParams;
@@ -46,6 +47,7 @@ import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.WorkspaceEdit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,5 +144,11 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
   public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
     return runAsBackground("getUserTags", monitor -> QuteSupportForTemplate.getInstance().getUserTags(params, PsiUtilsLSImpl.getInstance(getProject()),
             monitor));
+  }
+
+  @Override
+  public CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params) {
+    return runAsBackground("generateMissingJavaMember", monitor -> QuteSupportForTemplate.getInstance()
+            .generateMissingJavaMember(params, PsiUtilsLSImpl.getInstance(getProject()), monitor));
   }
 }

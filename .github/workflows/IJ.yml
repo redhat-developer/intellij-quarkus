@@ -4,7 +4,7 @@
 name: Validate against IJ versions
 
 env:
-  QUARKUS_LS_COMMIT: 03b06df7be5f591dd597b18da9c7e7025927fa1a
+  QUARKUS_LS_COMMIT: 635bedf3bc738108f21c228af27dd6d8d22fd8b8
 
 on:
   push:

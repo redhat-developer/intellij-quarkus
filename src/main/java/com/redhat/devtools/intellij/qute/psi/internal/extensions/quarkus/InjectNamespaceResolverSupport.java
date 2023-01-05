@@ -33,6 +33,7 @@ import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 
 import com.redhat.devtools.intellij.qute.psi.utils.CDIUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
 /**
  * Injecting Beans Directly In Templates support.
@@ -108,6 +109,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 		resolver.setSourceType(type.getQualifiedName());
 		resolver.setSignature(type.getQualifiedName());
 		resolver.setNamespace(INJECT_NAMESPACE);
+		resolver.setKind(ValueResolverKind.InjectedBean);
 		resolvers.add(resolver);
 	}
 
@@ -118,6 +120,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 		resolver.setSourceType(javaMember.getContainingClass().getQualifiedName());
 		resolver.setSignature(typeResolver.resolveSignature(javaMember));
 		resolver.setNamespace(INJECT_NAMESPACE);
+		resolver.setKind(ValueResolverKind.InjectedBean);
 		resolvers.add(resolver);
 	}
 }
