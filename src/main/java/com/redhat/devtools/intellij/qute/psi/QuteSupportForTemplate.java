@@ -31,6 +31,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
@@ -337,6 +338,9 @@ public class QuteSupportForTemplate {
 
 		ITypeResolver typeResolver = createTypeResolver(type);
 
+		// Find if the type is a source or binary file
+		boolean isTypeSource = !(type instanceof PsiCompiledElement);
+
 		// 1) Collect fields
 		List<JavaFieldInfo> fieldsInfo = new ArrayList<>();
 
@@ -409,6 +413,7 @@ public class QuteSupportForTemplate {
 		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
 		if (typeSignature != null) {
 			ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
+			resolvedType.setSource(isTypeSource);
 			resolvedType.setSignature(typeSignature);
 			resolvedType.setFields(fieldsInfo);
 			resolvedType.setMethods(methodsInfo);
