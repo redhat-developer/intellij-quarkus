@@ -3,6 +3,9 @@
 
 name: Validate against IJ versions
 
+env:
+  QUARKUS_LS_COMMIT: 03eec61dd9a6e13d1c487ae041e5174d7b30aa9a
+
 on:
   push:
     branches: [ main ]
@@ -27,8 +30,8 @@ jobs:
         git init quarkus-ls
         cd quarkus-ls
         git remote add origin https://github.com/redhat-developer/quarkus-ls
-        git fetch origin --depth 1 8a52980f2a999e80a0367f301f8962dfaf4f84b7
-        git checkout 8a52980f2a999e80a0367f301f8962dfaf4f84b7
+        git fetch origin --depth 1 ${QUARKUS_LS_COMMIT}
+        git checkout ${QUARKUS_LS_COMMIT}
         mvn -B -ntp -f qute.ls/com.redhat.qute.ls/pom.xml install -DskipTests
     - uses: actions/checkout@v2
     - name: Set up JDK 17
@@ -56,8 +59,8 @@ jobs:
           git init quarkus-ls
           cd quarkus-ls
           git remote add origin https://github.com/redhat-developer/quarkus-ls
-          git fetch origin --depth 1 8a52980f2a999e80a0367f301f8962dfaf4f84b7
-          git checkout 8a52980f2a999e80a0367f301f8962dfaf4f84b7
+          git fetch origin --depth 1 ${QUARKUS_LS_COMMIT}
+          git checkout ${QUARKUS_LS_COMMIT}
           mvn -B -ntp -f qute.ls/com.redhat.qute.ls/pom.xml install -DskipTests
       - name: Checkout Code
         uses: actions/checkout@v2

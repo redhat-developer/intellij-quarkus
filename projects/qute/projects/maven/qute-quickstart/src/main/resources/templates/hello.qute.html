@@ -2,9 +2,18 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Qute Hello World</title> 
+<title>Qute Hello World</title>
 </head>
 <body>
     <p>Hello {name ?: "world"}!</p>
 </body>
 </html>
+
+{#set name=item.name age=10 long=10L negDouble=-10D isActive=true simpleQuote='abcd' doubleQuote="efgh"}
+  {true}
+  {name}
+  {negDouble}
+  {isActive}
+  {simpleQuote}
+  {doubleQuote}
+{/set}
