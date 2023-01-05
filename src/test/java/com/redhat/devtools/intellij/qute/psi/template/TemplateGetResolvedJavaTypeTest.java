@@ -18,7 +18,6 @@ import java.util.Optional;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import org.junit.Assert;
@@ -50,7 +49,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("java.lang.Iterable",
 				"qute-quickstart");
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertEquals("java.lang.Iterable<T>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
@@ -58,7 +57,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
 
 		params = new QuteResolvedJavaTypeParams("Iterable", "qute-quickstart");
-		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertEquals("java.lang.Iterable<T>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
@@ -66,7 +65,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 		Assert.assertEquals("java.lang.Object", result.getIterableOf());
 
 		params = new QuteResolvedJavaTypeParams("Iterable<String>", "qute-quickstart");
-		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertEquals("java.lang.Iterable<java.lang.String>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
@@ -74,7 +73,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 		Assert.assertEquals("java.lang.String", result.getIterableOf());
 
 		params = new QuteResolvedJavaTypeParams("Iterable<java.lang.String>", "qute-quickstart");
-		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertEquals("java.lang.Iterable<java.lang.String>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
@@ -83,7 +82,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		params = new QuteResolvedJavaTypeParams("java.lang.Iterable<java.lang.String>",
 				"qute-quickstart");
-		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertEquals("java.lang.Iterable<java.lang.String>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
@@ -96,7 +95,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("java.util.List",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertEquals("java.util.List<E>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
@@ -110,23 +109,23 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 		Assert.assertEquals(InvalidMethodReason.VoidReturn, reason);
 
 		params = new QuteResolvedJavaTypeParams("List", QuteMavenProjectName.qute_quickstart);
-		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNull(result);
 
 		params = new QuteResolvedJavaTypeParams("List<String>", QuteMavenProjectName.qute_quickstart);
-		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNull(result);
 
 		params = new QuteResolvedJavaTypeParams("List<java.lang.String>", QuteMavenProjectName.qute_quickstart);
-		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNull(result);
 
 		params = new QuteResolvedJavaTypeParams("java.util.List<java.lang.String>",
 				QuteMavenProjectName.qute_quickstart);
-		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertEquals("java.util.List<java.lang.String>", result.getSignature());
 		Assert.assertTrue(result.isIterable());
@@ -139,7 +138,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.SomeInterface",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertEquals("org.acme.qute.SomeInterface", result.getSignature());
 		Assert.assertFalse(result.isIterable());
@@ -154,7 +153,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.Item", result.getSignature());
@@ -184,11 +183,33 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 	}
 
 	@Test
+	public void testStatusesEnum() throws Exception {
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.StatusesEnum",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new EmptyProgressIndicator());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("org.acme.qute.StatusesEnum", result.getSignature());
+		Assert.assertFalse(result.isIterable());
+
+		// Enum
+		Assert.assertNotNull(result.getFields());
+		Assert.assertEquals(2, result.getFields().size());
+		Assert.assertEquals("ON", result.getFields().get(0).getName());
+		Assert.assertEquals("org.acme.qute.StatusesEnum", result.getFields().get(0).getType());
+		Assert.assertEquals("OFF", result.getFields().get(1).getName());
+		Assert.assertEquals("org.acme.qute.StatusesEnum", result.getFields().get(1).getType());
+
+	}
+
+
+	@Test
 	public void testitemArray() throws Exception {
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.Item[]",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.Item[]", result.getSignature());
@@ -203,7 +224,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("String[]",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNotNull(result);
 		Assert.assertEquals("java.lang.String[]", result.getSignature());
@@ -220,7 +241,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 			QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.RecordItem",
 					QuteMavenProjectName.qute_java17);
-			ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+			ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 					new EmptyProgressIndicator());
 			Assert.assertEquals("org.acme.qute.RecordItem", result.getSignature());
 			Assert.assertFalse(result.isIterable());
@@ -239,7 +260,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("java.lang.Object",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNotNull(result);
 		Assert.assertEquals("java.lang.Object", result.getSignature());
@@ -261,7 +282,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("java.lang.String",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNotNull(result);
 		Assert.assertEquals("java.lang.String", result.getSignature());
@@ -294,7 +315,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.ItemWithTemplateData",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.ItemWithTemplateData", result.getSignature());
@@ -339,7 +360,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.Statuses",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.Statuses", result.getSignature());
@@ -377,7 +398,7 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.ItemWithRegisterForReflection",
 				QuteMavenProjectName.qute_quickstart);
-		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(myProject),
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		Assert.assertNotNull(result);
 		Assert.assertEquals("org.acme.qute.ItemWithRegisterForReflection", result.getSignature());

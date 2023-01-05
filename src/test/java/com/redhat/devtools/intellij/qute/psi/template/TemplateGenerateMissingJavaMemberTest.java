@@ -47,10 +47,6 @@ import java.util.regex.Pattern;
  */
 public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingTestCase {
 
-	private IPsiUtils getJDTUtils() {
-		return PsiUtilsLSImpl.getInstance(myProject);
-	}
-
 	@Test
 	public void testGenerateField() throws Exception {
 

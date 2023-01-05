@@ -344,7 +344,7 @@ public class QuteSupportForTemplate {
 		// Standard fields
 		PsiField[] fields = type.getFields();
 		for (PsiField field : fields) {
-			if (isValidField(field)) {
+			if (isValidField(field, type)) {
 				// Only public fields are available
 				JavaFieldInfo info = new JavaFieldInfo();
 				info.setSignature(typeResolver.resolveFieldSignature(field));
@@ -444,7 +444,10 @@ public class QuteSupportForTemplate {
 		return iterable;
 	}
 
-	private static boolean isValidField(PsiField field) {
+	private static boolean isValidField(PsiField field, PsiClass type) {
+		if (type.isEnum()) {
+			return true;
+		}
 		return field.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
 	}
 
