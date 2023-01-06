@@ -49,6 +49,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.template.QuarkusIntegratio
 import com.redhat.devtools.intellij.qute.psi.internal.template.QuteSupportForTemplateGenerateMissingJavaMemberHandler;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.QuteReflectionAnnotationUtils;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import org.eclipse.lsp4j.Location;
@@ -418,6 +419,7 @@ public class QuteSupportForTemplate {
 			resolvedType.setMethods(methodsInfo);
 			resolvedType.setInvalidMethods(invalidMethods);
 			resolvedType.setExtendedTypes(extendedTypes);
+			resolvedType.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
 			QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver, javaProject);
 			return resolvedType;
 		}

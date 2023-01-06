@@ -22,6 +22,7 @@ import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResolver;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import org.apache.commons.lang3.StringUtils;
@@ -107,7 +108,7 @@ public class JavaTypesSearch {
 
 			for (String subPackageName : subPackages) {
 				JavaTypeInfo packageInfo = new JavaTypeInfo();
-				packageInfo.setKind(JavaTypeKind.Package);
+				packageInfo.setJavaTypeKind(JavaTypeKind.Package);
 				packageInfo.setSignature(subPackageName);
 				javaTypes.add(packageInfo);
 			}
@@ -143,7 +144,7 @@ public class JavaTypesSearch {
 				javaTypes.add(classInfo);
 
 				try {
-					classInfo.setKind(type.isInterface() ? JavaTypeKind.Interface : JavaTypeKind.Class);
+					classInfo.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
 				} catch (RuntimeException e) {
 					LOGGER.log(Level.SEVERE, "Error while collecting Java Types for '" + packageName
 							+ " package and Java type '" + typeName + "'.", e);

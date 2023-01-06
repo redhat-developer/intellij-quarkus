@@ -31,6 +31,7 @@ import com.intellij.psi.PsiVariable;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResolver;
+import com.redhat.qute.commons.JavaTypeKind;
 
 import java.util.Arrays;
 import java.util.List;
@@ -238,4 +239,25 @@ public class PsiTypeUtils {
 	public static boolean isVoidReturnType(PsiMethod method) {
 		return PsiType.VOID.equals(method.getReturnType());
 	}
+
+	/**
+	 * Return the JavaTypeKind of the given IType type
+	 *
+	 * @param the IType of the type to get the JavaTypeKind of
+	 * @return the JavaTypeKind of the given IType type
+	 * @throws JavaModelException
+	 */
+	public static JavaTypeKind getJavaTypeKind(PsiClass type) {
+		if (type.isRecord()) {
+			return JavaTypeKind.Unknown;
+		}
+		if (type.isEnum()) {
+			return JavaTypeKind.Enum;
+		}
+		if (type.isInterface()) {
+			return JavaTypeKind.Interface;
+		}
+		return JavaTypeKind.Class;
+	}
+
 }

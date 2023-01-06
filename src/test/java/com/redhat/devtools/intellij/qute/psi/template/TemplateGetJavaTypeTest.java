@@ -95,7 +95,7 @@ public class TemplateGetJavaTypeTest extends MavenModuleImportingTestCase {
 	public static JavaTypeInfo t(String typeName, JavaTypeKind kind) {
 		JavaTypeInfo javaType = new JavaTypeInfo();
 		javaType.setSignature(typeName);
-		javaType.setKind(kind);
+		javaType.setJavaTypeKind(kind);
 		return javaType;
 	}
 
