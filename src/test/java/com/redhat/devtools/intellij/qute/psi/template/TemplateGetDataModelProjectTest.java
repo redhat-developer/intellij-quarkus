@@ -268,6 +268,11 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 				"io.quarkus.vertx.http.runtime.CurrentRequestProducer", //
 				"vertxRequest", resolvers);
 
+		// @Named
+		// public @interface IgnoreInjectAnnotation
+		assertNotValueResolver("inject", "org.acme.qute.IgnoreInjectAnnotation", "org.acme.qute.IgnoreInjectAnnotation", //
+				"ignoreInjectAnnotation", resolvers);
+
 	}
 
 	private static void testValueResolversFromTemplateData(List<ValueResolverInfo> resolvers) {
@@ -357,6 +362,18 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		Assert.assertEquals(signature, resolver.getSignature());
 		Assert.assertEquals(sourceType, resolver.getSourceType());
 		Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
+	}
+
+	private static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
+											   List<ValueResolverInfo> resolvers) {
+		assertNotValueResolver(namespace, signature, sourceType, named, false, resolvers);
+	}
+
+	private static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
+											   boolean globalVariable, List<ValueResolverInfo> resolvers) {
+		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
+				.findFirst();
+		Assert.assertTrue("Find '" + signature + "' value resolver.", result.isEmpty());
 	}
 
 	private static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,

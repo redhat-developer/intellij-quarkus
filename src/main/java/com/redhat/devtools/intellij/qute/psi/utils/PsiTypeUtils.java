@@ -248,8 +248,8 @@ public class PsiTypeUtils {
 	 * @throws JavaModelException
 	 */
 	public static JavaTypeKind getJavaTypeKind(PsiClass type) {
-		if (type.isRecord()) {
-			return JavaTypeKind.Unknown;
+		if (isClass(type)) {
+			return JavaTypeKind.Class;
 		}
 		if (type.isEnum()) {
 			return JavaTypeKind.Enum;
@@ -257,7 +257,10 @@ public class PsiTypeUtils {
 		if (type.isInterface()) {
 			return JavaTypeKind.Interface;
 		}
-		return JavaTypeKind.Class;
+		return JavaTypeKind.Unknown;
 	}
 
+    public static boolean isClass(PsiClass type) {
+		return !(type.isInterface() | type.isEnum() | type.isAnnotationType());
+    }
 }

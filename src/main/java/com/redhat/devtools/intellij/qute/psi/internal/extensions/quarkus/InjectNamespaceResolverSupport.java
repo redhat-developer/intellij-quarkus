@@ -66,6 +66,11 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 
 			PsiClass type = (PsiClass) javaElement;
 			String named = getNamed(type);
+
+			// Filter any occurrences of @Stereotype usage with @Named
+			if (!CDIUtils.isValidBean(javaElement)) {
+				return;
+			}
 			collectResolversForInject(type, named, context.getDataModelProject().getValueResolvers());
 		} else if (javaElement instanceof PsiField || javaElement instanceof PsiMethod) {
 			// @Named

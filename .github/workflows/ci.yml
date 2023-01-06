@@ -4,7 +4,7 @@
 name: Java CI with Gradle
 
 env:
-  QUARKUS_LS_COMMIT: 3a3ba32b9b7f001085986d5ad586fec914147ce1
+  QUARKUS_LS_COMMIT: 9aafe08c4f58d1a5bdcc2056c0d68b701d2202df
 
 on:
   push:
