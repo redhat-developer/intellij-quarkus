@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.intellij.extapi.psi.StubBasedPsiElementBase;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -38,6 +39,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiRecordComponent;
+import com.intellij.psi.impl.java.stubs.PsiModifierListStub;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ClassFileTypeResolver;
@@ -367,7 +369,7 @@ public class QuteSupportForTemplate {
 		Map<String, InvalidMethodReason> invalidMethods = new HashMap<>();
 		PsiMethod[] methods = type.getMethods();
 		for (PsiMethod method : methods) {
-			if (isValidMethod(method, type.isInterface())) {
+			if (isValidMethod(method, type)) {
 				try {
 					InvalidMethodReason invalid = getValidMethodForQute(method, typeName);
 					if (invalid != null) {
@@ -451,12 +453,23 @@ public class QuteSupportForTemplate {
 		return field.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
 	}
 
-	private static boolean isValidMethod(PsiMethod method, boolean isInterface) {
+	private static boolean isSynthetic(PsiMember member) {
+		var modifiers = member.getModifierList();
+		var result = false;
+
+		if (modifiers instanceof StubBasedPsiElementBase) {
+			PsiModifierListStub stub = (PsiModifierListStub) ((StubBasedPsiElementBase<?>) modifiers).getGreenStub();
+			result = (stub.getModifiersMask() & 0x00001000) == 0x00001000;
+		}
+		return result;
+	}
+
+	private static boolean isValidMethod(PsiMethod method, PsiClass type) {
 		try {
-			if (method.isConstructor() || !method.isValid()) {
+			if (method.isConstructor() || !method.isValid() || isSynthetic(method)) {
 				return false;
 			}
-			if (!isInterface && !method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
+			if (!type.isInterface() && !method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
 				return false;
 			}
 

@@ -432,6 +432,20 @@ public class TemplateGetResolvedJavaTypeTest extends MavenModuleImportingTestCas
 		Assert.assertEquals(InvalidMethodReason.Static, reason);
 	}
 
+	@Test
+	public void testIgnoreSyntheticMethod() throws Exception {
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("java.lang.CharSequence",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new EmptyProgressIndicator());
+		Assert.assertNotNull(result);
+
+		// lambda$chars$0 should be ignored
+		Assert.assertEquals("java.lang.CharSequence", result.getSignature());
+		JavaMethodInfo syntheticMethod = findMethod(result, "lambda$chars$0");
+		Assert.assertNull(syntheticMethod);
+	}
 
 	private static void assertExtendedTypes(String type, String extendedType, List<String> extendedTypes) {
 		Assert.assertTrue("The Java type '" + type + "' should extends '" + extendedType + "'.",
