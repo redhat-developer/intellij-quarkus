@@ -83,7 +83,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 
 			PsiMember javaMember = (PsiMember) javaElement;
 			String named = getNamed(javaMember);
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(javaMember);
+			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(javaMember, context.getJavaProject());
 			collectResolversForInject(javaMember, named, context.getDataModelProject().getValueResolvers(),
 					typeResolver);
 		}

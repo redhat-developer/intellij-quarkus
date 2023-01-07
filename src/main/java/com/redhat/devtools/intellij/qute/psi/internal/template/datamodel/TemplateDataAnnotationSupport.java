@@ -104,7 +104,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 			return;
 		}
 
-		ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type);
+		ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type, context.getJavaProject());
 
 		// Loop for static fields
 		PsiField[] fields = type.getFields();

@@ -11,6 +11,7 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.resolver;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 
 /**
@@ -21,7 +22,8 @@ import com.intellij.psi.PsiClass;
  */
 public class ClassFileTypeResolver extends AbstractTypeResolver {
 
-	public ClassFileTypeResolver(PsiClass classFile) {
+	public ClassFileTypeResolver(PsiClass classFile, Module javaProject) {
+		super(classFile, javaProject);
 	}
 
 	@Override

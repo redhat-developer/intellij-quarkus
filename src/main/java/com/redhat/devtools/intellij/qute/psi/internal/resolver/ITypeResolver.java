@@ -15,7 +15,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiVariable;
+
+import java.util.List;
 
 /**
  * Type resolver API.
@@ -40,6 +43,25 @@ public interface ITypeResolver {
 		throw new UnsupportedOperationException("Unsupported java element type: " + javaElement.getClass());
 	}
 
+	/**
+	 * Returns the extended types of the Java type.
+	 *
+	 * * Example:
+	 *
+	 * <code>
+	 * public interface List<E> extends Collection<E>
+	 * </code>
+	 *
+	 * will returns:
+	 *
+	 * <code>
+	 * java.lang.Object
+	 * java.util.Collection<E>
+	 * </code>
+	 *
+	 * @return the extended types of the Java type.
+	 */
+	List<String> resolveExtendedType();
 
 	/**
 	 * Returns the resolved Java type signature from the given String <code>typeSignature</code>.
@@ -60,7 +82,7 @@ public interface ITypeResolver {
 	 *
 	 * @return the resolved  Java type signature from the given String <code>typeSignature</code>.
 	 */
-	String resolveTypeSignature(String typeSignature, Module javaProject);
+	String resolveTypeSignature(String typeSignature);
 
 	/**
 	 * Returns the Java field signature from the given JDT <code>field</code>.
@@ -92,4 +114,20 @@ public interface ITypeResolver {
 	 */
 	String resolveMethodSignature(PsiMethod method);
 
+	/**
+	 * Returns the Java local variable signature from the given JDT
+	 * <code>parameter</code>.
+	 *
+	 * Example:
+	 *
+	 * <code>
+	 * query : java.lang.String
+	 * </code>
+	 *
+	 * @param parameter the JDT local variable
+	 * @param varargs   true if the parameter is a varargs.
+	 *
+	 * @return the Java local variable signature.
+	 */
+	String resolveLocalVariableSignature(PsiParameter parameter, boolean varargs);
 }

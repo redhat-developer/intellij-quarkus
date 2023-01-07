@@ -81,13 +81,13 @@ public class TemplateEnumAnnotationSupport extends AbstractAnnotationTypeReferen
 			// @TemplateEnum annotation is ignored.
 			return;
 		}
-		collectResolversForTemplateEnum(type, context.getDataModelProject().getValueResolvers(), monitor);
+		collectResolversForTemplateEnum(type, context.getDataModelProject().getValueResolvers(), context, monitor);
 	}
 
 	private static void collectResolversForTemplateEnum(PsiClass type, List<ValueResolverInfo> resolvers,
-		ProgressIndicator monitor) {
+														SearchContext context, ProgressIndicator monitor) {
 		try {
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type);
+			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type, context.getJavaProject());
 			PsiField[] fields = type.getFields();
 			for (PsiField field : fields) {
 				collectResolversForTemplateEnum(field, resolvers, typeResolver);

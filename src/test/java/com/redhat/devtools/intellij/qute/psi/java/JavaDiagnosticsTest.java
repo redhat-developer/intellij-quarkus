@@ -141,10 +141,13 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
 		assertEquals(1, publishDiagnostics.size());
 
 		List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
-		assertEquals(1, diagnostics.size());
+		assertEquals(2, diagnostics.size());
 
 		assertDiagnostic(diagnostics, //
-				new Diagnostic(r(25, 33, 25, 39),
+				new Diagnostic(r(23, 33, 23, 36),
+						"No template matching the path ItemResource/map could be found for: org.acme.qute.ItemResource$Templates",
+						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+				new Diagnostic(r(28, 33, 28, 39),
 						"No template matching the path ItemResource/items2 could be found for: org.acme.qute.ItemResource$Templates2",
 						DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
 	}

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationOwner;
@@ -71,18 +72,19 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 		if (javaElement instanceof PsiClass) {
 			PsiClass type = (PsiClass) javaElement;
 			collectResolversForTemplateExtension(type, templateExtension,
-					context.getDataModelProject().getValueResolvers(), monitor);
+					context.getDataModelProject().getValueResolvers(), context.getJavaProject(), monitor);
 		} else if (javaElement instanceof PsiMethod) {
 			PsiMethod method = (PsiMethod) javaElement;
 			collectResolversForTemplateExtension(method, templateExtension,
-					context.getDataModelProject().getValueResolvers(), monitor);
+					context.getDataModelProject().getValueResolvers(), context.getJavaProject(), monitor);
 		}
 	}
 
 	private static void collectResolversForTemplateExtension(PsiClass type, PsiAnnotation templateExtension,
-			List<ValueResolverInfo> resolvers, ProgressIndicator monitor) {
+															 List<ValueResolverInfo> resolvers, Module project,
+															 ProgressIndicator monitor) {
 		try {
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type);
+			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type, project);
 			PsiMethod[] methods = type.getMethods();
 			int resolversLengthPreAdd = resolvers.size();
 			for (PsiMethod method : methods) {
@@ -131,9 +133,9 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 	}
 
 	public static void collectResolversForTemplateExtension(PsiMethod method, PsiAnnotation templateExtension,
-			List<ValueResolverInfo> resolvers, ProgressIndicator monitor) {
+			List<ValueResolverInfo> resolvers, Module project, ProgressIndicator monitor) {
 		if (isTemplateExtensionMethod(method)) {
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(method);
+			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(method, project);
 			collectResolversForTemplateExtension(method, templateExtension, resolvers, typeResolver,
 					ValueResolverKind.TemplateExtensionOnMethod);
 		}

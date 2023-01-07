@@ -27,6 +27,7 @@ import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLiteralValue;
+import com.intellij.psi.util.ClassUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.AnnotationLocationSupport;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractFieldDeclarationTypeReferenceDataModelProvider;
@@ -122,7 +123,7 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 		DataModelTemplate<DataModelParameter> template = new DataModelTemplate<DataModelParameter>();
 		template.setParameters(new ArrayList<>());
 		template.setTemplateUri(templateUri);
-		template.setSourceType(field.getContainingClass().getQualifiedName());
+		template.setSourceType(ClassUtil.getJVMClassName(field.getContainingClass()));
 		template.setSourceField(fieldName);
 		// Collect data parameters for the given template
 		TemplateDataSupport.collectParametersFromDataMethodInvocation(field, template, monitor);

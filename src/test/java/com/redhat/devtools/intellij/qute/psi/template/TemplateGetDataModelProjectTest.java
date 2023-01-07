@@ -91,10 +91,10 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// return hello.data("name", name);
 
 		Assert.assertEquals(4, parameters.size());
-		assertParameter("name", "java.lang.String", true, parameters);
-		assertParameter("height", "double", true, parameters);
-		assertParameter("weight", "long", true, parameters);
-		assertParameter("age", "int", true, parameters);
+		assertParameter("age", "int", true, parameters, 0);
+		assertParameter("height", "double", true, parameters, 1);
+		assertParameter("weight", "long", true, parameters, 2);
+		assertParameter("name", "java.lang.String", true, parameters, 3);
 
 		// Template goodbye;
 
@@ -112,8 +112,8 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// return goodbye.data("name2", name);
 
 		Assert.assertEquals(2, parameters2.size());
-		assertParameter("age2", "int", true, parameters2);
-		assertParameter("name2", "java.lang.String", true, parameters2);
+		assertParameter("age2", "int", true, parameters2, 0);
+		assertParameter("name2", "java.lang.String", true, parameters2, 1);
 
 		// Template hallo;
 
@@ -131,26 +131,43 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// return hallo.data("name3", name);
 
 		Assert.assertEquals(2, parameters3.size());
-		assertParameter("age3", "int", true, parameters3);
-		assertParameter("name3", "java.lang.String", true, parameters3);
+		assertParameter("age3", "int", true, parameters3, 0);
+		assertParameter("name3", "java.lang.String", true, parameters3, 1);
 
 	}
 
 	private static void checkedTemplateInnerClass(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
-		DataModelTemplate<DataModelParameter> itemResourceTemplate = project
+		// static native TemplateInstance items(List<Item> items);
+		DataModelTemplate<DataModelParameter> items = project
 				.findDataModelTemplate("src/main/resources/templates/ItemResource/items");
-		Assert.assertNotNull(itemResourceTemplate);
-		Assert.assertEquals("src/main/resources/templates/ItemResource/items", itemResourceTemplate.getTemplateUri());
-		Assert.assertEquals("org.acme.qute.ItemResource$Templates", itemResourceTemplate.getSourceType());
-		Assert.assertEquals("items", itemResourceTemplate.getSourceMethod());
+		Assert.assertNotNull(items);
+		Assert.assertEquals("src/main/resources/templates/ItemResource/items", items.getTemplateUri());
+		Assert.assertEquals("org.acme.qute.ItemResource$Templates", items.getSourceType());
+		Assert.assertEquals("items", items.getSourceMethod());
 
-		List<DataModelParameter> parameters = itemResourceTemplate.getParameters();
+		List<DataModelParameter> parameters = items.getParameters();
 		Assert.assertNotNull(parameters);
 
-		// static native TemplateInstance items(List<Item> items);
-
 		Assert.assertEquals(1, parameters.size());
-		assertParameter("items", "java.util.List<org.acme.qute.Item>", false, parameters);
+		assertParameter("items", "java.util.List<org.acme.qute.Item>", false, parameters, 0);
+
+		// static native TemplateInstance map(Map<String, List<Item>> items,
+		// Map.Entry<String, Integer> entry);
+
+		DataModelTemplate<DataModelParameter> map = project
+				.findDataModelTemplate("src/main/resources/templates/ItemResource/map");
+		Assert.assertNotNull(map);
+		Assert.assertEquals("src/main/resources/templates/ItemResource/map", map.getTemplateUri());
+		Assert.assertEquals("org.acme.qute.ItemResource$Templates", map.getSourceType());
+		Assert.assertEquals("map", map.getSourceMethod());
+
+		parameters = map.getParameters();
+		Assert.assertNotNull(parameters);
+
+		Assert.assertEquals(2, parameters.size());
+		assertParameter("items", "java.util.Map<java.lang.String,java.util.List<org.acme.qute.Item>>", false,
+				parameters, 0);
+		assertParameter("entry", "java.util.Map$Entry<java.lang.String,java.lang.Integer>", false, parameters, 1);
 	}
 
 	private static void checkedTemplate(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -168,7 +185,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// public static native TemplateInstance hello2(String name);
 
 		Assert.assertEquals(1, hello2Parameters.size());
-		assertParameter("name", "java.lang.String", false, hello2Parameters);
+		assertParameter("name", "java.lang.String", false, hello2Parameters, 0);
 
 		// hello3
 		DataModelTemplate<DataModelParameter> hello3Template = project
@@ -184,7 +201,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// public static native TemplateInstance hello3(String name);
 
 		Assert.assertEquals(1, hello3Parameters.size());
-		assertParameter("name", "java.lang.String", false, hello3Parameters);
+		assertParameter("name", "java.lang.String", false, hello3Parameters, 0);
 	}
 
 	private static void testValueResolversFromTemplateExtension(List<ValueResolverInfo> resolvers) {
@@ -377,7 +394,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 	}
 
 	private static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,
-			List<DataModelParameter> parameters) {
+										List<DataModelParameter> parameters, int index) {
 		DataModelParameter parameter = parameters.stream().filter(p -> key.equals(p.getKey())).findFirst().get();
 		Assert.assertEquals(key, parameter.getKey());
 		Assert.assertEquals(sourceType, parameter.getSourceType());

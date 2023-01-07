@@ -218,6 +218,6 @@ public class QuteReflectionAnnotationUtils {
 
 	private static String resolveTarget(String target, ITypeResolver typeResolver, Module javaProject) {
 		//
-		return typeResolver.resolveTypeSignature(target, javaProject);
+		return typeResolver.resolveTypeSignature(target);
 	}
 }

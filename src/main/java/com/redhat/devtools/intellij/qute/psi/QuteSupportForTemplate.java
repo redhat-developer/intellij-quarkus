@@ -73,7 +73,6 @@ import com.redhat.qute.commons.usertags.UserTagInfo;
 import org.eclipse.lsp4j.WorkspaceEdit;
 
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.findType;
-import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.getFullQualifiedName;
 
 /**
  * Qute support for Template file.
@@ -85,12 +84,7 @@ public class QuteSupportForTemplate {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteSupportForTemplate.class.getName());
 
-	private static final String JAVA_LANG_ITERABLE = "java.lang.Iterable";
-
 	private static final String JAVA_LANG_OBJECT = "java.lang.Object";
-
-	private static final List<String> COMMONS_ITERABLE_TYPES = Arrays.asList("Iterable", JAVA_LANG_ITERABLE,
-			"java.util.List", "java.util.Set");
 
 	private static final QuteSupportForTemplate INSTANCE = new QuteSupportForTemplate();
 
@@ -302,36 +296,6 @@ public class QuteSupportForTemplate {
 		utils = utils.refine(javaProject);
 
 		String typeName = params.getClassName();
-		int index = typeName.indexOf('<');
-		if (index != -1) {
-			// ex : java.util.List<org.acme.Item>
-			String iterableClassName = typeName.substring(0, index);
-			PsiClass iterableType = findType(iterableClassName, javaProject, monitor);
-			if (iterableType == null) {
-				return null;
-			}
-
-			boolean iterable = isIterable(iterableType, monitor);
-			if (!iterable) {
-				return null;
-			}
-
-			String iterableOf = typeName.substring(index + 1, typeName.length() - 1);
-			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
-			iterableClassName = iterableType.getQualifiedName();
-			typeName = iterableClassName + "<" + iterableOf + ">";
-			return createIterableType(typeName, iterableClassName, iterableOf);
-		} else if (typeName.endsWith("[]")) {
-			// ex : org.acme.Item[]
-			String iterableOf = typeName.substring(0, typeName.length() - 2);
-			PsiClass iterableOfType = findType(iterableOf, javaProject, monitor);
-			if (iterableOfType == null) {
-				return null;
-			}
-			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
-			typeName = iterableOf + "[]";
-			return createIterableType(typeName, null, iterableOf);
-		}
 
 		// ex : org.acme.Item, java.util.List, ...
 		PsiClass type = findType(typeName, javaProject, monitor);
@@ -339,7 +303,7 @@ public class QuteSupportForTemplate {
 			return null;
 		}
 
-		ITypeResolver typeResolver = createTypeResolver(type);
+		ITypeResolver typeResolver = createTypeResolver(type, javaProject);
 
 		// 1) Collect fields
 		List<JavaFieldInfo> fieldsInfo = new ArrayList<>();
@@ -387,29 +351,6 @@ public class QuteSupportForTemplate {
 			}
 		}
 
-		// Collect type extensions
-		List<String> extendedTypes = null;
-		if (type.isInterface()) {
-			PsiClass[] interfaces = findImplementedInterfaces(type, monitor);
-			if (interfaces != null && interfaces.length > 0) {
-				extendedTypes = Stream.of(interfaces) //
-						.map(interfaceType -> interfaceType.getQualifiedName()) //
-						.collect(Collectors.toList());
-			}
-		} else {
-			// ex : String implements CharSequence, ....
-			PsiClass[] interfaces = findImplementedInterfacesAndSuper(type, monitor);
-			if (interfaces != null && interfaces.length > 0) {
-				extendedTypes = Stream.of(interfaces) //
-						.map(superType -> superType.getQualifiedName()) //
-						.collect(Collectors.toList());
-			}
-		}
-
-		if (extendedTypes != null) {
-			extendedTypes.remove(typeName);
-		}
-
 		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
 		if (typeSignature != null) {
 			ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
@@ -418,34 +359,12 @@ public class QuteSupportForTemplate {
 			resolvedType.setFields(fieldsInfo);
 			resolvedType.setMethods(methodsInfo);
 			resolvedType.setInvalidMethods(invalidMethods);
-			resolvedType.setExtendedTypes(extendedTypes);
+			resolvedType.setExtendedTypes(typeResolver.resolveExtendedType());
 			resolvedType.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
 			QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver, javaProject);
 			return resolvedType;
 		}
 		return null;
-	}
-
-	private ResolvedJavaTypeInfo createIterableType(String className, String iterableClassName, String iterableOf) {
-		ResolvedJavaTypeInfo resolvedClass = new ResolvedJavaTypeInfo();
-		resolvedClass.setSignature(className);
-		resolvedClass.setIterableType(iterableClassName);
-		resolvedClass.setIterableOf(iterableOf);
-		return resolvedClass;
-	}
-
-	private static boolean isIterable(PsiClass iterableType, ProgressIndicator monitor) {
-		String iterableClassName = iterableType.getQualifiedName();
-		// Fast test
-		if (COMMONS_ITERABLE_TYPES.contains(iterableClassName)) {
-			return true;
-		}
-		// Check if type implements "java.lang.Iterable"
-		PsiClass[] interfaces = findImplementedInterfaces(iterableType, monitor);
-		boolean iterable = interfaces == null ? false
-				: Stream.of(interfaces)
-						.anyMatch(interfaceType -> JAVA_LANG_ITERABLE.equals(interfaceType.getQualifiedName()));
-		return iterable;
 	}
 
 	private static boolean isValidField(PsiField field, PsiClass type) {
@@ -538,33 +457,12 @@ public class QuteSupportForTemplate {
 		}
 	}
 
-	private static void findImplementedInterfaces(PsiClass type, List<PsiClass> result, ProgressIndicator progressMonitor) {
-		result.addAll(Arrays.asList(type.getInterfaces()));
-		for(PsiClass parent : type.getSupers()) {
-			findImplementedInterfaces(parent, result, progressMonitor);
-		}
-	}
-
-	private static PsiClass[] findImplementedInterfaces(PsiClass type, ProgressIndicator progressMonitor) {
-		List<PsiClass> result = new ArrayList<>();
-		findImplementedInterfaces(type, result, progressMonitor);
-		return result.toArray(new PsiClass[result.size()]);
-	}
-
-	private static PsiClass[] findImplementedInterfacesAndSuper(PsiClass type, ProgressIndicator progressMonitor) {
-		List<PsiClass> result = new ArrayList<>();
-		findImplementedInterfaces(type, result, progressMonitor);
-		if (type.getSuperClass() != null) {
-			result.add(type.getSuperClass());
-		}
-		return result.toArray(new PsiClass[result.size()]);
-	}
-
-	public static ITypeResolver createTypeResolver(PsiMember member) {
+	public static ITypeResolver createTypeResolver(PsiMember member, Module javaProject) {
 		/*ITypeResolver typeResolver = !member.isBinary()
 				? new CompilationUnitTypeResolver((ICompilationUnit) member.getAncestor(IJavaElement.COMPILATION_UNIT))
 				: new ClassFileTypeResolver((IClassFile) member.getAncestor(IJavaElement.CLASS_FILE));*/
-		ITypeResolver typeResolver = new ClassFileTypeResolver(member.getContainingClass());
+		ITypeResolver typeResolver = new ClassFileTypeResolver(member instanceof PsiClass ?
+				(PsiClass) member : member.getContainingClass(), javaProject);
 		return typeResolver;
 	}
 

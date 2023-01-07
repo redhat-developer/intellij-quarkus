@@ -11,15 +11,23 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.resolver;
 
+import com.intellij.lang.jvm.types.JvmReferenceType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.PsiVariable;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.ClassUtil;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,9 +41,19 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 
 	private static final Logger LOGGER = Logger.getLogger(AbstractTypeResolver.class.getName());
 
+	protected final PsiClass primaryType;
+	private final Module javaProject;
+
+	public AbstractTypeResolver(PsiClass primaryType, Module javaProject) {
+		this.primaryType = primaryType;
+		this.javaProject = javaProject;
+	}
+
+
 	public static String resolveJavaTypeSignature(PsiClass type) {
 		if (type.getQualifiedName() != null) {
-			StringBuilder typeName = new StringBuilder(type.getQualifiedName());
+
+			StringBuilder typeName = new StringBuilder(ClassUtil.getJVMClassName(type));
 			try {
 				PsiTypeParameter[] parameters = type.getTypeParameters();
 				if (parameters.length > 0) {
@@ -56,6 +74,35 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		}
 		return null;
 	}
+
+	@Override
+	public List<String> resolveExtendedType() {
+		List<String> extendedTypes = new ArrayList<>();
+		try {
+			if (primaryType.getSuperClassType() instanceof PsiClassType &&
+					(primaryType.isInterface() || !PsiType.getJavaLangObject(primaryType.getManager(),
+							GlobalSearchScope.allScope(primaryType.getProject())).equals(primaryType.getSuperClassType()))) {
+				extendedTypes.add(PsiTypeUtils.resolveSignature((PsiType) primaryType.getSuperClassType(), false));
+			}
+			JvmReferenceType @NotNull [] superInterfaceTypeSignature = primaryType.getInterfaceTypes();
+			if (superInterfaceTypeSignature != null) {
+				for (JvmReferenceType string : superInterfaceTypeSignature) {
+					if (string instanceof PsiClassType) {
+						extendedTypes.add(PsiTypeUtils.resolveSignature((PsiType) string, false));
+					}
+				}
+			}
+			if (primaryType.isInterface() && !extendedTypes.contains("java.lang.Object")) {
+				extendedTypes.add("java.lang.Object");
+			}
+
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error while resolving super class Java Types for Java type '"
+					+ primaryType.getQualifiedName(), e);
+		}
+		return extendedTypes;
+	}
+
 
 	@Override
 	public String resolveFieldSignature(PsiVariable field) {
@@ -94,7 +141,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		}
 		signature.append(')');
 		try {
-			String returnType = method.getReturnType().getCanonicalText(true);
+			String returnType = PsiTypeUtils.resolveSignature(method.getReturnType(), false);
 			signature.append(" : ");
 			signature.append(returnType);
 		} catch (RuntimeException e) {
@@ -105,9 +152,27 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 	}
 
 	@Override
-	public String resolveTypeSignature(String typeSignature, Module javaProject) {
+	public String resolveLocalVariableSignature(PsiParameter parameter, boolean varargs) {
+		return PsiTypeUtils.resolveSignature(parameter, primaryType, varargs);
+	}
+
+	@Override
+	public String resolveTypeSignature(String typeSignature) {
+		return resolveTypeSignature(typeSignature, false);
+	}
+
+	private String resolveTypeSignature(String typeSignature, boolean varargs) {
+		if (typeSignature.charAt(0) == '[') {
+			return doResolveTypeSignature(typeSignature.substring(1, typeSignature.length()))
+					+ (varargs ? "..." : "[]");
+		}
+		return doResolveTypeSignature(typeSignature);
+	}
+
+	private String doResolveTypeSignature(String typeSignature) {
 		return PsiTypeUtils.getFullQualifiedName(typeSignature, javaProject, new EmptyProgressIndicator());
 	}
+
 
 	protected abstract String resolveSimpleType(String name);
 }

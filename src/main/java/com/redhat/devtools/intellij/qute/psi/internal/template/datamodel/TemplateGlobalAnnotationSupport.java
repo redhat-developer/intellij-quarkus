@@ -81,7 +81,8 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 		if (annotation == null) {
 			return;
 		}
-		ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver((PsiMember) javaElement);
+		ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver((PsiMember) javaElement,
+				context.getJavaProject());
 		if (javaElement instanceof PsiClass) {
 			PsiClass type = (PsiClass) javaElement;
 			collectResolversForTemplateGlobal(type, annotation, context.getDataModelProject().getValueResolvers(),

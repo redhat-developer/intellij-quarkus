@@ -136,14 +136,16 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
 
 		List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
 				new EmptyProgressIndicator());
-		assertEquals(2, links.size());
+		assertEquals(3, links.size());
 
 		String templateFileUri = new File(ModuleUtilCore.getModuleDirPath(module),"src/main/resources/templates/ItemResource/items.qute.html").toURI().toString();
 
 		assertDocumentLink(links, //
-				dl(r(20, 33, 20, 38), //
+				dl(r(21, 33, 21, 38), //
 						templateFileUri, "Open `src/main/resources/templates/ItemResource/items.qute.html`"), //
-				dl(r(25, 33, 25, 39), //
+				dl(r(23, 33, 23, 36), //
+						templateFileUri, "Create `src/main/resources/templates/ItemResource/map.qute.html`"), //
+				dl(r(28, 33, 28, 39), //
 						templateFileUri, "Create `src/main/resources/templates/ItemResource/items2.qute.html`"));
 	}
 
