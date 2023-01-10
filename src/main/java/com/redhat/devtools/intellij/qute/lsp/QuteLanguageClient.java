@@ -30,6 +30,7 @@ import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaDiagnosticsParams;
 import com.redhat.qute.commons.QuteJavaDocumentLinkParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -150,5 +151,11 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
   public CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params) {
     return runAsBackground("generateMissingJavaMember", monitor -> QuteSupportForTemplate.getInstance()
             .generateMissingJavaMember(params, PsiUtilsLSImpl.getInstance(getProject()), monitor));
+  }
+
+  @Override
+  public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
+    return runAsBackground("getJavadoc", monitor -> QuteSupportForTemplate.getInstance()
+            .getJavadoc(params, PsiUtilsLSImpl.getInstance(getProject()), monitor));
   }
 }

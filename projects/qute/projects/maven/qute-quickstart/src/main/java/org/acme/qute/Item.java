@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 
 public class Item {
 
+	/**
+	 * The name of the item
+	 */
 	public final String name;
 
 	public final BigDecimal price;
@@ -17,6 +20,11 @@ public class Item {
 		this.name = name;
 	}
 
+	/**
+	 * Returns the derived items.
+	 * 
+	 * @return the derived items
+	 */
 	public Item[] getDerivedItems() {
 		return null;
 	}

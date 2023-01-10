@@ -14,8 +14,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
@@ -34,7 +32,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -57,7 +54,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		WorkspaceEdit expected = we(Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java",
-				te(0, 0, 31, 1, "package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    public final String name;\n\n    public final BigDecimal price;\n\n    private final int identifier = 0, version = 1;\n\n    private double volume;\n    public String asdf;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n}"))));
+				te(0, 0, 39, 1, "package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    /**\n     * The name of the item\n     */\n    public final String name;\n\n    public final BigDecimal price;\n\n    private final int identifier = 0, version = 1;\n\n    private double volume;\n    public String asdf;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    /**\n     * Returns the derived items.\n     *\n     * @return the derived items\n     */\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n}"))));
 		assertWorkspaceEdit(expected, actual);
 
 	}
@@ -72,7 +69,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		WorkspaceEdit expected = we(
-				Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java", te(0, 0, 31, 1, "package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    public final String name;\n\n    public final BigDecimal price;\n\n    private final int identifier = 0, version = 1;\n\n    public double volume;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n}"))));
+				Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java", te(0, 0, 39, 1, "package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    /**\n     * The name of the item\n     */\n    public final String name;\n\n    public final BigDecimal price;\n\n    private final int identifier = 0, version = 1;\n\n    public double volume;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    /**\n     * Returns the derived items.\n     *\n     * @return the derived items\n     */\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n}"))));
 		assertWorkspaceEdit(expected, actual);
 
 	}
@@ -87,8 +84,8 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		WorkspaceEdit expected = we(Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java",
-				te(0, 0, 31, 1, //
-						"package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    public final String name;\n\n    public final BigDecimal price;\n\n    public final int identifier = 0;\n    private final int version = 1;\n\n    private double volume;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n}"))));
+				te(0, 0, 39, 1, //
+						"package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    /**\n     * The name of the item\n     */\n    public final String name;\n\n    public final BigDecimal price;\n\n    public final int identifier = 0;\n    private final int version = 1;\n\n    private double volume;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    /**\n     * Returns the derived items.\n     *\n     * @return the derived items\n     */\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n}"))));
 		assertWorkspaceEdit(expected, actual);
 
 	}
@@ -103,7 +100,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		WorkspaceEdit expected = we(Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java",
-				te(0, 0, 31, 1, "package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    public final String name;\n\n    public final BigDecimal price;\n\n    private final int identifier = 0, version = 1;\n\n    private double volume;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n    public String getAsdf() {\n        return null;\n    }\n}"))));
+				te(0, 0, 39, 1, "package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    /**\n     * The name of the item\n     */\n    public final String name;\n\n    public final BigDecimal price;\n\n    private final int identifier = 0, version = 1;\n\n    private double volume;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    /**\n     * Returns the derived items.\n     *\n     * @return the derived items\n     */\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n    public String getAsdf() {\n        return null;\n    }\n}"))));
 		assertWorkspaceEdit(expected, actual);
 
 	}
@@ -118,8 +115,8 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 		WorkspaceEdit actual = QuteSupportForTemplate.getInstance().generateMissingJavaMember(params, getJDTUtils(),
 				new EmptyProgressIndicator());
 		WorkspaceEdit expected = we(Either.forLeft(tde(project, "src/main/java/org/acme/qute/Item.java",
-				te(0, 0, 31, 1, //
-						"package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    public final String name;\n\n    public final BigDecimal price;\n\n    private final int identifier = 0, version = 1;\n\n    private double volume;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n    public int getIdentifier() {\n        return identifier;\n    }\n}"))));
+				te(0, 0, 39, 1, //
+						"package org.acme.qute;\n\nimport java.math.BigDecimal;\n\npublic class Item {\n\n    /**\n     * The name of the item\n     */\n    public final String name;\n\n    public final BigDecimal price;\n\n    private final int identifier = 0, version = 1;\n\n    private double volume;\n\n    public Item(BigDecimal price, String name) {\n        this.price = price;\n        this.name = name;\n    }\n\n    /**\n     * Returns the derived items.\n     *\n     * @return the derived items\n     */\n    public Item[] getDerivedItems() {\n        return null;\n    }\n\n    public String varArgsMethod(int index, String... elements) {\n        return null;\n    }\n\n    public static BigDecimal staticMethod(Item item) {\n        return item.price.multiply(new BigDecimal(\"0.9\"));\n    }\n\n    public int getIdentifier() {\n        return identifier;\n    }\n}"))));
 		assertWorkspaceEdit(expected, actual);
 
 	}
