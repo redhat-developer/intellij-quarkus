@@ -3,9 +3,6 @@
 
 name: Validate against IJ versions
 
-env:
-  QUARKUS_LS_COMMIT: fc960a4e849ef88bfebd1cb3e346b3c34b3d306c
-
 on:
   push:
     branches: [ main ]
@@ -20,19 +17,6 @@ jobs:
         IJ: [IC-2020.3, IC-2021.1, IC-2021.2, IC-2021.3, IC-2022.1, IC-2022.2, IC-2022.3]
 
     steps:
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: 17
-        distribution: 'temurin'
-    - name: Build quarkus-ls
-      run: |
-        git init quarkus-ls
-        cd quarkus-ls
-        git remote add origin https://github.com/redhat-developer/quarkus-ls
-        git fetch origin --depth 1 ${QUARKUS_LS_COMMIT}
-        git checkout ${QUARKUS_LS_COMMIT}
-        mvn -B -ntp -f qute.ls/com.redhat.qute.ls/pom.xml install -DskipTests
     - uses: actions/checkout@v2
     - name: Set up JDK 17
       uses: actions/setup-java@v3
@@ -49,19 +33,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: 'temurin'
-      - name: Build quarkus-ls
-        run: |
-          git init quarkus-ls
-          cd quarkus-ls
-          git remote add origin https://github.com/redhat-developer/quarkus-ls
-          git fetch origin --depth 1 ${QUARKUS_LS_COMMIT}
-          git checkout ${QUARKUS_LS_COMMIT}
-          mvn -B -ntp -f qute.ls/com.redhat.qute.ls/pom.xml install -DskipTests
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Set up JDK 17

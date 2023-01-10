@@ -154,11 +154,11 @@ dependencies {
     lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.6.0:uber') {
         transitive = false
     }
-    lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.12.1') {
+    lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.13.0') {
         transitive = false
     }
-    implementation 'com.redhat.microprofile:com.redhat.qute.ls:0.13.0-SNAPSHOT'
-    lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.13.0-SNAPSHOT:uber') {
+    implementation 'com.redhat.microprofile:com.redhat.qute.ls:0.13.0'
+    lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.13.0:uber') {
         transitive = false
     }
     implementation files(new File(buildDir, 'server')) {
