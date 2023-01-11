@@ -102,7 +102,7 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 				addDummyResolverForTemplateExtensionsClass(type, resolvers);
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting methods of '" + type.getName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getName() + "'.", e);
 		}
 	}
 
@@ -127,7 +127,7 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 			return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
 					&& !PsiTypeUtils.isVoidReturnType(method);
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting method information of '" + method.getName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting method information of '" + method.getName() + "'.", e);
 			return false;
 		}
 	}
@@ -159,7 +159,7 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 				resolver.setMatchName(matchName);
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting annotation member value of '" + method.getName() + "'.", e);
 		}
 		if (!resolvers.contains(resolver)) {

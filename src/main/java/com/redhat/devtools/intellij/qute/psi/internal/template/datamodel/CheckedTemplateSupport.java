@@ -136,7 +136,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 			}
 
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting method template parameter of '" + method.getName() + "'.", e);
 		}
 		// Collect data parameters for the given template

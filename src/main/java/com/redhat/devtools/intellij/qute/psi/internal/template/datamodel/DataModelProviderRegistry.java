@@ -213,7 +213,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 			try {
 				provider.collectDataModel(match, context, monitor);
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE,
+				LOGGER.log(Level.WARNING,
 						"Error while collecting data model with the provider '" + provider.getClass().getName() + "'.",
 						e);
 			}

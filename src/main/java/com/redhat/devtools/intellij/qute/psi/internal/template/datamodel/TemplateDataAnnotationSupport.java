@@ -137,7 +137,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting annotation member value of '" + member.getName() + "'.", e);
 		}
 	}

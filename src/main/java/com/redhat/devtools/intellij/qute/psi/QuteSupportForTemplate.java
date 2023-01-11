@@ -348,7 +348,7 @@ public class QuteSupportForTemplate {
 						methodsInfo.add(info);
 					}
 				} catch (Exception e) {
-					LOGGER.log(Level.SEVERE,
+					LOGGER.log(Level.WARNING,
 							"Error while getting method signature of '" + method.getName() + "'.", e);
 				}
 			}
@@ -398,7 +398,7 @@ public class QuteSupportForTemplate {
 			}
 
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while checking if '" + method.getName() + "' is valid.", e);
+			LOGGER.log(Level.WARNING, "Error while checking if '" + method.getName() + "' is valid.", e);
 			return false;
 		}
 		return true;
@@ -426,7 +426,7 @@ public class QuteSupportForTemplate {
 				return InvalidMethodReason.Static;
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while checking if '" + method.getName() + "' is valid.", e);
+			LOGGER.log(Level.WARNING, "Error while checking if '" + method.getName() + "' is valid.", e);
 		}
 		return null;
 	}

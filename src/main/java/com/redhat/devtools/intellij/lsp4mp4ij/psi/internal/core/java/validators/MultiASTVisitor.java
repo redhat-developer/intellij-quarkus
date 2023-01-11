@@ -44,7 +44,7 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 			try {
 				visitor.visitAnnotation(node);
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error while visiting node with " + visitor.getClass().getName(), e);
+				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
 			}
 		}
 	}
@@ -55,7 +55,7 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 			try {
 				visitor.visitClass(node);
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error while visiting node with " + visitor.getClass().getName(), e);
+				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
 			}
 		}
 	}
@@ -66,7 +66,7 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 			try {
 				visitor.visitMethod(node);
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error while visiting node with " + visitor.getClass().getName(), e);
+				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
 			}
 		}
 	}

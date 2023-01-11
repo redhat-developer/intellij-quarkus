@@ -113,7 +113,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
 		}
 	}
 
@@ -131,7 +131,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 				resolver.setNamed(
 					AnnotationUtils.getAnnotationMemberValue(templateGlobal, TEMPLATE_GLOBAL_ANNOTATION_NAME));
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error while getting annotation member value of 'name'.", e);
+				LOGGER.log(Level.WARNING, "Error while getting annotation member value of 'name'.", e);
 			}
 			resolver.setGlobalVariable(true);
 			if (!resolvers.contains(resolver)) {
@@ -178,7 +178,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			}
 			return false;
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while getting method information of '" + member.getName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting method information of '" + member.getName() + "'.", e);
 			return false;
 		}
 	}

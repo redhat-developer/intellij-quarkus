@@ -102,7 +102,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 				return AnnotationUtils.getAnnotationMemberValue(namedAnnotation, VALUE_ANNOTATION_NAME);
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting @Named annotation value.", e);
+			LOGGER.log(Level.WARNING, "Error while getting @Named annotation value.", e);
 			return null;
 		}
 		return null;

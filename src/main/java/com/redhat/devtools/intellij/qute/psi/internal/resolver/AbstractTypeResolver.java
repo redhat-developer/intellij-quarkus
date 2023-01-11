@@ -68,7 +68,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 				}
 				return typeName.toString();
 			} catch (RuntimeException e) {
-				LOGGER.log(Level.SEVERE, "Error while collecting Java Types for Java type '" + typeName + "'.", e);
+				LOGGER.log(Level.WARNING, "Error while collecting Java Types for Java type '" + typeName + "'.", e);
 			}
 			return typeName.toString();
 		}
@@ -111,7 +111,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		try {
 			signature.append(field.getType().getCanonicalText(true));
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while resolving field type '" + field.getName() + "'", e);
+			LOGGER.log(Level.WARNING, "Error while resolving field type '" + field.getName() + "'", e);
 		}
 		return signature.toString();
 	}
@@ -136,7 +136,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 				}
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while resolving method parameters type of '" + method.getName() + "'", e);
 		}
 		signature.append(')');
@@ -145,7 +145,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 			signature.append(" : ");
 			signature.append(returnType);
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while resolving method return type of '" + method.getName() + "'",
+			LOGGER.log(Level.WARNING, "Error while resolving method return type of '" + method.getName() + "'",
 					e);
 		}
 		return signature.toString();

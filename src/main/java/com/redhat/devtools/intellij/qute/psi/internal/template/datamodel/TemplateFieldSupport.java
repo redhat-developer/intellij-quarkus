@@ -137,7 +137,7 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 				return AnnotationUtils.getAnnotationMemberValue(annotation, "value");
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while getting @Location of '" + field.getName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting @Location of '" + field.getName() + "'.", e);
 		}
 		return null;
 	}

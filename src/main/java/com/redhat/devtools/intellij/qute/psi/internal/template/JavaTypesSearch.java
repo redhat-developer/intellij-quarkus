@@ -77,7 +77,7 @@ public class JavaTypesSearch {
 						searchScope = searchScope.intersectWith(new LocalSearchScope(innerClass));
 					}
 				} catch (RuntimeException e) {
-					LOGGER.log(Level.SEVERE, "Error while getting inner class for '" + packageName + "'.", e);
+					LOGGER.log(Level.WARNING, "Error while getting inner class for '" + packageName + "'.", e);
 				}
 			}
 		}
@@ -103,7 +103,7 @@ public class JavaTypesSearch {
 				PsiPackage pack = JavaPsiFacade.getInstance(javaProject.getProject()).findPackage(packageName);
 					fillWithSubPackages(packageName, pack, subPackages);
 			} catch (RuntimeException e) {
-				LOGGER.log(Level.SEVERE, "Error while collecting sub packages for '" + packageName + "'.", e);
+				LOGGER.log(Level.WARNING, "Error while collecting sub packages for '" + packageName + "'.", e);
 			}
 
 			for (String subPackageName : subPackages) {
@@ -126,7 +126,7 @@ public class JavaTypesSearch {
 				}
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while collecting sub packages for '" + packageName + "' in '"
+			LOGGER.log(Level.WARNING, "Error while collecting sub packages for '" + packageName + "' in '"
 					+ packageFragmentRoot.getQualifiedName() + "'.", e);
 		}
 	}
@@ -146,7 +146,7 @@ public class JavaTypesSearch {
 				try {
 					classInfo.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
 				} catch (RuntimeException e) {
-					LOGGER.log(Level.SEVERE, "Error while collecting Java Types for '" + packageName
+					LOGGER.log(Level.WARNING, "Error while collecting Java Types for '" + packageName
 							+ " package and Java type '" + typeName + "'.", e);
 				}
 			}

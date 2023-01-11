@@ -105,7 +105,7 @@ public class QuarkusIntegrationForQute {
 						tags.add(tagInfo);
 					}
 				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, e.getLocalizedMessage(), e);
+					LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
 				}
 			}
 		}

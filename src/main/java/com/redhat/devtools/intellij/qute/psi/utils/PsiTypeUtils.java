@@ -214,7 +214,7 @@ public class PsiTypeUtils {
 				return JavaPsiFacade.getInstance(javaProject.getProject()).findClass("java.lang." + className, javaProject.getModuleWithDependenciesAndLibrariesScope(true));
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while finding type for '" + className + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while finding type for '" + className + "'.", e);
 		}
 		return null;
 	}

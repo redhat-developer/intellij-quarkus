@@ -93,7 +93,7 @@ public class TemplateEnumAnnotationSupport extends AbstractAnnotationTypeReferen
 				collectResolversForTemplateEnum(field, resolvers, typeResolver);
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
 		}
 	}
 
