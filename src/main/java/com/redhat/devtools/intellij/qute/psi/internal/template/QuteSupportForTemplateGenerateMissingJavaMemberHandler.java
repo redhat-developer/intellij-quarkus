@@ -298,16 +298,16 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		VirtualFile cu = destPackage.findChild(baseName + ".java");
 		int i = 0;
 		while (cu != null && cu.isValid()) {
-			name = baseName + i;
+			name = baseName + i++;
 			cu = destPackage.findChild(name + ".java");
 		}
 
 		ResourceOperation createFileOperation = new CreateFile(
-				fixBrokenUri(destPackage.getUrl() + "/" + baseName + ".java"));
+				fixBrokenUri(destPackage.getUrl() + "/" + name + ".java"));
 		TextDocumentEdit addContentEdit;
 		try {
 			addContentEdit = createNewTemplateExtensionsContent(cu, name, params.getMissingProperty(),
-					params.getJavaType(), fixBrokenUri(destPackage.getUrl() + "/" + baseName + ".java"), utils);
+					params.getJavaType(), fixBrokenUri(destPackage.getUrl() + "/" + name + ".java"), utils);
 		} catch (Exception e) {
 			throw new RuntimeException("Failure while constructing new Java file content", e);
 		}

@@ -149,8 +149,8 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
 
   @Override
   public CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params) {
-    return runAsBackground("generateMissingJavaMember", monitor -> QuteSupportForTemplate.getInstance()
-            .generateMissingJavaMember(params, PsiUtilsLSImpl.getInstance(getProject()), monitor));
+    return runAsBackground("generateMissingJavaMember", monitor -> ReadAction.compute(() -> QuteSupportForTemplate.getInstance()
+            .generateMissingJavaMember(params, PsiUtilsLSImpl.getInstance(getProject()), monitor)));
   }
 
   @Override
