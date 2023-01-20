@@ -62,6 +62,11 @@ public class MicroProfileForJavaAssert {
 	// ------------------- Assert for CodeAction
 
 	public static MicroProfileJavaCodeActionParams createCodeActionParams(String uri, Diagnostic d) {
+		return createCodeActionParams(uri, d, true);
+	}
+
+	public static MicroProfileJavaCodeActionParams createCodeActionParams(String uri, Diagnostic d,
+																		  boolean commandSupported) {
 		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(uri);
 		Range range = d.getRange();
 		CodeActionContext context = new CodeActionContext();
@@ -69,6 +74,8 @@ public class MicroProfileForJavaAssert {
 		MicroProfileJavaCodeActionParams codeActionParams = new MicroProfileJavaCodeActionParams(textDocument, range,
 				context);
 		codeActionParams.setResourceOperationSupported(true);
+		codeActionParams.setCommandConfigurationUpdateSupported(commandSupported);
+		codeActionParams.setResolveSupported(false);
 		return codeActionParams;
 	}
 
@@ -125,7 +132,8 @@ public class MicroProfileForJavaAssert {
 	public static void assertJavaCompletion(MicroProfileJavaCompletionParams params, IPsiUtils utils,
 											CompletionItem... expected) {
 		CompletionList actual = PropertiesManagerForJava.getInstance().completion(params, utils);
-		assertCompletion(actual != null && actual.getItems() != null && actual.getItems().size() > 0 ? actual.getItems() : Collections.emptyList(), expected);
+		assertCompletion(actual != null && actual.getItems() != null && actual.getItems().size() > 0 ? actual.getItems()
+				: Collections.emptyList(), expected);
 	}
 
 	public static void assertCompletion(List<? extends CompletionItem> actual, CompletionItem... expected) {

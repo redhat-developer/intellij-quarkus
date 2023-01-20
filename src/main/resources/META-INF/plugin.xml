@@ -218,6 +218,7 @@
   <extensionPoints>
     <extensionPoint name="toolDelegate" interface="com.redhat.devtools.intellij.quarkus.tool.ToolDelegate"/>
     <extensionPoint name="propertiesProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesProvider"/>
+    <extensionPoint name="staticPropertyProvider" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.StaticPropertyProviderExtensionPointBean"/>
     <extensionPoint name="javaHoverParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.IJavaHoverParticipant"/>
     <extensionPoint name="javaDiagnosticsParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaDiagnosticsParticipant"/>
     <extensionPoint name="projectLabelProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IProjectLabelProvider"/>
@@ -239,16 +240,16 @@
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertiesProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.properties.MicroProfileRegisterRestClientProvider"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.contextpropagation.properties.MicroProfileContextPropagationProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.lra.properties.MicroProfileLRAProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.properties.MicroProfileMetricsProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.properties.MicroProfileOpenAPIProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.opentracing.properties.MicroProfileOpenTracingProvider"/>
+    <staticPropertyProvider resource="/static-properties/mp-context-propagation-metadata.json" type="org.eclipse.microprofile.context.ThreadContext"/>
+    <staticPropertyProvider resource="/static-properties/mp-lra-metadata.json" type="org.eclipse.microprofile.lra.annotation.ws.rs.LRA"/>
+    <staticPropertyProvider resource="/static-properties/mp-metrics-metadata.json" type="org.eclipse.microprofile.metrics.MetricID"/>
+    <staticPropertyProvider resource="/static-properties/mp-openapi-metadata.json" type="org.eclipse.microprofile.openapi.OASConfig"/>
+    <staticPropertyProvider resource="/static-properties/mp-opentracing-metadata.json" type="org.eclipse.microprofile.opentracing.Traced"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.properties.MicroProfileReactiveMessagingProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.properties.MicroProfileGraphQLProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.properties.MicroProfileHealthProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jwt.properties.MicroProfileJWTProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jul.properties.JULPropertyProvider"/>
+    <staticPropertyProvider resource="/static-properties/mp-graphql-metadata.json" type="org.eclipse.microprofile.graphql.Name"/>
+    <staticPropertyProvider resource="/static-properties/mp-health-metadata.json" type="org.eclipse.microprofile.health.Liveness"/>
+    <staticPropertyProvider resource="/static-properties/mp-jwt-metadata.json" type="org.eclipse.microprofile.jwt.Claim"/>
+    <staticPropertyProvider resource="/static-properties/jul-metadata.json"/>
     <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jul.properties.JBossLogManagerPropertyProvider"/>
 
     <javaHoverParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigHoverParticipant"/>
@@ -299,6 +300,10 @@
                                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.RegisterRestClientAnnotationMissingQuickFix"/>
     <javaCodeActionParticipant kind="source"
                                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.java.MicroProfileGenerateOpenAPIOperation"/>
+
+    <!-- Microprofile Config Static Property support -->
+    
+    <staticPropertyProvider resource="/static-properties/mp-config-metadata.json"/>
 
     <!--quarkus-ls-->
     <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
@@ -361,6 +366,7 @@
              <attribute name="jitter" range="0" /> <!-- x >=0 -->
              <attribute name="maxRetries" range="-1" /> <!-- x >=0 -->
     </javaASTValidator.annotationValidator>
+    <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.java.MicroProfileReactiveMessagingASTValidator"/>
 
     <!-- Qute -->
     <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport"/>

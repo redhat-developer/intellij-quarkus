@@ -88,14 +88,26 @@ public class TemplateGetJavaTypeTest extends MavenModuleImportingTestCase {
 				new EmptyProgressIndicator());
 
 		assertJavaTypes(actual, //
-				t("org.acme.qute.NestedClass.Foo", JavaTypeKind.Class), //
-				t("org.acme.qute.NestedClass.Bar", JavaTypeKind.Class));
+				t("org.acme.qute.NestedClass$Foo", JavaTypeKind.Class), //
+				t("org.acme.qute.NestedClass$Bar", JavaTypeKind.Class));
+	}
+
+	@Test
+	public void testCyclic() throws Exception {
+
+		QuteJavaTypesParams params = new QuteJavaTypesParams("org.acme.qute.cyclic.", QuteMavenProjectName.qute_quickstart);
+		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, getJDTUtils(),
+				new EmptyProgressIndicator());
+		assertJavaTypes(actual, //
+				t("org.acme.qute.cyclic.ClassA", JavaTypeKind.Class), //
+				t("org.acme.qute.cyclic.ClassB", JavaTypeKind.Class), //
+				t("org.acme.qute.cyclic.ClassC", JavaTypeKind.Class));
 	}
 
 	public static JavaTypeInfo t(String typeName, JavaTypeKind kind) {
 		JavaTypeInfo javaType = new JavaTypeInfo();
 		javaType.setSignature(typeName);
-		javaType.setKind(kind);
+		javaType.setJavaTypeKind(kind);
 		return javaType;
 	}
 

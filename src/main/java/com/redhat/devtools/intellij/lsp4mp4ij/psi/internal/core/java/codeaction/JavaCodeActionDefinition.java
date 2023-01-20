@@ -24,6 +24,7 @@ import com.intellij.serviceContainer.BaseKeyedLazyInstance;
 import com.intellij.util.xmlb.annotations.Attribute;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionResolveContext;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
@@ -53,6 +54,11 @@ public class JavaCodeActionDefinition extends BaseKeyedLazyInstance<IJavaCodeAct
 	public String implementationClass;
 
 	@Override
+	public String getParticipantId() {
+		return getInstance().getParticipantId();
+	}
+
+	@Override
 	public boolean isAdaptedForCodeAction(JavaCodeActionContext context) {
 		try {
 			return getInstance().isAdaptedForCodeAction(context);
@@ -72,6 +78,12 @@ public class JavaCodeActionDefinition extends BaseKeyedLazyInstance<IJavaCodeAct
 			return Collections.emptyList();
 		}
 	}
+
+	@Override
+	public CodeAction resolveCodeAction(JavaCodeActionResolveContext context) {
+		return getInstance().resolveCodeAction(context);
+	}
+
 
 	/**
 	 * Returns the code action kind.

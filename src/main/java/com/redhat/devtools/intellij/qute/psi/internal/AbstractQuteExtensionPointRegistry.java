@@ -87,7 +87,7 @@ public abstract class AbstractQuteExtensionPointRegistry<T,K extends KeyedLazyIn
 				}
 				LOGGER.log(Level.INFO, "  Loaded " + getProviderExtensionId() + ": " + provider.getClass().getName());
 			} catch (Throwable t) {
-				LOGGER.log(Level.SEVERE, "  Loaded while loading " + getProviderExtensionId(), t);
+				LOGGER.log(Level.WARNING, "  Loaded while loading " + getProviderExtensionId(), t);
 			}
 		}
 	}

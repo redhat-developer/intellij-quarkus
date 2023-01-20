@@ -10,14 +10,18 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
 import com.intellij.openapi.module.Module;
+import org.eclipse.lsp4mp.commons.utils.PropertyValueExpander;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * {@link Properties} config file implementation.
@@ -27,6 +31,8 @@ import java.util.Properties;
  *
  */
 public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
+
+	private transient PropertyValueExpander propertyValueExpander = null;
 
 	public PropertiesConfigSource(String configFileName, String profile, int ordinal, Module javaProject) {
 		super(configFileName, profile, ordinal, javaProject);
@@ -43,11 +49,15 @@ public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 	@Override
 	public String getProperty(String key) {
 		Properties properties = getConfig();
-		return properties != null ? properties.getProperty(key) : null;
+		if (properties == null) {
+			return null;
+		}
+		return properties.getProperty(key);
 	}
 
 	@Override
 	protected Properties loadConfig(InputStream input) throws IOException {
+		propertyValueExpander = null;
 		Properties properties = new Properties();
 		properties.load(input);
 		String profile = getProfile();
@@ -88,4 +98,14 @@ public class PropertiesConfigSource extends AbstractConfigSource<Properties> {
 		});
 		return propertiesMap;
 	}
+
+	@Override
+	public Set<String> getAllKeys() {
+		Properties properties = getConfig();
+		if (properties == null) {
+			return Collections.emptySet();
+		}
+		return properties.keySet().stream().map(key -> (String) key).collect(Collectors.toSet());
+	}
+
 }

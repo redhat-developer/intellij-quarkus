@@ -23,6 +23,10 @@ public class MicroProfileHealthConstants {
 	private MicroProfileHealthConstants() {
 	}
 
+	/**
+	 * Deprecated in microprofile-health 2.0, removed in microprofile-health 3.0
+	 */
+	@Deprecated
 	public static final String HEALTH_ANNOTATION = "org.eclipse.microprofile.health.Health";
 	public static final String READINESS_ANNOTATION = "org.eclipse.microprofile.health.Readiness";
 	public static final String LIVENESS_ANNOTATION = "org.eclipse.microprofile.health.Liveness";

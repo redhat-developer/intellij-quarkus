@@ -1,0 +1,11 @@
+{
+	"properties": [
+		{
+			"type": "java.lang.Integer",
+			"extensionName": "microprofile-config-api",
+			"required": false,
+			"name": "config_ordinal",
+			"description": "`config_ordinal` can be set within any built-in `ConfigSource` implementation. The default implementation of `getOrdinal()` will attempt to read this value. If found and a valid integer, the value will be used. Otherwise the respective default value will be used."
+		}
+	]
+}

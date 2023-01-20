@@ -33,6 +33,7 @@ import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 
 import com.redhat.devtools.intellij.qute.psi.utils.CDIUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
 /**
  * Injecting Beans Directly In Templates support.
@@ -65,6 +66,11 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 
 			PsiClass type = (PsiClass) javaElement;
 			String named = getNamed(type);
+
+			// Filter any occurrences of @Stereotype usage with @Named
+			if (!CDIUtils.isValidBean(javaElement)) {
+				return;
+			}
 			collectResolversForInject(type, named, context.getDataModelProject().getValueResolvers());
 		} else if (javaElement instanceof PsiField || javaElement instanceof PsiMethod) {
 			// @Named
@@ -77,7 +83,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 
 			PsiMember javaMember = (PsiMember) javaElement;
 			String named = getNamed(javaMember);
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(javaMember);
+			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(javaMember, context.getJavaProject());
 			collectResolversForInject(javaMember, named, context.getDataModelProject().getValueResolvers(),
 					typeResolver);
 		}
@@ -96,7 +102,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 				return AnnotationUtils.getAnnotationMemberValue(namedAnnotation, VALUE_ANNOTATION_NAME);
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting @Named annotation value.", e);
+			LOGGER.log(Level.WARNING, "Error while getting @Named annotation value.", e);
 			return null;
 		}
 		return null;
@@ -108,6 +114,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 		resolver.setSourceType(type.getQualifiedName());
 		resolver.setSignature(type.getQualifiedName());
 		resolver.setNamespace(INJECT_NAMESPACE);
+		resolver.setKind(ValueResolverKind.InjectedBean);
 		resolvers.add(resolver);
 	}
 
@@ -118,6 +125,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 		resolver.setSourceType(javaMember.getContainingClass().getQualifiedName());
 		resolver.setSignature(typeResolver.resolveSignature(javaMember));
 		resolver.setNamespace(INJECT_NAMESPACE);
+		resolver.setKind(ValueResolverKind.InjectedBean);
 		resolvers.add(resolver);
 	}
 }

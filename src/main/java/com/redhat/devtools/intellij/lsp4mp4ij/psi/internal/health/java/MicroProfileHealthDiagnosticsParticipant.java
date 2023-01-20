@@ -134,8 +134,18 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 		if (DocumentFormat.Markdown.equals(documentFormat)) {
 			message.append("`");
 		}
-		message.append(
-				" using the @Liveness, @Readiness, or @Health annotation should implement the HealthCheck interface.");
+		message.append(" using the @Liveness");
+		boolean hasHealth = PsiTypeUtils.findType(classType.getManager(), HEALTH_ANNOTATION) != null;
+		if (!hasHealth) {
+			message.append(" or ");
+		} else {
+			message.append(", ");
+		}
+		message.append("@Readiness");
+		if (hasHealth) {
+			message.append(", or @Health");
+		}
+		message.append(" annotation should implement the HealthCheck interface.");
 		return message.toString();
 	}
 
@@ -149,7 +159,18 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 			message.append("`");
 		}
 		message.append(
-				" implementing the HealthCheck interface should use the @Liveness, @Readiness, or @Health annotation.");
+				" implementing the HealthCheck interface should use the @Liveness");
+		boolean hasHealth = PsiTypeUtils.findType(classType.getManager(), HEALTH_ANNOTATION) != null;
+		if (!hasHealth) {
+			message.append(" or ");
+		} else {
+			message.append(", ");
+		}
+		message.append("@Readiness");
+		if (hasHealth) {
+			message.append(", or @Health");
+		}
+		message.append(" annotation.");
 		return message.toString();
 	}
 

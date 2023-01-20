@@ -27,7 +27,9 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.util.ClassUtil;
+import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractAnnotationTypeReferenceDataModelProvider;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
@@ -78,7 +80,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 									 SearchContext context, ProgressIndicator monitor) {
 		if (javaElement instanceof PsiClass) {
 			PsiClass type = (PsiClass) javaElement;
-			collectDataModelTemplateForCheckedTemplate(type, context.getDataModelProject().getTemplates(), monitor);
+			collectDataModelTemplateForCheckedTemplate(type, context.getTypeResolver(type),
+					context.getDataModelProject().getTemplates(), monitor);
 		}
 	}
 
@@ -89,7 +92,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 	 * @param templates the data model templates to update with collect of template.
 	 * @param monitor   the progress monitor.
 	 */
-	private static void collectDataModelTemplateForCheckedTemplate(PsiClass type,
+	private static void collectDataModelTemplateForCheckedTemplate(PsiClass type, ITypeResolver typeResolver,
 			List<DataModelTemplate<DataModelParameter>> templates, ProgressIndicator monitor) {
 		boolean innerClass = type.getContainingClass() != null;
 		String className = !innerClass ? null
@@ -99,13 +102,14 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 		// method.
 		PsiMethod[] methods = type.getMethods();
 		for (PsiMethod method : methods) {
-			DataModelTemplate<DataModelParameter> template = createTemplateDataModel(method, className, type, monitor);
+			DataModelTemplate<DataModelParameter> template = createTemplateDataModel(method, className, type,
+					typeResolver, monitor);
 			templates.add(template);
 		}
 	}
 
 	private static DataModelTemplate<DataModelParameter> createTemplateDataModel(PsiMethod method, String className,
-			PsiClass type, ProgressIndicator monitor) {
+			PsiClass type, ITypeResolver typeResolver, ProgressIndicator monitor) {
 		String methodName = method.getName();
 		// src/main/resources/templates/${className}/${methodName}.qute.html
 		String templateUri = getTemplatePath(className, methodName);
@@ -121,12 +125,18 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 		template.setSourceMethod(methodName);
 
 		try {
-			for (PsiParameter methodParameter : method.getParameterList().getParameters()) {
-				DataModelParameter parameter = createParameterDataModel(methodParameter, type);
-				template.getParameters().add(parameter);
+			PsiParameterList parameters = method.getParameterList();
+			if (!parameters.isEmpty()) {
+				boolean varargs = method.isVarArgs();
+				for (int i = 0; i < parameters.getParametersCount(); i++) {
+					DataModelParameter parameter = createParameterDataModel(parameters.getParameter(i),
+							varargs && i == parameters.getParametersCount() - 1, typeResolver);
+					template.getParameters().add(parameter);
+				}
 			}
+
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting method template parameter of '" + method.getName() + "'.", e);
 		}
 		// Collect data parameters for the given template
@@ -134,14 +144,14 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 		return template;
 	}
 
-	private static DataModelParameter createParameterDataModel(PsiParameter methodParameter, PsiClass type) {
+	private static DataModelParameter createParameterDataModel(PsiParameter methodParameter, boolean varags,
+															   ITypeResolver typeResolver) {
 		String parameterName = methodParameter.getName();
-		String parameterType = resolveSignature(methodParameter, type);
+		String parameterType = typeResolver.resolveLocalVariableSignature(methodParameter, varags);
 
 		DataModelParameter parameter = new DataModelParameter();
 		parameter.setKey(parameterName);
 		parameter.setSourceType(parameterType);
 		return parameter;
 	}
-
 }

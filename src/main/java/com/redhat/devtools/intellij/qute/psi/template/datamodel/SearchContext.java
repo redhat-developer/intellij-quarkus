@@ -13,11 +13,16 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.template.datamodel;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.psi.PsiClass;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 
+import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
+import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
 import com.redhat.qute.commons.QuteProjectScope;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
@@ -31,6 +36,9 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
  */
 public class SearchContext extends BaseContext {
 	private final DataModelProject<DataModelTemplate<DataModelParameter>> dataModelProject;
+
+	private Map<PsiClass, ITypeResolver> typeResolvers;
+
 	private final IPsiUtils utils;
 
 	public SearchContext(Module javaProject,
@@ -53,5 +61,25 @@ public class SearchContext extends BaseContext {
 	public IPsiUtils getUtils() {
 		return utils;
 	}
+
+	/**
+	 * Returns the {@link ITypeResolver} of the given Java type <code>type</code>.
+	 *
+	 * @param type the Java type.
+	 *
+	 * @return the {@link ITypeResolver} of the given Java type <code>type</code>.
+	 */
+	public ITypeResolver getTypeResolver(PsiClass type) {
+		if (typeResolvers == null) {
+			typeResolvers = new HashMap<>();
+		}
+		ITypeResolver typeResolver = typeResolvers.get(type);
+		if (typeResolver == null) {
+			typeResolver = QuteSupportForTemplate.createTypeResolver(type, utils.getModule());
+			typeResolvers.put(type, typeResolver);
+		}
+		return typeResolver;
+	}
+
 
 }

@@ -50,7 +50,7 @@ public class TemplateDataSupport {
 		try {
 			search(fieldOrMethod, new TemplateDataCollector(template, monitor), monitor);
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting collecting template parameters for '" + fieldOrMethod.getName() + "'.",
 					e);
 		}
@@ -99,7 +99,7 @@ public class TemplateDataSupport {
 			search(fieldOrMethod, dataLocation, monitor);
 			return dataLocation.getLocation();
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting location template.data for '" + fieldOrMethod.getName() + "'.", e);
 			return null;
 		}

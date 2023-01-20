@@ -19,10 +19,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
@@ -32,6 +34,7 @@ import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractAnnotati
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import org.apache.commons.lang3.StringUtils;
 
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
@@ -69,30 +72,37 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 		if (javaElement instanceof PsiClass) {
 			PsiClass type = (PsiClass) javaElement;
 			collectResolversForTemplateExtension(type, templateExtension,
-					context.getDataModelProject().getValueResolvers(), monitor);
+					context.getDataModelProject().getValueResolvers(), context.getJavaProject(), monitor);
 		} else if (javaElement instanceof PsiMethod) {
 			PsiMethod method = (PsiMethod) javaElement;
 			collectResolversForTemplateExtension(method, templateExtension,
-					context.getDataModelProject().getValueResolvers(), monitor);
+					context.getDataModelProject().getValueResolvers(), context.getJavaProject(), monitor);
 		}
 	}
 
 	private static void collectResolversForTemplateExtension(PsiClass type, PsiAnnotation templateExtension,
-			List<ValueResolverInfo> resolvers, ProgressIndicator monitor) {
+															 List<ValueResolverInfo> resolvers, Module project,
+															 ProgressIndicator monitor) {
 		try {
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type);
+			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type, project);
 			PsiMethod[] methods = type.getMethods();
+			int resolversLengthPreAdd = resolvers.size();
 			for (PsiMethod method : methods) {
 				if (isTemplateExtensionMethod(method)) {
 					PsiAnnotation methodTemplateExtension = AnnotationUtils.getAnnotation(method,
 							TEMPLATE_EXTENSION_ANNOTATION);
 					collectResolversForTemplateExtension(method,
 							methodTemplateExtension != null ? methodTemplateExtension : templateExtension, resolvers,
-							typeResolver);
+							typeResolver, ValueResolverKind.TemplateExtensionOnMethod);
 				}
 			}
+			if (resolversLengthPreAdd == resolvers.size()) {
+				// Add a dummy ValueResolverInfo to indicate that this is a template extensions
+				// class
+				addDummyResolverForTemplateExtensionsClass(type, resolvers);
+			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting methods of '" + type.getName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getName() + "'.", e);
 		}
 	}
 
@@ -117,24 +127,28 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 			return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
 					&& !PsiTypeUtils.isVoidReturnType(method);
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while getting method information of '" + method.getName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting method information of '" + method.getName() + "'.", e);
 			return false;
 		}
 	}
 
 	public static void collectResolversForTemplateExtension(PsiMethod method, PsiAnnotation templateExtension,
-			List<ValueResolverInfo> resolvers, ProgressIndicator monitor) {
+			List<ValueResolverInfo> resolvers, Module project, ProgressIndicator monitor) {
 		if (isTemplateExtensionMethod(method)) {
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(method);
-			collectResolversForTemplateExtension(method, templateExtension, resolvers, typeResolver);
+			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(method, project);
+			collectResolversForTemplateExtension(method, templateExtension, resolvers, typeResolver,
+					ValueResolverKind.TemplateExtensionOnMethod);
 		}
 	}
 
 	private static void collectResolversForTemplateExtension(PsiMethod method, PsiAnnotation templateExtension,
-			List<ValueResolverInfo> resolvers, ITypeResolver typeResolver) {
+															 List<ValueResolverInfo> resolvers,
+															 ITypeResolver typeResolver, ValueResolverKind kind) {
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setSourceType(method.getContainingClass().getQualifiedName());
 		resolver.setSignature(typeResolver.resolveMethodSignature(method));
+		resolver.setKind(kind);
+		resolver.setBinary(method.getContainingClass() instanceof PsiCompiledElement);
 		try {
 			String namespace = AnnotationUtils.getAnnotationMemberValue(templateExtension,
 					TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE);
@@ -145,11 +159,21 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 				resolver.setMatchName(matchName);
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting annotation member value of '" + method.getName() + "'.", e);
 		}
 		if (!resolvers.contains(resolver)) {
 			resolvers.add(resolver);
 		}
+	}
+
+	private static void addDummyResolverForTemplateExtensionsClass(PsiClass type, List<ValueResolverInfo> resolvers) {
+		ValueResolverInfo resolver = new ValueResolverInfo();
+		resolver.setSourceType(type.getQualifiedName());
+		resolver.setKind(ValueResolverKind.TemplateExtensionOnClass);
+		resolver.setBinary(type instanceof PsiCompiledElement);
+		// Needed to prevent NPE
+		resolver.setSignature("");
+		resolvers.add(resolver);
 	}
 }

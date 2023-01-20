@@ -19,11 +19,17 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.ChangeCorrectionProposal;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.InsertAnnotationAttributeProposal;
 import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4mp.commons.CodeActionResolveData;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * QuickFix for inserting attribute of a given annotation.
@@ -31,7 +37,9 @@ import java.util.List;
  * @author Angelo ZERR
  *
  */
-public class InsertAnnotationAttributeQuickFix implements IJavaCodeActionParticipant {
+public abstract class InsertAnnotationAttributeQuickFix implements IJavaCodeActionParticipant {
+
+	private static final Logger LOGGER = Logger.getLogger(InsertAnnotationAttributeQuickFix.class.getName());
 
 	private static final String CODE_ACTION_LABEL = "Insert ''{0}'' attribute";
 
@@ -48,25 +56,32 @@ public class InsertAnnotationAttributeQuickFix implements IJavaCodeActionPartici
 
 	@Override
 	public List<? extends CodeAction> getCodeActions(JavaCodeActionContext context, Diagnostic diagnostic) {
-		PsiElement selectedNode = context.getCoveringNode();
-		PsiAnnotation annotation = PsiTreeUtil.getParentOfType(selectedNode, PsiAnnotation.class);
-		List<CodeAction> codeActions = new ArrayList<>();
-		insertAnnotationAttribute(annotation, this.attributeName, diagnostic, codeActions, context);
-		return codeActions;
+		ExtendedCodeAction codeAction = new ExtendedCodeAction(getLabel(attributeName));
+		codeAction.setRelevance(0);
+		codeAction.setKind(CodeActionKind.QuickFix);
+		codeAction.setDiagnostics(Arrays.asList(diagnostic));
+		codeAction.setData(
+				new CodeActionResolveData(context.getUri(), getParticipantId(), context.getParams().getRange(), null,
+						context.getParams().isResourceOperationSupported(),
+						context.getParams().isCommandConfigurationUpdateSupported()));
+		return Collections.singletonList(codeAction);
 	}
 
-	protected static void insertAnnotationAttribute(PsiAnnotation annotation, String attributeName, Diagnostic diagnostic,
-			List<CodeAction> codeActions, JavaCodeActionContext context) {
-		// Insert the annotation and the proper import by using JDT Core Manipulation
-		// API
+
+	@Override
+	public CodeAction resolveCodeAction(JavaCodeActionResolveContext context) {
+		CodeAction toResolve = context.getUnresolved();
+		PsiElement selectedNode = context.getCoveringNode();
+		PsiAnnotation annotation = PsiTreeUtil.getParentOfType(selectedNode, PsiAnnotation.class);
 		String name = getLabel(attributeName);
 		ChangeCorrectionProposal proposal = new InsertAnnotationAttributeProposal(name, context.getCompilationUnit(),
 				annotation, 0, context.getSource().getCompilationUnit(), attributeName);
-		// Convert the proposal to LSP4J CodeAction
-		CodeAction codeAction = context.convertToCodeAction(proposal, diagnostic);
-		if (codeAction != null) {
-			codeActions.add(codeAction);
+		try {
+			toResolve.setEdit(context.convertToWorkspaceEdit(proposal));
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Unable to resolve code action edit for inserting an attribute value", e);
 		}
+		return toResolve;
 	}
 
 	private static String getLabel(String memberName) {

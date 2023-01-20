@@ -69,9 +69,9 @@ public abstract class AbstractFieldDeclarationTypeReferenceDataModelProvider ext
 				// Collect properties from the class name and stop the loop.
 				processField(field, context, monitor);
 			} catch (Exception e) {
-				if (LOGGER.isLoggable(Level.SEVERE)) {
+				if (LOGGER.isLoggable(Level.WARNING)) {
 					LOGGER.log(
-							Level.SEVERE, "Cannot collect Qute data model for the field '"
+							Level.WARNING, "Cannot collect Qute data model for the field '"
 									+ field.getContainingClass().getQualifiedName() + "#" + field.getName() + "'.",
 							e);
 				}

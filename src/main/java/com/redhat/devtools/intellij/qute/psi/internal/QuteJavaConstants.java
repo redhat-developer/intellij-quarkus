@@ -29,6 +29,12 @@ public class QuteJavaConstants {
 
 	public static final String VALUE_ANNOTATION_NAME = "value";
 
+	// @Decorator
+	public static final String JAVAX_DECORATOR_ANNOTATION = "javax.decorator.Decorator";
+
+	// @Vetoed
+	public static final String JAVAX_INJECT_VETOED_ANNOTATION = "javax.enterprise.inject.Vetoed";
+
 	// @CheckedTemplate
 
 	public static final String CHECKED_TEMPLATE_ANNOTATION = "io.quarkus.qute.CheckedTemplate";

@@ -23,11 +23,12 @@ public class PriceConverter {
     }
     
     @Incoming("")
+    @Outgoing(value="")
     @Broadcast
     public double processWithBlankChannel(int priceInUsd) {
         return priceInUsd * CONVERSION_RATE;
     }
-    
-    
+
+
 
 }

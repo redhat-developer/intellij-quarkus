@@ -16,9 +16,12 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaReference;
 import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
@@ -28,14 +31,19 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiSubstitutor;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiVariable;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
+import com.intellij.psi.util.PsiClassUtil;
+import com.intellij.psi.util.PsiUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResolver;
+import com.redhat.qute.commons.JavaTypeKind;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * JDT Type utilities.
@@ -153,13 +161,26 @@ public class PsiTypeUtils {
 		return method.getName() + method.getSignature(PsiSubstitutor.EMPTY);
 	}
 
-	private static String resolveSignature(PsiType type, boolean varargs) {
+	public static String resolveSignature(PsiType type, boolean varargs) {
 		if (type instanceof PsiArrayType) {
 			return resolveSignature(((PsiArrayType) type).getComponentType(), false) + (varargs?"...":"[]");
 		}
+		if (type instanceof PsiClassReferenceType) {
+			var ref = ((PsiClassReferenceType) type).getReference();
+			var prefix = ClassUtil.getJVMClassName(((PsiClassReferenceType) type).resolve());
+			if (prefix == null) {
+				prefix = ref.getReferenceName();
+			}
+			var types = ref.getTypeParameters();
+			if (types.length > 0) {
+				var suffixes = Arrays.stream(types)
+						.map(t -> resolveSignature(t, false))
+						.collect(Collectors.toList());
+				prefix = prefix + '<' + String.join(",", suffixes) + '>';
+			}
+			return prefix;
+		}
 		return type.getCanonicalText(true);
-		//return ClassUtil.getBinaryPresentation(methodParameter.getType());
-
 	}
 
 	public static String resolveSignature(PsiParameter methodParameter, PsiClass type, boolean varargs) {
@@ -193,7 +214,7 @@ public class PsiTypeUtils {
 				return JavaPsiFacade.getInstance(javaProject.getProject()).findClass("java.lang." + className, javaProject.getModuleWithDependenciesAndLibrariesScope(true));
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while finding type for '" + className + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while finding type for '" + className + "'.", e);
 		}
 		return null;
 	}
@@ -238,4 +259,28 @@ public class PsiTypeUtils {
 	public static boolean isVoidReturnType(PsiMethod method) {
 		return PsiType.VOID.equals(method.getReturnType());
 	}
+
+	/**
+	 * Return the JavaTypeKind of the given IType type
+	 *
+	 * @param the IType of the type to get the JavaTypeKind of
+	 * @return the JavaTypeKind of the given IType type
+	 * @throws JavaModelException
+	 */
+	public static JavaTypeKind getJavaTypeKind(PsiClass type) {
+		if (isClass(type)) {
+			return JavaTypeKind.Class;
+		}
+		if (type.isEnum()) {
+			return JavaTypeKind.Enum;
+		}
+		if (type.isInterface()) {
+			return JavaTypeKind.Interface;
+		}
+		return JavaTypeKind.Unknown;
+	}
+
+    public static boolean isClass(PsiClass type) {
+		return !(type.isInterface() | type.isEnum() | type.isAnnotationType());
+    }
 }

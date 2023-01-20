@@ -10,16 +10,27 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.reactivemessaging.properties;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.MicroProfileReactiveMessagingConstants;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.java.MicroProfileReactiveMessagingErrorCode;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Arrays;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.assertHints;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.assertHintsDuplicate;
@@ -28,6 +39,8 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.h;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.p;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.vh;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDiagnostics;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.d;
 
 /**
  * Test collection of MicroProfile properties for MicroProfile Reactive
@@ -80,4 +93,31 @@ public class MicroProfileReactiveMessagingTest extends MavenModuleImportingTestC
 
 		assertHintsDuplicate(infoFromClasspath);
 	}
+
+	@Test
+	public void testBlankAnnotation() throws Exception {
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-reactive-messaging"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(javaProject) + "/src/main/java/org/acme/kafka/PriceConverter.java");
+		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
+
+		diagnosticsParams.setUris(Arrays
+				.asList(uri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(24, 14, 16,
+				"The name of the consumed channel must not be blank.",
+				DiagnosticSeverity.Error,
+				MicroProfileReactiveMessagingConstants.MICRO_PROFILE_REACTIVE_MESSAGING_DIAGNOSTIC_SOURCE,
+				MicroProfileReactiveMessagingErrorCode.BLANK_CHANNEL_NAME);
+		Diagnostic d2 = d(25, 20, 22,
+				"The name of the consumed channel must not be blank.",
+				DiagnosticSeverity.Error,
+				MicroProfileReactiveMessagingConstants.MICRO_PROFILE_REACTIVE_MESSAGING_DIAGNOSTIC_SOURCE,
+				MicroProfileReactiveMessagingErrorCode.BLANK_CHANNEL_NAME);
+		assertJavaDiagnostics(diagnosticsParams, utils, d1, d2);
+	}
+
 }

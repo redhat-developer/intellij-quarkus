@@ -118,7 +118,7 @@ public class JavaASTValidatorRegistry extends AnnotationValidator {
 
 			}
 		} catch (RangeExpressionException e) {
-			LOGGER.log(Level.SEVERE, "  Loaded while loading " + getExtensionId(), e);
+			LOGGER.log(Level.WARNING, "  Loaded while loading " + getExtensionId(), e);
 		}
 	}
 

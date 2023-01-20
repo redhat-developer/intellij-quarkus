@@ -182,7 +182,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 			collectTemplateLink(fieldOrMethod, locationAnnotation, type, className, fieldOrMethodName, location,
 					templateFile, templateFilePath);
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while creating Qute CodeLens for Java file.", e);
+			LOGGER.log(Level.WARNING, "Error while creating Qute CodeLens for Java file.", e);
 		}
 	}
 

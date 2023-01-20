@@ -73,6 +73,7 @@ public class PropertiesManagerClassPathKindTest extends MavenModuleImportingTest
 		Assert.assertEquals(ClasspathKind.SRC, infoFromSrc.getClasspathKind());
 		assertProperties(infoFromSrc, 3 /* properties from Java sources */ + //
 				7 /* static properties from microprofile-context-propagation-api */ +
+				1 /* static property from microprofile config_ordinal */ +
 				187,
 
 				// GreetingResource
@@ -106,7 +107,8 @@ public class PropertiesManagerClassPathKindTest extends MavenModuleImportingTest
 		assertProperties(infoFromTest, 3 /* properties from (src) Java sources */ + //
 		 3 /* properties from (test) Java sources */ + //
 		 7 /* static properties from microprofile-context-propagation-api */ +
-		184,
+		 1 /* static property from microprofile config_ordinal */ +
+ 		 184,
 
 				// GreetingResource
 				// @ConfigProperty(name = "greeting.message")

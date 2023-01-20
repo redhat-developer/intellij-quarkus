@@ -12,12 +12,17 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.ConfigSourcePropertiesProvider;
+import org.eclipse.lsp4mp.commons.utils.ConfigSourcePropertiesProviderUtils;
+import org.eclipse.lsp4mp.commons.utils.IConfigSourcePropertiesProvider;
+import org.eclipse.lsp4mp.commons.utils.PropertyValueExpander;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -34,13 +39,19 @@ public class PsiMicroProfileProject {
 
 	private List<IConfigSource> configSources;
 
+	private transient IConfigSourcePropertiesProvider aggregatedPropertiesProvider = null;
+	private transient PropertyValueExpander propertyValueExpander = null;
+
 	public PsiMicroProfileProject(Module javaProject) {
 		this.javaProject = javaProject;
 	}
 
 	/**
 	 * Returns the value of this property or <code>defaultValue</code> if it is not
-	 * defined in this project
+	 * defined in this project.
+	 *
+	 * Expands property expressions when there are no cyclical references between
+	 * property values.
 	 *
 	 * @param propertyKey  the property to get with the profile included, in the
 	 *                     format used by microprofile-config.properties
@@ -50,18 +61,34 @@ public class PsiMicroProfileProject {
 	 *         defined in this project
 	 */
 	public String getProperty(String propertyKey, String defaultValue) {
-		for (IConfigSource configSource : getConfigSources()) {
-			String propertyValue = configSource.getProperty(propertyKey);
-			if (propertyValue != null) {
-				return propertyValue;
-			}
+
+		if (aggregatedPropertiesProvider == null) {
+			aggregatedPropertiesProvider = getAggregatedPropertiesProvider();
 		}
-		return defaultValue;
+
+		String unresolved = aggregatedPropertiesProvider.getValue(propertyKey);
+		if (unresolved == null) {
+			return defaultValue;
+		} else if (unresolved.contains("${")) {
+			if (propertyValueExpander == null) {
+				propertyValueExpander = new PropertyValueExpander(aggregatedPropertiesProvider);
+			}
+			String expandedValue = propertyValueExpander.getValue(propertyKey);
+			if (expandedValue == null) {
+				return defaultValue;
+			}
+			return expandedValue;
+		} else {
+			return unresolved;
+		}
 	}
 
 	/**
 	 * Returns the value of this property or null if it is not defined in this
-	 * project
+	 * project.
+	 *
+	 * Expands property expressions when there are no cyclical references between
+	 * property values.
 	 *
 	 * @param propertyKey the property to get with the profile included, in the
 	 *                    format used by microprofile-config.properties
@@ -72,14 +99,31 @@ public class PsiMicroProfileProject {
 		return getProperty(propertyKey, null);
 	}
 
+	/**
+	 * Returns the value of this property as an int, or <code>defaultValue</code>
+	 * when there is no value or the value cannot be parsed as a String.
+	 *
+	 * Expands property expressions when there are no cyclical references between
+	 * property values.
+	 *
+	 * @param key          the property to get with the profile included, in the
+	 *                     format used by microprofile-config.properties
+	 * @param defaultValue the value to return if the value for the property is not
+	 *                     defined in this project
+	 * @return the value of this property as an int, or <code>defaultValue</code>
+	 *         when there is no value or the value cannot be parsed as a String
+	 */
 	public Integer getPropertyAsInteger(String key, Integer defaultValue) {
-		for (IConfigSource configSource : getConfigSources()) {
-			Integer property = configSource.getPropertyAsInt(key);
-			if (property != null) {
-				return property;
-			}
+		String value = getProperty(key, null);
+		if (value == null) {
+			return defaultValue;
 		}
-		return defaultValue;
+		try {
+			int intValue = Integer.parseInt(value);
+			return intValue;
+		} catch (NumberFormatException nfe) {
+			return defaultValue;
+		}
 	}
 
 	/**
@@ -96,6 +140,11 @@ public class PsiMicroProfileProject {
 	 * application.properties, etc) define the same property, it's the file which
 	 * have the bigger ordinal (see {@link IConfigSource#getOrdinal()} which is
 	 * returned.
+	 * </p>
+	 *
+	 * <p>
+	 * Expands property expressions for each of the values of the key when there are
+	 * no cyclical references between property values.
 	 * </p>
 	 *
 	 * @param propertyKey the name of the property to collect the values for
@@ -124,7 +173,11 @@ public class PsiMicroProfileProject {
 				.sorted((a, b) -> {
 					return a.getPropertyNameWithProfile().compareTo(b.getPropertyNameWithProfile());
 				}) //
-				.collect(Collectors.toList());
+				.map(info -> {
+					String resolved = this.getProperty(info.getPropertyNameWithProfile());
+					return new MicroProfileConfigPropertyInformation(info.getPropertyNameWithProfile(), resolved,
+							info.getSourceConfigFileURI(), info.getConfigFileName());
+				}).collect(Collectors.toList());
 	}
 
 	public List<IConfigSource> getConfigSources() {
@@ -135,11 +188,13 @@ public class PsiMicroProfileProject {
 	}
 
 	/**
-	 * Evict the config sources cache as soon as one of properties, yaml file is
-	 * saved.
+	 * Evict the config sources cache and related cached information as soon as one
+	 * of properties, yaml file is saved.
 	 */
 	public void evictConfigSourcesCache() {
 		configSources = null;
+		propertyValueExpander = null;
+		aggregatedPropertiesProvider = null;
 	}
 
 	/**
@@ -182,4 +237,37 @@ public class PsiMicroProfileProject {
 		}
 		return false;
 	}
+
+	private IConfigSourcePropertiesProvider getAggregatedPropertiesProvider() {
+		List<IConfigSource> configSources = getConfigSources();
+		if (configSources.size() == 0) {
+			// Return an empty IConfigSourcePropertiesProvider
+			return new IConfigSourcePropertiesProvider() {
+
+				@Override
+				public Set<String> keys() {
+					return Collections.emptySet();
+				}
+
+				@Override
+				public boolean hasKey(String key) {
+					return false;
+				}
+
+				@Override
+				public String getValue(String key) {
+					return null;
+				}
+
+			};
+		}
+		IConfigSourcePropertiesProvider provider = new ConfigSourcePropertiesProvider(
+				configSources.get(configSources.size() - 1));
+		for (int i = configSources.size() - 2; i >= 0; i--) {
+			provider = ConfigSourcePropertiesProviderUtils
+					.layer(new ConfigSourcePropertiesProvider(configSources.get(i)), provider);
+		}
+		return provider;
+	}
+
 }

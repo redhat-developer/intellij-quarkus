@@ -15,13 +15,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.intellij.extapi.psi.StubBasedPsiElementBase;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -31,21 +34,28 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiRecordComponent;
+import com.intellij.psi.impl.java.stubs.PsiModifierListStub;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ClassFileTypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.template.JavaTypesSearch;
 import com.redhat.devtools.intellij.qute.psi.internal.template.QuarkusIntegrationForQute;
+import com.redhat.devtools.intellij.qute.psi.internal.template.QuteSupportForTemplateGenerateMissingJavaMemberHandler;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.QuteReflectionAnnotationUtils;
+import com.redhat.qute.commons.DocumentFormat;
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import org.eclipse.lsp4j.Location;
 
 import com.redhat.qute.commons.InvalidMethodReason;
@@ -64,9 +74,9 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
+import org.eclipse.lsp4j.WorkspaceEdit;
 
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.findType;
-import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.getFullQualifiedName;
 
 /**
  * Qute support for Template file.
@@ -78,12 +88,7 @@ public class QuteSupportForTemplate {
 
 	private static final Logger LOGGER = Logger.getLogger(QuteSupportForTemplate.class.getName());
 
-	private static final String JAVA_LANG_ITERABLE = "java.lang.Iterable";
-
 	private static final String JAVA_LANG_OBJECT = "java.lang.Object";
-
-	private static final List<String> COMMONS_ITERABLE_TYPES = Arrays.asList("Iterable", JAVA_LANG_ITERABLE,
-			"java.util.List", "java.util.Set");
 
 	private static final QuteSupportForTemplate INSTANCE = new QuteSupportForTemplate();
 
@@ -204,8 +209,7 @@ public class QuteSupportForTemplate {
 
 		utils = utils.refine(javaProject);
 
-		String sourceType = params.getSourceType();
-		PsiClass type = findType(sourceType, javaProject, monitor);
+		PsiClass type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), javaProject, monitor);
 		if (type == null) {
 			return null;
 		}
@@ -295,36 +299,6 @@ public class QuteSupportForTemplate {
 		utils = utils.refine(javaProject);
 
 		String typeName = params.getClassName();
-		int index = typeName.indexOf('<');
-		if (index != -1) {
-			// ex : java.util.List<org.acme.Item>
-			String iterableClassName = typeName.substring(0, index);
-			PsiClass iterableType = findType(iterableClassName, javaProject, monitor);
-			if (iterableType == null) {
-				return null;
-			}
-
-			boolean iterable = isIterable(iterableType, monitor);
-			if (!iterable) {
-				return null;
-			}
-
-			String iterableOf = typeName.substring(index + 1, typeName.length() - 1);
-			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
-			iterableClassName = iterableType.getQualifiedName();
-			typeName = iterableClassName + "<" + iterableOf + ">";
-			return createIterableType(typeName, iterableClassName, iterableOf);
-		} else if (typeName.endsWith("[]")) {
-			// ex : org.acme.Item[]
-			String iterableOf = typeName.substring(0, typeName.length() - 2);
-			PsiClass iterableOfType = findType(iterableOf, javaProject, monitor);
-			if (iterableOfType == null) {
-				return null;
-			}
-			iterableOf = getFullQualifiedName(iterableOf, javaProject, monitor);
-			typeName = iterableOf + "[]";
-			return createIterableType(typeName, null, iterableOf);
-		}
 
 		// ex : org.acme.Item, java.util.List, ...
 		PsiClass type = findType(typeName, javaProject, monitor);
@@ -332,7 +306,7 @@ public class QuteSupportForTemplate {
 			return null;
 		}
 
-		ITypeResolver typeResolver = createTypeResolver(type);
+		ITypeResolver typeResolver = createTypeResolver(type, javaProject);
 
 		// 1) Collect fields
 		List<JavaFieldInfo> fieldsInfo = new ArrayList<>();
@@ -340,7 +314,7 @@ public class QuteSupportForTemplate {
 		// Standard fields
 		PsiField[] fields = type.getFields();
 		for (PsiField field : fields) {
-			if (isValidField(field)) {
+			if (isValidField(field, type)) {
 				// Only public fields are available
 				JavaFieldInfo info = new JavaFieldInfo();
 				info.setSignature(typeResolver.resolveFieldSignature(field));
@@ -363,7 +337,7 @@ public class QuteSupportForTemplate {
 		Map<String, InvalidMethodReason> invalidMethods = new HashMap<>();
 		PsiMethod[] methods = type.getMethods();
 		for (PsiMethod method : methods) {
-			if (isValidMethod(method, type.isInterface())) {
+			if (isValidMethod(method, type)) {
 				try {
 					InvalidMethodReason invalid = getValidMethodForQute(method, typeName);
 					if (invalid != null) {
@@ -374,86 +348,57 @@ public class QuteSupportForTemplate {
 						methodsInfo.add(info);
 					}
 				} catch (Exception e) {
-					LOGGER.log(Level.SEVERE,
+					LOGGER.log(Level.WARNING,
 							"Error while getting method signature of '" + method.getName() + "'.", e);
 				}
 			}
 		}
 
-		// Collect type extensions
-		List<String> extendedTypes = null;
-		if (type.isInterface()) {
-			PsiClass[] interfaces = findImplementedInterfaces(type, monitor);
-			if (interfaces != null && interfaces.length > 0) {
-				extendedTypes = Stream.of(interfaces) //
-						.map(interfaceType -> interfaceType.getQualifiedName()) //
-						.collect(Collectors.toList());
-			}
-		} else {
-			// ex : String implements CharSequence, ....
-			PsiClass[] interfaces = findImplementedInterfacesAndSuper(type, monitor);
-			if (interfaces != null && interfaces.length > 0) {
-				extendedTypes = Stream.of(interfaces) //
-						.map(superType -> superType.getQualifiedName()) //
-						.collect(Collectors.toList());
-			}
-		}
-
-		if (extendedTypes != null) {
-			extendedTypes.remove(typeName);
-		}
-
 		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
 		if (typeSignature != null) {
 			ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
+			resolvedType.setBinary(type instanceof PsiCompiledElement);
 			resolvedType.setSignature(typeSignature);
 			resolvedType.setFields(fieldsInfo);
 			resolvedType.setMethods(methodsInfo);
 			resolvedType.setInvalidMethods(invalidMethods);
-			resolvedType.setExtendedTypes(extendedTypes);
+			resolvedType.setExtendedTypes(typeResolver.resolveExtendedType());
+			resolvedType.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
 			QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver, javaProject);
 			return resolvedType;
 		}
 		return null;
 	}
 
-	private ResolvedJavaTypeInfo createIterableType(String className, String iterableClassName, String iterableOf) {
-		ResolvedJavaTypeInfo resolvedClass = new ResolvedJavaTypeInfo();
-		resolvedClass.setSignature(className);
-		resolvedClass.setIterableType(iterableClassName);
-		resolvedClass.setIterableOf(iterableOf);
-		return resolvedClass;
-	}
-
-	private static boolean isIterable(PsiClass iterableType, ProgressIndicator monitor) {
-		String iterableClassName = iterableType.getQualifiedName();
-		// Fast test
-		if (COMMONS_ITERABLE_TYPES.contains(iterableClassName)) {
+	private static boolean isValidField(PsiField field, PsiClass type) {
+		if (type.isEnum()) {
 			return true;
 		}
-		// Check if type implements "java.lang.Iterable"
-		PsiClass[] interfaces = findImplementedInterfaces(iterableType, monitor);
-		boolean iterable = interfaces == null ? false
-				: Stream.of(interfaces)
-						.anyMatch(interfaceType -> JAVA_LANG_ITERABLE.equals(interfaceType.getQualifiedName()));
-		return iterable;
-	}
-
-	private static boolean isValidField(PsiField field) {
 		return field.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
 	}
 
-	private static boolean isValidMethod(PsiMethod method, boolean isInterface) {
+	private static boolean isSynthetic(PsiMember member) {
+		var modifiers = member.getModifierList();
+		var result = false;
+
+		if (modifiers instanceof StubBasedPsiElementBase) {
+			PsiModifierListStub stub = (PsiModifierListStub) ((StubBasedPsiElementBase<?>) modifiers).getGreenStub();
+			result = (stub.getModifiersMask() & 0x00001000) == 0x00001000;
+		}
+		return result;
+	}
+
+	private static boolean isValidMethod(PsiMethod method, PsiClass type) {
 		try {
-			if (method.isConstructor() || !method.isValid()) {
+			if (method.isConstructor() || !method.isValid() || isSynthetic(method)) {
 				return false;
 			}
-			if (!isInterface && !method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
+			if (!type.isInterface() && !method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
 				return false;
 			}
 
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while checking if '" + method.getName() + "' is valid.", e);
+			LOGGER.log(Level.WARNING, "Error while checking if '" + method.getName() + "' is valid.", e);
 			return false;
 		}
 		return true;
@@ -481,7 +426,7 @@ public class QuteSupportForTemplate {
 				return InvalidMethodReason.Static;
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while checking if '" + method.getName() + "' is valid.", e);
+			LOGGER.log(Level.WARNING, "Error while checking if '" + method.getName() + "' is valid.", e);
 		}
 		return null;
 	}
@@ -515,34 +460,162 @@ public class QuteSupportForTemplate {
 		}
 	}
 
-	private static void findImplementedInterfaces(PsiClass type, List<PsiClass> result, ProgressIndicator progressMonitor) {
-		result.addAll(Arrays.asList(type.getInterfaces()));
-		for(PsiClass parent : type.getSupers()) {
-			findImplementedInterfaces(parent, result, progressMonitor);
-		}
-	}
-
 	private static PsiClass[] findImplementedInterfaces(PsiClass type, ProgressIndicator progressMonitor) {
-		List<PsiClass> result = new ArrayList<>();
-		findImplementedInterfaces(type, result, progressMonitor);
-		return result.toArray(new PsiClass[result.size()]);
+		return type.getInterfaces();
 	}
 
-	private static PsiClass[] findImplementedInterfacesAndSuper(PsiClass type, ProgressIndicator progressMonitor) {
-		List<PsiClass> result = new ArrayList<>();
-		findImplementedInterfaces(type, result, progressMonitor);
-		if (type.getSuperClass() != null) {
-			result.add(type.getSuperClass());
-		}
-		return result.toArray(new PsiClass[result.size()]);
-	}
 
-	public static ITypeResolver createTypeResolver(PsiMember member) {
+	public static ITypeResolver createTypeResolver(PsiMember member, Module javaProject) {
 		/*ITypeResolver typeResolver = !member.isBinary()
 				? new CompilationUnitTypeResolver((ICompilationUnit) member.getAncestor(IJavaElement.COMPILATION_UNIT))
 				: new ClassFileTypeResolver((IClassFile) member.getAncestor(IJavaElement.CLASS_FILE));*/
-		ITypeResolver typeResolver = new ClassFileTypeResolver(member.getContainingClass());
+		ITypeResolver typeResolver = new ClassFileTypeResolver(member instanceof PsiClass ?
+				(PsiClass) member : member.getContainingClass(), javaProject);
 		return typeResolver;
 	}
+
+	/**
+	 * Returns the workspace edit to generate the given java member for the given
+	 * type.
+	 *
+	 * @param params  the parameters needed to resolve the workspace edit
+	 * @param utils   the jdt utils
+	 * @param monitor the progress monitor
+	 * @return the workspace edit to generate the given java member for the given
+	 *         type
+	 */
+	public WorkspaceEdit generateMissingJavaMember(GenerateMissingJavaMemberParams params, IPsiUtils utils,
+												   ProgressIndicator monitor) {
+		return QuteSupportForTemplateGenerateMissingJavaMemberHandler.handleGenerateMissingJavaMember(params, utils,
+				monitor);
+	}
+
+	/**
+	 * Returns the formatted Javadoc for the member specified in the parameters.
+	 *
+	 * @param params  the parameters used to specify the member whose documentation
+	 *                should be found
+	 * @param utils   the JDT utils
+	 * @param monitor the progress monitor
+	 * @return the formatted Javadoc for the member specified in the parameters
+	 */
+	public String getJavadoc(QuteJavadocParams params, IPsiUtils utils, ProgressIndicator monitor) {
+		try {
+			String projectUri = params.getProjectUri();
+			Module javaProject = getJavaProjectFromProjectUri(projectUri, utils);
+			if (javaProject == null) {
+				return null;
+			}
+
+			utils = utils.refine(javaProject);
+
+			PsiClass type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), javaProject, monitor);
+			if (type == null) {
+				return null;
+			}
+			return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), utils,
+					monitor, new HashSet<>());
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING,
+					"Error while collecting Javadoc for " + params.getSourceType() + "#" + params.getMemberName(), e);
+			return null;
+		}
+	}
+
+	private String getJavadoc(PsiClass type, DocumentFormat documentFormat, String memberName, String signature,
+							  IPsiUtils utils, ProgressIndicator monitor, Set<PsiClass> visited) {
+		if (visited.contains(type)) {
+			return null;
+		}
+		visited.add(type);
+		if (monitor.isCanceled()) {
+			throw new ProcessCanceledException();
+		}
+
+		ITypeResolver typeResolver = createTypeResolver(type, utils.getModule());
+
+		// 1) Check the fields for the member
+
+		// Standard fields
+		PsiField[] fields = type.getFields();
+		for (PsiField field : fields) {
+			if (isValidField(field, type)
+					&& memberName.equals(field.getName())
+					&& signature.equals(typeResolver.resolveFieldSignature(field))) {
+				String javadoc = utils.getJavadoc(field, documentFormat);
+				if (javadoc != null) {
+					return javadoc;
+				}
+			}
+		}
+
+		// Record fields
+		if (type.isRecord()) {
+			for (PsiRecordComponent field : type.getRecordComponents()) {
+				// All record components are valid
+				if (memberName.equals(field.getName())
+						&& signature.equals(typeResolver.resolveFieldSignature(field))) {
+					String javadoc = utils.getJavadoc(field, documentFormat);
+					if (javadoc != null) {
+						return javadoc;
+					}
+				}
+			}
+		}
+
+		// 2) Check the methods for the member
+		PsiMethod[] methods = type.getMethods();
+		for (PsiMethod method : methods) {
+			if (isValidMethod(method, type)) {
+				try {
+					InvalidMethodReason invalid = getValidMethodForQute(method, type.getQualifiedName());
+					if (invalid == null && (signature.equals(typeResolver.resolveMethodSignature(method)))) {
+						String javadoc = utils.getJavadoc(method, documentFormat);
+						if (javadoc != null) {
+							return javadoc;
+						}
+						// otherwise, maybe a supertype has it
+					}
+				} catch (Exception e) {
+					LOGGER.log(Level.WARNING,
+							"Error while getting method signature of '" + method.getName() + "'.", e);
+				}
+			}
+		}
+
+		// 3) Check the superclasses for the member
+
+		// Collect type extensions
+		List<PsiClass> extendedTypes = null;
+		if (type.isInterface()) {
+			PsiClass[] interfaces = findImplementedInterfaces(type, monitor);
+			if (interfaces != null && interfaces.length > 0) {
+				extendedTypes = Arrays.asList(interfaces);
+			}
+		} else {
+			// ex : String implements CharSequence, ....
+			PsiClass[] allSuperTypes = type.getSupers();
+			extendedTypes = Arrays.asList(allSuperTypes);
+		}
+
+		if (extendedTypes != null) {
+			for (PsiClass extendedType : extendedTypes) {
+				String javadoc = getJavadoc(extendedType, documentFormat, memberName, signature, utils, monitor, visited);
+				if (javadoc != null) {
+					return javadoc;
+				}
+			}
+		}
+
+		return null;
+
+	}
+
+	private PsiClass getTypeFromParams(String typeName, String projectUri,Module javaProject, ProgressIndicator monitor) {
+		PsiClass type = findType(typeName, javaProject, monitor);
+		return type;
+	}
+
+
 
 }

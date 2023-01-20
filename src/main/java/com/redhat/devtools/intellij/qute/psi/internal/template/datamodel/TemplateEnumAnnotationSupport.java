@@ -22,6 +22,7 @@ import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractAnnotati
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -80,19 +81,19 @@ public class TemplateEnumAnnotationSupport extends AbstractAnnotationTypeReferen
 			// @TemplateEnum annotation is ignored.
 			return;
 		}
-		collectResolversForTemplateEnum(type, context.getDataModelProject().getValueResolvers(), monitor);
+		collectResolversForTemplateEnum(type, context.getDataModelProject().getValueResolvers(), context, monitor);
 	}
 
 	private static void collectResolversForTemplateEnum(PsiClass type, List<ValueResolverInfo> resolvers,
-		ProgressIndicator monitor) {
+														SearchContext context, ProgressIndicator monitor) {
 		try {
-			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type);
+			ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver(type, context.getJavaProject());
 			PsiField[] fields = type.getFields();
 			for (PsiField field : fields) {
 				collectResolversForTemplateEnum(field, resolvers, typeResolver);
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
 		}
 	}
 
@@ -101,6 +102,7 @@ public class TemplateEnumAnnotationSupport extends AbstractAnnotationTypeReferen
 		ValueResolverInfo resolver = new ValueResolverInfo();
 		resolver.setSourceType(field.getContainingClass().getQualifiedName());
 		resolver.setSignature(typeResolver.resolveFieldSignature(field));
+		resolver.setKind(ValueResolverKind.TemplateEnum);
 		// This annotation is functionally equivalent to @TemplateData(namespace =
 		// TemplateData.SIMPLENAME),
 		// i.e. a namespace resolver is automatically generated for the target enum and

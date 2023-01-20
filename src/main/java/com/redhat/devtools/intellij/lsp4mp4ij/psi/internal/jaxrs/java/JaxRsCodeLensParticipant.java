@@ -37,6 +37,7 @@ import java.util.List;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.createURLCodeLens;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.getJaxRsPathValue;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isClickableJaxRsRequestMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isJaxRsRequestMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.overlaps;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
@@ -124,7 +125,7 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 				// annotation
 				if (isJaxRsRequestMethod(method) && method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
 					String baseURL = jaxRsContext.getLocalBaseURL();
-					String openURICommandId = params.getOpenURICommand();
+					String openURICommandId = isClickableJaxRsRequestMethod(method) ? params.getOpenURICommand() : null;
 					CodeLens lens = createURLCodeLens(baseURL, rootPath, openURICommandId, (PsiMethod) element, utils);
 					if (lens != null) {
 						lenses.add(lens);

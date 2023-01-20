@@ -158,17 +158,22 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
 
 		List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
 				new EmptyProgressIndicator());
-		assertEquals(2, lenses.size());
+		assertEquals(3, lenses.size());
 
-		String templateFileUri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResource/items.qute.html")).toURI().toString();
+		String itemsUri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResource/items.qute.html")).toURI().toString();
+		String mapUri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResource")).toURI().toString() + "/map.html";
+		String items2Uri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResource")).toURI().toString() + "/items2.html";
 
 		assertCodeLens(lenses, //
-				cl(r(20, 2, 20, 57), //
+				cl(r(21, 2, 21, 57), //
 						"Open `src/main/resources/templates/ItemResource/items.qute.html`", //
-						"qute.command.open.uri", Arrays.asList(templateFileUri)), //
-				cl(r(25, 2, 25, 58), //
+						"qute.command.open.uri", Arrays.asList(itemsUri)), //
+				cl(r(23, 2, 23, 102), //
+						"Create `src/main/resources/templates/ItemResource/map.html`", //
+						"qute.command.generate.template.file", Arrays.asList(mapUri)), //
+				cl(r(28, 2, 28, 58), //
 						"Create `src/main/resources/templates/ItemResource/items2.html`", //
-						"qute.command.generate.template.file", Arrays.asList(templateFileUri)));
+						"qute.command.generate.template.file", Arrays.asList(items2Uri)));
 	}
 
 	public static Range r(int line, int startChar, int endChar) {

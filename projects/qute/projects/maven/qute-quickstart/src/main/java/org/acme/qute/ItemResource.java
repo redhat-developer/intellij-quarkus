@@ -3,15 +3,16 @@ package org.acme.qute;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateExtension;
 import io.quarkus.qute.TemplateInstance;
-import io.quarkus.qute.CheckedTemplate;
 
 @Path("items")
 public class ItemResource {
@@ -19,13 +20,15 @@ public class ItemResource {
 	@CheckedTemplate
 	static class Templates {
 		static native TemplateInstance items(List<Item> items);
+
+		static native TemplateInstance map(Map<String, List<Item>> items, Map.Entry<String, Integer> entry);
 	}
 
 	@CheckedTemplate(requireTypeSafeExpressions = true)
 	static class Templates2 {
 		static native TemplateInstance items2(List<Item> items);
 	}
-	
+
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public TemplateInstance get() {

@@ -28,6 +28,7 @@ import com.intellij.util.UniqueResultsQuery;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.PropertiesCollector;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.StaticPropertyProviderExtensionPointBean;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
@@ -36,12 +37,15 @@ import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfoParams;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertyDefinitionParams;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * MicroProfile properties manager used to:
@@ -106,19 +110,19 @@ public class PropertiesManager {
     }
 
     private void beginSearch(SearchContext context) {
-        for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
+        for(IPropertiesProvider provider : getPropertiesProviders()) {
             provider.beginSearch(context);
         }
     }
 
     private void endSearch(SearchContext context) {
-        for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
+        for(IPropertiesProvider provider : getPropertiesProviders()) {
             provider.endSearch(context);
         }
     }
 
     private void collectProperties(PsiModifierListOwner psiMember, SearchContext context) {
-        for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
+        for(IPropertiesProvider provider : getPropertiesProviders()) {
             provider.collectProperties(psiMember, context);
         }
     }
@@ -153,7 +157,7 @@ public class PropertiesManager {
     private Query<PsiModifierListOwner> createSearchQuery(SearchContext context) {
         Query<PsiModifierListOwner> query = null;
 
-        for(IPropertiesProvider provider : IPropertiesProvider.EP_NAME.getExtensions()) {
+        for(IPropertiesProvider provider : getPropertiesProviders()) {
           Query<PsiModifierListOwner> providerQuery = provider.createSearchPattern(context);
           if (providerQuery != null) {
               if (query == null) {
@@ -164,6 +168,15 @@ public class PropertiesManager {
           }
         }
         return new UniqueResultsQuery<>(query);
+    }
+
+    @NotNull
+    List<IPropertiesProvider> getPropertiesProviders() {
+        List<IPropertiesProvider> allProviders = new ArrayList<>();
+        allProviders.addAll(IPropertiesProvider.EP_NAME.getExtensionList());
+        allProviders.addAll(StaticPropertyProviderExtensionPointBean.EP_NAME.getExtensionList().stream()
+                .map(bean -> bean.getInstance()).collect(Collectors.toList()));
+        return allProviders;
     }
 
     // ---------------------------------- Properties definition

@@ -14,6 +14,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.TestConfigSourceProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider;
 import org.eclipse.lsp4j.Position;
@@ -240,8 +241,8 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
 				h("`%test.greeting.message = hi` *in* [META-INF/microprofile-config-test.properties]("
 						+ testPropertiesFileUri + ")  \n" + //
-						"`greeting.message = hi` *in* [META-INF/microprofile-config-test.properties](" + testPropertiesFileUri
-						+ ")", 14, 28, 44));
+						"`greeting.message = hi` *in* [META-INF/microprofile-config-test.properties]("
+						+ testPropertiesFileUri + ")", 14, 28, 44));
 
 		saveFile(TestConfigSourceProvider.MICROPROFILE_CONFIG_TEST_FILE, //
 				"\r\n", javaProject);
@@ -250,5 +251,41 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 				"`greeting.message = hello` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
 				14, 28, 44));
 
+	}
+
+	@Test
+	public void testConfigPropertyNameResolveExpression() throws Exception {
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-hover"));
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
+		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
+		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
+
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
+				"greeting.message = ${asdf}\r\n" + "asdf = hello", //
+				javaProject);
+		assertJavaHover(new Position(14, 40), javaFileUri, JDT_UTILS, h(
+				"`greeting.message = hello` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
+				14, 28, 44));
+
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
+				"greeting.message = ${${asdf}}\r\n" + "asdf = hjkl\r\n" + "hjkl = salutations", //
+				javaProject);
+		assertJavaHover(new Position(14, 40), javaFileUri, JDT_UTILS,
+				h("`greeting.message = salutations` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri
+						+ ")", 14, 28, 44));
+
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
+				"greeting.message = ${asdf:hi}\r\n", //
+				javaProject);
+		assertJavaHover(new Position(14, 40), javaFileUri, JDT_UTILS,
+				h("`greeting.message = hi` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
+						14, 28, 44));
+
+		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
+				"greeting.message = ${asdf}\r\n", //
+				javaProject);
+		assertJavaHover(new Position(14, 40), javaFileUri, JDT_UTILS,
+				h("`greeting.message = ${asdf}` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri
+						+ ")", 14, 28, 44));
 	}
 }

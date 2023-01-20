@@ -22,6 +22,7 @@ import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResolver;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.JavaTypeKind;
 import org.apache.commons.lang3.StringUtils;
@@ -76,7 +77,7 @@ public class JavaTypesSearch {
 						searchScope = searchScope.intersectWith(new LocalSearchScope(innerClass));
 					}
 				} catch (RuntimeException e) {
-					LOGGER.log(Level.SEVERE, "Error while getting inner class for '" + packageName + "'.", e);
+					LOGGER.log(Level.WARNING, "Error while getting inner class for '" + packageName + "'.", e);
 				}
 			}
 		}
@@ -102,12 +103,12 @@ public class JavaTypesSearch {
 				PsiPackage pack = JavaPsiFacade.getInstance(javaProject.getProject()).findPackage(packageName);
 					fillWithSubPackages(packageName, pack, subPackages);
 			} catch (RuntimeException e) {
-				LOGGER.log(Level.SEVERE, "Error while collecting sub packages for '" + packageName + "'.", e);
+				LOGGER.log(Level.WARNING, "Error while collecting sub packages for '" + packageName + "'.", e);
 			}
 
 			for (String subPackageName : subPackages) {
 				JavaTypeInfo packageInfo = new JavaTypeInfo();
-				packageInfo.setKind(JavaTypeKind.Package);
+				packageInfo.setJavaTypeKind(JavaTypeKind.Package);
 				packageInfo.setSignature(subPackageName);
 				javaTypes.add(packageInfo);
 			}
@@ -125,7 +126,7 @@ public class JavaTypesSearch {
 				}
 			}
 		} catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "Error while collecting sub packages for '" + packageName + "' in '"
+			LOGGER.log(Level.WARNING, "Error while collecting sub packages for '" + packageName + "' in '"
 					+ packageFragmentRoot.getQualifiedName() + "'.", e);
 		}
 	}
@@ -143,9 +144,9 @@ public class JavaTypesSearch {
 				javaTypes.add(classInfo);
 
 				try {
-					classInfo.setKind(type.isInterface() ? JavaTypeKind.Interface : JavaTypeKind.Class);
+					classInfo.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
 				} catch (RuntimeException e) {
-					LOGGER.log(Level.SEVERE, "Error while collecting Java Types for '" + packageName
+					LOGGER.log(Level.WARNING, "Error while collecting Java Types for '" + packageName
 							+ " package and Java type '" + typeName + "'.", e);
 				}
 			}

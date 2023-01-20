@@ -30,6 +30,8 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.r;
+
 /**
  * JAX-RS URL Codelens test for Java file.
  *
@@ -73,7 +75,7 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 	private static void assertCodeLenses(int port, MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
 		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
-		Assert.assertEquals(2, lenses.size());
+		Assert.assertEquals(5, lenses.size());
 
 		// @GET
 		// public Fruit[] get() {
@@ -87,6 +89,33 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 		CodeLens lensForGetSingle = lenses.get(1);
 		Assert.assertNotNull(lensForGetSingle.getCommand());
 		Assert.assertEquals("http://localhost:" + port + "/fruits/{id}", lensForGetSingle.getCommand().getTitle());
+
+		//@POST
+		//public Response create(Fruit fruit) {
+		CodeLens lensForPost = lenses.get(2);
+		Assert.assertNotNull(lensForPost.getCommand());
+		Assert.assertEquals("http://localhost:" + port + "/fruits", lensForPost.getCommand().getTitle());
+
+		//@PUT
+		//@Path("{id}")
+		//public Fruit update(@PathParam Integer id, Fruit fruit) {
+		CodeLens lensForPut = lenses.get(3);
+		Assert.assertNotNull(lensForPut.getCommand());
+		Assert.assertEquals("http://localhost:" + port + "/fruits/{id}", lensForPut.getCommand().getTitle());
+
+		//@DELETE
+		//@Transactional
+		//@Path(
+		//"{id}"
+		//)
+		//--> code lens should appear here
+		//public
+		//Response
+		//delete(@PathParam Integer id) {
+		CodeLens lensForDelete = lenses.get(4);
+		Assert.assertNotNull(lensForDelete.getCommand());
+		Assert.assertEquals("http://localhost:" + port + "/fruits/{id}", lensForDelete.getCommand().getTitle());
+		Assert.assertEquals(r(81, 9, 81, 9), lensForDelete.getRange());
 	}
 
 }

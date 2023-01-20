@@ -30,6 +30,18 @@ public class JaxRsConstants {
 
 	public static final String JAVAX_WS_RS_GET_ANNOTATION = "javax.ws.rs.GET";
 
+	public static final String JAVAX_WS_RS_POST_ANNOTATION = "javax.ws.rs.POST";
+
+	public static final String JAVAX_WS_RS_PUT_ANNOTATION = "javax.ws.rs.PUT";
+
+	public static final String JAVAX_WS_RS_DELETE_ANNOTATION = "javax.ws.rs.DELETE";
+
+	public static final String JAVAX_WS_RS_HEAD_ANNOTATION = "javax.ws.rs.HEAD";
+
+	public static final String JAVAX_WS_RS_OPTIONS_ANNOTATION = "javax.ws.rs.OPTIONS";
+
+	public static final String JAVAX_WS_RS_PATCH_ANNOTATION = "javax.ws.rs.PATCH";
+
 	public static final String PATH_VALUE = "value";
 
 	public static final String JAVAX_WS_RS_RESPONSE_TYPE = "javax.ws.rs.core.Response";

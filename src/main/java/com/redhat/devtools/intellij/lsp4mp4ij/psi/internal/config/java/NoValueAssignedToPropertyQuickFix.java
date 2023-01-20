@@ -15,13 +15,14 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_NAME;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.DIAGNOSTIC_DATA_NAME;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
-import static com.redhat.qute.services.diagnostics.QuteDiagnosticContants.DIAGNOSTIC_DATA_NAME;
 import static org.eclipse.lsp4mp.commons.MicroProfileCodeActionFactory.createAddToUnassignedExcludedCodeAction;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.intellij.openapi.module.Module;
@@ -32,6 +33,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.CodeActionFactory;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionResolveContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSource;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
@@ -39,10 +41,17 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextDocumentItem;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
+import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4mp.commons.CodeActionResolveData;
 
 /**
  * QuickFix for fixing
@@ -59,6 +68,14 @@ import com.google.gson.JsonObject;
 public class NoValueAssignedToPropertyQuickFix implements IJavaCodeActionParticipant {
 
 	private static final String CODE_ACTION_LABEL = "Insert ''{0}'' property in ''{1}''";
+
+	private static final String PROPERTY_NAME_KEY = "propertyName";
+	private static final String CONFIG_TEXT_DOCUMENT_URI_KEY = "uri";
+
+	@Override
+	public String getParticipantId() {
+		return NoValueAssignedToPropertyQuickFix.class.getName();
+	}
 
 	@Override
 	public List<? extends CodeAction> getCodeActions(JavaCodeActionContext context, Diagnostic diagnostic) {
@@ -93,6 +110,35 @@ public class NoValueAssignedToPropertyQuickFix implements IJavaCodeActionPartici
 		}
 		return codeActions;
 	}
+
+	@Override
+	public CodeAction resolveCodeAction(JavaCodeActionResolveContext context) {
+		CodeAction unresolved = context.getUnresolved();
+		CodeActionResolveData data = (CodeActionResolveData) context.getUnresolved().getData();
+		String uri = (String) data.getExtendedDataEntry(CONFIG_TEXT_DOCUMENT_URI_KEY);
+		String propertyName = (String) data.getExtendedDataEntry(PROPERTY_NAME_KEY);
+		Module javaProject = context.getJavaProject();
+
+		String lineSeparator = CodeStyleSettingsManager.getInstance(javaProject.getProject()).getMainProjectCodeStyle().
+				getLineSeparator();
+		if (lineSeparator == null) {
+			lineSeparator = System.lineSeparator();
+		}
+		String insertText = propertyName + "=" + lineSeparator;
+		TextDocumentEdit tde = insertTextEdit(new TextDocumentItem(uri, "properties", 0, insertText), insertText,
+				new Position(0, 0));
+		WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(tde)));
+		unresolved.setEdit(workspaceEdit);
+		return unresolved;
+	}
+
+	private static TextDocumentEdit insertTextEdit(TextDocumentItem document, String insertText, Position position) {
+		VersionedTextDocumentIdentifier documentId = new VersionedTextDocumentIdentifier(document.getUri(),
+				document.getVersion());
+		TextEdit te = new TextEdit(new Range(position, position), insertText);
+		return new TextDocumentEdit(documentId, Collections.singletonList(te));
+	}
+
 
 	private static String getPropertyName(Diagnostic diagnostic, JavaCodeActionContext context) {
 		if (diagnostic.getData() != null) {

@@ -17,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
@@ -40,6 +41,8 @@ public interface IPsiUtils {
     VirtualFile findFile(String uri) throws IOException;
 
     String getJavadoc(PsiMethod method, DocumentFormat documentFormat);
+
+    String getJavadoc(PsiMember method, com.redhat.qute.commons.DocumentFormat documentFormat);
 
     Range toRange(PsiElement element, int offset, int length);
 

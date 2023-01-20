@@ -72,4 +72,3 @@ jobs:
         name: ${{ runner.os }}-test-reports
         path: build/reports
       if: success() || failure()
-

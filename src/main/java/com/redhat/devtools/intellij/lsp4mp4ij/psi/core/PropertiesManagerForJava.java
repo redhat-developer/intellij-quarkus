@@ -14,6 +14,7 @@ import com.intellij.lang.jvm.JvmParameter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.ThrowableComputable;
@@ -467,4 +468,18 @@ public class PropertiesManagerForJava {
             return codeActionHandler.codeAction(params, utils);
         });
     }
+
+    /**
+     * Returns the codeAction list according the given codeAction parameters.
+     *
+     * @param unresolved the CodeAction to resolve
+     * @param utils      the utilities class
+     * @param monitor    the monitor
+     * @return the codeAction list according the given codeAction parameters.
+     */
+    public CodeAction resolveCodeAction(CodeAction unresolved, IPsiUtils utils,
+                                        ProgressIndicator monitor) {
+        return codeActionHandler.resolveCodeAction(unresolved, utils);
+    }
+
 }

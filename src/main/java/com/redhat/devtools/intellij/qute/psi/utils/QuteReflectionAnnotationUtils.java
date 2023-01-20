@@ -144,7 +144,7 @@ public class QuteReflectionAnnotationUtils {
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting member values of '" + templateDataAnnotation.getQualifiedName() + "'.", e);
 		}
 		return templateData;
@@ -209,7 +209,7 @@ public class QuteReflectionAnnotationUtils {
 
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE,
+			LOGGER.log(Level.WARNING,
 					"Error while getting member values of '" + registerForReflectionAnnotation.getQualifiedName() + "'.",
 					e);
 		}
@@ -218,6 +218,6 @@ public class QuteReflectionAnnotationUtils {
 
 	private static String resolveTarget(String target, ITypeResolver typeResolver, Module javaProject) {
 		//
-		return typeResolver.resolveTypeSignature(target, javaProject);
+		return typeResolver.resolveTypeSignature(target);
 	}
 }

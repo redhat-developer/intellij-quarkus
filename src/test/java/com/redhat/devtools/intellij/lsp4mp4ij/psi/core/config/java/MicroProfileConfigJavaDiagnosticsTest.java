@@ -171,14 +171,14 @@ public class MicroProfileConfigJavaDiagnosticsTest extends MavenModuleImportingT
 			lineSeparator = System.lineSeparator();
 		}
 
-		MicroProfileJavaCodeActionParams codeActionParams1 = createCodeActionParams(javaUri, d1);
+		MicroProfileJavaCodeActionParams codeActionParams1 = createCodeActionParams(javaUri, d1, false);
 		assertJavaCodeAction(codeActionParams1, utils, //
 				ca(javaUri, "Insert 'defaultValue' attribute", d1, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\", defaultValue = \"\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\")\n        private String url;\n    }\n}\n")),
 				ca(propertiesUri, "Insert 'foo' property in 'META-INF/microprofile-config.properties'", d1, //
 						te(0, 0, 0, 0, "foo=" + lineSeparator)));
 
-		MicroProfileJavaCodeActionParams codeActionParams2 = createCodeActionParams(javaUri, d2);
+		MicroProfileJavaCodeActionParams codeActionParams2 = createCodeActionParams(javaUri, d2, false);
 		assertJavaCodeAction(codeActionParams2, utils, //
 				ca(javaUri, "Insert 'defaultValue' attribute", d2, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\", defaultValue = \"\")\n        private String url;\n    }\n}\n")),

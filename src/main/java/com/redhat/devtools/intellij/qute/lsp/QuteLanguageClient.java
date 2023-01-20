@@ -22,6 +22,7 @@ import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
+import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.QuteJavaCodeLensParams;
@@ -29,6 +30,7 @@ import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import com.redhat.qute.commons.QuteJavaDiagnosticsParams;
 import com.redhat.qute.commons.QuteJavaDocumentLinkParams;
 import com.redhat.qute.commons.QuteJavaTypesParams;
+import com.redhat.qute.commons.QuteJavadocParams;
 import com.redhat.qute.commons.QuteProjectParams;
 import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -46,6 +48,7 @@ import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.WorkspaceEdit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,5 +145,17 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
   public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
     return runAsBackground("getUserTags", monitor -> QuteSupportForTemplate.getInstance().getUserTags(params, PsiUtilsLSImpl.getInstance(getProject()),
             monitor));
+  }
+
+  @Override
+  public CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params) {
+    return runAsBackground("generateMissingJavaMember", monitor -> ReadAction.compute(() -> QuteSupportForTemplate.getInstance()
+            .generateMissingJavaMember(params, PsiUtilsLSImpl.getInstance(getProject()), monitor)));
+  }
+
+  @Override
+  public CompletableFuture<String> getJavadoc(QuteJavadocParams params) {
+    return runAsBackground("getJavadoc", monitor -> QuteSupportForTemplate.getInstance()
+            .getJavadoc(params, PsiUtilsLSImpl.getInstance(getProject()), monitor));
   }
 }

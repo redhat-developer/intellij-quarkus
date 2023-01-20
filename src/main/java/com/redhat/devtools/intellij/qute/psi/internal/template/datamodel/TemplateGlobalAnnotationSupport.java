@@ -26,6 +26,7 @@ import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -80,7 +81,8 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 		if (annotation == null) {
 			return;
 		}
-		ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver((PsiMember) javaElement);
+		ITypeResolver typeResolver = QuteSupportForTemplate.createTypeResolver((PsiMember) javaElement,
+				context.getJavaProject());
 		if (javaElement instanceof PsiClass) {
 			PsiClass type = (PsiClass) javaElement;
 			collectResolversForTemplateGlobal(type, annotation, context.getDataModelProject().getValueResolvers(),
@@ -111,7 +113,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
 		}
 	}
 
@@ -122,13 +124,14 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			ValueResolverInfo resolver = new ValueResolverInfo();
 			resolver.setSourceType(sourceType);
 			resolver.setSignature(typeResolver.resolveSignature(member));
+			resolver.setKind(ValueResolverKind.TemplateGlobal);
 			// Constant value for {@link #name()} indicating that the field/method name
 			// should be used
 			try {
 				resolver.setNamed(
 					AnnotationUtils.getAnnotationMemberValue(templateGlobal, TEMPLATE_GLOBAL_ANNOTATION_NAME));
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error while getting annotation member value of 'name'.", e);
+				LOGGER.log(Level.WARNING, "Error while getting annotation member value of 'name'.", e);
 			}
 			resolver.setGlobalVariable(true);
 			if (!resolvers.contains(resolver)) {
@@ -175,7 +178,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			}
 			return false;
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error while getting method information of '" + member.getName() + "'.", e);
+			LOGGER.log(Level.WARNING, "Error while getting method information of '" + member.getName() + "'.", e);
 			return false;
 		}
 	}

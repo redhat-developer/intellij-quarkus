@@ -35,6 +35,7 @@ import java.util.List;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.createURLCodeLens;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.getJaxRsPathValue;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isClickableJaxRsRequestMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isJaxRsRequestMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
@@ -111,7 +112,7 @@ public class MicroProfileRestClientCodeLensParticipant implements IJavaCodeLensP
 				// JAX-RS
 				// annotation
 				if (isJaxRsRequestMethod(method)) {
-					String openURICommandId = params.getOpenURICommand();
+					String openURICommandId = isClickableJaxRsRequestMethod(method) ? params.getOpenURICommand() : null;
 					CodeLens lens = createURLCodeLens(baseURL, rootPath, openURICommandId, (PsiMethod) element, utils);
 					if (lens != null) {
 						lenses.add(lens);

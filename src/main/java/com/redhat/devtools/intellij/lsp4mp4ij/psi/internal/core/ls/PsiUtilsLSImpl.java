@@ -85,7 +85,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     @Override
     public Module getModule(VirtualFile file) {
         if (file != null) {
-            return ProjectFileIndex.getInstance(project).getModuleForFile(file);
+            return ProjectFileIndex.getInstance(project).getModuleForFile(file, false);
         }
         return null;
     }
@@ -134,6 +134,14 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public String getJavadoc(PsiMethod method, DocumentFormat documentFormat) {
+        boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
+        Reader reader = markdown ? JavadocContentAccess.getMarkdownContentReader(method)
+                : JavadocContentAccess.getPlainTextContentReader(method);
+        return reader != null ? toString(reader) : null;
+    }
+
+    @Override
+    public String getJavadoc(PsiMember method, com.redhat.qute.commons.DocumentFormat documentFormat) {
         boolean markdown = DocumentFormat.Markdown.equals(documentFormat);
         Reader reader = markdown ? JavadocContentAccess.getMarkdownContentReader(method)
                 : JavadocContentAccess.getPlainTextContentReader(method);

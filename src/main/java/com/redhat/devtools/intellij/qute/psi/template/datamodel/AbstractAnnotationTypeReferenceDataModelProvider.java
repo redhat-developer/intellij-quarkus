@@ -69,8 +69,8 @@ public abstract class AbstractAnnotationTypeReferenceDataModelProvider extends A
 				processAnnotation(javaElement, context, monitor);
 			}
 		} catch (Exception e) {
-			if (LOGGER.isLoggable(Level.SEVERE)) {
-				LOGGER.log(Level.SEVERE,
+			if (LOGGER.isLoggable(Level.WARNING)) {
+				LOGGER.log(Level.WARNING,
 						"Cannot collect Qute data model for the Java element '" + javaElement != null
 								? javaElement.getText()
 								: match.toString() + "'.",

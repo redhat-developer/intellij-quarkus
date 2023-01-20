@@ -18,8 +18,12 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiNamedElement;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVAX_DECORATOR_ANNOTATION;
+import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVAX_INJECT_VETOED_ANNOTATION;
 
 /**
  * CDI utilities.
@@ -47,7 +51,7 @@ public class CDIUtils {
 	}
 
 	public static String getSimpleName(String javaElementName, String annotationNamedValue, Class javaElementType,
-			Supplier<Boolean> isGetterMethod) {
+									   Supplier<Boolean> isGetterMethod) {
 		if (StringUtils.isNotEmpty(annotationNamedValue)) {
 			// A @Named is defined with value. Ex:
 			// @Named("flash")
@@ -68,4 +72,37 @@ public class CDIUtils {
 		}
 		return javaElementName;
 	}
+
+	public static boolean isValidBean(PsiElement javaElement) {
+		try {
+			PsiClass type = ((PsiClass) javaElement);
+			return (type.getContainingClass() == null
+					&& !type.getModifierList().hasExplicitModifier(PsiModifier.ABSTRACT)
+					&& !AnnotationUtils.hasAnnotation(javaElement, JAVAX_DECORATOR_ANNOTATION)
+					&& !AnnotationUtils.hasAnnotation(javaElement, JAVAX_INJECT_VETOED_ANNOTATION)
+					&& PsiTypeUtils.isClass(type) && hasNoArgConstructor(type));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static boolean hasNoArgConstructor(PsiClass type) {
+		try {
+			boolean hasNoArgConstructor = true;
+			for (PsiMethod method : type.getMethods()) {
+				if (method.isConstructor()) {
+					int paramCount = method.getParameterList().getParametersCount();
+					if (paramCount > 0) {
+						hasNoArgConstructor = false;
+					} else if (paramCount == 0) {
+						return true;
+					}
+				}
+			}
+			return hasNoArgConstructor;
+		} catch (Exception e) {
+			return true;
+		}
+	}
+
 }

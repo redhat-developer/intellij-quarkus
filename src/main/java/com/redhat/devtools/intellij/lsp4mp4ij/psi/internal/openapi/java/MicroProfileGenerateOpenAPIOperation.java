@@ -17,17 +17,27 @@ import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.ExtendedCodeAction;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionResolveContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.ChangeCorrectionProposal;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.MicroProfileOpenAPIConstants;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4mp.commons.CodeActionResolveData;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Generate OpenAPI annotations by the "Source" kind code action.
@@ -36,6 +46,15 @@ import java.util.List;
  *
  */
 public class MicroProfileGenerateOpenAPIOperation implements IJavaCodeActionParticipant {
+
+	private final static String MESSAGE = "Generate OpenAPI Annotations for ''{0}''";
+
+	private final static String TYPE_NAME_KEY = "type";
+
+	@Override
+	public String getParticipantId() {
+		return MicroProfileGenerateOpenAPIOperation.class.getName();
+	}
 
 	@Override
 	public boolean isAdaptedForCodeAction(JavaCodeActionContext context) {
@@ -50,17 +69,75 @@ public class MicroProfileGenerateOpenAPIOperation implements IJavaCodeActionPart
 		Collection<PsiClass> types = PsiTreeUtil.findChildrenOfType(cu, PsiClass.class);
 		for (Object type : types) {
 			if (type instanceof PsiClass) {
-				ChangeCorrectionProposal proposal = new OpenAPIAnnotationProposal(
-						"Generate OpenAPI Annotations", context.getCompilationUnit(), context.getASTRoot(),
-						(PsiClass) type, MicroProfileOpenAPIConstants.OPERATION_ANNOTATION, 0,
-						context.getSource().getCompilationUnit());
-				// Convert the proposal to LSP4J CodeAction
-				CodeAction codeAction = context.convertToCodeAction(proposal);
-				if (codeAction != null) {
-					codeActions.add(codeAction);
-				}
+				PsiClass typeDeclaration = (PsiClass) type;
+				String typeName = typeDeclaration.getQualifiedName();
+
+				Map<String, Object> extendedData = new HashMap<>();
+				extendedData.put(TYPE_NAME_KEY, typeName);
+				CodeActionResolveData data = new CodeActionResolveData(context.getUri(), getParticipantId(),
+						context.getParams().getRange(),
+						extendedData, context.getParams().isResourceOperationSupported(),
+						context.getParams().isCommandConfigurationUpdateSupported());
+
+				ExtendedCodeAction codeAction = new ExtendedCodeAction(
+						MessageFormat.format(MESSAGE, getSimpleName(typeName)));
+				codeAction.setData(data);
+				codeAction.setRelevance(0);
+				codeAction.setKind(CodeActionKind.Source);
+				codeActions.add(codeAction);
 			}
 		}
 		return codeActions;
 	}
+
+	@Override
+	public CodeAction resolveCodeAction(JavaCodeActionResolveContext context) {
+
+		CodeAction toResolve = context.getUnresolved();
+		CodeActionResolveData data = (CodeActionResolveData) toResolve.getData();
+		String typeName = (String) data.getExtendedDataEntry(TYPE_NAME_KEY);
+
+		if (StringUtils.isEmpty(typeName)) {
+			return toResolve;
+		}
+
+		PsiFile cu = context.getASTRoot();
+		@SuppressWarnings("unchecked")
+		Optional<PsiClass> typeDeclarationOpt = PsiTreeUtil.findChildrenOfType(cu, PsiClass.class).stream() //
+				.filter(type -> type instanceof PsiClass
+						&& typeName.equals(((PsiClass) type).getQualifiedName())) //
+				.map(type -> (PsiClass) type) //
+				.findFirst();
+
+		if (typeDeclarationOpt.isEmpty()) {
+			return toResolve;
+		}
+
+		PsiClass typeDeclaration = typeDeclarationOpt.get();
+
+		ChangeCorrectionProposal proposal = new OpenAPIAnnotationProposal(
+				MessageFormat.format(MESSAGE, getSimpleName(typeName)), context.getCompilationUnit(),
+				context.getASTRoot(),
+				typeDeclaration, MicroProfileOpenAPIConstants.OPERATION_ANNOTATION, 0,
+				context.getSource().getCompilationUnit());
+
+		try {
+			WorkspaceEdit we = context.convertToWorkspaceEdit(proposal);
+			toResolve.setEdit(we);
+		} catch (Exception e) {
+		}
+
+		return toResolve;
+	}
+
+
+	private static final String getSimpleName(String fullyQualifiedName) {
+		int lastDot = fullyQualifiedName.lastIndexOf('.');
+		if (lastDot == -1) {
+			// It probably wasn't actually fully qualified :|
+			return fullyQualifiedName;
+		}
+		return fullyQualifiedName.substring(lastDot + 1);
+	}
+
 }

@@ -34,4 +34,9 @@ public class InsertDefaultValueAnnotationAttributeQuickFix extends InsertAnnotat
 		super(MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
 	}
 
+	@Override
+	public String getParticipantId() {
+		return InsertDefaultValueAnnotationAttributeQuickFix.class.getName();
+	}
+
 }

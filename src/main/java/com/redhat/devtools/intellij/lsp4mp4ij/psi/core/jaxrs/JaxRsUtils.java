@@ -20,6 +20,7 @@ import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 
 import java.util.Collections;
@@ -28,8 +29,14 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUt
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.hasAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_DELETE_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_GET_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_HEAD_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_OPTIONS_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATCH_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_POST_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PUT_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.PATH_VALUE;
 
 /**
@@ -74,8 +81,28 @@ public class JaxRsUtils {
 	 * @param method the method.
 	 * @return true if the given method has @GET annotation and false otherwise.
 	 */
-	public static boolean isJaxRsRequestMethod(PsiMethod method) {
+	public static boolean isClickableJaxRsRequestMethod(PsiMethod method) {
 		return hasAnnotation(method, JAVAX_WS_RS_GET_ANNOTATION);
+	}
+
+	/**
+	 * Returns true if the given method
+	 * has @GET, @POST, @PUT, @DELETE, @HEAD, @OPTIONS, or @PATCH annotation
+	 * and false otherwise.
+	 *
+	 * @param method the method.
+	 * @return true if the given method
+	 *         has @GET, @POST, @PUT, @DELETE, @HEAD, @OPTIONS, or @PATCH annotation
+	 *         and false otherwise.
+	 */
+	public static boolean isJaxRsRequestMethod(PsiMethod method) {
+		return (hasAnnotation(method, JAVAX_WS_RS_GET_ANNOTATION)
+				|| hasAnnotation(method, JAVAX_WS_RS_POST_ANNOTATION)
+				|| hasAnnotation(method, JAVAX_WS_RS_PUT_ANNOTATION)
+				|| hasAnnotation(method, JAVAX_WS_RS_DELETE_ANNOTATION)
+				|| hasAnnotation(method, JAVAX_WS_RS_HEAD_ANNOTATION)
+				|| hasAnnotation(method, JAVAX_WS_RS_OPTIONS_ANNOTATION)
+				|| hasAnnotation(method, JAVAX_WS_RS_PATCH_ANNOTATION));
 	}
 
 	/**
@@ -101,12 +128,18 @@ public class JaxRsUtils {
 	}
 
 	private static CodeLens createURLCodeLens(PsiMethod method, IPsiUtils utils) {
-		TextRange r = method.getTextRange();
-		if (r == null) {
+		PsiAnnotation[] annotations = method.getAnnotations();
+		if (annotations == null) {
 			return null;
 		}
+		TextRange r = annotations[annotations.length - 1].getTextRange();
+
 		CodeLens lens = new CodeLens();
 		final Range range = utils.toRange(method, r.getStartOffset(), r.getLength());
+		// Increment line number for code lens to appear on the line right after the last annotation
+		Position codeLensPosition = new Position(range.getEnd().getLine() + 1, range.getEnd().getCharacter());
+		range.setStart(codeLensPosition);
+		range.setEnd(codeLensPosition);
 		lens.setRange(range);
 		return lens;
 	}

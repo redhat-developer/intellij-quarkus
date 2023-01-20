@@ -25,6 +25,8 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.ModuleFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.idea.maven.MavenImportingTestCase;
@@ -106,5 +108,9 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
       setupJdkForModule(module.getName());
     }
     return module;
+  }
+
+  protected IPsiUtils getJDTUtils() {
+    return PsiUtilsLSImpl.getInstance(myProject);
   }
 }

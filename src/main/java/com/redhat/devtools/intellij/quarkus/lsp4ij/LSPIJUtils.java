@@ -4,6 +4,7 @@ import com.intellij.lang.Language;
 import com.intellij.lang.LanguageUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -21,8 +22,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.CreateFile;
+import org.eclipse.lsp4j.DeleteFile;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.RenameFile;
 import org.eclipse.lsp4j.ResourceOperation;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
@@ -36,11 +41,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -148,6 +155,43 @@ public class LSPIJUtils {
                         Document document = getDocument(file);
                         if (document != null) {
                             applyWorkspaceEdit(document, change.getLeft().getEdits());
+                        }
+                    }
+                } else if (change.isRight()) {
+                    ResourceOperation resourceOperation = change.getRight();
+                    if (resourceOperation instanceof CreateFile) {
+                        try {
+                            CreateFile createOperation = (CreateFile) resourceOperation;
+                            URI targetURI = URI.create(createOperation.getUri());
+                            VirtualFile targetFile = VfsUtil.findFileByURL(targetURI.toURL());
+                            if (targetFile != null && createOperation.getOptions() != null) {
+                                if (!createOperation.getOptions().getIgnoreIfExists()) {
+                                    Document document = getDocument(targetFile);
+                                    if (document != null) {
+                                        TextEdit textEdit = new TextEdit(new Range(toPosition(0, document), toPosition(document.getTextLength(), document)), "");
+                                        applyWorkspaceEdit(document, Collections.singletonList(textEdit));
+                                    }
+                                }
+                            } else {
+                                try {
+                                    File f = new File(targetURI);
+                                    f.createNewFile();
+                                    VfsUtil.findFileByIoFile(f, true);
+                                } catch (IOException e) {
+                                    LOGGER.warn(e.getLocalizedMessage(), e);
+                                }
+                            }
+                        } catch (MalformedURLException e) {
+                            LOGGER.warn(e.getLocalizedMessage(), e);
+                        }
+                    } else if (resourceOperation instanceof DeleteFile) {
+                        try {
+                            VirtualFile resource = findResourceFor(((DeleteFile) resourceOperation).getUri());
+                            if (resource != null) {
+                                resource.delete(null);
+                            }
+                        } catch (IOException e) {
+                            LOGGER.warn(e.getLocalizedMessage(), e);
                         }
                     }
                 }
