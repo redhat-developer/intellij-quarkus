@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij.quarkus;
 
 import com.intellij.ProjectTopics;
 import com.intellij.json.JsonFileType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -55,20 +56,25 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class QuarkusProjectService implements LibraryTable.Listener, BulkFileListener, ModuleListener {
+public class QuarkusProjectService implements LibraryTable.Listener, BulkFileListener, ModuleListener, Disposable {
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusProjectService.class);
 
     private final Project project;
 
     private final Map<Module, MutablePair<VirtualFile, Boolean>> schemas = new ConcurrentHashMap<>();
 
-    private final Executor executor;
+    private final ExecutorService executor;
+
+    @Override
+    public void dispose() {
+        executor.shutdown();
+    }
 
     public interface Listener {
         void libraryUpdated(Library library);
