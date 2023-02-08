@@ -74,6 +74,13 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
     @Override
     public void dispose() {
         executor.shutdown();
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+            try {
+                ((ThreadPoolExecutor) executor).awaitTermination(1L, TimeUnit.HOURS);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public interface Listener {
