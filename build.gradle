@@ -175,7 +175,7 @@ task copyDeps(type: Copy) {
 }
 
 runIde {
-    systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'debug'
+    systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'disabled'
     systemProperties['com.redhat.devtools.intellij.quarkus.trace'] = 'true'
 }
 
