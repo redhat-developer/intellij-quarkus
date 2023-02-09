@@ -11,6 +11,7 @@
 package com.redhat.devtools.intellij.quarkus;
 
 import com.intellij.ProjectTopics;
+import com.intellij.idea.TestFor;
 import com.intellij.json.JsonFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -74,11 +75,14 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
     @Override
     public void dispose() {
         executor.shutdown();
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
+    }
+
+    @TestFor
+    public void waitForIdle() {
+        while (!((ThreadPoolExecutor) executor).getQueue().isEmpty()) {
             try {
-                ((ThreadPoolExecutor) executor).awaitTermination(1L, TimeUnit.HOURS);
+                Thread.sleep(1000L);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
         }
     }
