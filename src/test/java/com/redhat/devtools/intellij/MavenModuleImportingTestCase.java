@@ -83,7 +83,6 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     for(Module module : modules) {
       setupJdkForModule(module.getName());
     }
-    QuarkusProjectService.getInstance(myTestFixture.getProject()).waitForIdle();
     return Arrays.asList(modules).stream().skip(1).collect(Collectors.toList());
   }
   protected Module createMavenModule(File projectDir) throws Exception {

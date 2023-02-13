@@ -11,7 +11,6 @@
 package com.redhat.devtools.intellij.quarkus;
 
 import com.intellij.ProjectTopics;
-import com.intellij.idea.TestFor;
 import com.intellij.json.JsonFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,6 +35,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
@@ -77,16 +77,6 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
         executor.shutdown();
     }
 
-    @TestFor
-    public void waitForIdle() {
-        while (!((ThreadPoolExecutor) executor).getQueue().isEmpty()) {
-            try {
-                Thread.sleep(1000L);
-            } catch (InterruptedException e) {
-            }
-        }
-    }
-
     public interface Listener {
         void libraryUpdated(Library library);
         void sourceUpdated(List<Pair<Module, VirtualFile>> sources);
@@ -102,9 +92,13 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
 
     public QuarkusProjectService(Project project) {
         this.project = project;
-        this.executor = new ThreadPoolExecutor(0, 1,
-                1L, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>(),
-                r -> new Thread(r, "Quarkus lib pool " + project.getName()));
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+            this.executor = ConcurrencyUtil.newSameThreadExecutorService();
+        } else {
+            this.executor = new ThreadPoolExecutor(0, 1,
+                    1L, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>(),
+                    r -> new Thread(r, "Quarkus lib pool " + project.getName()));
+        }
         LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(this, project);
         connection = ApplicationManager.getApplication().getMessageBus().connect(project);
         connection.subscribe(VirtualFileManager.VFS_CHANGES, this);
@@ -230,7 +224,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
 
     private void moduleChanged(Module module) {
         LOGGER.info("Calling ensure from moduleChanged for module " + module.getName());
-        CompletableFuture.runAsync(() -> QuarkusModuleUtil.ensureQuarkusLibrary(module), executor);
+        executor.submit(() -> QuarkusModuleUtil.ensureQuarkusLibrary(module), executor);
     }
 
     @Override
