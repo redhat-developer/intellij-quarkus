@@ -75,6 +75,7 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
         for(Module m : ModuleManager.getInstance(myProject).getModules()) {
             setupJdkForModule(m.getName());
         }
+        QuarkusProjectService.getInstance(myProject).processModules();
     }
 
     @Parameterized.Parameters(name = "{index}: with Gradle-{0}")
