@@ -106,7 +106,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
         processModules();
     }
 
-    private CompletableFuture<Void> processModules() {
+    public CompletableFuture<Void> processModules() {
         return CompletableFuture.runAsync(() -> {
             for (var module : ModuleManager.getInstance(project).getModules()) {
                 LOGGER.info("Calling ensure from processModules");

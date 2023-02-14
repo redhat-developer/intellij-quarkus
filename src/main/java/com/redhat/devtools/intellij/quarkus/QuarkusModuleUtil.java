@@ -122,7 +122,7 @@ public class QuarkusModuleUtil {
         assert entry != null : library;
         entry.setScope(DependencyScope.PROVIDED);
         entry.setExported(false);
-        ApplicationManager.getApplication().invokeLater(() -> WriteAction.run(libraryModel::commit));
+        ApplicationManager.getApplication().invokeAndWait(() -> WriteAction.run(libraryModel::commit));
     }
 
     private static Integer computeHash(Module module) {
