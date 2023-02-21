@@ -52,9 +52,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -71,6 +73,8 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
     private final Map<Module, MutablePair<VirtualFile, Boolean>> schemas = new ConcurrentHashMap<>();
 
     private final ExecutorService executor;
+
+    private Set<Module> modulesBeingEnsured = new HashSet<>();
 
     @Override
     public void dispose() {
@@ -106,20 +110,33 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
         processModules();
     }
 
+    private CompletableFuture<Void> checkQuarkusLibrary(Module module, boolean sync) {
+        if (modulesBeingEnsured.add(module)) {
+            if (sync) {
+                QuarkusModuleUtil.ensureQuarkusLibrary(module);
+                modulesBeingEnsured.remove(module);
+                return CompletableFuture.completedFuture(null);
+            } else {
+                return CompletableFuture.runAsync(() -> {
+                    QuarkusModuleUtil.ensureQuarkusLibrary(module);
+                    modulesBeingEnsured.remove(module);
+                }, executor);
+            }
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
     public CompletableFuture<Void> processModules() {
         return CompletableFuture.runAsync(() -> {
             for (var module : ModuleManager.getInstance(project).getModules()) {
                 LOGGER.info("Calling ensure from processModules");
-                QuarkusModuleUtil.ensureQuarkusLibrary(module);
+                checkQuarkusLibrary(module, true);
             }
         }, executor);
     }
 
     private CompletableFuture<Void> processModule(Module module) {
-        return CompletableFuture.runAsync(() -> {
-                LOGGER.info("Calling ensure from processModule " + module.getName());
-                QuarkusModuleUtil.ensureQuarkusLibrary(module);
-        }, executor);
+        return checkQuarkusLibrary(module, false);
     }
 
     private void handleLibraryUpdate(Library library) {
@@ -224,7 +241,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
 
     private void moduleChanged(Module module) {
         LOGGER.info("Calling ensure from moduleChanged for module " + module.getName());
-        executor.submit(() -> QuarkusModuleUtil.ensureQuarkusLibrary(module), executor);
+        checkQuarkusLibrary(module, false);
     }
 
     @Override
