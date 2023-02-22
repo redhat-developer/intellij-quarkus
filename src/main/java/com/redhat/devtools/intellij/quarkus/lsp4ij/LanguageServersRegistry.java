@@ -214,9 +214,11 @@ public class LanguageServersRegistry {
 
     private Set<LanguageServerDefinition> getAvailableLSFor(Language language) {
         Set<LanguageServerDefinition> res = new HashSet<>();
-        for (ContentTypeToLanguageServerDefinition mapping : this.connections) {
-            if (language.isKindOf(mapping.getKey())) {
-                res.add(mapping.getValue());
+        if (language != null) {
+            for (ContentTypeToLanguageServerDefinition mapping : this.connections) {
+                if (language.isKindOf(mapping.getKey())) {
+                    res.add(mapping.getValue());
+                }
             }
         }
         return res;
