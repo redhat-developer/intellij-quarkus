@@ -47,6 +47,5 @@ public class QuarkusMavenLibraryImporter extends MavenImporter {
 
     @Override
     public void process(IdeModifiableModelsProvider modifiableModelsProvider, Module module, MavenRootModelAdapter rootModel, MavenProjectsTree mavenModel, MavenProject mavenProject, MavenProjectChanges changes, Map<MavenProject, String> mavenProjectToModuleName, List<MavenProjectsProcessorTask> postTasks) {
-        postTasks.add(new QuarkusMavenProjectsProcessTask(module));
     }
 }

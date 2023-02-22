@@ -28,6 +28,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.idea.maven.MavenImportingTestCase;
 
@@ -81,8 +82,8 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     Module[] modules = ModuleManager.getInstance(myTestFixture.getProject()).getModules();
     for(Module module : modules) {
       setupJdkForModule(module.getName());
-      QuarkusModuleUtil.ensureQuarkusLibrary(module);
     }
+    QuarkusProjectService.getInstance(myTestFixture.getProject()).processModules();
     return Arrays.asList(modules).stream().skip(1).collect(Collectors.toList());
   }
   protected Module createMavenModule(File projectDir) throws Exception {

@@ -14,7 +14,6 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleComponent;
-import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +51,6 @@ public class QuarkusModuleComponent implements ModuleComponent, PersistentStateC
 
     @Override
     public void moduleAdded() {
-        QuarkusModuleUtil.ensureQuarkusLibrary(module);
     }
 
     @Nullable
@@ -82,7 +80,7 @@ public class QuarkusModuleComponent implements ModuleComponent, PersistentStateC
     }
 
     public Integer getVersion() {
-        return state != null ? state.getHash() : null;
+        return state != null ? state.getVersion() : null;
     }
 
     public void setVersion(Integer version) {

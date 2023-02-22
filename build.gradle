@@ -117,6 +117,7 @@ tasks.withType(Test) {
     environment 'GRADLE_RELEASE_REPOSITORY','https://services.gradle.org/distributions'
     systemProperty 'idea.log.leaked.projects.in.tests', 'false'
     systemProperty 'idea.maven.test.mirror', 'https://repo1.maven.org/maven2'
+    systemProperty 'com.redhat.devtools.intellij.telemetry.mode', 'disabled'
 }
 
 tasks.withType(Copy) {
@@ -175,7 +176,7 @@ task copyDeps(type: Copy) {
 }
 
 runIde {
-    systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'debug'
+    systemProperties['com.redhat.devtools.intellij.telemetry.mode'] = 'disabled'
     systemProperties['com.redhat.devtools.intellij.quarkus.trace'] = 'true'
 }
 

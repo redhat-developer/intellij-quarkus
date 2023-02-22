@@ -25,6 +25,7 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.RootPolicy;
+import com.intellij.openapi.roots.impl.OrderEntryUtil;
 import com.intellij.openapi.roots.impl.libraries.LibraryEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -84,7 +85,8 @@ public class QuarkusModuleUtil {
                 QuarkusModuleComponent component = module.getComponent(QuarkusModuleComponent.class);
                 Integer previousHash = component.getHash();
                 Integer actualHash = computeHash(module);
-                if ((actualHash != null && !actualHash.equals(previousHash)) ||
+                var qlib = OrderEntryUtil.findLibraryOrderEntry(ModuleRootManager.getInstance(module), QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
+                if (qlib == null || (actualHash != null && !actualHash.equals(previousHash)) ||
                         !QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION.equals(component.getVersion())){
                     ModuleRootModificationUtil.updateModel(module, model -> {
                         LibraryTable table = model.getModuleLibraryTable();

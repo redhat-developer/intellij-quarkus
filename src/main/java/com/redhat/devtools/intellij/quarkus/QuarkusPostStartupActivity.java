@@ -20,8 +20,6 @@ import org.jetbrains.annotations.NotNull;
 public class QuarkusPostStartupActivity implements StartupActivity, DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
-        for (Module module : ModuleManager.getInstance(project).getModules()) {
-            QuarkusModuleUtil.ensureQuarkusLibrary(module);
-        }
+        QuarkusProjectService.getInstance(project);
     }
 }
