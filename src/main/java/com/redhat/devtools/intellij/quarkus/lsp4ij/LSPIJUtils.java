@@ -108,7 +108,7 @@ public class LSPIJUtils {
 
     public static Module getProject(VirtualFile file) {
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
+            Module module = ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file));
             if (module != null) {
                 return module;
             }
