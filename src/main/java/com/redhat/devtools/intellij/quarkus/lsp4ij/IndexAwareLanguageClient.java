@@ -96,7 +96,7 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
       try {
         future.complete(function.apply(indicator));
         done = true;
-      } catch (IndexNotReadyException e) {
+      } catch (IndexNotReadyException | ReadAction.CannotReadException e) {
       } catch (Throwable t) {
         future.completeExceptionally(t);
         done = true;
