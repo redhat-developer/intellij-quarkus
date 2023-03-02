@@ -724,6 +724,10 @@ public class LanguageServerWrapper {
     }
 
     void registerCapability(RegistrationParams params) {
+        // no-op if initializeFuture is null
+        if (initializeFuture == null) {
+            return;
+        }
         initializeFuture.thenRun(() -> {
             params.getRegistrations().forEach(reg -> {
                 if ("workspace/didChangeWorkspaceFolders".equals(reg.getMethod())) { //$NON-NLS-1$
