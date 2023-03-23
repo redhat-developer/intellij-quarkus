@@ -20,12 +20,12 @@ import javax.swing.Icon;
 public class QuteLibraryType extends DownloadableLibraryType {
 
     public QuteLibraryType() {
-        super("Qute", "qute", "qute", QuteLibraryType.class.getResource("/qute.xml"));
+        super(() -> "Qute", "qute", "qute", QuteLibraryType.class.getResource("/qute.xml"));
     }
 
     @NotNull
     @Override
-    protected String[] getDetectionClassNames() {
+    protected String @NotNull [] getDetectionClassNames() {
         return new String[]{"io.quarkus.qute.Engine"};
     }
 

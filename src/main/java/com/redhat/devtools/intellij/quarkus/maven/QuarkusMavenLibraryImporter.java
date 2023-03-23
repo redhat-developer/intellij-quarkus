@@ -36,8 +36,15 @@ public class QuarkusMavenLibraryImporter extends MavenImporter {
         return super.isApplicable(mavenProject) || mavenProject.findPlugin("io.quarkus.platform", myPluginArtifactID) != null;
     }
 
+    /**
+     * removed generic parameter to {@code result} to become compilable in both pre-IC-2023.1 && post-IC-2023.1:
+     * <ul>
+     *     <li>pre IC-2023.1</li>:  getSupportedPackagings(Collection<String> result)
+     *     <li>post IC-2023.1</li>: getSupportedPackagings(Collection<? super String> result)
+     * </ul>
+     */
     @Override
-    public void getSupportedPackagings(Collection<String> result) {
+    public void getSupportedPackagings(Collection result) {
         result.addAll(SUPPORTED_PACKAGINGS);
     }
 

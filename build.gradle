@@ -70,19 +70,18 @@ configurations {
 
 sourceSets {
     main  {
-        if (Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) >= 2021) {
+        if (isPost2021(ideaVersion)) {
             java.srcDirs += 'src/main/java-post2021'
         } else {
             java.srcDirs += 'src/main/java-pre2021'
         }
-        if (Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) > 2022 ||
-                (Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) == 2022 &&
-                        Integer.parseInt(ideaVersion.substring(8).substring(0, 1)) >= 2)) {
+        if (isPost2022_2(ideaVersion)) {
             java.srcDirs += 'src/main/java-post2022.2'
         } else {
             java.srcDirs += 'src/main/java-pre2022.2'
         }
     }
+
     test {
         java.srcDir 'src/test/java'
         java.srcDir 'intellij-community/java/compiler/tests'
@@ -100,6 +99,42 @@ sourceSets {
         resources.srcDir file('src/it/resources')
         compileClasspath += sourceSets.main.output + configurations.testRuntime
         runtimeClasspath += output + compileClasspath
+    }
+}
+
+def isPost2021(ideaVersion) {
+    return isLatestSnapshot(ideaVersion)
+            || getMajorVersion(ideaVersion) >= 2021
+}
+
+private def isPost2022_2(ideaVersion) {
+    Integer majorVersion = getMajorVersion(ideaVersion)
+    Integer minorVersion = getMinorVersion(ideaVersion)
+    return isLatestSnapshot(ideaVersion)
+            || majorVersion > 2022
+            || (majorVersion == 2022 &&
+                    minorVersion >= 2)
+}
+
+private def isLatestSnapshot(ideaVersion) {
+    return ideaVersion == "LATEST-EAP-SNAPSHOT"
+}
+
+private def getMajorVersion(ideaVersion) {
+    String major = ideaVersion[3..6]
+    if (major.isInteger()) {
+        return major as Integer
+    } else {
+        return null
+    }
+}
+
+private def getMinorVersion(ideaVersion) {
+    String minor = ideaVersion[-1..-1]
+    if (minor.isInteger()) {
+        return minor as Integer
+    } else {
+        return null
     }
 }
 
@@ -151,7 +186,6 @@ dependencies {
     //required by lsp4j as the version from IJ is incompatible
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'com.vladsch.flexmark:flexmark:0.50.50'
-    testImplementation 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0'
     lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.6.0:uber') {
         transitive = false
     }
@@ -166,6 +200,8 @@ dependencies {
         builtBy 'copyDeps'
     }
     testImplementation 'org.assertj:assertj-core:3.19.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    integrationTestImplementation 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0'
 }
 
 
@@ -186,6 +222,10 @@ runIdeForUiTests {
 
 prepareSandbox {
     dependsOn copyDeps
+}
+
+patchPluginXml {
+    sinceBuild = "${sinceIdeaBuild}"
 }
 
 jacocoTestReport {

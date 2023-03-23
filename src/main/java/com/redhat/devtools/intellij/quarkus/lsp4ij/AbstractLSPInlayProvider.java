@@ -25,14 +25,17 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
-import com.intellij.ui.layout.LCFlags;
-import com.intellij.ui.layout.LayoutKt;
+import com.intellij.openapi.ui.DialogPanel;
+import com.intellij.util.ui.JBUI;
 import org.eclipse.lsp4j.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
 public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoSettings> {
     public static final DataKey<Command> LSP_COMMAND = DataKey.create("com.redhat.devtools.intellij.quarkus.lsp4ij.command");
@@ -69,9 +72,23 @@ public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoS
             @NotNull
             @Override
             public JComponent createComponent(@NotNull ChangeListener changeListener) {
-                return LayoutKt.panel(new LCFlags[0], "LSP", builder -> {
-                    return null;
-                });
+                JLabel label = new JLabel();
+                GridBagConstraints constraints = new GridBagConstraints(
+                        0,
+                        GridBagConstraints.RELATIVE,
+                        1,
+                        1,
+                        0,
+                        0,
+                        GridBagConstraints.NORTHWEST,
+                        GridBagConstraints.NONE,
+                        JBUI.emptyInsets(),
+                        0,
+                        0);
+                label.setText("LSP");
+                DialogPanel panel = new DialogPanel(new GridBagLayout());
+                panel.add(label, constraints);
+                return panel;
             }
         };
     }
@@ -91,7 +108,7 @@ public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoS
         if (command != null) {
             AnAction action = ActionManager.getInstance().getAction(command.getCommand());
             if (action != null) {
-                DataContext context = SimpleDataContext.getSimpleContext(LSP_COMMAND.getName(), command, DataManager.getInstance().getDataContext(source));
+                DataContext context = SimpleDataContext.getSimpleContext(DataKey.create(LSP_COMMAND.getName()), command, DataManager.getInstance().getDataContext(source));
                 action.actionPerformed(new AnActionEvent(null, context,
                         ActionPlaces.UNKNOWN, new Presentation(),
                         ActionManager.getInstance(), 0));

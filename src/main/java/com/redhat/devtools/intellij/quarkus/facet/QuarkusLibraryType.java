@@ -20,7 +20,7 @@ import javax.swing.Icon;
 public class QuarkusLibraryType extends DownloadableLibraryType {
 
     public QuarkusLibraryType() {
-        super("Quarkus", "quarkus", "quarkus", QuarkusLibraryType.class.getResource("/quarkus.xml"));
+        super(() -> "Quarkus", "quarkus", "quarkus", QuarkusLibraryType.class.getResource("/quarkus.xml"));
     }
 
     @NotNull

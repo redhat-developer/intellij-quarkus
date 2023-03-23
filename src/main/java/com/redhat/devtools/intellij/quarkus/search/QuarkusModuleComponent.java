@@ -13,12 +13,11 @@ package com.redhat.devtools.intellij.quarkus.search;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @State(name="Quarkus Tools")
-public class QuarkusModuleComponent implements ModuleComponent, PersistentStateComponent<QuarkusModuleComponent.State> {
+public class QuarkusModuleComponent implements PersistentStateComponent<QuarkusModuleComponent.State> {
     private final Module module;
     private State state;
 
@@ -47,10 +46,6 @@ public class QuarkusModuleComponent implements ModuleComponent, PersistentStateC
 
     public QuarkusModuleComponent(Module module) {
         this.module = module;
-    }
-
-    @Override
-    public void moduleAdded() {
     }
 
     @Nullable

@@ -1,4 +1,4 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.intellij.openapi.externalSystem.test;
 
 import com.intellij.compiler.artifacts.ArtifactsTestUtil;
@@ -167,21 +167,15 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
       () -> EdtTestUtil.runInEdtAndWait(() -> tearDownFixtures()),
       () -> myProject = null,
       () -> PathKt.delete(myTestDir.toPath()),
-      () -> ExternalSystemProgressNotificationManagerImpl.assertListenersReleased(null),
+      () -> ExternalSystemProgressNotificationManagerImpl.assertListenersReleased(),
       () -> ExternalSystemProgressNotificationManagerImpl.cleanupListeners(),
       () -> super.tearDown(),
       () -> resetClassFields(getClass())
     ).run();
   }
 
-  protected void tearDownFixtures() {
-    if (myTestFixture != null) {
-      try {
-        myTestFixture.tearDown();
-      }
-      catch (Exception ignored) {
-      }
-    }
+  protected void tearDownFixtures() throws Exception {
+    myTestFixture.tearDown();
     myTestFixture = null;
   }
 
@@ -354,7 +348,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
     JarOutputStream target = new JarOutputStream(new FileOutputStream(f), manifest);
     for (Pair<ByteArraySequence, String> contentEntry : contentEntries) {
-      addJarEntry(contentEntry.first.getBytes(), contentEntry.second, target);
+      addJarEntry(contentEntry.first.toBytes(), contentEntry.second, target);
     }
     target.close();
 
@@ -400,7 +394,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     }
   }
 
-  private void build(Object [] buildableElements) {
+  private void build(Object @NotNull [] buildableElements) {
     Promise<ProjectTaskManager.Result> promise;
     if (buildableElements instanceof Module[]) {
       promise = ProjectTaskManager.getInstance(myProject).build((Module[])buildableElements);
@@ -579,10 +573,10 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     return (BiPredicate<T, U>)EQUALS_PREDICATE;
   }
 
-  public static void deleteBuildSystemDirectory() {
+  public static void deleteBuildSystemDirectory(Project project) {
     BuildManager buildManager = BuildManager.getInstance();
     if (buildManager == null) return;
-    Path buildSystemDirectory = buildManager.getBuildSystemDirectory();
+    Path buildSystemDirectory = buildManager.getBuildSystemDirectory(project);
     try {
       PathKt.delete(buildSystemDirectory);
       return;

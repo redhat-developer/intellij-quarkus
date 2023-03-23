@@ -1,5 +1,5 @@
 rm -rf intellij-community-tmp 2>/dev/null
-git clone --single-branch --branch 203.5981 https://github.com/JetBrains/intellij-community intellij-community-tmp
+git clone --single-branch --branch idea/211 https://github.com/JetBrains/intellij-community intellij-community-tmp
 mkdir -p intellij-community/java/compiler/tests/com/intellij/compiler/artifacts
 cp -p intellij-community-tmp/java/compiler/tests/com/intellij/compiler/artifacts/ArtifactsTestUtil.java intellij-community/java/compiler/tests/com/intellij/compiler/artifacts
 mkdir -p intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
@@ -13,6 +13,8 @@ cp intellij-community-tmp/platform/lang-impl/testSources/com/intellij/openapi/ro
 mkdir -p intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test
 cp -p intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test/ExternalSystemImportingTestCase.java intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test
 cp -p intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test/ExternalSystemTestCase.java intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test
+mkdir -p intellij-community/platform/external-system-impl/src/com/intellij/openapi/externalSystem/service/remote
+cp -p intellij-community-tmp/platform/external-system-impl/src/com/intellij/openapi/externalSystem/service/remote/ExternalSystemProgressNotificationManagerImpl.kt intellij-community/platform/external-system-impl/src/com/intellij/openapi/externalSystem/service/remote/
 mkdir -p intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/service/execution
 cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/service/execution/TestUnknownSdkResolver.kt intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/service/execution
 mkdir -p intellij-community/plugins/maven/src/test/java/org/jetbrains/idea/maven
