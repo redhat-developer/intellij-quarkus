@@ -176,7 +176,7 @@
   <depends>com.intellij.properties</depends>
   <depends>com.redhat.devtools.intellij.telemetry</depends>
   <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
-  <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
+  <depends optional="true" config-file="plugin-gradle.xml">com.intellij.gradle</depends>
   <depends optional="true" config-file="plugin-json.xml">com.intellij.modules.json</depends>
 
   <extensions defaultExtensionNs="com.intellij">
