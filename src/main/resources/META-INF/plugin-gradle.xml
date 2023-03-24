@@ -3,6 +3,7 @@
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.gradle.GradleGroovyToolDelegate"/>
     <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.gradle.GradleKotlinToolDelegate"/>
+    <projectLabelProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.GradleProjectLabelProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <externalProjectDataService implementation="com.redhat.devtools.intellij.quarkus.gradle.QuarkusProjectDataService"/>

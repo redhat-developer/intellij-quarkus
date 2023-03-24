@@ -2,6 +2,7 @@
 
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.maven.MavenToolDelegate"/>
+    <projectLabelProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MavenProjectLabelProvider"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.idea.maven">
     <!-- Add your extensions here -->
