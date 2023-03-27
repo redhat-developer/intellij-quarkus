@@ -10,10 +10,10 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.TextRange;
@@ -32,9 +32,9 @@ import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JsonRpcHelpers;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.javadoc.JavadocContentAccess;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
@@ -196,7 +196,9 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     public static ClasspathKind getClasspathKind(VirtualFile file, Module module) {
         if (module != null) {
-            return ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(file)?ClasspathKind.TEST:ClasspathKind.SRC;
+            return ReadAction.compute(() ->
+                    ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(file) ?
+                            ClasspathKind.TEST : ClasspathKind.SRC);
         }
         return ClasspathKind.NONE;
     }
