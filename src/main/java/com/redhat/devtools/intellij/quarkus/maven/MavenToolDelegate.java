@@ -36,6 +36,8 @@ import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -133,7 +135,7 @@ public class MavenToolDelegate implements ToolDelegate {
         List<MavenArtifact> result = new ArrayList<>();
         long start = System.currentTimeMillis();
         try {
-            MavenEmbedderWrapper serverWrapper = MavenServerManager.getInstance().createEmbedder(module.getProject(), false, mavenProject.getDirectory(), mavenProject.getDirectory());
+            MavenEmbedderWrapper serverWrapper = createEmbedderWrapper(module.getProject(), mavenProject.getDirectory());
             if (classifier != null) {
                 for(MavenId id : deploymentIds) {
                     result.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));
@@ -146,6 +148,49 @@ public class MavenToolDelegate implements ToolDelegate {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return result;
+    }
+
+    /**
+     * Returns a {@code MavenEmbedderWrapper} instance for the given project and working directory.
+     * This code is using reflection to get the instance of the {@code MavenServerManager} and calls
+     * {@code createEmbedder} on it (MavenServerManager.getInstance().createEmbedder()).
+     * The instance that is created is then returned.
+     *
+     * This code can be removed once the minimum version gets IC-2023.1.
+     *
+     * <ul>
+     *     <li>< IC-2023.1: MavenServerManager is an abstract class</li>
+     *     <li>>= IC-2023.1: MavenServerManager is an interface</li>
+     * </ul>
+     *
+     * @param project
+     * @param workingDirectory
+     * @return
+     */
+    private MavenEmbedderWrapper createEmbedderWrapper(Project project, String workingDirectory) {
+        try {
+            Class<?> clazz = Class.forName("org.jetbrains.idea.maven.server.MavenServerManager");
+            Object manager = clazz
+                    .getMethod("getInstance")
+                    .invoke(clazz);
+            if (manager == null) {
+                return null;
+            }
+            Method createEmbedderMethod = clazz.getMethod(
+                    "createEmbedder",
+                    Project.class,
+                    Boolean.TYPE,
+                    String.class,
+                    String.class);
+            return (MavenEmbedderWrapper) createEmbedderMethod.invoke(
+                    manager,
+                    project,
+                    false,
+                    workingDirectory,
+                    workingDirectory);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
