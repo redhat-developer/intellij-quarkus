@@ -11,6 +11,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.17.0</b></p>
+    <ul>
+      <li>Release for 2023.1</li>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.16.0</b></p>
     <ul>
       <li>LSP4MP 0.6.0 and quarkus-ls 0.13.0 based</li>
