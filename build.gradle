@@ -82,6 +82,11 @@ sourceSets {
         } else {
             java.srcDirs += 'src/main/java-pre2022.2'
         }
+        if (Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) >= 2023) {
+            java.srcDirs += 'src/main/java-post2023'
+        } else {
+            java.srcDirs += 'src/main/java-pre2023'
+        }
     }
     test {
         java.srcDir 'src/test/java'
