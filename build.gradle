@@ -151,7 +151,7 @@ dependencies {
     //required by lsp4j as the version from IJ is incompatible
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'com.vladsch.flexmark:flexmark:0.50.50'
-    testImplementation 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0'
+    integrationTestImplementation 'com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0'
     lsp('org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:0.6.0:uber') {
         transitive = false
     }
