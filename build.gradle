@@ -83,6 +83,7 @@ sourceSets {
             java.srcDirs += 'src/main/java-pre2022.2'
         }
     }
+
     test {
         java.srcDir 'src/test/java'
         java.srcDir 'intellij-community/java/compiler/tests'

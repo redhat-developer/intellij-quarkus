@@ -37,7 +37,7 @@ public class QuarkusMavenLibraryImporter extends MavenImporter {
     }
 
     @Override
-    public void getSupportedPackagings(Collection<String> result) {
+    public void getSupportedPackagings(Collection result) {
         result.addAll(SUPPORTED_PACKAGINGS);
     }
 
