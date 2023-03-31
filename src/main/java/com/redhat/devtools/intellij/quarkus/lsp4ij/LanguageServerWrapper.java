@@ -323,7 +323,11 @@ public class LanguageServerWrapper {
             initializeFuture = languageServer.initialize(initParams).thenAccept(res -> {
                 serverCapabilities = res.getCapabilities();
                 this.initiallySupportsWorkspaceFolders = supportsWorkspaceFolders(serverCapabilities);
-            }).thenRun(() -> {
+            });
+            initializeFuture.thenRun(() -> {
+            	// Here we call languageServer.initialized which will send to this IJ LSP client several 'client/registerCapability' 
+            	// which will call the private method registerCapability(RegistrationParams params)
+            	// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#client_registerCapability
                 this.languageServer.initialized(new InitializedParams());
             });
 
