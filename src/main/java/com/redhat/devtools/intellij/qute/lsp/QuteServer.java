@@ -14,21 +14,35 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.server.JavaProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.ProcessStreamConnectionProvider;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class QuteServer extends ProcessStreamConnectionProvider {
+/**
+ * Start the Qute language server process.
+ */
+public class QuteServer extends JavaProcessStreamConnectionProvider {
+
+    private static final String QUTE_DEBUG_PORT = "qute.debug.port";
+
     public QuteServer() {
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
         File quteServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.qute.ls-uber.jar");
-        String javaHome = System.getProperty("java.home");
-        setCommands(Arrays.asList(javaHome + File.separator + "bin" + File.separator + "java", "-jar",
-                quteServerPath.getAbsolutePath(), "-DrunAsync=true"));
+
+        String debugPort =  System.getProperty(QUTE_DEBUG_PORT);
+
+        List<String> commands = createJavaCommands(debugPort);
+        commands.add("-jar");
+        commands.add(quteServerPath.getAbsolutePath());
+        commands.add("-DrunAsync=true");
+        super.setCommands(commands);
+
         TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "startQute").send();
     }
 
