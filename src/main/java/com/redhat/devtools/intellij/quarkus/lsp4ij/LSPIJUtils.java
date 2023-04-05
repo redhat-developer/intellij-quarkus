@@ -116,9 +116,21 @@ public class LSPIJUtils {
         return null;
     }
 
-    public static int toOffset(Position start, Document document) {
-        int lineStartOffset = document.getLineStartOffset(start.getLine());
-        return lineStartOffset + start.getCharacter();
+    public static int toOffset(Position position, Document document) {
+        int documentLine = toDocumentLine(position, document);
+        int offset = document.getLineStartOffset(documentLine) + position.getCharacter();
+        if (offset >= document.getTextLength()) {
+            offset = document.getTextLength();
+        }
+        return offset;
+    }
+
+    private static int toDocumentLine(Position position, Document document) {
+        int documentLine = document.getLineCount() - 1;
+        if (position.getLine() < document.getLineCount()) {
+            documentLine = position.getLine();
+        }
+        return documentLine;
     }
 
     public static Position toPosition(int offset, Document document) {
