@@ -17,6 +17,7 @@ import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.Range;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ public class LSPDiagnosticsToMarkers implements Consumer<PublishDiagnosticsParam
     public LSPDiagnosticsToMarkers(@Nonnull String serverId) {
         this.languageServerId = serverId;
     }
+
     @Override
     public void accept(PublishDiagnosticsParams publishDiagnosticsParams) {
         ApplicationManager.getApplication().invokeLater(() -> {
@@ -53,8 +55,8 @@ public class LSPDiagnosticsToMarkers implements Consumer<PublishDiagnosticsParam
             if (file != null) {
                 Document document = FileDocumentManager.getInstance().getDocument(file);
                 if (document != null) {
-                    Editor[] editors  = LSPIJUtils.editorsForFile(file, document);
-                    for(Editor editor : editors) {
+                    Editor[] editors = LSPIJUtils.editorsForFile(file, document);
+                    for (Editor editor : editors) {
                         cleanMarkers(editor);
                         createMarkers(editor, document, publishDiagnosticsParams.getDiagnostics());
                     }
@@ -66,16 +68,38 @@ public class LSPDiagnosticsToMarkers implements Consumer<PublishDiagnosticsParam
     private void createMarkers(Editor editor, Document document, List<Diagnostic> diagnostics) {
         RangeHighlighter[] rangeHighlighters = new RangeHighlighter[diagnostics.size()];
         int index = 0;
-        for(Diagnostic diagnostic : diagnostics) {
-            int startOffset = LSPIJUtils.toOffset(diagnostic.getRange().getStart(), document);
-            int endOffset = LSPIJUtils.toOffset(diagnostic.getRange().getEnd(), document);
-            if (endOffset > document.getLineEndOffset(document.getLineCount() - 1)) {
-                endOffset = document.getLineEndOffset(document.getLineCount() - 1);
+        for (Diagnostic diagnostic : diagnostics) {
+            Range range = diagnostic.getRange();
+            int documentLength = document.getTextLength();
+            int start;
+            try {
+                start = Math.min(LSPIJUtils.toOffset(range.getStart(), document), documentLength);
+            } catch (Exception e) {
+                start = documentLength;
+            }
+            int end;
+            try {
+                end = Math.min(LSPIJUtils.toOffset(range.getEnd(), document), documentLength);
+            } catch (Exception e) {
+                end = documentLength;
+            }
+            try {
+                int lineOfStartOffset = document.getLineStartOffset(range.getStart().getLine());
+                // Empty range arbitrary implementation: extend one char forward or backward if at EOL
+                if (start == end && documentLength > end) {
+                    end++;
+                    if (document.getLineStartOffset(range.getEnd().getLine()) != lineOfStartOffset) {
+                        start--;
+                        end--;
+                    }
+                }
+            } catch (Exception e) {
+                // Do nothing
             }
             int layer = getLayer(diagnostic.getSeverity());
             EffectType effectType = getEffectType(diagnostic.getSeverity());
             Color color = getColor(diagnostic.getSeverity());
-            RangeHighlighter rangeHighlighter = editor.getMarkupModel().addRangeHighlighter(startOffset, endOffset, layer, new TextAttributes(editor.getColorsScheme().getDefaultForeground(), editor.getColorsScheme().getDefaultBackground(), color, effectType, Font.PLAIN), HighlighterTargetArea.EXACT_RANGE);
+            RangeHighlighter rangeHighlighter = editor.getMarkupModel().addRangeHighlighter(start, end, layer, new TextAttributes(editor.getColorsScheme().getDefaultForeground(), editor.getColorsScheme().getDefaultBackground(), color, effectType, Font.PLAIN), HighlighterTargetArea.EXACT_RANGE);
             rangeHighlighter.setErrorStripeTooltip(diagnostic);
             rangeHighlighters[index++] = rangeHighlighter;
         }
@@ -85,7 +109,7 @@ public class LSPDiagnosticsToMarkers implements Consumer<PublishDiagnosticsParam
     }
 
     @NotNull
-    private Map<String, RangeHighlighter[]> getAllMarkers(Editor editor) {
+    private static Map<String, RangeHighlighter[]> getAllMarkers(Editor editor) {
         if (editor instanceof UserDataHolderBase) {
             return ((UserDataHolderBase) editor).putUserDataIfAbsent(LSP_MARKER_KEY_PREFIX, new HashMap<>());
         } else {
@@ -101,11 +125,11 @@ public class LSPDiagnosticsToMarkers implements Consumer<PublishDiagnosticsParam
     }
 
     private EffectType getEffectType(DiagnosticSeverity severity) {
-        return severity== DiagnosticSeverity.Hint?EffectType.BOLD_DOTTED_LINE:EffectType.WAVE_UNDERSCORE;
+        return severity == DiagnosticSeverity.Hint ? EffectType.BOLD_DOTTED_LINE : EffectType.WAVE_UNDERSCORE;
     }
 
     private int getLayer(DiagnosticSeverity severity) {
-        return severity== DiagnosticSeverity.Error?HighlighterLayer.ERROR:HighlighterLayer.WARNING;
+        return severity == DiagnosticSeverity.Error ? HighlighterLayer.ERROR : HighlighterLayer.WARNING;
     }
 
     private Color getColor(DiagnosticSeverity severity) {
@@ -137,6 +161,6 @@ public class LSPDiagnosticsToMarkers implements Consumer<PublishDiagnosticsParam
 
     public static RangeHighlighter[] getMarkers(Editor editor, String languageServerId) {
         Map<String, RangeHighlighter[]> allMarkers = editor.getUserData(LSP_MARKER_KEY_PREFIX);
-        return allMarkers!=null?allMarkers.get(languageServerId):null;
+        return allMarkers != null ? allMarkers.get(languageServerId) : null;
     }
 }
