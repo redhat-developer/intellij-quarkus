@@ -66,7 +66,7 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
                     if (docURI != null) {
                         CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
                         BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
-                        List<Pair<Integer,Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
+                        List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
                         CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(psiElement.getProject())
                                 .getLanguageServers(editor.getDocument(), capabilities -> capabilities.getCodeLensProvider() != null)
                                 .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
@@ -87,10 +87,9 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
                                 codelenses.add(Pair.create(offset, pair));
                             }
                         }
-                        Map<Integer, List<Pair<Integer,Pair<CodeLens, LanguageServer>>>> elements = codelenses.stream().collect(Collectors.groupingBy(p -> p.first));
-                        elements.forEach((offset,list) -> inlayHintsSink.addBlockElement(offset, true,
+                        Map<Integer, List<Pair<Integer, Pair<CodeLens, LanguageServer>>>> elements = codelenses.stream().collect(Collectors.groupingBy(p -> p.first));
+                        elements.forEach((offset, list) -> inlayHintsSink.addBlockElement(offset, true,
                                 true, 0, toPresentation(editor, offset, list, getFactory())));
-                        //inlayHintsSink.addBlockElement(offset, true, true, 0, toPresentation(editor, offset, pair.getSecond(), getFactory(), pair.getFirst()));
                     }
                 } catch (InterruptedException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);
@@ -104,15 +103,25 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
     private InlayPresentation toPresentation(Editor editor, int offset,
                                              List<Pair<Integer, Pair<CodeLens, LanguageServer>>> elements,
                                              PresentationFactory factory) {
+
         int line = editor.getDocument().getLineNumber(offset);
         int column = offset - editor.getDocument().getLineStartOffset(line);
         List<InlayPresentation> presentations = new ArrayList<>();
         presentations.add(factory.textSpacePlaceholder(column, true));
         elements.forEach(p -> {
-            presentations.add(factory.onClick(factory.text(getCodeLensString(p.second.first)), MouseButton.Left, (event, point) -> {
-                executeClientCommand(p.second.second, p.second.first, (Component) event.getSource(), editor.getProject());
-                return null;
-            }));
+            CodeLens codeLens = p.second.first;
+            LanguageServer languageServer = p.second.second;
+            InlayPresentation text = factory.smallText(getCodeLensString(codeLens));
+            if (!hasCommand(codeLens)) {
+                // No command, create a simple text inlay hint
+                presentations.add(text);
+            } else {
+                // Codelens defines a Command, create a clickable inlay hint
+                InlayPresentation clickableText = factory.referenceOnHover(text, (event, translated) -> {
+                    executeClientCommand(p.second.second, p.second.first, (Component) event.getSource(), editor.getProject());
+                });
+                presentations.add(clickableText);
+            }
             presentations.add(factory.textSpacePlaceholder(1, true));
         });
         return new SequencePresentation(presentations);
@@ -129,7 +138,12 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
         }
     }
 
-    private String getCodeLensString(CodeLens codeLens) {
+    private static boolean hasCommand(CodeLens codeLens) {
+        Command command = codeLens.getCommand();
+        return (command != null && command.getCommand() != null && !command.getCommand().isEmpty());
+    }
+
+    private static String getCodeLensString(CodeLens codeLens) {
         Command command = codeLens.getCommand();
         if (command == null || command.getTitle().isEmpty()) {
             return null;
