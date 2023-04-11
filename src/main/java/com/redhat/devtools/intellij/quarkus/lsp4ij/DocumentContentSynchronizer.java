@@ -25,23 +25,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.net.URI;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class DocumentContentSynchronizer implements DocumentListener {
     private final static Logger LOGGER = LoggerFactory.getLogger(DocumentContentSynchronizer.class);
 
-    private final @Nonnull LanguageServerWrapper languageServerWrapper;
-    private final @Nonnull Document document;
-    private final @Nonnull URI fileUri;
+    private final @Nonnull
+    LanguageServerWrapper languageServerWrapper;
+    private final @Nonnull
+    Document document;
+    private final @Nonnull
+    URI fileUri;
     private final TextDocumentSyncKind syncKind;
 
     private int version = 0;
-    private DidChangeTextDocumentParams changeParams;
+    private final List<TextDocumentContentChangeEvent> changeEvents;
     private long modificationStamp;
-    final @Nonnull CompletableFuture<Void> didOpenFuture;
+    final @Nonnull
+    CompletableFuture<Void> didOpenFuture;
 
     public DocumentContentSynchronizer(@Nonnull LanguageServerWrapper languageServerWrapper,
                                        @Nonnull Document document,
@@ -74,33 +78,43 @@ public class DocumentContentSynchronizer implements DocumentListener {
         textDocument.setVersion(++version);
         didOpenFuture = languageServerWrapper.getInitializedServer()
                 .thenAcceptAsync(ls -> ls.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(textDocument)));
+
+        // Initialize LSP change events
+        changeEvents = new ArrayList<>();
     }
 
     @Override
     public void documentChanged(DocumentEvent event) {
+        if (syncKind == TextDocumentSyncKind.None) {
+            return;
+        }
         checkEvent(event);
         if (syncKind == TextDocumentSyncKind.Full) {
-            createChangeEvent(event);
+            synchronized (changeEvents) {
+                changeEvents.clear();
+                changeEvents.add(createChangeEvent(event));
+            }
         }
 
-        if (changeParams != null) {
-            if (ApplicationManager.getApplication().isUnitTestMode()) {
-                sendDidChangeEvent();
-            } else {
-                PsiDocumentManager.getInstance(languageServerWrapper.getProject()).performForCommittedDocument(event.getDocument(), this::sendDidChangeEvent);
-            }
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+            sendDidChangeEvents();
+        } else {
+            PsiDocumentManager.getInstance(languageServerWrapper.getProject()).performForCommittedDocument(event.getDocument(), this::sendDidChangeEvents);
         }
     }
 
-    private void sendDidChangeEvent() {
-        final DidChangeTextDocumentParams changeParamsToSend = changeParams;
-        changeParams = null;
-
-        if (changeParamsToSend != null) {
-            changeParamsToSend.getTextDocument().setVersion(++version);
-            languageServerWrapper.getInitializedServer()
-                    .thenAcceptAsync(ls -> ls.getTextDocumentService().didChange(changeParamsToSend));
+    private void sendDidChangeEvents() {
+        List<TextDocumentContentChangeEvent> events = null;
+        synchronized (changeEvents) {
+            events = new ArrayList<>(changeEvents);
+            changeEvents.clear();
         }
+
+        DidChangeTextDocumentParams changeParamsToSend = new DidChangeTextDocumentParams(new VersionedTextDocumentIdentifier(), events);
+        changeParamsToSend.getTextDocument().setUri(fileUri.toString());
+        changeParamsToSend.getTextDocument().setVersion(++version);
+        languageServerWrapper.getInitializedServer()
+                .thenAcceptAsync(ls -> ls.getTextDocumentService().didChange(changeParamsToSend));
     }
 
     @Override
@@ -109,32 +123,24 @@ public class DocumentContentSynchronizer implements DocumentListener {
         if (syncKind == TextDocumentSyncKind.Incremental) {
             // this really needs to happen before event gets actually
             // applied, to properly compute positions
-            createChangeEvent(event);
+            synchronized (changeEvents) {
+                changeEvents.add(createChangeEvent(event));
+            }
         }
     }
 
-    /**
-     * Convert IntelliJ {@link DocumentEvent} to LS according {@link TextDocumentSyncKind}.
-     *
-     * @param event
-     *            IntelliJ {@link DocumentEvent}
-     * @return true if change event is ready to be sent
-     */
-    private boolean createChangeEvent(DocumentEvent event) {
-        changeParams = new DidChangeTextDocumentParams(new VersionedTextDocumentIdentifier(), Collections.singletonList(new TextDocumentContentChangeEvent()));
-        changeParams.getTextDocument().setUri(fileUri.toString());
-
-        Document document = event.getDocument();
-        TextDocumentContentChangeEvent changeEvent = null;
+    private TextDocumentContentChangeEvent createChangeEvent(DocumentEvent event) {
         TextDocumentSyncKind syncKind = getTextDocumentSyncKind();
         switch (syncKind) {
             case None:
-                return false;
-            case Full:
-                changeParams.getContentChanges().get(0).setText(event.getDocument().getText());
-                break;
-            case Incremental:
-                changeEvent = changeParams.getContentChanges().get(0);
+                return null;
+            case Full: {
+                TextDocumentContentChangeEvent changeEvent = new TextDocumentContentChangeEvent();
+                changeEvent.setText(event.getDocument().getText());
+                return changeEvent;
+            }
+            case Incremental: {
+                TextDocumentContentChangeEvent changeEvent = new TextDocumentContentChangeEvent();
                 CharSequence newText = event.getNewFragment();
                 int offset = event.getOffset();
                 int length = event.getOldLength();
@@ -145,19 +151,23 @@ public class DocumentContentSynchronizer implements DocumentListener {
                     changeEvent.setRange(range);
                     changeEvent.setText(newText.toString());
                     changeEvent.setRangeLength(length);
-                } finally {
+                } catch (Exception e) {
+                    // error while conversion (should never occur)
+                    // set the full document text as changes.
+                    changeEvent.setText(document.getText());
                 }
-                break;
+                return changeEvent;
+            }
         }
-        return true;
+        return null;
     }
 
     public void documentSaved(long timestamp) {
         this.modificationStamp = timestamp;
         ServerCapabilities serverCapabilities = languageServerWrapper.getServerCapabilities();
-        if(serverCapabilities != null ) {
+        if (serverCapabilities != null) {
             Either<TextDocumentSyncKind, TextDocumentSyncOptions> textDocumentSync = serverCapabilities.getTextDocumentSync();
-            if(textDocumentSync.isRight() && textDocumentSync.getRight().getSave() == null) {
+            if (textDocumentSync.isRight() && textDocumentSync.getRight().getSave() == null) {
                 return;
             }
         }
