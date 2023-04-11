@@ -30,6 +30,30 @@ public class JavaCodeActionResolveContext extends JavaCodeActionContext {
 										MicroProfileJavaCodeActionParams params, CodeAction unresolved) {
 		super(typeRoot, selectionOffset, selectionLength, utils, params);
 		this.unresolved = unresolved;
+		this.source = this;
+	}
+
+	public JavaCodeActionResolveContext(PsiFile typeRoot, int selectionOffset, int selectionLength, IPsiUtils utils,
+										MicroProfileJavaCodeActionParams params, CodeAction unresolved, JavaCodeActionResolveContext source) {
+		super(typeRoot, selectionOffset, selectionLength, utils, params);
+		this.unresolved = unresolved;
+		this.source = source;
+	}
+
+	/**
+	 * Return a copy of the context with its own in memory compilation unit
+	 *
+	 * @return the new context
+	 */
+	@Override
+	public JavaCodeActionResolveContext copy() {
+		return new JavaCodeActionResolveContext(getTypeRoot().getViewProvider().clone().getPsi(getTypeRoot().getLanguage()), super.getSelectionOffset(),
+				super.getSelectionLength(), getUtils(), super.getParams(), this.unresolved, getSource());
+	}
+
+	@Override
+	public JavaCodeActionResolveContext getSource() {
+		return (JavaCodeActionResolveContext)  super.getSource();
 	}
 
 	public CodeAction getUnresolved() {

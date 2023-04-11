@@ -195,7 +195,7 @@ public class CodeActionHandler {
 
 		/*JavaCodeActionResolveContext context = new JavaCodeActionResolveContext(unit, start, end - start, utils, params,
 				unresolved);*/
-		JavaCodeActionResolveContext context = new JavaCodeActionResolveContext(unit.getViewProvider().clone().getPsi(unit.getLanguage()),
+		JavaCodeActionResolveContext context = new JavaCodeActionResolveContext(unit,
 				start, end - start, utils, params, unresolved);
 		context.setASTRoot(getASTRoot(unit));
 
@@ -203,7 +203,7 @@ public class CodeActionHandler {
 				.filter(definition -> unresolved.getKind().startsWith(definition.getKind()))
 				.filter(definition -> participantId.equals(definition.getParticipantId()))
 				.findFirst().orElse(null);
-		return participant.resolveCodeAction(context);
+		return participant.resolveCodeAction(context.copy());
 	}
 
 
