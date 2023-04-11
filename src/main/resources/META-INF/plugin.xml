@@ -11,6 +11,10 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.17.1</b></p>
+    <ul>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.17.0</b></p>
     <ul>
       <li>Release for 2023.1</li>
