@@ -162,7 +162,7 @@ public class LSPCodeActionAnnotator extends ExternalAnnotator<LSPCodeActionAnnot
                         diagnostic.getMessage()).range(itemInfo.element).tooltip(diagnostic.getMessage());
                 if (itemInfo.actions != null) {
                     for(Either<Command, CodeAction> action : itemInfo.actions) {
-                        builder = builder.withFix(new LSPCodeActionIntentionAction(action, entry.getKey()));
+                        //builder = builder.withFix(new LSPCodeActionIntentionAction(action, entry.getKey()));
                     }
                 }
                 builder.create();

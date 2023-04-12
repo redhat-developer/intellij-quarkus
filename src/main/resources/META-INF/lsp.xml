@@ -29,7 +29,10 @@
     <codeInsight.inlayProvider language="JAVA" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
     <externalAnnotator language="Properties" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions.LSPCodeActionAnnotator"/>
     <externalAnnotator language="JAVA" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions.LSPCodeActionAnnotator"/>
-
+    <externalAnnotator language="JAVA"
+                       implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
+    <externalAnnotator language="Properties"
+                       implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
     <!-- Qute -->
     <lang.documentationProvider id="LSPTextHoverQute" language="Qute_" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <lang.documentationProvider id="LSPTextHoverHTML" language="HTML" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.hover.LSPTextHover" order="first"/>
@@ -47,9 +50,15 @@
     <codeInsight.inlayProvider language="TEXT" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
     <codeInsight.inlayProvider language="TEXT" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
     <externalAnnotator language="Qute_" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions.LSPCodeActionAnnotator"/>
+    <externalAnnotator language="Qute_"
+                       implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
     <externalAnnotator language="HTML" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions.LSPCodeActionAnnotator"/>
     <externalAnnotator language="yaml" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions.LSPCodeActionAnnotator"/>
+    <externalAnnotator language="yaml"
+                       implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
     <externalAnnotator language="JSON" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions.LSPCodeActionAnnotator"/>
+    <externalAnnotator language="JSON"
+                       implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
     <externalAnnotator language="TEXT" implementationClass="com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions.LSPCodeActionAnnotator"/>
   </extensions>
 
@@ -59,4 +68,10 @@
       <implementation-class>com.redhat.devtools.intellij.quarkus.lsp4ij.ConnectDocumentToLanguageServerSetupParticipant</implementation-class>
     </component>
   </project-components>
+
+  <applicationListeners>
+    <!--Support for LSP file synchronization -->
+    <listener class="com.redhat.devtools.intellij.quarkus.lsp4ij.LSPEditorFactoryListener"
+              topic="com.intellij.openapi.editor.event.EditorFactoryListener"/>
+  </applicationListeners>
 </idea-plugin>

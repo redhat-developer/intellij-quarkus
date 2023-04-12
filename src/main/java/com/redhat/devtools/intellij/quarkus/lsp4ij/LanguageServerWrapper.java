@@ -19,55 +19,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
-import org.eclipse.lsp4j.ClientCapabilities;
-import org.eclipse.lsp4j.ClientInfo;
-import org.eclipse.lsp4j.CodeActionCapabilities;
-import org.eclipse.lsp4j.CodeActionKind;
-import org.eclipse.lsp4j.CodeActionKindCapabilities;
-import org.eclipse.lsp4j.CodeActionLiteralSupportCapabilities;
-import org.eclipse.lsp4j.CodeActionOptions;
-import org.eclipse.lsp4j.CodeLensCapabilities;
-import org.eclipse.lsp4j.ColorProviderCapabilities;
-import org.eclipse.lsp4j.CompletionCapabilities;
-import org.eclipse.lsp4j.CompletionItemCapabilities;
-import org.eclipse.lsp4j.DefinitionCapabilities;
-import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
-import org.eclipse.lsp4j.DocumentFormattingOptions;
-import org.eclipse.lsp4j.DocumentHighlightCapabilities;
-import org.eclipse.lsp4j.DocumentLinkCapabilities;
-import org.eclipse.lsp4j.DocumentRangeFormattingOptions;
-import org.eclipse.lsp4j.DocumentSymbolCapabilities;
-import org.eclipse.lsp4j.ExecuteCommandCapabilities;
-import org.eclipse.lsp4j.ExecuteCommandOptions;
-import org.eclipse.lsp4j.FailureHandlingKind;
-import org.eclipse.lsp4j.FormattingCapabilities;
-import org.eclipse.lsp4j.HoverCapabilities;
-import org.eclipse.lsp4j.InitializeParams;
-import org.eclipse.lsp4j.InitializedParams;
-import org.eclipse.lsp4j.InlayHintCapabilities;
-import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.RangeFormattingCapabilities;
-import org.eclipse.lsp4j.ReferencesCapabilities;
-import org.eclipse.lsp4j.Registration;
-import org.eclipse.lsp4j.RegistrationParams;
-import org.eclipse.lsp4j.RenameCapabilities;
-import org.eclipse.lsp4j.ResourceOperationKind;
-import org.eclipse.lsp4j.ServerCapabilities;
-import org.eclipse.lsp4j.SignatureHelpCapabilities;
-import org.eclipse.lsp4j.SymbolCapabilities;
-import org.eclipse.lsp4j.SymbolKind;
-import org.eclipse.lsp4j.SymbolKindCapabilities;
-import org.eclipse.lsp4j.SynchronizationCapabilities;
-import org.eclipse.lsp4j.TextDocumentClientCapabilities;
-import org.eclipse.lsp4j.TextDocumentSyncKind;
-import org.eclipse.lsp4j.TextDocumentSyncOptions;
-import org.eclipse.lsp4j.TypeDefinitionCapabilities;
-import org.eclipse.lsp4j.UnregistrationParams;
-import org.eclipse.lsp4j.WorkspaceClientCapabilities;
-import org.eclipse.lsp4j.WorkspaceEditCapabilities;
-import org.eclipse.lsp4j.WorkspaceFoldersChangeEvent;
-import org.eclipse.lsp4j.WorkspaceFoldersOptions;
-import org.eclipse.lsp4j.WorkspaceServerCapabilities;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.JsonRpcException;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.MessageIssueException;
@@ -265,16 +217,18 @@ public class LanguageServerWrapper {
                     ResourceOperationKind.Delete, ResourceOperationKind.Rename));
             editCapabilities.setFailureHandling(FailureHandlingKind.Undo);
             workspaceClientCapabilities.setWorkspaceEdit(editCapabilities);
-            TextDocumentClientCapabilities textDocumentClientCapabilities = new TextDocumentClientCapabilities();
-            textDocumentClientCapabilities
-                    .setCodeAction(
-                            new CodeActionCapabilities(
-                                    new CodeActionLiteralSupportCapabilities(
-                                            new CodeActionKindCapabilities(Arrays.asList(CodeActionKind.QuickFix,
-                                                    CodeActionKind.Refactor, CodeActionKind.RefactorExtract,
-                                                    CodeActionKind.RefactorInline, CodeActionKind.RefactorRewrite,
-                                                    CodeActionKind.Source, CodeActionKind.SourceOrganizeImports))),
-                                    true));
+
+            final var textDocumentClientCapabilities = new TextDocumentClientCapabilities();
+            final var codeAction = new CodeActionCapabilities(new CodeActionLiteralSupportCapabilities(
+                    new CodeActionKindCapabilities(Arrays.asList(CodeActionKind.QuickFix, CodeActionKind.Refactor,
+                            CodeActionKind.RefactorExtract, CodeActionKind.RefactorInline,
+                            CodeActionKind.RefactorRewrite, CodeActionKind.Source,
+                            CodeActionKind.SourceOrganizeImports))),
+                    true);
+            codeAction.setDataSupport(true);
+            codeAction.setResolveSupport(new CodeActionResolveSupportCapabilities(List.of("edit"))); //$NON-NLS-1$
+            textDocumentClientCapabilities.setCodeAction(codeAction);
+
             textDocumentClientCapabilities.setCodeLens(new CodeLensCapabilities());
             textDocumentClientCapabilities.setInlayHint(new InlayHintCapabilities());
             textDocumentClientCapabilities.setColorProvider(new ColorProviderCapabilities());
@@ -775,6 +729,7 @@ public class LanguageServerWrapper {
                     serverCapabilities.setCodeActionProvider(Boolean.TRUE);
                     addRegistration(reg, () -> serverCapabilities.setCodeActionProvider(beforeRegistration));
                 }
+
             });
         });
     }

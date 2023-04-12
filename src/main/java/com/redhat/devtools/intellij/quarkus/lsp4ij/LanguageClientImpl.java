@@ -1,8 +1,13 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticHandler;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticsToMarkers;
 import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
 import org.eclipse.lsp4j.ApplyWorkspaceEditResponse;
@@ -61,8 +66,8 @@ public class LanguageClientImpl implements LanguageClient {
     }
 
     @Override
-    public final void publishDiagnostics(PublishDiagnosticsParams diagnostics) {
-        this.diagnosticHandler.accept(diagnostics);
+    public final void publishDiagnostics(PublishDiagnosticsParams params) {
+        LSPDiagnosticHandler.publishDiagnostics(params);
     }
 
     @Override
