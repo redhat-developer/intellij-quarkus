@@ -136,11 +136,17 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 	}
 
 	private static boolean isServerAvailable(String host, int port, int timeout) {
-		try (Socket socket = new Socket()) {
+		/*try (Socket socket = new Socket()) {
 			socket.connect(new InetSocketAddress(host, port), timeout);
 			return true;
 		} catch (IOException e) {
 			return false;
-		}
+		}*/
+		// As IJ InlayHints cannot be computed in async mode with a CompletableFuture
+		// we consider that the server is every time available
+		// We do that because the check with Socket takes some times and freeze the Java Editor
+		// as soon as the user type something in the Java Editor.
+		// By returning true, the URL codelens will be displayed even if the server is not started.
+		return true;
 	}
 }
