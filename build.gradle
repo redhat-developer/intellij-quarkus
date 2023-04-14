@@ -1,6 +1,5 @@
-
 plugins {
-    id "org.jetbrains.intellij" version "1.10.1"
+    id "org.jetbrains.intellij" version "1.13.3"
     id 'idea'
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.6.0'
@@ -43,7 +42,7 @@ repositories {
         url 'https://repo.eclipse.org/content/repositories/lsp4mp-releases'
     }
     maven {
-        url 'https://packages.jetbrains.team/maven/p/ij/intellij-dependencies'
+        url 'https://cache-redirector.jetbrains.com/intellij-dependencies'
     }
 }
 
@@ -99,7 +98,7 @@ sourceSets {
     integrationTest {
         java.srcDir file('src/it/java')
         resources.srcDir file('src/it/resources')
-        compileClasspath += sourceSets.main.output + configurations.testRuntime
+        compileClasspath += sourceSets.main.output + sourceSets.test.output + configurations.testRuntimeClasspath
         runtimeClasspath += output + compileClasspath
     }
 }
