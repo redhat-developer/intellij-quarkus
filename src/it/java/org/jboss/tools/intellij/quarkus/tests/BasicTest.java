@@ -76,8 +76,7 @@ public class BasicTest extends AbstractQuarkusTest {
         toolWindowPane.openGradleBuildToolPane();
         GradleBuildToolPane gradleBuildToolPane = toolWindowPane.find(GradleBuildToolPane.class, Duration.ofSeconds(10));
 
-        // ISSUE #126: https://github.com/redhat-developer/intellij-common-ui-test-library/issues/126
-        // gradleBuildToolPane.buildProject();
+        gradleBuildToolPane.buildProject();
         buildGradleProject(gradleBuildToolPane);
 
         boolean isBuildSuccessful = toolWindowPane.find(BuildView.class, Duration.ofSeconds(10)).isBuildSuccessful();

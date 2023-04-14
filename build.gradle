@@ -1,9 +1,10 @@
 plugins {
-    id "org.jetbrains.intellij" version "1.13.3"
+    id 'org.jetbrains.intellij' version '1.13.3'
     id 'idea'
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
     id 'jacoco'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
+    id 'com.adarshr.test-logger' version '3.2.0'
 }
 
 sourceCompatibility = '11'
@@ -111,6 +112,13 @@ task integrationTest(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false }
     mustRunAfter test
+    testlogger {
+        showStandardStreams true
+        showPassedStandardStreams false
+        showSkippedStandardStreams false
+        showFailedStandardStreams true
+        showFullStackTraces true
+    }
 }
 
 tasks.withType(Test) {
