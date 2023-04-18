@@ -63,7 +63,7 @@ public class LSPLocalInspectionTool extends LocalInspectionTool implements Exter
     @Nullable
     @Override
     public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
-        VirtualFile virtualFile = file.getVirtualFile();
+        /*VirtualFile virtualFile = file.getVirtualFile();
         if (virtualFile != null) {
             Editor editor = LSPIJUtils.editorForFile(virtualFile);
             if (editor != null) {
@@ -90,7 +90,7 @@ public class LSPLocalInspectionTool extends LocalInspectionTool implements Exter
                 return problemDescriptors.toArray(new ProblemDescriptor[problemDescriptors.size()]);
             }
 
-        }
+        }*/
         return super.checkFile(file, manager, isOnTheFly);
     }
 

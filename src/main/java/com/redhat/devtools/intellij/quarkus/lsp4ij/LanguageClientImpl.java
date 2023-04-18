@@ -3,7 +3,7 @@ package com.redhat.devtools.intellij.quarkus.lsp4ij;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticsToMarkers;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticHandler;
 import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
 import org.eclipse.lsp4j.ApplyWorkspaceEditResponse;
 import org.eclipse.lsp4j.MessageActionItem;
@@ -19,10 +19,11 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class LanguageClientImpl implements LanguageClient {
     private final Project project;
-    private LSPDiagnosticsToMarkers diagnosticHandler;
+    private Consumer<PublishDiagnosticsParams> diagnosticHandler;
 
     private LanguageServer server;
     private LanguageServerWrapper wrapper;
@@ -38,7 +39,7 @@ public class LanguageClientImpl implements LanguageClient {
     public final void connect(LanguageServer server, LanguageServerWrapper wrapper) {
         this.server = server;
         this.wrapper = wrapper;
-        this.diagnosticHandler = new LSPDiagnosticsToMarkers(wrapper.serverDefinition.id);
+        this.diagnosticHandler = new LSPDiagnosticHandler(wrapper.serverDefinition.id);
     }
 
     protected final LanguageServer getLanguageServer() {
