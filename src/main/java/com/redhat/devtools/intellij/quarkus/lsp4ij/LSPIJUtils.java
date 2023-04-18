@@ -285,10 +285,12 @@ public class LSPIJUtils {
         Position start = toPosition(offset, document);
         CompletionParams param = new CompletionParams();
         param.setPosition(start);
-        TextDocumentIdentifier id = new TextDocumentIdentifier();
-        id.setUri(fileUri.toString());
-        param.setTextDocument(id);
+        param.setTextDocument(toTextDocumentIdentifier(fileUri));
         return param;
+    }
+
+    public static TextDocumentIdentifier toTextDocumentIdentifier(final URI uri) {
+        return new TextDocumentIdentifier(uri.toASCIIString());
     }
 
     public static void applyEdit(Editor editor, TextEdit textEdit, Document document) {
