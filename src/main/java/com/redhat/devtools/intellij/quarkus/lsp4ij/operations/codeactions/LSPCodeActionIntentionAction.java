@@ -13,9 +13,11 @@ package com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.codeInspection.util.IntentionName;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.DocumentUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServiceAccessor;
@@ -85,11 +87,16 @@ public class LSPCodeActionIntentionAction implements IntentionAction {
     @Override
     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
         if (codeAction != null) {
-            if (isCodeActionResolveSupported(project) && codeAction.getEdit() == null) {
+            if (codeAction.getEdit() == null && codeAction.getCommand() == null && isCodeActionResolveSupported(project)) {
                 // Unresolved code action "edit" property. Resolve it.
-                // FIXME: this code is never called because resolve support is not supported by LSP
-                // This code must be revisited because apply needs to be called on a writable action.
-                languageServer.getTextDocumentService().resolveCodeAction(codeAction).thenAccept(ca -> this.apply(ca, project));
+                languageServer.getTextDocumentService().resolveCodeAction(codeAction)
+                        .thenAccept(resolved -> {
+                            ApplicationManager.getApplication().invokeLater(() -> {
+                                DocumentUtil.writeInRunUndoTransparentAction(() -> {
+                                    apply(resolved != null ? resolved : codeAction, project);
+                                });
+                            });
+                        });
             } else {
                 apply(codeAction, project);
             }

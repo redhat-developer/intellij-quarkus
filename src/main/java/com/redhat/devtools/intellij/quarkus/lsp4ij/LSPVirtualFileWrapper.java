@@ -173,17 +173,6 @@ public class LSPVirtualFileWrapper {
     }
 
     private void updateAnnotation(Either<Command, CodeAction> commandOrCodeAction, List<Annotation> annotations, int carretOffset, LanguageServer server) {
-        if (commandOrCodeAction.isLeft()) {
-            Command command = commandOrCodeAction.getLeft();
-            annotations.forEach(annotation -> {
-                int start = annotation.getStartOffset();
-                int end = annotation.getEndOffset();
-                if (start <= carretOffset && end >= carretOffset) {
-                    // annotation.registerFix(new LSPCommandFix(FileUtils.editorToURIString(editor), command),
-                    //         new TextRange(start, end));
-                }
-            });
-        } else if (commandOrCodeAction.isRight()) {
             CodeAction codeAction = commandOrCodeAction.getRight();
             List<Diagnostic> diagnosticContext = codeAction.getDiagnostics();
             annotations.forEach(annotation -> {
@@ -194,8 +183,6 @@ public class LSPVirtualFileWrapper {
                             server), new TextRange(start, end));
                 }
             });
-
-        }
     }
 
     // ------------------------ Static accessor

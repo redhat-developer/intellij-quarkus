@@ -39,7 +39,7 @@ public class QuteServer extends ProcessStreamConnectionProvider {
         Map<String, Object> extendedClientCapabilities = new HashMap<>();
         Map<String, Object> commands = new HashMap<>();
         Map<String, Object> commandsKind = new HashMap<>();
-        commandsKind.put("valueSet", Arrays.asList("qute.command.java.definition", "qute.command.configuration.update", "qute.command.open.uri"));
+        commandsKind.put("valueSet", Arrays.asList("qute.command.java.definition", /* TODO support "qute.command.configuration.update" , */ "qute.command.open.uri"));
         commands.put("commandsKind", commandsKind);
         extendedClientCapabilities.put("commands", commands);
         extendedClientCapabilities.put("shouldLanguageServerExitOnShutdown", Boolean.TRUE);
