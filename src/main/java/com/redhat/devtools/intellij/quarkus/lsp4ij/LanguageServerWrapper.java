@@ -12,7 +12,6 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
-import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
@@ -26,6 +25,7 @@ import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.CodeActionKindCapabilities;
 import org.eclipse.lsp4j.CodeActionLiteralSupportCapabilities;
 import org.eclipse.lsp4j.CodeActionOptions;
+import org.eclipse.lsp4j.CodeActionResolveSupportCapabilities;
 import org.eclipse.lsp4j.CodeLensCapabilities;
 import org.eclipse.lsp4j.ColorProviderCapabilities;
 import org.eclipse.lsp4j.CompletionCapabilities;
@@ -68,9 +68,7 @@ import org.eclipse.lsp4j.WorkspaceEditCapabilities;
 import org.eclipse.lsp4j.WorkspaceFoldersChangeEvent;
 import org.eclipse.lsp4j.WorkspaceFoldersOptions;
 import org.eclipse.lsp4j.WorkspaceServerCapabilities;
-import org.eclipse.lsp4j.jsonrpc.JsonRpcException;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.jsonrpc.MessageIssueException;
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
@@ -265,16 +263,18 @@ public class LanguageServerWrapper {
                     ResourceOperationKind.Delete, ResourceOperationKind.Rename));
             editCapabilities.setFailureHandling(FailureHandlingKind.Undo);
             workspaceClientCapabilities.setWorkspaceEdit(editCapabilities);
+
             TextDocumentClientCapabilities textDocumentClientCapabilities = new TextDocumentClientCapabilities();
-            textDocumentClientCapabilities
-                    .setCodeAction(
-                            new CodeActionCapabilities(
-                                    new CodeActionLiteralSupportCapabilities(
-                                            new CodeActionKindCapabilities(Arrays.asList(CodeActionKind.QuickFix,
-                                                    CodeActionKind.Refactor, CodeActionKind.RefactorExtract,
-                                                    CodeActionKind.RefactorInline, CodeActionKind.RefactorRewrite,
-                                                    CodeActionKind.Source, CodeActionKind.SourceOrganizeImports))),
-                                    true));
+            CodeActionCapabilities codeAction = new CodeActionCapabilities(new CodeActionLiteralSupportCapabilities(
+                    new CodeActionKindCapabilities(Arrays.asList(CodeActionKind.QuickFix, CodeActionKind.Refactor,
+                            CodeActionKind.RefactorExtract, CodeActionKind.RefactorInline,
+                            CodeActionKind.RefactorRewrite, CodeActionKind.Source,
+                            CodeActionKind.SourceOrganizeImports))),
+                    true);
+            codeAction.setDataSupport(true);
+            codeAction.setResolveSupport(new CodeActionResolveSupportCapabilities(List.of("edit"))); //$NON-NLS-1$
+            textDocumentClientCapabilities.setCodeAction(codeAction);
+
             textDocumentClientCapabilities.setCodeLens(new CodeLensCapabilities());
             textDocumentClientCapabilities.setInlayHint(new InlayHintCapabilities());
             textDocumentClientCapabilities.setColorProvider(new ColorProviderCapabilities());

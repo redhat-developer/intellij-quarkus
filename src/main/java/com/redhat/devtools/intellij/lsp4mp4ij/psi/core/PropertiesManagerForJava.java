@@ -474,12 +474,12 @@ public class PropertiesManagerForJava {
      *
      * @param unresolved the CodeAction to resolve
      * @param utils      the utilities class
-     * @param monitor    the monitor
      * @return the codeAction list according the given codeAction parameters.
      */
-    public CodeAction resolveCodeAction(CodeAction unresolved, IPsiUtils utils,
-                                        ProgressIndicator monitor) {
-        return codeActionHandler.resolveCodeAction(unresolved, utils);
+    public CodeAction resolveCodeAction(CodeAction unresolved, IPsiUtils utils) {
+        return ApplicationManager.getApplication().runReadAction((Computable<CodeAction>) () -> {
+            return codeActionHandler.resolveCodeAction(unresolved, utils);
+        });
     }
 
 }
