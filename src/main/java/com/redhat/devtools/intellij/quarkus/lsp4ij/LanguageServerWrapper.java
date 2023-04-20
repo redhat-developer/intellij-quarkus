@@ -595,7 +595,10 @@ public class LanguageServerWrapper {
                     }
                 }
                 DocumentContentSynchronizer listener = new DocumentContentSynchronizer(this, theDocument, syncKind);
-                theDocument.addDocumentListener(listener);
+                theDocument.addDocumentListener(listener, () -> {
+                    // The document changed, remove the DocumentContentSynchronizer from the cache
+                    LanguageServerWrapper.this.connectedDocuments.remove(thePath);
+                });
                 LanguageServerWrapper.this.connectedDocuments.put(thePath, listener);
                 return listener.didOpenFuture;
             }
