@@ -51,7 +51,7 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         Map<String, Object> extendedClientCapabilities = new HashMap<>();
         Map<String, Object> commands = new HashMap<>();
         Map<String, Object> commandsKind = new HashMap<>();
-        commandsKind.put("valueSet", Arrays.asList("microprofile.command.configuration.update", "microprofile.command.open.uri"));
+        commandsKind.put("valueSet", Arrays.asList(/* TODO support "microprofile.command.configuration.update",*/ "microprofile.command.open.uri"));
         commands.put("commandsKind", commandsKind);
         extendedClientCapabilities.put("commands", commands);
         extendedClientCapabilities.put("completion", new HashMap<>());
