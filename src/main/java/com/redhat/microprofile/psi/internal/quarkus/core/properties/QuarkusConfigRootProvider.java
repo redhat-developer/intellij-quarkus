@@ -23,7 +23,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesCollector;
-import com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusContext;
 import com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusSearchContext;
 import com.redhat.microprofile.psi.quarkus.PsiQuarkusUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.SearchContext;

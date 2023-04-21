@@ -21,11 +21,10 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiTypesUtil;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesCollector;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.SearchContext;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.microprofile.psi.quarkus.PsiQuarkusUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
@@ -42,13 +41,13 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUt
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.hasAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.findType;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getEnclosedType;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getFirstTypeParameter;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getPropertyType;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getRawResolvedTypeName;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getResolvedResultTypeName;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getResolvedTypeName;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getSourceMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getSourceType;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.isOptional;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.isPrimitiveType;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY;
@@ -60,6 +59,7 @@ import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.WITH
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.WITH_NAME_ANNOTATION;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.WITH_NAME_ANNOTATION_VALUE;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.WITH_PARENT_NAME_ANNOTATION;
+import static com.siyeh.ig.psiutils.TypeUtils.isOptional;
 import static io.quarkus.runtime.util.StringUtil.camelHumpsIterator;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.runtime.util.StringUtil.join;
@@ -145,19 +145,22 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 				PsiType psiType = method.getReturnType();
 				String returnTypeSignature = getResolvedResultTypeName(method);
 				String resolvedTypeSignature = getRawResolvedTypeName(method);
-				if (isOptional(resolvedTypeSignature)) {
+				if (isOptional(psiType)) {
 					// it's an optional type
 					// Optional<List<String>> databases();
 					// extract the type List<String>
-					returnTypeSignature = getResolvedTypeName(((PsiClassType) psiType).getParameters()[0]);
-					resolvedTypeSignature = getRawResolvedTypeName(((PsiClassType) psiType).getParameters()[0]);
-					psiType = ((PsiClassType) psiType).getParameters()[0];
+					psiType = getFirstTypeParameter(psiType);
+					if (psiType != null) {
+						resolvedTypeSignature = getRawResolvedTypeName(psiType);
+					}
 				}
 
 				PsiClass returnType = findType(method.getManager(), resolvedTypeSignature);
 				boolean simpleType = isSimpleType(resolvedTypeSignature, returnType);
+
 				if (!simpleType) {
-					if (returnType != null && !returnType.isInterface()) {
+					if (returnType != null
+							&& !returnType.isInterface()) {
 						// When type is not an interface, it requires Converters
 						// ex :
 						// interface Server {Log log; class Log {}}
@@ -174,7 +177,6 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 
 				String defaultValue = getWithDefault(method);
 				String propertyName = getPropertyName(method, prefixStr, configMappingAnnotation);
-
 				// Method result type
 				String type = getPropertyType(returnType, resolvedTypeSignature);
 
@@ -205,7 +207,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 				}
 
 				if (simpleType) {
-					// String, int, etc
+					// String, int, Optional, etc
 					ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description,
 							sourceType, null, sourceMethod, defaultValue, extensionName, PsiTypeUtils.isBinary(method));
 					PsiQuarkusUtils.updateConverterKinds(metadata, method, enclosedType);
@@ -219,7 +221,15 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 	}
 
 	private boolean isSimpleType(String resolvedTypeSignature, PsiClass returnType) {
-		return returnType == null || isPrimitiveType(resolvedTypeSignature);
+		return returnType == null
+				|| isPrimitiveType(resolvedTypeSignature)
+				|| isSimpleOptionalType(resolvedTypeSignature);
+	}
+
+	private boolean isSimpleOptionalType(String resolvedTypeSignature) {
+		return "java.util.OptionalInt".equals(resolvedTypeSignature)
+				|| "java.util.OptionalDouble".equals(resolvedTypeSignature)
+				|| "java.util.OptionalLong".equals(resolvedTypeSignature);
 	}
 
 	private static boolean isMap(PsiClass type, String typeName) {
