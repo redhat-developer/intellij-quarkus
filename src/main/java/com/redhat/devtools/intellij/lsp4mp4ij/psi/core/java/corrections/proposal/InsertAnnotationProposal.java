@@ -15,12 +15,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal;
 
 import com.intellij.openapi.editor.Document;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.eclipse.lsp4j.CodeActionKind;
 
@@ -41,18 +36,42 @@ public class InsertAnnotationProposal extends ASTRewriteCorrectionProposal {
 
 	@Override
 	public void performUpdate() {
+		if (annotations == null || annotations.length == 0) {
+			return;
+		}
+		if (!(fBinding.getContainingFile() instanceof PsiJavaFile)) {
+			return;
+		}
+		PsiImportList imports = ((PsiJavaFile) fBinding.getContainingFile()).getImportList();
+		if (imports == null) {
+			//should we bail here???
+			return;
+		}
 		for(String annotation : annotations) {
 			PsiClass annotationClass = JavaPsiFacade.getInstance(fBinding.getProject()).
 					findClass(annotation, GlobalSearchScope.allScope(fBinding.getProject()));
-			if (annotationClass != null) {
+			if (annotationClass != null && annotationClass.getName() != null) {
+				//Add annotation to binding
 				fBinding.getModifierList().addAnnotation(annotationClass.getName());
-				if (fBinding.getContainingFile() instanceof PsiJavaFile) {
-					((PsiJavaFile) fBinding.getContainingFile()).getImportList().
-							add(PsiElementFactory.getInstance(fBinding.getProject()).
-									createImportStatement(annotationClass));
+				//Add import annotation if missing
+				if (!importExists(annotation, imports)) {
+					imports.add(PsiElementFactory.getInstance(fBinding.getProject()).createImportStatement(annotationClass));
 				}
 			}
 		}
+	}
+
+	private boolean importExists(String annotation, PsiImportList imports) {
+		for (PsiImportStatement importStatement : imports.getImportStatements()) {
+			if (importStatement.isOnDemand() && importStatement.getQualifiedName() != null  && importStatement.getQualifiedName().startsWith(annotation.substring(0, annotation.lastIndexOf('.')))) {
+				// eg. check import jakarta.inject.*
+				return true;
+			} else if (annotation.equals(importStatement.getQualifiedName())) {
+				// eg. check import jakarta.inject.Inject
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

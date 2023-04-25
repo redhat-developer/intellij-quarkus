@@ -15,7 +15,14 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java;
 
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.InsertAnnotationMissingQuickFix;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientConstants;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientErrorCode;
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.Diagnostic;
+
+import java.util.List;
 
 /**
  * QuickFix for fixing
@@ -32,7 +39,8 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfi
 public class InjectAndRestClientAnnotationMissingQuickFix extends InsertAnnotationMissingQuickFix {
 
 	public InjectAndRestClientAnnotationMissingQuickFix() {
-		super(true, MicroProfileConfigConstants.INJECT_ANNOTATION,
+		super(true, MicroProfileConfigConstants.INJECT_JAKARTA_ANNOTATION,
+				MicroProfileConfigConstants.INJECT_JAVAX_ANNOTATION,
 				MicroProfileRestClientConstants.REST_CLIENT_ANNOTATION);
 	}
 
@@ -41,4 +49,22 @@ public class InjectAndRestClientAnnotationMissingQuickFix extends InsertAnnotati
 		return InjectAndRestClientAnnotationMissingQuickFix.class.getName();
 	}
 
+	@Override
+	protected void insertAnnotations(Diagnostic diagnostic, JavaCodeActionContext context, List<CodeAction> codeActions) {
+		String[] annotations = getAnnotations();
+		String injectAnnotation = null;
+		for (String annotation : annotations) {
+			if (PsiTypeUtils.findType(context.getJavaProject(), annotation) != null && injectAnnotation == null
+					&& (annotation.equals(MicroProfileConfigConstants.INJECT_JAVAX_ANNOTATION)
+					|| annotation.equals(MicroProfileConfigConstants.INJECT_JAKARTA_ANNOTATION))) {
+				injectAnnotation = annotation;
+			}
+		}
+		if (injectAnnotation != null) {
+			insertAnnotation(diagnostic, context, codeActions, injectAnnotation,
+					MicroProfileRestClientConstants.REST_CLIENT_ANNOTATION);
+		} else {
+			insertAnnotation(diagnostic, context, codeActions, MicroProfileRestClientConstants.REST_CLIENT_ANNOTATION);
+		}
+	}
 }
