@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaCodeAction;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDiagnostics;
@@ -88,17 +89,60 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d3);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @RestClient", d3, //
-						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @RestClient\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
+						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @RestClient\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
 
 		codeActionParams = createCodeActionParams(uri, d4);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @Inject", d4, //
-						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport javax.inject.Inject;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @Inject\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
+						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @Inject\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
 
 		codeActionParams = createCodeActionParams(uri, d5);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @Inject, @RestClient", d5, //
-						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    @RestClient\n    @Inject\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
+						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    @RestClient\n    @Inject\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
+	}
+
+	@Test
+	public void testRestClientAnnotationMissingForFieldsJakarta() throws Exception {
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/open-liberty"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
+		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/com/demo/rest/injectAnnotation.java");
+		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
+
+		params.setUris(Arrays.asList(uri));
+		params.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(16, 19, 42,
+				"The Rest Client object should have the @Inject annotation to be injected as a CDI bean.",
+				DiagnosticSeverity.Warning, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileRestClientErrorCode.InjectAnnotationMissing);
+		Diagnostic d2 = d(18, 19, 55,
+				"The Rest Client object should have the @Inject and @RestClient annotations to be injected as a CDI bean.",
+				DiagnosticSeverity.Warning, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileRestClientErrorCode.InjectAndRestClientAnnotationMissing);
+
+		assertJavaDiagnostics(params, utils, //
+				d1, //
+				d2);
+
+		/* String uri = javaFile.getLocation().toFile().toURI().toString(); */
+
+		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d1);
+		assertJavaCodeAction(codeActionParams, utils, //
+				ca(uri, "Insert @Inject", d1, //
+						te(0, 0, 25, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.inject.Inject;\n\n@Path(\"/api/inject\")\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public Service NoAnnotationMissing;\n\n    @Inject\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n    @GET\n    public String getMy() {\n        return \"my\";\n    }\n\n}")),
+				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", d1, //
+						te(0, 0, 25, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.openapi.annotations.Operation;\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.inject.Inject;\n\n@Path(\"/api/inject\")\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public Service NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n    @Operation(summary = \"\", description = \"\")\n    @GET\n    public String getMy() {\n        return \"my\";\n    }\n\n}")));
+
+		codeActionParams = createCodeActionParams(uri, d2);
+		assertJavaCodeAction(codeActionParams, utils, //
+				ca(uri, "Insert @Inject, @RestClient", d2, //
+						te(0, 0, 25, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.inject.Inject;\n\n@Path(\"/api/inject\")\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public Service NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    @RestClient\n    @Inject\n    public Service RestClientAndInjectAnnotationMissing;\n\n    @GET\n    public String getMy() {\n        return \"my\";\n    }\n\n}")),
+				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", d1, //
+						te(0, 0, 25, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.openapi.annotations.Operation;\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.inject.Inject;\n\n@Path(\"/api/inject\")\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public Service NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n    @Operation(summary = \"\", description = \"\")\n    @GET\n    public String getMy() {\n        return \"my\";\n    }\n\n}")));
+
 	}
 
 	@Test

@@ -15,6 +15,13 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java;
 
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.InsertAnnotationMissingQuickFix;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientErrorCode;
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.Diagnostic;
+
+import java.util.List;
 
 /**
  * QuickFix for fixing
@@ -31,7 +38,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.InsertAnn
 public class InjectAnnotationMissingQuickFix extends InsertAnnotationMissingQuickFix {
 
 	public InjectAnnotationMissingQuickFix() {
-		super(MicroProfileConfigConstants.INJECT_ANNOTATION);
+		super(MicroProfileConfigConstants.INJECT_JAKARTA_ANNOTATION, MicroProfileConfigConstants.INJECT_JAVAX_ANNOTATION);
 	}
 
 	@Override
@@ -39,4 +46,14 @@ public class InjectAnnotationMissingQuickFix extends InsertAnnotationMissingQuic
 		return InjectAnnotationMissingQuickFix.class.getName();
 	}
 
+	@Override
+	protected void insertAnnotations(Diagnostic diagnostic, JavaCodeActionContext context, List<CodeAction> codeActions) {
+		String[] annotations = getAnnotations();
+		for (String annotation : annotations) {
+			if (PsiTypeUtils.findType(context.getJavaProject(), annotation) != null) {
+				insertAnnotation(diagnostic, context, codeActions, annotation);
+				return;
+			}
+		}
+	}
 }
