@@ -119,7 +119,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 	private static void validateField(PsiField field, List<Diagnostic> diagnostics, JavaDiagnosticsContext context) {
 		String uri = context.getUri();
 		DocumentFormat documentFormat = context.getDocumentFormat();
-		boolean hasInjectAnnotation = AnnotationUtils.hasAnnotation(field, INJECT_JAVAX_ANNOTATION) || AnnotationUtils.hasAnnotation(field, INJECT_JAKARTA_ANNOTATION);
+		boolean hasInjectAnnotation = AnnotationUtils.hasAnyAnnotation(field, INJECT_JAVAX_ANNOTATION, INJECT_JAKARTA_ANNOTATION);
 		boolean hasRestClientAnnotation = AnnotationUtils.hasAnnotation(field, REST_CLIENT_ANNOTATION);
 		String fieldTypeName = PsiTypeUtils.getResolvedTypeName(field);
 		PsiClass fieldType = PsiTypeUtils.findType(field.getManager(), fieldTypeName);
@@ -203,7 +203,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 			PsiElement o = PsiTreeUtil.getParentOfType(match.getElement(), PsiField.class);
 			if (o instanceof PsiField) {
 				PsiField field = (PsiField) o;
-				boolean hasInjectAnnotation = AnnotationUtils.hasAnnotation(field, INJECT_JAVAX_ANNOTATION) || AnnotationUtils.hasAnnotation(field, INJECT_JAKARTA_ANNOTATION);
+				boolean hasInjectAnnotation = AnnotationUtils.hasAnyAnnotation(field, INJECT_JAVAX_ANNOTATION, INJECT_JAKARTA_ANNOTATION);
 				boolean hasRestClientAnnotation = AnnotationUtils.hasAnnotation(field, REST_CLIENT_ANNOTATION);
 				if (hasInjectAnnotation && hasRestClientAnnotation) {
 					nbReferences.incrementAndGet();

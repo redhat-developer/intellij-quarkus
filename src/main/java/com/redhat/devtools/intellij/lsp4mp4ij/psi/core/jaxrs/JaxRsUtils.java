@@ -28,6 +28,7 @@ import java.util.Collections;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.hasAnnotation;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.hasAnyAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_DELETE_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_GET_ANNOTATION;
@@ -96,13 +97,13 @@ public class JaxRsUtils {
 	 *         and false otherwise.
 	 */
 	public static boolean isJaxRsRequestMethod(PsiMethod method) {
-		return (hasAnnotation(method, JAVAX_WS_RS_GET_ANNOTATION)
-				|| hasAnnotation(method, JAVAX_WS_RS_POST_ANNOTATION)
-				|| hasAnnotation(method, JAVAX_WS_RS_PUT_ANNOTATION)
-				|| hasAnnotation(method, JAVAX_WS_RS_DELETE_ANNOTATION)
-				|| hasAnnotation(method, JAVAX_WS_RS_HEAD_ANNOTATION)
-				|| hasAnnotation(method, JAVAX_WS_RS_OPTIONS_ANNOTATION)
-				|| hasAnnotation(method, JAVAX_WS_RS_PATCH_ANNOTATION));
+		return hasAnyAnnotation(method, JAVAX_WS_RS_GET_ANNOTATION,
+				JAVAX_WS_RS_POST_ANNOTATION,
+				JAVAX_WS_RS_PUT_ANNOTATION,
+				JAVAX_WS_RS_DELETE_ANNOTATION,
+				JAVAX_WS_RS_HEAD_ANNOTATION,
+				JAVAX_WS_RS_OPTIONS_ANNOTATION,
+				JAVAX_WS_RS_PATCH_ANNOTATION);
 	}
 
 	/**
