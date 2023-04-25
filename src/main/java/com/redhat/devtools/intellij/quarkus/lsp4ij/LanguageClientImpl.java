@@ -39,7 +39,7 @@ public class LanguageClientImpl implements LanguageClient {
     public final void connect(LanguageServer server, LanguageServerWrapper wrapper) {
         this.server = server;
         this.wrapper = wrapper;
-        this.diagnosticHandler = new LSPDiagnosticHandler(wrapper.serverDefinition.id);
+        this.diagnosticHandler = new LSPDiagnosticHandler(wrapper);
     }
 
     protected final LanguageServer getLanguageServer() {
