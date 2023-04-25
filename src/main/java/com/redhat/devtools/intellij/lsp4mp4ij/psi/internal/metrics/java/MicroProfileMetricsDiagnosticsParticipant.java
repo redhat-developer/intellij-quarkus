@@ -88,9 +88,7 @@ public class MicroProfileMetricsDiagnosticsParticipant implements IJavaDiagnosti
 		String uri = context.getUri();
 		IPsiUtils utils = context.getUtils();
 		DocumentFormat documentFormat = context.getDocumentFormat();
-		boolean hasInvalidScopeAnnotation = AnnotationUtils.hasAnnotation(classType, REQUEST_SCOPED_ANNOTATION)
-				|| AnnotationUtils.hasAnnotation(classType, SESSION_SCOPED_ANNOTATION)
-				|| AnnotationUtils.hasAnnotation(classType, DEPENDENT_ANNOTATION);
+		boolean hasInvalidScopeAnnotation = AnnotationUtils.hasAnyAnnotation(classType, REQUEST_SCOPED_ANNOTATION, SESSION_SCOPED_ANNOTATION, DEPENDENT_ANNOTATION);
 		// check for Gauge annotation for Diagnostic 1 only if the class has an invalid
 		// scope annotation
 		if (hasInvalidScopeAnnotation) {

@@ -100,9 +100,7 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 		PsiClass[] interfaces = findImplementedInterfaces(classType);
 		boolean implementsHealthCheck = Stream.of(interfaces)
 				.anyMatch(interfaceType -> HEALTH_CHECK_INTERFACE_NAME.equals(interfaceType.getName()));
-		boolean hasOneOfHealthAnnotation = AnnotationUtils.hasAnnotation(classType, LIVENESS_ANNOTATION)
-				|| AnnotationUtils.hasAnnotation(classType, READINESS_ANNOTATION)
-				|| AnnotationUtils.hasAnnotation(classType, HEALTH_ANNOTATION);
+		boolean hasOneOfHealthAnnotation = AnnotationUtils.hasAnyAnnotation(classType, LIVENESS_ANNOTATION, READINESS_ANNOTATION, HEALTH_ANNOTATION);
 		// Diagnostic 1:display Health annotation diagnostic message if
 		// Health/Liveness/Readiness annotation exists but HealthCheck interface is not
 		// implemented

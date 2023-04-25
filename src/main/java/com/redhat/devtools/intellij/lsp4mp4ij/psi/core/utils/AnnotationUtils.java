@@ -32,10 +32,46 @@ import java.util.regex.Pattern;
  */
 public class AnnotationUtils {
 
+	/**
+	 * Returns checks if the <code>annotatable</code> parameter is annotated with the given annotation.
+	 *
+	 * @param annotatable the class, field which can be annotated
+	 * @param annotationName a non-null FQCN annotation to check against
+	 * @return <code>true</code> if the <code>annotatable</code> parameter is annotated with the given annotation, <code>false</code> otherwise.
+	 */
 	public static boolean hasAnnotation(PsiElement annotatable, String annotationName) {
-		return getAnnotation(annotatable, annotationName) != null;
+		return hasAnyAnnotation(annotatable, annotationName);
 	}
 
+	/**
+	 * Returns checks if the <code>annotatable</code> parameter is annotated with ANY of the given annotations.
+	 *
+	 * @param annotatable the class, field which can be annotated
+	 * @param annotationNames a non-null, non-empty array of FQCN annotations to check against
+	 * @return <code>true</code> if the <code>annotatable</code> parameter is annotated with ANY of the given annotations, <code>false</code> otherwise.
+	 */
+	public static boolean hasAnyAnnotation(PsiElement annotatable, String... annotationNames) {
+		if (annotatable instanceof PsiAnnotationOwner) {
+			return hasAnyAnnotation(((PsiAnnotationOwner) annotatable).getAnnotations(), annotationNames);
+		} else if (annotatable instanceof PsiModifierListOwner) {
+			return hasAnyAnnotation(((PsiModifierListOwner) annotatable).getAnnotations(), annotationNames);
+		}
+		return false;
+	}
+
+	private static boolean hasAnyAnnotation(PsiAnnotation[] annotations, String...annotationNames) {
+		if (annotations == null || annotations.length == 0 || annotationNames == null || annotationNames.length == 0) {
+			return false;
+		}
+		for (PsiAnnotation annotation : annotations) {
+			for (String annotationName: annotationNames) {
+				if (isMatchAnnotation(annotation, annotationName)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Returns the annotation from the given <code>annotatable</code> element with
@@ -75,15 +111,10 @@ public class AnnotationUtils {
 	 *         false otherwise.
 	 */
 	public static boolean isMatchAnnotation(PsiAnnotation annotation, String annotationName) {
-		if(annotation == null) {
-		    return false;
-        }
-		else if ( annotation.getQualifiedName() == null){
+		if(annotation == null || annotation.getQualifiedName() == null){
 			return false;
 		}
-		else {
-			return annotationName.endsWith(annotation.getQualifiedName());
-		}
+		return annotationName.endsWith(annotation.getQualifiedName());
 	}
 
 	/**
