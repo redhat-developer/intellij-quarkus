@@ -22,6 +22,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPVirtualFileWrapper;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServerWrapper;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 
 import java.util.function.Consumer;
@@ -34,10 +35,10 @@ import java.util.function.Consumer;
  */
 public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> {
 
-    private final String languageServerId;
+    private final LanguageServerWrapper languageServerWrapper;
 
-    public LSPDiagnosticHandler(String languageServerId) {
-        this.languageServerId = languageServerId;
+    public LSPDiagnosticHandler(LanguageServerWrapper languageServerWrapper) {
+        this.languageServerWrapper = languageServerWrapper;
     }
 
     @Override
@@ -52,6 +53,9 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
                 return;
             }
             Project project = module.getProject();
+            if (project.isDisposed()) {
+                return;
+            }
             final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
             if (psiFile == null) {
                 return;
@@ -59,7 +63,7 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             LSPVirtualFileWrapper wrapper = LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file);
             synchronized (wrapper) {
                 // Update LSP diagnostic reported by the language server id
-                wrapper.updateDiagnostics(params.getDiagnostics(), languageServerId);
+                wrapper.updateDiagnostics(params.getDiagnostics(), languageServerWrapper);
             }
             // Trigger Intellij validation to execute
             // {@link com.redhat.devtools.intellij.quarkus.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator}.
