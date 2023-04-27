@@ -115,7 +115,7 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 		CodeLens lensForDelete = lenses.get(4);
 		Assert.assertNotNull(lensForDelete.getCommand());
 		Assert.assertEquals("http://localhost:" + port + "/fruits/{id}", lensForDelete.getCommand().getTitle());
-		Assert.assertEquals(r(81, 9, 81, 9), lensForDelete.getRange());
+		Assert.assertEquals(r(81, 4, 81, 4), lensForDelete.getRange());
 	}
 
 }
