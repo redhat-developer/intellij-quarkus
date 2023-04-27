@@ -54,20 +54,36 @@ public class JaxRsApplicationPathCodeLensTest extends MavenModuleImportingTestCa
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.root-path=/root", javaProject);
 
 		// Default port
-		assertCodeLense(8080, params, utils, "/root/api/path");
+		assertCodeLens(8080, params, utils, "/root/api/path");
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
-		assertCodeLense(8080, params, utils, "/api/path");
+		assertCodeLens(8080, params, utils, "/api/path");
 	}
 
-	private static void assertCodeLense(int port, MicroProfileJavaCodeLensParams params, IPsiUtils utils,
-			String testPath) {
+	@Test
+	public void testOpenLibertyJakarta() throws Exception {
+		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/open-liberty"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
+		params.setCheckServerAvailable(false);
+		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/com/demo/rest/MyResource.java").toURI());
+
+		params.setUri(javaFileUri);
+		params.setUrlCodeLensEnabled(true);
+
+		assertCodeLens(8080, params, utils, "/api/api/resource");
+	}
+
+
+	private static void assertCodeLens(int port, MicroProfileJavaCodeLensParams params, IPsiUtils utils,
+									   String testPath) {
 		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
 
-		CodeLens lenseForEndpoint = lenses.get(0);
-		Assert.assertNotNull(lenseForEndpoint.getCommand());
-		Assert.assertEquals("http://localhost:" + port + testPath, lenseForEndpoint.getCommand().getTitle());
+		CodeLens lensForEndpoint = lenses.get(0);
+		Assert.assertNotNull(lensForEndpoint.getCommand());
+		Assert.assertEquals("http://localhost:" + port + testPath, lensForEndpoint.getCommand().getTitle());
 	}
 
 }

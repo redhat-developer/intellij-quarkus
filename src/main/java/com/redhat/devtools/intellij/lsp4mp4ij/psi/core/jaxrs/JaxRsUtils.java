@@ -25,20 +25,18 @@ import org.eclipse.lsp4j.Range;
 
 import java.util.Collections;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getFirstAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.hasAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.hasAnyAnnotation;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.HTTP_METHOD_ANNOTATIONS;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_DELETE_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_GET_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_HEAD_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_OPTIONS_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATCH_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_POST_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PUT_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAKARTA_WS_RS_GET_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAKARTA_WS_RS_PATH_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.PATH_VALUE;
+
 
 /**
  * JAX-RS utilities.
@@ -53,27 +51,37 @@ public class JaxRsUtils {
 	}
 
 	/**
-	 * Returns the value of the JAX-RS Path annotation and null otherwise..
+	 * Returns the value of the JAX-RS/Jakarta Path annotation and null otherwise..
 	 *
-	 * @param annotatable
-	 * @return the value of the JAX-RS Path annotation and null otherwise..
+	 * @param annotatable the annotatable that might be annotated with the
+	 *                    JAX-RS/Jakarta Path annotation
+	 * @return the value of the JAX-RS/Jakarta Path annotation and null otherwise..
 	 */
 	public static String getJaxRsPathValue(PsiElement annotatable) {
-		PsiAnnotation annotationPath = getAnnotation(annotatable, JAVAX_WS_RS_PATH_ANNOTATION);
-		return annotationPath != null ? getAnnotationMemberValue(annotationPath, PATH_VALUE) : null;
+		PsiAnnotation annotationPath = getFirstAnnotation(annotatable, JAVAX_WS_RS_PATH_ANNOTATION,
+				JAKARTA_WS_RS_PATH_ANNOTATION);
+		if (annotationPath == null) {
+			return null;
+		}
+		return getAnnotationMemberValue(annotationPath, PATH_VALUE);
 	}
 
 	/**
-	 * Returns the value of the JAX-RS ApplicationPath annotation and null
-	 * otherwise..
+	 * Returns the value of the JAX-RS/Jakarta ApplicationPath annotation and null
+	 * otherwise.
 	 *
-	 * @param annotatable
-	 * @return the value of the JAX-RS ApplicationPath annotation and null
-	 *         otherwise..
+	 * @param annotatable the annotatable that might be annotated with the
+	 *                    JAX-RS/Jakarta ApplicationPath annotation
+	 * @return the value of the JAX-RS/Jakarta ApplicationPath annotation and null
+	 *         otherwise.
 	 */
 	public static String getJaxRsApplicationPathValue(PsiElement annotatable) {
-		PsiAnnotation annotationPath = getAnnotation(annotatable, JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION);
-		return annotationPath != null ? getAnnotationMemberValue(annotationPath, PATH_VALUE) : null;
+		PsiAnnotation annotationApplicationPath = getFirstAnnotation(annotatable, JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION,
+				JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION);
+		if (annotationApplicationPath == null) {
+			return null;
+		}
+		return getAnnotationMemberValue(annotationApplicationPath, PATH_VALUE);
 	}
 
 	/**
@@ -83,7 +91,7 @@ public class JaxRsUtils {
 	 * @return true if the given method has @GET annotation and false otherwise.
 	 */
 	public static boolean isClickableJaxRsRequestMethod(PsiMethod method) {
-		return hasAnnotation(method, JAVAX_WS_RS_GET_ANNOTATION);
+		return hasAnyAnnotation(method, JAVAX_WS_RS_GET_ANNOTATION, JAKARTA_WS_RS_GET_ANNOTATION);
 	}
 
 	/**
@@ -93,17 +101,11 @@ public class JaxRsUtils {
 	 *
 	 * @param method the method.
 	 * @return true if the given method
-	 *         has @GET, @POST, @PUT, @DELETE, @HEAD, @OPTIONS, or @PATCH annotation
-	 *         and false otherwise.
+	 *         has @GET, @POST, @PUT, @DELETE, @HEAD, @OPTIONS, or @PATCH annotation and
+	 *         false otherwise.
 	 */
 	public static boolean isJaxRsRequestMethod(PsiMethod method) {
-		return hasAnyAnnotation(method, JAVAX_WS_RS_GET_ANNOTATION,
-				JAVAX_WS_RS_POST_ANNOTATION,
-				JAVAX_WS_RS_PUT_ANNOTATION,
-				JAVAX_WS_RS_DELETE_ANNOTATION,
-				JAVAX_WS_RS_HEAD_ANNOTATION,
-				JAVAX_WS_RS_OPTIONS_ANNOTATION,
-				JAVAX_WS_RS_PATCH_ANNOTATION);
+		return hasAnyAnnotation(method, HTTP_METHOD_ANNOTATIONS);
 	}
 
 	/**
@@ -138,7 +140,8 @@ public class JaxRsUtils {
 		CodeLens lens = new CodeLens();
 		final Range range = utils.toRange(method, r.getStartOffset(), r.getLength());
 		// Increment line number for code lens to appear on the line right after the last annotation
-		Position codeLensPosition = new Position(range.getEnd().getLine() + 1, range.getEnd().getCharacter());
+		// align with the start of the last annotation (see https://github.com/redhat-developer/intellij-quarkus/issues/795)
+		Position codeLensPosition = new Position(range.getStart().getLine() + 1, range.getStart().getCharacter());
 		range.setStart(codeLensPosition);
 		range.setEnd(codeLensPosition);
 		lens.setRange(range);
