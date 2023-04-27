@@ -28,6 +28,8 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4mp.commons.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -46,6 +48,8 @@ import java.util.stream.Collectors;
  *
  */
 public class CodeActionHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CodeActionHandler.class);
 
 	/**
 	 * Returns all the code actions applicable for the context given by the
@@ -161,6 +165,7 @@ public class CodeActionHandler {
 			ExtendedCodeAction.sort(codeActions);
 			return codeActions;
 		} catch (IOException e) {
+			LOGGER.error("Failed to compute code actions: "+ e.getMessage());
 			return Collections.emptyList();
 		}
 	}
@@ -173,37 +178,42 @@ public class CodeActionHandler {
 	 * @return the given unresolved CodeAction with the workspace edit resolved
 	 */
 	public CodeAction resolveCodeAction(CodeAction unresolved, IPsiUtils utils) {
-		CodeActionResolveData data = (CodeActionResolveData) unresolved.getData();
-		String participantId = data.getParticipantId();
-		String uri = data.getDocumentUri();
+		try {
+			CodeActionResolveData data = (CodeActionResolveData) unresolved.getData();
+			String participantId = data.getParticipantId();
+			String uri = data.getDocumentUri();
 
-		PsiFile unit = utils.resolveCompilationUnit(uri);
-		if (unit == null) {
-			return null;
+			PsiFile unit = utils.resolveCompilationUnit(uri);
+			if (unit == null) {
+				return null;
+			}
+
+			utils = utils.refine(utils.getModule(uri));
+
+			int start = DiagnosticsHelper.getStartOffset(unit, data.getRange(), utils);
+			int end = DiagnosticsHelper.getEndOffset(unit, data.getRange(), utils);
+
+			var params = new MicroProfileJavaCodeActionParams();
+			params.setContext(new CodeActionContext(
+					unresolved.getDiagnostics() == null ? Collections.emptyList() : unresolved.getDiagnostics()));
+			params.setResourceOperationSupported(data.isResourceOperationSupported());
+			params.setCommandConfigurationUpdateSupported(data.isCommandConfigurationUpdateSupported());
+			params.setRange(data.getRange());
+			params.setTextDocument(new VersionedTextDocumentIdentifier(uri, null));
+
+			JavaCodeActionResolveContext context = new JavaCodeActionResolveContext(unit,
+					start, end - start, utils, params, unresolved);
+			context.setASTRoot(getASTRoot(unit));
+
+			IJavaCodeActionParticipant participant = JavaCodeActionDefinition.EP.extensions()
+					.filter(definition -> unresolved.getKind().startsWith(definition.getKind()))
+					.filter(definition -> participantId.equals(definition.getParticipantId()))
+					.findFirst().orElse(null);
+			return participant.resolveCodeAction(context.copy());
+		} catch (IOException e) {
+			LOGGER.error("Failed to resolve code action: "+ e.getMessage());
+			return unresolved;
 		}
-
-		int start = DiagnosticsHelper.getStartOffset(unit, data.getRange(), utils);
-		int end = DiagnosticsHelper.getEndOffset(unit, data.getRange(), utils);
-
-		var params = new MicroProfileJavaCodeActionParams();
-		params.setContext(new CodeActionContext(
-				unresolved.getDiagnostics() == null ? Collections.emptyList() : unresolved.getDiagnostics()));
-		params.setResourceOperationSupported(data.isResourceOperationSupported());
-		params.setCommandConfigurationUpdateSupported(data.isCommandConfigurationUpdateSupported());
-		params.setRange(data.getRange());
-		params.setTextDocument(new VersionedTextDocumentIdentifier(uri, null));
-
-		/*JavaCodeActionResolveContext context = new JavaCodeActionResolveContext(unit, start, end - start, utils, params,
-				unresolved);*/
-		JavaCodeActionResolveContext context = new JavaCodeActionResolveContext(unit,
-				start, end - start, utils, params, unresolved);
-		context.setASTRoot(getASTRoot(unit));
-
-		IJavaCodeActionParticipant participant = JavaCodeActionDefinition.EP.extensions()
-				.filter(definition -> unresolved.getKind().startsWith(definition.getKind()))
-				.filter(definition -> participantId.equals(definition.getParticipantId()))
-				.findFirst().orElse(null);
-		return participant.resolveCodeAction(context.copy());
 	}
 
 
