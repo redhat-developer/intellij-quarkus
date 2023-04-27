@@ -51,26 +51,50 @@ public class AnnotationUtils {
 	 * @return <code>true</code> if the <code>annotatable</code> parameter is annotated with ANY of the given annotations, <code>false</code> otherwise.
 	 */
 	public static boolean hasAnyAnnotation(PsiElement annotatable, String... annotationNames) {
-		if (annotatable instanceof PsiAnnotationOwner) {
-			return hasAnyAnnotation(((PsiAnnotationOwner) annotatable).getAnnotations(), annotationNames);
-		} else if (annotatable instanceof PsiModifierListOwner) {
-			return hasAnyAnnotation(((PsiModifierListOwner) annotatable).getAnnotations(), annotationNames);
-		}
-		return false;
+		return getFirstAnnotation(annotatable, annotationNames) != null;
 	}
 
-	private static boolean hasAnyAnnotation(PsiAnnotation[] annotations, String...annotationNames) {
+	/**
+	 * Returns an {@link PsiAnnotation} of the first annotation in
+	 * <code>annotationNames</code> that appears on the given annotatable.
+	 *
+	 * It returns the first in the <code>annotationNames</code> list, <b>not</b> the
+	 * first in the order that the annotations appear on the annotatable. <br /> <br />
+	 * e.g.
+	 *
+	 * <pre>
+	 * &commat;Singleton &commat;Deprecated String myString;
+	 * </pre>
+	 *
+	 * when given the <code>annotationNames</code> list <code>{"Potato", "Deprecated",
+	 * "Singleton"}</code> will return the IAnnotation for <code>&commat;Deprecated</code>.
+	 *
+	 * @param annotatable     the annotatable to check for the annotations
+	 * @param annotationNames the FQNs of the annotations to check for
+	 * @return an {@link PsiAnnotation} of the first annotation in
+	 * <code>annotationNames</code> that appears on the given annotatable
+	 */
+	public static PsiAnnotation getFirstAnnotation(PsiElement annotatable, String... annotationNames) {
+		if (annotatable instanceof PsiAnnotationOwner) {
+			return getFirstAnnotation(((PsiAnnotationOwner) annotatable).getAnnotations(), annotationNames);
+		} else if (annotatable instanceof PsiModifierListOwner) {
+			return getFirstAnnotation(((PsiModifierListOwner) annotatable).getAnnotations(), annotationNames);
+		}
+		return null;
+	}
+
+	private static PsiAnnotation getFirstAnnotation(PsiAnnotation[] annotations, String...annotationNames) {
 		if (annotations == null || annotations.length == 0 || annotationNames == null || annotationNames.length == 0) {
-			return false;
+			return null;
 		}
 		for (PsiAnnotation annotation : annotations) {
 			for (String annotationName: annotationNames) {
 				if (isMatchAnnotation(annotation, annotationName)) {
-					return true;
+					return annotation;
 				}
 			}
 		}
-		return false;
+		return null;
 	}
 
 	/**
@@ -142,7 +166,6 @@ public class AnnotationUtils {
 	 * of annotation members
 	 *
 	 * @param annotation            the annotation of the retrieved members
-	 * @param annotationSource      the qualified name of the annotation
 	 * @param annotationMemberNames the supported members of the annotation
 	 * @param position              the hover position
 	 * @param typeRoot              the java type root

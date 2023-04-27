@@ -40,6 +40,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.g
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isClickableJaxRsRequestMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isJaxRsRequestMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.overlaps;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAKARTA_WS_RS_PATH_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
 
 /**
@@ -63,7 +64,8 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 		}
 		// Collection of URL codeLens is done only if JAX-RS is on the classpath
 		Module javaProject = context.getJavaProject();
-		return PsiTypeUtils.findType(javaProject, JAVAX_WS_RS_PATH_ANNOTATION) != null;
+		return PsiTypeUtils.findType(javaProject, JAVAX_WS_RS_PATH_ANNOTATION) != null
+				|| PsiTypeUtils.findType(javaProject, JAKARTA_WS_RS_PATH_ANNOTATION) != null;
 	}
 
 	@Override
