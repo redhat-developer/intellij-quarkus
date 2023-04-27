@@ -26,10 +26,15 @@ public class MicroProfileMetricsConstants {
 	public static final String DIAGNOSTIC_SOURCE = "microprofile-metrics";
 
 	// CDI Scope Annotations
-	public static final String APPLICATION_SCOPED_ANNOTATION = "javax.enterprise.context.ApplicationScoped";
-	public static final String REQUEST_SCOPED_ANNOTATION = "javax.enterprise.context.RequestScoped";
-	public static final String SESSION_SCOPED_ANNOTATION = "javax.enterprise.context.SessionScoped";
-	public static final String DEPENDENT_ANNOTATION = "javax.enterprise.context.Dependent";
+	public static final String APPLICATION_SCOPED_JAVAX_ANNOTATION = "javax.enterprise.context.ApplicationScoped";
+	public static final String REQUEST_SCOPED_JAVAX_ANNOTATION = "javax.enterprise.context.RequestScoped";
+	public static final String SESSION_SCOPED_JAVAX_ANNOTATION = "javax.enterprise.context.SessionScoped";
+	public static final String DEPENDENT_JAVAX_ANNOTATION = "javax.enterprise.context.Dependent";
+
+	public static final String APPLICATION_SCOPED_JAKARTA_ANNOTATION = "jakarta.enterprise.context.ApplicationScoped";
+	public static final String REQUEST_SCOPED_JAKARTA_ANNOTATION = "jakarta.enterprise.context.RequestScoped";
+	public static final String SESSION_SCOPED_JAKARTA_ANNOTATION = "jakarta.enterprise.context.SessionScoped";
+	public static final String DEPENDENT_JAKARTA_ANNOTATION = "jakarta.enterprise.context.Dependent";
 
 	public static final String REQUEST_SCOPED_ANNOTATION_NAME = "RequestScoped";
 	public static final String SESSION_SCOPED_ANNOTATION_NAME = "SessionScoped";

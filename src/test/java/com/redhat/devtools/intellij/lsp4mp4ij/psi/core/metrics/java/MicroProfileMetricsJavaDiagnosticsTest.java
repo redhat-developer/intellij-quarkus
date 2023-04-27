@@ -15,6 +15,9 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.metrics.java;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
@@ -69,6 +72,37 @@ public class MicroProfileMetricsJavaDiagnosticsTest extends MavenModuleImporting
 		assertJavaCodeAction(codeActionParams, utils, //
 			ca(uri, "Replace current scope with @ApplicationScoped", d, //
 				te(0, 0, 18, 0, "package org.acme;\n\nimport javax.enterprise.context.ApplicationScoped;\nimport javax.ws.rs.Path;\n\nimport org.eclipse.microprofile.metrics.MetricUnits;\nimport org.eclipse.microprofile.metrics.annotation.Gauge;\n\n@ApplicationScoped\n@Path(\"/\")\npublic class IncorrectScope {\n\n    @Gauge(name = \"Return Int\", unit = MetricUnits.NONE, description = \"Test method for Gauge annotation\")\n    public int returnInt() {\n        return 2;\n    }\n\n}\n")));
+	}
+
+	@Test
+	public void testApplicationScopedAnnotationMissingJakarta() throws Exception {
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/open-liberty"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/com/demo/rest/IncorrectScopeJakarta.java");
+
+		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
+		diagnosticsParams.setUris(Arrays.asList(uri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		// check for MicroProfile metrics diagnostic warning
+		Diagnostic d = d(10, 13, 34,
+				"The class `com.demo.rest.IncorrectScopeJakarta` using the @Gauge annotation should use the @ApplicationScoped annotation." +
+						" The @Gauge annotation does not support multiple instances of the underlying bean to be created.",
+				DiagnosticSeverity.Warning, MicroProfileMetricsConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileMetricsErrorCode.ApplicationScopedAnnotationMissing);
+		assertJavaDiagnostics(diagnosticsParams, utils, d);
+
+		/* String uri = javaFile.getLocation().toFile().toURI().toString(); */
+		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
+		// check for MicroProfile metrics quick fix code action associated with
+		// diagnostic warning
+		assertJavaCodeAction(codeActionParams, utils, //
+				ca(uri, "Replace current scope with @ApplicationScoped", d, //
+						te(0, 0, 16, 1, "package com.demo.rest;\n\nimport jakarta.enterprise.context.ApplicationScoped;\nimport jakarta.ws.rs.Path;\nimport org.eclipse.microprofile.metrics.MetricUnits;\nimport org.eclipse.microprofile.metrics.annotation.Gauge;\n\n@ApplicationScoped\n@Path(\"/\")\npublic class IncorrectScopeJakarta {\n\n    @Gauge(name = \"Return Int\", unit = MetricUnits.NONE, description = \"Test method for Gauge annotation\")\n    public int returnInt() {\n        return 2;\n    }\n}")),
+				ca(uri, "Generate OpenAPI Annotations for 'IncorrectScopeJakarta'", d, //
+						te(0, 0, 16, 1, "package com.demo.rest;\n\nimport jakarta.ws.rs.Path;\nimport org.eclipse.microprofile.metrics.MetricUnits;\nimport org.eclipse.microprofile.metrics.annotation.Gauge;\n\nimport jakarta.enterprise.context.RequestScoped;\nimport org.eclipse.microprofile.openapi.annotations.Operation;\n\n@RequestScoped\n@Path(\"/\")\npublic class IncorrectScopeJakarta {\n\n    @Operation(summary = \"\", description = \"\")\n    @Gauge(name = \"Return Int\", unit = MetricUnits.NONE, description = \"Test method for Gauge annotation\")\n    public int returnInt() {\n        return 2;\n    }\n}")));
 	}
 	
 }
