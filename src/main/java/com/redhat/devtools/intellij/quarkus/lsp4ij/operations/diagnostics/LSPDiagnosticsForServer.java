@@ -25,10 +25,7 @@ import com.redhat.devtools.intellij.quarkus.lsp4ij.CompletableFutures;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codeactions.LSPCodeActionIntentionAction;
-import org.eclipse.lsp4j.CodeActionContext;
-import org.eclipse.lsp4j.CodeActionParams;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.*;
 
 import java.net.URI;
 import java.util.*;
@@ -51,6 +48,8 @@ public class LSPDiagnosticsForServer {
 
     private final LanguageServerWrapper languageServerWrapper;
 
+    private final boolean codeActionSupported;
+
     private final VirtualFile file;
 
     // Map which contains all current diagnostics (as key) and future which load associated quick fixes (as value)
@@ -61,8 +60,14 @@ public class LSPDiagnosticsForServer {
 
     public LSPDiagnosticsForServer(LanguageServerWrapper languageServerWrapper, VirtualFile file) {
         this.languageServerWrapper = languageServerWrapper;
+        this.codeActionSupported = isCodeActionSupported(languageServerWrapper);
         this.file = file;
         this.diagnostics = Collections.emptyMap();
+    }
+
+    private static boolean isCodeActionSupported(LanguageServerWrapper languageServerWrapper) {
+        ServerCapabilities serverCapabilities = languageServerWrapper.getServerCapabilities();
+        return serverCapabilities != null && LSPIJUtils.hasCapability(serverCapabilities.getCodeActionProvider());
     }
 
     /**
@@ -174,7 +179,7 @@ public class LSPDiagnosticsForServer {
      * @return Intellij quickfixes for the given diagnostic if there available.
      */
     public List<IntentionAction> getQuickFixesFor(Diagnostic diagnostic) {
-        if (diagnostics.isEmpty()) {
+        if (!codeActionSupported || diagnostics.isEmpty()) {
             return Collections.emptyList();
         }
         // Get future which load QuickFix for the given diagnostic

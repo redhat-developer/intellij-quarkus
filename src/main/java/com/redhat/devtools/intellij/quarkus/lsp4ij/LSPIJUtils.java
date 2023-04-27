@@ -319,15 +319,10 @@ public class LSPIJUtils {
         ApplicationManager.getApplication().runWriteAction(() -> edits.forEach(edit -> applyEdit(editor, edit, document)));
     }
 
-    public static boolean hasCapability(Either<Boolean, ? extends Object> eitherCapability) {
-        if(eitherCapability != null) {
-            if (eitherCapability.isLeft()) {
-                return eitherCapability.getLeft();
-            } else {
-                return eitherCapability.getRight() != null;
-            }
-        } else {
+    public static boolean hasCapability(final Either<Boolean, ? extends Object> eitherCapability) {
+        if(eitherCapability == null) {
             return false;
         }
+        return eitherCapability.isRight() || (eitherCapability.isLeft() && eitherCapability.getLeft());
     }
 }
