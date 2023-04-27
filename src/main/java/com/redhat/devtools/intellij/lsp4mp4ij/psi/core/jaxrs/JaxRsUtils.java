@@ -140,7 +140,8 @@ public class JaxRsUtils {
 		CodeLens lens = new CodeLens();
 		final Range range = utils.toRange(method, r.getStartOffset(), r.getLength());
 		// Increment line number for code lens to appear on the line right after the last annotation
-		Position codeLensPosition = new Position(range.getEnd().getLine() + 1, range.getEnd().getCharacter());
+		// align with the start of the last annotation (see https://github.com/redhat-developer/intellij-quarkus/issues/795)
+		Position codeLensPosition = new Position(range.getStart().getLine() + 1, range.getStart().getCharacter());
 		range.setStart(codeLensPosition);
 		range.setEnd(codeLensPosition);
 		lens.setRange(range);
