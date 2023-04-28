@@ -114,34 +114,38 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 		params.setUris(Arrays.asList(uri));
 		params.setDocumentFormat(DocumentFormat.Markdown);
 
-		Diagnostic d1 = d(16, 19, 42,
+		Diagnostic d1 = d(10, 21, 40,
+				"The corresponding `com.demo.rest.MyService` interface does not have the @RegisterRestClient annotation. The field `NoAnnotationMissing` will not be injected as a CDI bean.",
+				DiagnosticSeverity.Warning, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE, null);
+		Diagnostic d2 = d(13, 19, 42,
 				"The Rest Client object should have the @Inject annotation to be injected as a CDI bean.",
 				DiagnosticSeverity.Warning, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileRestClientErrorCode.InjectAnnotationMissing);
-		Diagnostic d2 = d(18, 19, 55,
+		Diagnostic d3 = d(15, 19, 55,
 				"The Rest Client object should have the @Inject and @RestClient annotations to be injected as a CDI bean.",
 				DiagnosticSeverity.Warning, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileRestClientErrorCode.InjectAndRestClientAnnotationMissing);
 
 		assertJavaDiagnostics(params, utils, //
 				d1, //
-				d2);
+				d2, //
+				d3);
 
 		/* String uri = javaFile.getLocation().toFile().toURI().toString(); */
 
-		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d1);
+		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d2);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @Inject", d1, //
-						te(0, 0, 25, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.inject.Inject;\n\n@Path(\"/api/inject\")\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public Service NoAnnotationMissing;\n\n    @Inject\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n    @GET\n    public String getMy() {\n        return \"my\";\n    }\n\n}")),
-				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", d1, //
-						te(0, 0, 25, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.openapi.annotations.Operation;\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.inject.Inject;\n\n@Path(\"/api/inject\")\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public Service NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n    @Operation(summary = \"\", description = \"\")\n    @GET\n    public String getMy() {\n        return \"my\";\n    }\n\n}")));
+				ca(uri, "Insert @Inject", d2, //
+						te(0, 0, 17, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.inject.Inject;\n\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public MyService NoAnnotationMissing;\n\n    @Inject\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n}")),
+				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", d2, //
+						te(0, 0, 17, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.inject.Inject;\n\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public MyService NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n}")));
 
-		codeActionParams = createCodeActionParams(uri, d2);
+		codeActionParams = createCodeActionParams(uri, d3);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @Inject, @RestClient", d2, //
-						te(0, 0, 25, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.inject.Inject;\n\n@Path(\"/api/inject\")\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public Service NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    @RestClient\n    @Inject\n    public Service RestClientAndInjectAnnotationMissing;\n\n    @GET\n    public String getMy() {\n        return \"my\";\n    }\n\n}")),
-				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", d1, //
-						te(0, 0, 25, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.openapi.annotations.Operation;\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.inject.Inject;\n\n@Path(\"/api/inject\")\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public Service NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n    @Operation(summary = \"\", description = \"\")\n    @GET\n    public String getMy() {\n        return \"my\";\n    }\n\n}")));
+				ca(uri, "Insert @Inject, @RestClient", d3, //
+						te(0, 0, 17, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.inject.Inject;\n\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public MyService NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    @RestClient\n    @Inject\n    public Service RestClientAndInjectAnnotationMissing;\n\n}")),
+				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", d3, //
+						te(0, 0, 17, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.inject.Inject;\n\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public MyService NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n}")));
 
 	}
 
@@ -172,5 +176,34 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 				ca(uri, "Insert @RegisterRestClient", d, //
 						te(0, 0, 5, 0,
 								"package org.acme.restclient;\n\nimport org.eclipse.microprofile.rest.client.inject.RegisterRestClient;\n\n@RegisterRestClient\npublic interface MyService {\n\n}\n")));
+	}
+
+	@Test
+	public void testRestClientAnnotationMissingForInterfaceJakarta() throws Exception {
+		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/open-liberty"));
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
+		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/com/demo/rest/MyService.java");
+		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
+		params.setUris(Arrays.asList(uri));
+		params.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d = d(2, 17, 26,
+				"The interface `MyService` does not have the @RegisterRestClient annotation. The 2 fields references will not be injected as CDI beans.",
+				DiagnosticSeverity.Warning, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileRestClientErrorCode.RegisterRestClientAnnotationMissing);
+
+		assertJavaDiagnostics(params, utils, //
+				d);
+
+		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
+		assertJavaCodeAction(codeActionParams, utils, //
+				ca(uri, "Insert @RegisterRestClient", d, //
+						te(0, 0, 5, 0,
+								"package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RegisterRestClient;\n\n@RegisterRestClient\npublic interface MyService {\n\n}\n")),
+				ca(uri, "Generate OpenAPI Annotations for 'MyService'", d, //
+						te(0, 0, 5, 0,
+								"package com.demo.rest;\n\npublic interface MyService {\n\n}\n")));
 	}
 }
