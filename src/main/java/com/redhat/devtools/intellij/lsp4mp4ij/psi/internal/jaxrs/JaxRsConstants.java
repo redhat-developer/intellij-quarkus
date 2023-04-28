@@ -49,6 +49,7 @@ public class JaxRsConstants {
 	public static final String JAKARTA_WS_RS_HEAD_ANNOTATION = "jakarta.ws.rs.HEAD";
 	public static final String JAKARTA_WS_RS_OPTIONS_ANNOTATION = "jakarta.ws.rs.OPTIONS";
 	public static final String JAKARTA_WS_RS_PATCH_ANNOTATION = "jakarta.ws.rs.PATCH";
+	public static final String JAKARTA_WS_RS_RESPONSE_TYPE = "jakarta.ws.rs.core.Response";
 
 	/**
 	 * A list of the fully qualified names of all jax-rs and jakarta.ws.rs http
