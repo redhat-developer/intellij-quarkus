@@ -39,6 +39,11 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectC
     }
 
     @Override
+    public void projectClosed() {
+        LanguageServiceAccessor.getInstance(project).shutdownAllDispatchers();
+    }
+
+    @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
         Document document = FileDocumentManager.getInstance().getDocument(file);
         if (document != null) {

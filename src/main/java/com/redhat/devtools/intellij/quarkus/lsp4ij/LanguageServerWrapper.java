@@ -1,10 +1,12 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.AppTopics;
 import com.intellij.ProjectTopics;
 import com.intellij.lang.Language;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
@@ -17,58 +19,11 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.internal.SupportedFeatures;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
-import org.eclipse.lsp4j.ClientCapabilities;
-import org.eclipse.lsp4j.ClientInfo;
-import org.eclipse.lsp4j.CodeActionCapabilities;
-import org.eclipse.lsp4j.CodeActionKind;
-import org.eclipse.lsp4j.CodeActionKindCapabilities;
-import org.eclipse.lsp4j.CodeActionLiteralSupportCapabilities;
-import org.eclipse.lsp4j.CodeActionOptions;
-import org.eclipse.lsp4j.CodeActionResolveSupportCapabilities;
-import org.eclipse.lsp4j.CodeLensCapabilities;
-import org.eclipse.lsp4j.ColorProviderCapabilities;
-import org.eclipse.lsp4j.CompletionCapabilities;
-import org.eclipse.lsp4j.CompletionItemCapabilities;
-import org.eclipse.lsp4j.DefinitionCapabilities;
-import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
-import org.eclipse.lsp4j.DocumentFormattingOptions;
-import org.eclipse.lsp4j.DocumentHighlightCapabilities;
-import org.eclipse.lsp4j.DocumentLinkCapabilities;
-import org.eclipse.lsp4j.DocumentRangeFormattingOptions;
-import org.eclipse.lsp4j.DocumentSymbolCapabilities;
-import org.eclipse.lsp4j.ExecuteCommandCapabilities;
-import org.eclipse.lsp4j.ExecuteCommandOptions;
-import org.eclipse.lsp4j.FailureHandlingKind;
-import org.eclipse.lsp4j.FormattingCapabilities;
-import org.eclipse.lsp4j.HoverCapabilities;
-import org.eclipse.lsp4j.InitializeParams;
-import org.eclipse.lsp4j.InitializedParams;
-import org.eclipse.lsp4j.InlayHintCapabilities;
-import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.RangeFormattingCapabilities;
-import org.eclipse.lsp4j.ReferencesCapabilities;
-import org.eclipse.lsp4j.Registration;
-import org.eclipse.lsp4j.RegistrationParams;
-import org.eclipse.lsp4j.RenameCapabilities;
-import org.eclipse.lsp4j.ResourceOperationKind;
-import org.eclipse.lsp4j.ServerCapabilities;
-import org.eclipse.lsp4j.SignatureHelpCapabilities;
-import org.eclipse.lsp4j.SymbolCapabilities;
-import org.eclipse.lsp4j.SymbolKind;
-import org.eclipse.lsp4j.SymbolKindCapabilities;
-import org.eclipse.lsp4j.SynchronizationCapabilities;
-import org.eclipse.lsp4j.TextDocumentClientCapabilities;
-import org.eclipse.lsp4j.TextDocumentSyncKind;
-import org.eclipse.lsp4j.TextDocumentSyncOptions;
-import org.eclipse.lsp4j.TypeDefinitionCapabilities;
-import org.eclipse.lsp4j.UnregistrationParams;
-import org.eclipse.lsp4j.WorkspaceClientCapabilities;
-import org.eclipse.lsp4j.WorkspaceEditCapabilities;
-import org.eclipse.lsp4j.WorkspaceFoldersChangeEvent;
-import org.eclipse.lsp4j.WorkspaceFoldersOptions;
-import org.eclipse.lsp4j.WorkspaceServerCapabilities;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.jsonrpc.MessageConsumer;
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
@@ -85,22 +40,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 public class LanguageServerWrapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServerWrapper.class);//$NON-NLS-1$
@@ -141,17 +85,26 @@ public class LanguageServerWrapper {
     protected Map<URI, DocumentContentSynchronizer> connectedDocuments;
     @Nullable
     protected final URI initialPath;
+    protected final InitializeParams initParams = new InitializeParams();
 
     protected StreamConnectionProvider lspStreamProvider;
     private Future<?> launcherFuture;
     private CompletableFuture<Void> initializeFuture;
     private LanguageServer languageServer;
+    private LanguageClientImpl languageClient;
     private ServerCapabilities serverCapabilities;
+    private Timer timer;
+    private AtomicBoolean stopping = new AtomicBoolean(false);
+
+    private final ExecutorService dispatcher;
+
+    private final ExecutorService listener;
 
     /**
      * Map containing unregistration handlers for dynamic capability registrations.
      */
-    private @Nonnull Map<String, Runnable> dynamicRegistrations = new HashMap<>();
+    private @Nonnull
+    Map<String, Runnable> dynamicRegistrations = new HashMap<>();
     private boolean initiallySupportsWorkspaceFolders = false;
 
     /* Backwards compatible constructor */
@@ -163,7 +116,9 @@ public class LanguageServerWrapper {
         this(null, serverDefinition, initialPath);
     }
 
-    /** Unified private constructor to set sensible defaults in all cases */
+    /**
+     * Unified private constructor to set sensible defaults in all cases
+     */
     private LanguageServerWrapper(@Nullable Module project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition,
                                   @Nullable URI initialPath) {
         this.initialProject = project;
@@ -171,10 +126,54 @@ public class LanguageServerWrapper {
         this.allWatchedProjects = new HashSet<>();
         this.serverDefinition = serverDefinition;
         this.connectedDocuments = new HashMap<>();
+        String projectName = (project != null && project.getName() != null && !serverDefinition.isSingleton) ? ("@" + project.getName()) : "";  //$NON-NLS-1$//$NON-NLS-2$
+        String dispatcherThreadNameFormat = "LS-" + serverDefinition.id + projectName + "#dispatcher"; //$NON-NLS-1$ //$NON-NLS-2$
+        this.dispatcher = Executors
+                .newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(dispatcherThreadNameFormat).build());
+
+        // Executor service passed through to the LSP4j layer when we attempt to start the LS. It will be used
+        // to create a listener that sits on the input stream and processes inbound messages (responses, or server-initiated
+        // requests).
+        String listenerThreadNameFormat = "LS-" + serverDefinition.id + projectName + "#listener-%d"; //$NON-NLS-1$ //$NON-NLS-2$
+        this.listener = Executors
+                .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(listenerThreadNameFormat).build());
     }
 
     public Project getProject() {
         return initialProject.getProject();
+    }
+
+    void stopDispatcher() {
+        this.dispatcher.shutdownNow();
+
+        // Only really needed for testing - the listener (an instance of ConcurrentMessageProcessor) should exit
+        // as soon as the input stream from the LS is closed, and a cached thread pool will recycle idle
+        // threads after a 60 second timeout - or immediately in response to JVM shutdown.
+        // If we don't do this then a full test run will generate a lot of threads because we create new
+        // instances of this class for each test
+        this.listener.shutdownNow();
+    }
+
+    /**
+     * @return the workspace folder to be announced to the language server
+     */
+    private List<WorkspaceFolder> getRelevantWorkspaceFolders() {
+        final var languageClient = this.languageClient;
+        List<WorkspaceFolder> folders = null;
+        if (languageClient != null) {
+            try {
+                folders = languageClient.workspaceFolders().get(5, TimeUnit.SECONDS);
+            } catch (final ExecutionException | TimeoutException ex) {
+                LOGGER.error("Error while getting workspace folders with language server '" + serverDefinition.id + "'", ex);
+            } catch (final InterruptedException ex) {
+                LOGGER.error("Error while getting workspace folders with language server '" + serverDefinition.id + "'", ex);
+                Thread.currentThread().interrupt();
+            }
+        }
+        if (folders == null) {
+            folders = LSPIJUtils.getWorkspaceFolders();
+        }
+        return folders;
     }
 
     /**
@@ -184,173 +183,140 @@ public class LanguageServerWrapper {
      * @throws IOException
      */
     public synchronized void start() throws IOException {
-        Map<URI, Document> filesToReconnect = Collections.emptyMap();
+        final var filesToReconnect = new HashMap<URI, Document>();
         if (this.languageServer != null) {
             if (isActive()) {
                 return;
             } else {
-                filesToReconnect = new HashMap<>();
                 for (Map.Entry<URI, DocumentContentSynchronizer> entry : this.connectedDocuments.entrySet()) {
                     filesToReconnect.put(entry.getKey(), entry.getValue().getDocument());
                 }
                 stop();
             }
         }
-        try {
-            if (LoggingStreamConnectionProviderProxy.shouldLog(serverDefinition.id)) {
-                this.lspStreamProvider = new LoggingStreamConnectionProviderProxy(
-                        serverDefinition.createConnectionProvider(), serverDefinition.id);
-            } else {
-                this.lspStreamProvider = serverDefinition.createConnectionProvider();
-            }
-            this.lspStreamProvider.start();
-
-            LanguageClientImpl client = serverDefinition.createLanguageClient(initialProject.getProject());
-            ExecutorService executorService = Executors.newCachedThreadPool();
-            final InitializeParams initParams = new InitializeParams();
-            initParams.setProcessId(getCurrentProcessId());
-
-            URI rootURI = null;
-            Module project = this.initialProject;
-            if (project != null) {
-                rootURI = LSPIJUtils.toUri(this.initialProject);
-                initParams.setRootUri(rootURI.toString());
-                initParams.setRootPath(rootURI.getPath());
-            } else {
-                // This is required due to overzealous static analysis. Dereferencing
-                // this.initialPath directly will trigger a "potential null"
-                // warning/error. Checking for this.initialPath == null is not
-                // enough.
-                final URI initialPath = this.initialPath;
-                if (initialPath != null) {
-                    File projectDirectory = new File(initialPath);
-                    if (projectDirectory.isFile()) {
-                        projectDirectory = projectDirectory.getParentFile();
-                    }
-                    initParams.setRootUri(LSPIJUtils.toUri(projectDirectory).toString());
+        if (this.initializeFuture == null) {
+            final URI rootURI = getRootURI();
+            this.launcherFuture = new CompletableFuture<>();
+            this.initializeFuture = CompletableFuture.supplyAsync(() -> {
+                if (LoggingStreamConnectionProviderProxy.shouldLog(serverDefinition.id)) {
+                    this.lspStreamProvider = new LoggingStreamConnectionProviderProxy(
+                            serverDefinition.createConnectionProvider(), serverDefinition.id);
                 } else {
-                    initParams.setRootUri(LSPIJUtils.toUri(new File("/")).toString()); //$NON-NLS-1$
+                    this.lspStreamProvider = serverDefinition.createConnectionProvider();
                 }
-            }
-            Launcher<? extends LanguageServer> launcher = Launcher.createLauncher(client,
-                    serverDefinition.getServerInterface(), this.lspStreamProvider.getInputStream(),
-                    this.lspStreamProvider.getOutputStream(), executorService, consumer -> (message -> {
-                        try {
-                            consumer.consume(message);
-                            logMessage(message);
-                            URI root = initParams.getRootUri() != null ? URI.create(initParams.getRootUri()) : null;
-                            final StreamConnectionProvider currentConnectionProvider = this.lspStreamProvider;
-                            if (currentConnectionProvider != null && isActive()) {
-                                currentConnectionProvider.handleMessage(message, this.languageServer, root);
-                            }
-                        } catch (Exception e) {
-                            LOGGER.warn(e.getLocalizedMessage(), e);
-                        }
-                    }));
-
-            this.languageServer = launcher.getRemoteProxy();
-            client.connect(languageServer, this);
-            this.launcherFuture = launcher.startListening();
-
-            WorkspaceClientCapabilities workspaceClientCapabilities = new WorkspaceClientCapabilities();
-            workspaceClientCapabilities.setApplyEdit(Boolean.TRUE);
-            workspaceClientCapabilities.setExecuteCommand(new ExecuteCommandCapabilities(Boolean.TRUE));
-            workspaceClientCapabilities.setSymbol(new SymbolCapabilities(Boolean.TRUE));
-            workspaceClientCapabilities.setWorkspaceFolders(Boolean.TRUE);
-            WorkspaceEditCapabilities editCapabilities = new WorkspaceEditCapabilities();
-            editCapabilities.setDocumentChanges(Boolean.TRUE);
-            editCapabilities.setResourceOperations(Arrays.asList(ResourceOperationKind.Create,
-                    ResourceOperationKind.Delete, ResourceOperationKind.Rename));
-            editCapabilities.setFailureHandling(FailureHandlingKind.Undo);
-            workspaceClientCapabilities.setWorkspaceEdit(editCapabilities);
-
-            TextDocumentClientCapabilities textDocumentClientCapabilities = new TextDocumentClientCapabilities();
-            CodeActionCapabilities codeAction = new CodeActionCapabilities(new CodeActionLiteralSupportCapabilities(
-                    new CodeActionKindCapabilities(Arrays.asList(CodeActionKind.QuickFix, CodeActionKind.Refactor,
-                            CodeActionKind.RefactorExtract, CodeActionKind.RefactorInline,
-                            CodeActionKind.RefactorRewrite, CodeActionKind.Source,
-                            CodeActionKind.SourceOrganizeImports))),
-                    true);
-            codeAction.setDataSupport(true);
-            codeAction.setResolveSupport(new CodeActionResolveSupportCapabilities(List.of("edit"))); //$NON-NLS-1$
-            textDocumentClientCapabilities.setCodeAction(codeAction);
-
-            textDocumentClientCapabilities.setCodeLens(new CodeLensCapabilities());
-            textDocumentClientCapabilities.setInlayHint(new InlayHintCapabilities());
-            textDocumentClientCapabilities.setColorProvider(new ColorProviderCapabilities());
-            CompletionItemCapabilities completionItemCapabilities = new CompletionItemCapabilities(Boolean.TRUE);
-            completionItemCapabilities.setDocumentationFormat(Arrays.asList(MarkupKind.MARKDOWN, MarkupKind.PLAINTEXT));
-            textDocumentClientCapabilities
-                    .setCompletion(new CompletionCapabilities(completionItemCapabilities));
-            DefinitionCapabilities definitionCapabilities = new DefinitionCapabilities();
-            definitionCapabilities.setLinkSupport(Boolean.TRUE);
-            textDocumentClientCapabilities.setDefinition(definitionCapabilities);
-            TypeDefinitionCapabilities typeDefinitionCapabilities = new TypeDefinitionCapabilities();
-            typeDefinitionCapabilities.setLinkSupport(Boolean.TRUE);
-            textDocumentClientCapabilities.setTypeDefinition(typeDefinitionCapabilities);
-            textDocumentClientCapabilities.setDocumentHighlight(new DocumentHighlightCapabilities());
-            textDocumentClientCapabilities.setDocumentLink(new DocumentLinkCapabilities());
-            DocumentSymbolCapabilities documentSymbol = new DocumentSymbolCapabilities();
-            documentSymbol.setHierarchicalDocumentSymbolSupport(true);
-            documentSymbol.setSymbolKind(new SymbolKindCapabilities(Arrays.asList(SymbolKind.Array, SymbolKind.Boolean,
-                    SymbolKind.Class, SymbolKind.Constant, SymbolKind.Constructor, SymbolKind.Enum,
-                    SymbolKind.EnumMember, SymbolKind.Event, SymbolKind.Field, SymbolKind.File, SymbolKind.Function,
-                    SymbolKind.Interface, SymbolKind.Key, SymbolKind.Method, SymbolKind.Module, SymbolKind.Namespace,
-                    SymbolKind.Null, SymbolKind.Number, SymbolKind.Object, SymbolKind.Operator, SymbolKind.Package,
-                    SymbolKind.Property, SymbolKind.String, SymbolKind.Struct, SymbolKind.TypeParameter,
-                    SymbolKind.Variable)));
-            textDocumentClientCapabilities.setDocumentSymbol(documentSymbol);
-            textDocumentClientCapabilities.setFormatting(new FormattingCapabilities(Boolean.TRUE));
-            HoverCapabilities hoverCapabilities = new HoverCapabilities();
-            hoverCapabilities.setContentFormat(Arrays.asList(MarkupKind.MARKDOWN, MarkupKind.PLAINTEXT));
-            textDocumentClientCapabilities.setHover(hoverCapabilities);
-            textDocumentClientCapabilities.setOnTypeFormatting(null); // TODO
-            textDocumentClientCapabilities.setRangeFormatting(new RangeFormattingCapabilities());
-            textDocumentClientCapabilities.setReferences(new ReferencesCapabilities());
-            textDocumentClientCapabilities.setRename(new RenameCapabilities());
-            textDocumentClientCapabilities.setSignatureHelp(new SignatureHelpCapabilities());
-            textDocumentClientCapabilities
-                    .setSynchronization(new SynchronizationCapabilities(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
-            initParams.setCapabilities(
-                    new ClientCapabilities(workspaceClientCapabilities, textDocumentClientCapabilities, lspStreamProvider.getExperimentalFeaturesPOJO()));
-            initParams.setClientInfo(new ClientInfo(CLIENT_NAME));
-
-            initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
-            initParams.setTrace(this.lspStreamProvider.getTrace(rootURI));
-
-            // no then...Async future here as we want this chain of operation to be sequential and
-            // "atomic"-ish
-            initializeFuture = languageServer.initialize(initParams).thenAccept(res -> {
-                serverCapabilities = res.getCapabilities();
-                this.initiallySupportsWorkspaceFolders = supportsWorkspaceFolders(serverCapabilities);
-            });
-            initializeFuture.thenRun(() -> {
-            	// Here we call languageServer.initialized which will send to this IJ LSP client several 'client/registerCapability' 
-            	// which will call the private method registerCapability(RegistrationParams params)
-            	// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#client_registerCapability
-                this.languageServer.initialized(new InitializedParams());
-            });
-
-            final Map<URI, Document> toReconnect = filesToReconnect;
-            initializeFuture.thenRunAsync(() -> {
-                if (this.initialProject != null) {
-                    watchProject(this.initialProject, true);
+                initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
+                try {
+                    lspStreamProvider.start();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-                for (Map.Entry<URI, Document> fileToReconnect : toReconnect.entrySet()) {
-                    try {
-                        connect(fileToReconnect.getKey(), fileToReconnect.getValue());
-                    } catch (IOException e) {
-                        LOGGER.warn(e.getLocalizedMessage(), e);
+                return null;
+            }).thenRun(() -> {
+                languageClient = serverDefinition.createLanguageClient(initialProject.getProject());
+
+                initParams.setProcessId((int) ProcessHandle.current().pid());
+
+                if (rootURI != null) {
+                    initParams.setRootUri(rootURI.toString());
+                    initParams.setRootPath(rootURI.getPath());
+                }
+
+                UnaryOperator<MessageConsumer> wrapper = consumer -> (message -> {
+                    logMessage(message);
+                    consumer.consume(message);
+                    final StreamConnectionProvider currentConnectionProvider = this.lspStreamProvider;
+                    if (currentConnectionProvider != null && isActive()) {
+                        currentConnectionProvider.handleMessage(message, this.languageServer, rootURI);
                     }
-                }
-            });
-            EditorFactory.getInstance().getEventMulticaster().addDocumentListener(fileBufferListener);
-            messageBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
-            messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, fileBufferListener);
-        } catch (Exception ex) {
-            LOGGER.warn(ex.getLocalizedMessage(), ex);
-            stop();
+                });
+                // initParams.setWorkspaceFolders(getRelevantWorkspaceFolders());
+                Launcher<LanguageServer> launcher = serverDefinition.createLauncherBuilder() //
+                        .setLocalService(languageClient)//
+                        .setRemoteInterface(serverDefinition.getServerInterface())//
+                        .setInput(lspStreamProvider.getInputStream())//
+                        .setOutput(lspStreamProvider.getOutputStream())//
+                        .setExecutorService(listener)//
+                        .wrapMessages(wrapper)//
+                        .create();
+                this.languageServer = launcher.getRemoteProxy();
+                languageClient.connect(languageServer, this);
+                this.launcherFuture = launcher.startListening();
+            })
+                    .thenCompose(unused -> initServer(rootURI))
+                    .thenAccept(res -> {
+                        serverCapabilities = res.getCapabilities();
+                        this.initiallySupportsWorkspaceFolders = supportsWorkspaceFolders(serverCapabilities);
+                    }).thenRun(() -> {
+                        this.languageServer.initialized(new InitializedParams());
+                    }).thenRun(() -> {
+                        final Map<URI, Document> toReconnect = filesToReconnect;
+                        initializeFuture.thenRunAsync(() -> {
+                            if (this.initialProject != null) {
+                                watchProject(this.initialProject, true);
+                            }
+                            for (Map.Entry<URI, Document> fileToReconnect : toReconnect.entrySet()) {
+                                try {
+                                    connect(fileToReconnect.getKey(), fileToReconnect.getValue());
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+                        EditorFactory.getInstance().getEventMulticaster().addDocumentListener(fileBufferListener);
+                        messageBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
+                        messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, fileBufferListener);
+                    }).exceptionally(e -> {
+                        LOGGER.error("Error while starting language server '" + serverDefinition.id + "'", e);
+                        initializeFuture.completeExceptionally(e);
+                        stop();
+                        return null;
+                    });
         }
+    }
+
+    private CompletableFuture<InitializeResult> initServer(final URI rootURI) {
+
+        final var workspaceClientCapabilities = SupportedFeatures.getWorkspaceClientCapabilities();
+        final var textDocumentClientCapabilities = SupportedFeatures.getTextDocumentClientCapabilities();
+
+        WindowClientCapabilities windowClientCapabilities = SupportedFeatures.getWindowClientCapabilities();
+        initParams.setCapabilities(new ClientCapabilities(
+                workspaceClientCapabilities,
+                textDocumentClientCapabilities,
+                windowClientCapabilities,
+                lspStreamProvider.getExperimentalFeaturesPOJO()));
+        initParams.setClientInfo(getClientInfo());
+        initParams.setTrace(this.lspStreamProvider.getTrace(rootURI));
+
+        // no then...Async future here as we want this chain of operation to be sequential and "atomic"-ish
+        return languageServer.initialize(initParams);
+    }
+
+    private ClientInfo getClientInfo() {
+        ApplicationInfo applicationInfo = ApplicationInfo.getInstance();
+        String versionName = applicationInfo.getVersionName();
+        String buildNumber = applicationInfo.getBuild().asString();
+
+        String intellijVersion = versionName + " (build " + buildNumber + ")";
+        return new ClientInfo(CLIENT_NAME, intellijVersion);
+    }
+
+    @Nullable
+    private URI getRootURI() {
+        final Module project = this.initialProject;
+        if (project != null && !project.isDisposed()) {
+            return LSPIJUtils.toUri(project);
+        }
+
+        final URI path = this.initialPath;
+        if (path != null) {
+            File projectDirectory = new File(initialPath);
+            if (projectDirectory.isFile()) {
+                projectDirectory = projectDirectory.getParentFile();
+            }
+            return LSPIJUtils.toUri(projectDirectory);
+        }
+        return null;
     }
 
     private static boolean supportsWorkspaceFolders(ServerCapabilities serverCapabilities) {
@@ -379,6 +345,24 @@ public class LanguageServerWrapper {
         }
     }
 
+    private void removeStopTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
+    private void startStopTimer() {
+        timer = new Timer("Stop Language Server Timer"); //$NON-NLS-1$
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                stop();
+            }
+        }, TimeUnit.SECONDS.toMillis(this.serverDefinition.lastDocumentDisconnectedTimeout));
+    }
+
     /**
      * @return whether the underlying connection to language server is still active
      */
@@ -387,6 +371,11 @@ public class LanguageServerWrapper {
     }
 
     synchronized void stop() {
+        final boolean alreadyStopping = this.stopping.getAndSet(true);
+        if (alreadyStopping) {
+            return;
+        }
+        removeStopTimer();
         if (this.initializeFuture != null) {
             this.initializeFuture.cancel(true);
             this.initializeFuture = null;
@@ -398,14 +387,17 @@ public class LanguageServerWrapper {
         final Future<?> serverFuture = this.launcherFuture;
         final StreamConnectionProvider provider = this.lspStreamProvider;
         final LanguageServer languageServerInstance = this.languageServer;
+        // ResourcesPlugin.getWorkspace().removeResourceChangeListener(workspaceFolderUpdater);
 
         Runnable shutdownKillAndStopFutureAndProvider = () -> {
             if (languageServerInstance != null) {
                 CompletableFuture<Object> shutdown = languageServerInstance.shutdown();
                 try {
                     shutdown.get(5, TimeUnit.SECONDS);
-                }
-                catch (Exception e) {
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                } catch (Exception ex) {
+                    LOGGER.error("Error while shutdown the language server '" + serverDefinition.id + "'", ex);
                 }
             }
 
@@ -420,6 +412,7 @@ public class LanguageServerWrapper {
             if (provider != null) {
                 provider.stop();
             }
+            this.stopping.set(false);
         };
 
         CompletableFuture.runAsync(shutdownKillAndStopFutureAndProvider);
@@ -439,23 +432,23 @@ public class LanguageServerWrapper {
     }
 
     /**
-     *
      * @param file
      * @param document
      * @return null if not connection has happened, a future tracking the connection state otherwise
      * @throws IOException
      */
-    public @Nullable CompletableFuture<LanguageServer> connect(@Nonnull VirtualFile file, Document document) throws IOException {
+    public @Nullable
+    CompletableFuture<LanguageServer> connect(@Nonnull VirtualFile file, Document document) throws IOException {
         return connect(LSPIJUtils.toUri(file), document);
     }
 
     /**
-     *
      * @param document
      * @return null if not connection has happened, a future tracking the connection state otherwise
      * @throws IOException
      */
-    public @Nullable CompletableFuture<LanguageServer> connect(Document document) throws IOException {
+    public @Nullable
+    CompletableFuture<LanguageServer> connect(Document document) throws IOException {
         VirtualFile file = LSPIJUtils.getFile(document);
 
         if (file != null && file.exists()) {
@@ -516,6 +509,28 @@ public class LanguageServerWrapper {
         }
     }
 
+/*    private void watchProjects() {
+        if (!supportsWorkspaceFolderCapability()) {
+            return;
+        }
+        final LanguageServer currentLS = this.languageServer;
+        /*new WorkspaceJob("Setting watch projects on server " + serverDefinition.label) { //$NON-NLS-1$
+            @Override
+            public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+                WorkspaceFoldersChangeEvent wsFolderEvent = new WorkspaceFoldersChangeEvent();
+                wsFolderEvent.getAdded().addAll(getRelevantWorkspaceFolders());
+                if (currentLS != null && currentLS == LanguageServerWrapper.this.languageServer) {
+                    currentLS.getWorkspaceService()
+                            .didChangeWorkspaceFolders(new DidChangeWorkspaceFoldersParams(wsFolderEvent));
+                }
+                ResourcesPlugin.getWorkspace().addResourceChangeListener(workspaceFolderUpdater,
+                        IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE);
+                return Status.OK_STATUS;
+            }
+        }.schedule();*/
+    /*    }
+     */
+
     /**
      * Check whether this LS is suitable for provided project. Starts the LS if not
      * already started.
@@ -533,7 +548,7 @@ public class LanguageServerWrapper {
 
     /**
      * @return true, if the server supports multi-root workspaces via workspace
-     *         folders
+     * folders
      * @since 0.6
      */
     private boolean supportsWorkspaceFolderCapability() {
@@ -557,6 +572,7 @@ public class LanguageServerWrapper {
      * @noreference internal so far
      */
     private CompletableFuture<LanguageServer> connect(@Nonnull URI absolutePath, Document document) throws IOException {
+        removeStopTimer();
         final URI thePath = absolutePath; // should be useless
 
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
@@ -608,7 +624,10 @@ public class LanguageServerWrapper {
             documentListener.getDocument().removeDocumentListener(documentListener);
             documentListener.documentClosed();
         }
-        if (this.connectedDocuments.isEmpty()) {
+        if (this.serverDefinition.lastDocumentDisconnectedTimeout != 0) {
+            removeStopTimer();
+            startStopTimer();
+        } else {
             stop();
         }
     }
@@ -619,9 +638,9 @@ public class LanguageServerWrapper {
             VirtualFile foundFiles = LSPIJUtils.findResourceFor(path);
             if (foundFiles != null) {
                 Language fileLanguage = LSPIJUtils.getFileLanguage(foundFiles, initialProject.getProject());
-                    if (fileLanguage.isKindOf(language)) {
-                        pathsToDisconnect.add(path);
-                    }
+                if (fileLanguage.isKindOf(language)) {
+                    pathsToDisconnect.add(path);
+                }
             }
         }
         for (URI path : pathsToDisconnect) {
@@ -688,10 +707,22 @@ public class LanguageServerWrapper {
     }
 
     /**
+     * Sends a notification to the wrapped language server
+     *
+     * @param fn LS notification to send
+     */
+    public void sendNotification(@Nonnull Consumer<LanguageServer> fn) {
+        // Enqueues a notification on the dispatch thread associated with the wrapped language server. This
+        // ensures the interleaving of document updates and other requests in the UI is mirrored in the
+        // order in which they get dispatched to the server
+        getInitializedServer().thenAcceptAsync(fn, this.dispatcher);
+    }
+
+    /**
      * Warning: this is a long running operation
      *
      * @return the server capabilities, or null if initialization job didn't
-     *         complete
+     * complete
      */
     @Nullable
     public ServerCapabilities getServerCapabilities() {
@@ -713,7 +744,7 @@ public class LanguageServerWrapper {
 
     /**
      * @return The language ID that this wrapper is dealing with if defined in the
-     *         content type mapping for the language server
+     * content type mapping for the language server
      */
     @Nullable
     public String getLanguageId(Language language) {
@@ -753,22 +784,22 @@ public class LanguageServerWrapper {
                         registerCommands(newCommands);
                     }
                 } else if ("textDocument/formatting".equals(reg.getMethod())) { //$NON-NLS-1$
-                    final Either<Boolean, DocumentFormattingOptions> documentFormattingProvider  = serverCapabilities.getDocumentFormattingProvider();
+                    final Either<Boolean, DocumentFormattingOptions> documentFormattingProvider = serverCapabilities.getDocumentFormattingProvider();
                     if (documentFormattingProvider == null || documentFormattingProvider.isLeft()) {
                         serverCapabilities.setDocumentFormattingProvider(Boolean.TRUE);
-                        addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider ));
+                        addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider));
                     } else {
                         serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider.getRight());
-                        addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider ));
+                        addRegistration(reg, () -> serverCapabilities.setDocumentFormattingProvider(documentFormattingProvider));
                     }
                 } else if ("textDocument/rangeFormatting".equals(reg.getMethod())) { //$NON-NLS-1$
-                    final Either<Boolean, DocumentRangeFormattingOptions> documentRangeFormattingProvider  = serverCapabilities.getDocumentRangeFormattingProvider();
+                    final Either<Boolean, DocumentRangeFormattingOptions> documentRangeFormattingProvider = serverCapabilities.getDocumentRangeFormattingProvider();
                     if (documentRangeFormattingProvider == null || documentRangeFormattingProvider.isLeft()) {
                         serverCapabilities.setDocumentRangeFormattingProvider(Boolean.TRUE);
-                        addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
+                        addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider));
                     } else {
                         serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider.getRight());
-                        addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider ));
+                        addRegistration(reg, () -> serverCapabilities.setDocumentRangeFormattingProvider(documentRangeFormattingProvider));
                     }
                 } else if ("textDocument/codeAction".equals(reg.getMethod())) { //$NON-NLS-1$
                     final Either<Boolean, CodeActionOptions> beforeRegistration = serverCapabilities.getCodeActionProvider();
@@ -782,7 +813,7 @@ public class LanguageServerWrapper {
     private void addRegistration(@Nonnull Registration reg, @Nonnull Runnable unregistrationHandler) {
         String regId = reg.getId();
         synchronized (dynamicRegistrations) {
-            assert !dynamicRegistrations.containsKey(regId):"Registration id is not unique"; //$NON-NLS-1$
+            assert !dynamicRegistrations.containsKey(regId) : "Registration id is not unique"; //$NON-NLS-1$
             dynamicRegistrations.put(regId, unregistrationHandler);
         }
     }
@@ -814,7 +845,7 @@ public class LanguageServerWrapper {
             }
             List<String> existingCommands = commandProvider.getCommands();
             for (String newCmd : newCommands) {
-                assert !existingCommands.contains(newCmd):"Command already registered '" + newCmd + "'"; //$NON-NLS-1$ //$NON-NLS-2$
+                assert !existingCommands.contains(newCmd) : "Command already registered '" + newCmd + "'"; //$NON-NLS-1$ //$NON-NLS-2$
                 existingCommands.add(newCmd);
             }
         } else {

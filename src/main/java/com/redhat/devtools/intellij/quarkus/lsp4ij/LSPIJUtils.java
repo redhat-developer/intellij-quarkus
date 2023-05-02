@@ -65,7 +65,7 @@ public class LSPIJUtils {
         param.setPosition(start);
         TextDocumentIdentifier id = new TextDocumentIdentifier();
         if (uri != null) {
-            id.setUri(uri.toString());
+            id.setUri(uri.toASCIIString());
         }
         param.setTextDocument(id);
         return param;
@@ -324,5 +324,9 @@ public class LSPIJUtils {
             return false;
         }
         return eitherCapability.isRight() || (eitherCapability.isLeft() && eitherCapability.getLeft());
+    }
+
+    public static List<WorkspaceFolder> getWorkspaceFolders() {
+        return null;
     }
 }

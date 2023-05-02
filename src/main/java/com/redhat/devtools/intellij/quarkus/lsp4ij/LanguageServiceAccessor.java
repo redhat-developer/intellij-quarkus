@@ -62,6 +62,9 @@ public class LanguageServiceAccessor {
         }
     }
 
+    void shutdownAllDispatchers() {
+        startedServers.forEach(LanguageServerWrapper::stopDispatcher);
+    }
 
     /**
      * A bean storing association of a Document/File with a language server.

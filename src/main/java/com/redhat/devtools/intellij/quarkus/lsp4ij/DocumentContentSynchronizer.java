@@ -113,8 +113,7 @@ public class DocumentContentSynchronizer implements DocumentListener {
         DidChangeTextDocumentParams changeParamsToSend = new DidChangeTextDocumentParams(new VersionedTextDocumentIdentifier(), events);
         changeParamsToSend.getTextDocument().setUri(fileUri.toString());
         changeParamsToSend.getTextDocument().setVersion(++version);
-        languageServerWrapper.getInitializedServer()
-                .thenAcceptAsync(ls -> ls.getTextDocumentService().didChange(changeParamsToSend));
+        languageServerWrapper.sendNotification(ls -> ls.getTextDocumentService().didChange(changeParamsToSend));
     }
 
     @Override
@@ -171,18 +170,21 @@ public class DocumentContentSynchronizer implements DocumentListener {
                 return;
             }
         }
-        TextDocumentIdentifier identifier = new TextDocumentIdentifier(fileUri.toString());
+        final var identifier = LSPIJUtils.toTextDocumentIdentifier(fileUri);
         DidSaveTextDocumentParams params = new DidSaveTextDocumentParams(identifier, document.getText());
-        languageServerWrapper.getInitializedServer().thenAcceptAsync(ls -> ls.getTextDocumentService().didSave(params));
+        languageServerWrapper.sendNotification(ls -> ls.getTextDocumentService().didSave(params));
     }
 
     public void documentClosed() {
-        // When LS is shut down all documents are being disconnected. No need to send "didClose" message to the LS that is being shut down or not yet started
+        final var identifier = LSPIJUtils.toTextDocumentIdentifier(fileUri);
+        // WILL_SAVE_WAIT_UNTIL_TIMEOUT_MAP.remove(identifier.getUri());
+        // When LS is shut down all documents are being disconnected. No need to send
+        // "didClose" message to the LS that is being shut down or not yet started
         if (languageServerWrapper.isActive()) {
-            TextDocumentIdentifier identifier = new TextDocumentIdentifier(fileUri.toString());
-            DidCloseTextDocumentParams params = new DidCloseTextDocumentParams(identifier);
-            languageServerWrapper.getInitializedServer().thenAcceptAsync(ls -> ls.getTextDocumentService().didClose(params));
+            final var params = new DidCloseTextDocumentParams(identifier);
+            languageServerWrapper.sendNotification(ls -> ls.getTextDocumentService().didClose(params));
         }
+        //return CompletableFuture.completedFuture(null);
     }
 
     /**

@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
@@ -25,15 +26,20 @@ public class LanguageServersRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServersRegistry.class);
 
     public abstract static class LanguageServerDefinition {
+
+        private static final int DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT = 5;
+
         public final @Nonnull String id;
         public final @Nonnull String label;
         public final boolean isSingleton;
+        public final int lastDocumentDisconnectedTimeout;
         public final @Nonnull Map<Language, String> languageIdMappings;
 
-        public LanguageServerDefinition(@Nonnull String id, @Nonnull String label, boolean isSingleton) {
+        public LanguageServerDefinition(@Nonnull String id, @Nonnull String label, boolean isSingleton, Integer lastDocumentDisconnectedTimeout) {
             this.id = id;
             this.label = label;
             this.isSingleton = isSingleton;
+            this.lastDocumentDisconnectedTimeout = lastDocumentDisconnectedTimeout != null ? lastDocumentDisconnectedTimeout : DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT;
             this.languageIdMappings = new ConcurrentHashMap<>();
         }
 
@@ -51,13 +57,17 @@ public class LanguageServersRegistry {
             return LanguageServer.class;
         }
 
+        public <S extends LanguageServer> Launcher.Builder<S> createLauncherBuilder() {
+            return new Launcher.Builder<>();
+        }
+
     }
 
     static class ExtensionLanguageServerDefinition extends LanguageServerDefinition {
         private ServerExtensionPointBean extension;
 
         public ExtensionLanguageServerDefinition(ServerExtensionPointBean element) {
-            super(element.id, element.label, element.singleton);
+            super(element.id, element.label, element.singleton, element.lastDocumentDisconnectedTimeout);
             this.extension = element;
         }
 
