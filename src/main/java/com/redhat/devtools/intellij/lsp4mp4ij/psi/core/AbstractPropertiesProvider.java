@@ -159,33 +159,31 @@ public abstract class AbstractPropertiesProvider implements IPropertiesProvider 
 	 * @return the hint name.
 	 */
 	protected String updateHint(IPropertiesCollector collector, PsiClass type) {
-		if (type == null) {
+		if (type == null
+				|| !type.isEnum()) {
 			return null;
 		}
-		if (type.isEnum()) {
-			// Register Enumeration in "hints" section
-			//String hint = ClassUtil.getJVMClassName(type);
-			String hint = type.getQualifiedName();
-			if (!collector.hasItemHint(hint)) {
-				ItemHint itemHint = collector.getItemHint(hint);
-				itemHint.setSourceType(hint);
-				if (type instanceof PsiClassImpl) {
-					itemHint.setSource(Boolean.TRUE);
-				}
-				PsiElement[] children = type.getChildren();
-				for (PsiElement c : children) {
-					if (c instanceof PsiEnumConstant) {
-						String enumName = ((PsiEnumConstant) c).getName();
-						// TODO: extract Javadoc
-						String description = null;
-						ValueHint value = new ValueHint();
-						value.setValue(enumName);
-						itemHint.getValues().add(value);
-					}
+		// Register Enumeration in "hints" section
+		// String hint = ClassUtil.getJVMClassName(type);
+		String hint = type.getQualifiedName();
+		if (!collector.hasItemHint(hint)) {
+			ItemHint itemHint = collector.getItemHint(hint);
+			itemHint.setSourceType(hint);
+			if (type instanceof PsiClassImpl) {
+				itemHint.setSource(Boolean.TRUE);
+			}
+			PsiElement[] children = type.getChildren();
+			for (PsiElement c : children) {
+				if (c instanceof PsiEnumConstant) {
+					String enumName = ((PsiEnumConstant) c).getName();
+					// TODO: extract Javadoc
+					String description = null;
+					ValueHint value = new ValueHint();
+					value.setValue(enumName);
+					itemHint.getValues().add(value);
 				}
 			}
-			return hint;
 		}
-		return null;
+		return hint;
 	}
 }
