@@ -4,14 +4,49 @@
     <extensionPoint name="languageMapping" beanClass="com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageMappingExtensionPointBean"/>
   </extensionPoints>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationConfigurable groupId="language"
+                           id="LanguageServers"
+                           provider="com.redhat.devtools.intellij.quarkus.lsp4ij.settings.LanguageServerListConfigurableProvider"/>
+    <applicationService id="com.redhat.devtools.intellij.quarkus.lsp4ij.settings.LanguageServerSettingsState"
+                        serviceImplementation="com.redhat.devtools.intellij.quarkus.lsp4ij.settings.LanguageServerSettingsState"/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <!-- Quarkus LSP -->
-    <server id="quarkus" class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer" clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient" serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"/>
+    <server id="quarkus"
+            label="Tools for MicroProfile"
+            class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer"
+            clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient"
+            serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI">
+      <description><![CDATA[
+        The <a href="https://github.com/eclipse/lsp4mp">MicroProfile language server</a> provides <a href="https://microprofile.io/">MicroProfile</a> support in:
+        <ul>
+          <li><b>Java</b> files.</li>
+          <li>and <b>microprofile-config.properties</b> files.</li>
+        </ul>
+        This language server is extended with <a href="https://github.com/redhat-developer/quarkus-ls" >Quakus extension</a> to provide <a href="https://quarkus.io/">Quarkus</a> support in <b>application.properties</b> file.
+        ]]>
+      </description>
+    </server>
     <languageMapping language="Properties" serverId="quarkus"/>
     <languageMapping language="JAVA" serverId="quarkus"/>
 
     <!-- Qute LSP -->
-    <server id="qute" class="com.redhat.devtools.intellij.qute.lsp.QuteServer" clientImpl="com.redhat.devtools.intellij.qute.lsp.QuteLanguageClient" serverInterface="com.redhat.qute.ls.api.QuteLanguageServerAPI"/>
+    <server id="qute"
+            label="Qute support"
+            class="com.redhat.devtools.intellij.qute.lsp.QuteServer"
+            clientImpl="com.redhat.devtools.intellij.qute.lsp.QuteLanguageClient"
+            serverInterface="com.redhat.qute.ls.api.QuteLanguageServerAPI">
+      <description><![CDATA[
+        The <a href="https://github.com/redhat-developer/quarkus-ls">Qute language server</a> provides <a href="https://quarkus.io/guides/qute-reference">Qute</a> support in:
+        <ul>
+          <li><b>Java</b> files.</li>
+          <li>and <b>*.html,*.txt,*.yml,*.json</b> Qute template files.</li>
+        </ul>
+        ]]>
+      </description>
+    </server>
     <languageMapping language="Qute_" serverId="qute"/>
     <languageMapping language="JAVA" serverId="qute"/>
   </extensions>

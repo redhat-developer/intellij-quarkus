@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
+ ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
 import com.intellij.lang.Language;
@@ -21,6 +31,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Language server registry.
+ *
+ */
 public class LanguageServersRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServersRegistry.class);
 
@@ -29,16 +43,23 @@ public class LanguageServersRegistry {
         public final @Nonnull String label;
         public final boolean isSingleton;
         public final @Nonnull Map<Language, String> languageIdMappings;
+        public String description;
 
-        public LanguageServerDefinition(@Nonnull String id, @Nonnull String label, boolean isSingleton) {
+        public LanguageServerDefinition(@Nonnull String id, @Nonnull String label, String description, boolean isSingleton) {
             this.id = id;
             this.label = label;
+            this.description = description;
             this.isSingleton = isSingleton;
             this.languageIdMappings = new ConcurrentHashMap<>();
         }
 
         public void registerAssociation(@Nonnull Language language, @Nonnull String languageId) {
             this.languageIdMappings.put(language, languageId);
+        }
+
+        @Nonnull
+        public String getDisplayName() {
+            return label != null ? label : id;
         }
 
         public abstract StreamConnectionProvider createConnectionProvider();
@@ -57,7 +78,7 @@ public class LanguageServersRegistry {
         private ServerExtensionPointBean extension;
 
         public ExtensionLanguageServerDefinition(ServerExtensionPointBean element) {
-            super(element.id, element.label, element.singleton);
+            super(element.id, element.label, element.description, element.singleton);
             this.extension = element;
         }
 
@@ -224,6 +245,12 @@ public class LanguageServersRegistry {
         return res;
     }
 
+    public Set<LanguageServerDefinition> getAllDefinitions() {
+        return connections
+                .stream()
+                .map(definition -> definition.getValue())
+                .collect(Collectors.toSet());
+    }
 
 
 
