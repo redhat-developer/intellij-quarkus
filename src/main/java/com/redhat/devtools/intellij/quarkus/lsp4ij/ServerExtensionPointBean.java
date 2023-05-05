@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.serviceContainer.BaseKeyedLazyInstance;
 import com.intellij.util.xmlb.annotations.Attribute;
+import com.intellij.util.xmlb.annotations.Tag;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,6 +16,9 @@ public class ServerExtensionPointBean extends BaseKeyedLazyInstance<StreamConnec
 
     @Attribute("label")
     public String label;
+
+    @Tag("description")
+    public String description;
 
     @Attribute("class")
     public String clazz;

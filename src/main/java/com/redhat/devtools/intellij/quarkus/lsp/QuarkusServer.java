@@ -14,7 +14,7 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.server.JavaProcessStreamConnectionProvider;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.ProcessStreamConnectionProvider;
 
 import java.io.File;
@@ -27,21 +27,17 @@ import java.util.Map;
 /**
  * Start the MicroProfile language server process with the Quarkus extension.
  */
-public class QuarkusServer extends JavaProcessStreamConnectionProvider {
-
-    private static final String QUARKUS_DEBUG_PORT = "quarkus.debug.port";
+public class QuarkusServer extends ProcessStreamConnectionProvider {
 
     public QuarkusServer() {
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
         File lsp4mpServerPath = new File(descriptor.getPath(), "lib/server/org.eclipse.lsp4mp.ls-uber.jar");
         File quarkusServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls.jar");
-        String debugPort =  System.getProperty(QUARKUS_DEBUG_PORT);
 
-        List<String> commands = createJavaCommands(debugPort);
-        commands.add("-jar");
-        commands.add(lsp4mpServerPath.getAbsolutePath());
-        commands.add("-cp");
-        commands.add(quarkusServerPath.getAbsolutePath());
+        List<String> commands = new JavaProcessCommandBuilder("quarkus")
+                .setJar(lsp4mpServerPath.getAbsolutePath())
+                .setCp(quarkusServerPath.getAbsolutePath())
+                .create();
         commands.add("-DrunAsync=true");
         super.setCommands(commands);
 
