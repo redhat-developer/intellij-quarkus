@@ -70,13 +70,15 @@ configurations {
 
 sourceSets {
     main  {
-        if (Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) >= 2021) {
+        if (ideaVersion == "LATEST-EAP-SNAPSHOT"
+            || Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) >= 2021) {
             java.srcDirs += 'src/main/java-post2021'
         } else {
             java.srcDirs += 'src/main/java-pre2021'
         }
-        if (Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) > 2022 ||
-                (Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) == 2022 &&
+        if (ideaVersion == "LATEST-EAP-SNAPSHOT"
+            || Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) > 2022
+            ||    (Integer.parseInt(ideaVersion.substring(3).substring(0, 4)) == 2022 &&
                         Integer.parseInt(ideaVersion.substring(8).substring(0, 1)) >= 2)) {
             java.srcDirs += 'src/main/java-post2022.2'
         } else {
