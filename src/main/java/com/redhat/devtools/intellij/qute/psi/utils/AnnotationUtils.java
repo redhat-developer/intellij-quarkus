@@ -76,6 +76,9 @@ public class AnnotationUtils {
 	 *         false otherwise.
 	 */
 	public static boolean isMatchAnnotation(PsiAnnotation annotation, String annotationName) {
+		if(annotation == null || annotation.getQualifiedName() == null){
+			return false;
+		}
 		// Annotation name is the fully qualified name of the annotation class (ex :
 		// org.eclipse.microprofile.config.inject.ConfigProperties)
 		// - when IAnnotation comes from binary, IAnnotation#getElementName() =
