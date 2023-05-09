@@ -62,7 +62,7 @@ public class LSPIJUtils {
         param.setPosition(start);
         TextDocumentIdentifier id = new TextDocumentIdentifier();
         if (uri != null) {
-            id.setUri(uri.toString());
+            id.setUri(uri.toASCIIString());
         }
         param.setTextDocument(id);
         return param;

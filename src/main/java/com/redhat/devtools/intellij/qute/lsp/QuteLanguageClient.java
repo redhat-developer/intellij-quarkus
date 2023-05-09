@@ -69,6 +69,11 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
     QuarkusProjectService.getInstance(project);
   }
 
+  @Override
+  public void dispose() {
+    connection.disconnect();
+  }
+
   private void sendPropertiesChangeEvent(Set<String> uris) {
     QuteLanguageServerAPI server = (QuteLanguageServerAPI) getLanguageServer();
     if (server != null) {

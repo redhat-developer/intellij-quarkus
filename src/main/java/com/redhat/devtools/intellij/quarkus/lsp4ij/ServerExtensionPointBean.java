@@ -34,6 +34,9 @@ public class ServerExtensionPointBean extends BaseKeyedLazyInstance<StreamConnec
     @Attribute("singleton")
     public boolean singleton;
 
+    @Attribute("lastDocumentDisconnectedTimeout")
+    public Integer lastDocumentDisconnectedTimeout;
+
     public Class getClientImpl() throws ClassNotFoundException {
         if (clientClass == null) {
             clientClass = getPluginDescriptor().getPluginClassLoader().loadClass(clientImpl);

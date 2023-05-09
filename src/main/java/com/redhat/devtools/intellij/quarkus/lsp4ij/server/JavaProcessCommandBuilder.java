@@ -10,7 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp4ij.server;
 
-import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.LanguageServerSettingsState;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.UserDefinedLanguageServerSettings;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -39,7 +39,7 @@ public class JavaProcessCommandBuilder {
     public JavaProcessCommandBuilder(String languageId) {
         this.languageId = languageId;
         setJavaPath(computeJavaPath());
-        LanguageServerSettingsState.LanguageServerDefinitionSettings settings = LanguageServerSettingsState.getInstance().getLanguageServerSettings(languageId);
+        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance().getLanguageServerSettings(languageId);
         if (settings != null) {
             setDebugPort(settings.getDebugPort());
             setDebugSuspend(settings.isDebugSuspend());

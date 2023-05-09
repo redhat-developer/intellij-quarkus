@@ -62,12 +62,17 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
             @Override
             public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
                 try {
+                    Project project = psiElement.getProject();
+                    if (project.isDisposed()) {
+                        // The project has been closed, don't collect code lenses.
+                        return false;
+                    }
                     URI docURI = LSPIJUtils.toUri(editor.getDocument());
                     if (docURI != null) {
                         CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
                         BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
                         List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
-                        CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(psiElement.getProject())
+                        CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(project)
                                 .getLanguageServers(editor.getDocument(), capabilities -> capabilities.getCodeLensProvider() != null)
                                 .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
                                         .map(languageServer -> languageServer.getTextDocumentService().codeLens(param)

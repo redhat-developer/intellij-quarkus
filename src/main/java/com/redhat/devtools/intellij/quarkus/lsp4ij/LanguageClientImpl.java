@@ -100,4 +100,7 @@ public class LanguageClientImpl implements LanguageClient {
         return CompletableFuture.completedFuture(res);
     }
 
+    public void dispose() {
+
+    }
 }
