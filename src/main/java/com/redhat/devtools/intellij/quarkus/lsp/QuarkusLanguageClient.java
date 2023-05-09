@@ -71,6 +71,11 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
     QuarkusProjectService.getInstance(project);
   }
 
+  @Override
+  public void dispose() {
+    connection.disconnect();
+  }
+
   private void sendPropertiesChangeEvent(List<MicroProfilePropertiesScope> scope, Set<String> uris) {
     MicroProfileLanguageServerAPI server = (MicroProfileLanguageServerAPI) getLanguageServer();
     if (server != null) {

@@ -70,31 +70,38 @@ public class LanguageServerConfigurable extends NamedConfigurable<LanguageServer
 
     @Override
     public boolean isModified() {
-        LanguageServerSettingsState.LanguageServerDefinitionSettings settings = LanguageServerSettingsState.getInstance()
+        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance()
                 .getLanguageServerSettings(languageServerDefinition.id);
         if (settings == null) {
             return true;
         }
         return !(myView.getDebugPort().equals(settings.getDebugPort())
-                && myView.isDebugSuspend() == settings.isDebugSuspend());
+                && myView.isDebugSuspend() == settings.isDebugSuspend()
+                && myView.getServerTrace() == settings.getServerTrace());
     }
 
     @Override
     public void apply() throws ConfigurationException {
-        LanguageServerSettingsState.LanguageServerDefinitionSettings settings = new LanguageServerSettingsState.LanguageServerDefinitionSettings();
+        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = new UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings();
         settings.setDebugPort(myView.getDebugPort());
         settings.setDebugSuspend(myView.isDebugSuspend());
-        LanguageServerSettingsState.getInstance().setLanguageServerSettings(languageServerDefinition.id, settings);
+        settings.setServerTrace(myView.getServerTrace());
+        UserDefinedLanguageServerSettings.getInstance().setLanguageServerSettings(languageServerDefinition.id, settings);
     }
 
     @Override
     public void reset() {
-        LanguageServerSettingsState.LanguageServerDefinitionSettings settings = LanguageServerSettingsState.getInstance()
+        ServerTrace serverTrace = ServerTrace.off;
+        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance()
                 .getLanguageServerSettings(languageServerDefinition.id);
         if (settings != null) {
             myView.setDebugPort(settings.getDebugPort());
             myView.setDebugSuspend(settings.isDebugSuspend());
+            if (settings.getServerTrace() != null) {
+                serverTrace = settings.getServerTrace();
+            }
         }
+        myView.setServerTrace(serverTrace);
     }
 
     @Override

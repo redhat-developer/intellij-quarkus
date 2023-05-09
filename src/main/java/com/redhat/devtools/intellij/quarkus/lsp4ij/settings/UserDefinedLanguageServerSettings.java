@@ -17,50 +17,52 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.util.xmlb.annotations.Tag;
+import com.intellij.util.xmlb.annotations.XCollection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * Settings for a given Language server definition
+ * User defined language server settings for a given Language server definition
  *
  * <ul>
  *     <li>Debug port</li>
  *     <li>Suspend and wait for a debugger</li>
+ *     <li>Trace LSP requests/responses/notifications</li>
  * </ul>
  */
 @State(
-        name = "com.redhat.devtools.intellij.lsp4ij.settings.LanguageServerSettingsState",
+        name = "LanguageServerSettingsState",
         storages = {@Storage("LanguageServersSettings.xml")}
 )
-public class LanguageServerSettingsState implements PersistentStateComponent<LanguageServerSettingsState> {
+public class UserDefinedLanguageServerSettings implements PersistentStateComponent<UserDefinedLanguageServerSettings.MyState> {
 
-    private Map<String, LanguageServerDefinitionSettings> languageServers = new HashMap<>();
+    public volatile MyState myState = new MyState();
 
-    public static LanguageServerSettingsState getInstance() {
-        return ServiceManager.getService(LanguageServerSettingsState.class);
+    public static UserDefinedLanguageServerSettings getInstance() {
+        return ServiceManager.getService(UserDefinedLanguageServerSettings.class);
     }
 
     @Nullable
     @Override
-    public LanguageServerSettingsState getState() {
-        return this;
+    public MyState getState() {
+        return myState;
     }
 
     @Override
-    public void loadState(@NotNull LanguageServerSettingsState state) {
-        XmlSerializerUtil.copyBean(state, this);
+    public void loadState(@NotNull MyState state) {
+        myState = state;
     }
 
     public LanguageServerDefinitionSettings getLanguageServerSettings(String languageSeverId) {
-        return languageServers.get(languageSeverId);
+        return myState.myState.get(languageSeverId);
     }
 
     public void setLanguageServerSettings(String languageSeverId, LanguageServerDefinitionSettings settings) {
-        languageServers.put(languageSeverId, settings);
+        myState.myState.put(languageSeverId, settings);
     }
 
     public static class LanguageServerDefinitionSettings {
@@ -68,6 +70,8 @@ public class LanguageServerSettingsState implements PersistentStateComponent<Lan
         private String debugPort;
 
         private boolean debugSuspend;
+
+        private ServerTrace serverTrace;
 
         public String getDebugPort() {
             return debugPort;
@@ -84,7 +88,24 @@ public class LanguageServerSettingsState implements PersistentStateComponent<Lan
         public void setDebugSuspend(boolean debugSuspend) {
             this.debugSuspend = debugSuspend;
         }
+
+        public ServerTrace getServerTrace() {
+            return serverTrace;
+        }
+
+        public void setServerTrace(ServerTrace serverTrace) {
+            this.serverTrace = serverTrace;
+        }
     }
 
+    static class MyState {
+        @Tag("state")
+        @XCollection
+        public Map<String, LanguageServerDefinitionSettings> myState = new TreeMap<>();
+
+        MyState() {
+        }
+
+    }
 
 }

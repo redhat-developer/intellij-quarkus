@@ -66,7 +66,7 @@ public class LSPDiagnosticsForServer {
     }
 
     private static boolean isCodeActionSupported(LanguageServerWrapper languageServerWrapper) {
-        if (!languageServerWrapper.isActive()) {
+        if (!languageServerWrapper.isActive() || languageServerWrapper.isStopping()) {
             // This use-case comes from when a diagnostics is published and the language server is stopped
             // We cannot use here languageServerWrapper.getServerCapabilities() otherwise it will restart the language server.
             return false;

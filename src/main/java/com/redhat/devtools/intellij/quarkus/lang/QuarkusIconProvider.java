@@ -18,10 +18,13 @@ import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.Icon;
+import javax.swing.*;
 
+/**
+ * Quarkus icon provider.
+ */
 public class QuarkusIconProvider extends IconProvider {
-    private static final Icon QUARKUS_ICON = IconLoader.findIcon("/quarkus_icon_rgb_16px_default.png", QuarkusIconProvider.class);
+    public static final Icon QUARKUS_ICON = IconLoader.findIcon("/quarkus_icon_rgb_16px_default.png", QuarkusIconProvider.class);
 
     @Nullable
     @Override

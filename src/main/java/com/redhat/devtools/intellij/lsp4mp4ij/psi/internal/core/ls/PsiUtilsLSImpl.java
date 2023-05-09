@@ -83,7 +83,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public Module getModule(VirtualFile file) {
-        if (file != null) {
+        if (file != null && !project.isDisposed()) {
             return ProjectFileIndex.getInstance(project).getModuleForFile(file, false);
         }
         return null;
@@ -92,7 +92,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     @Override
     public Module getModule(String uri) throws IOException {
         VirtualFile file = findFile(uri);
-        return file!=null?getModule(file):null;
+        return file != null ? getModule(file) : null;
     }
 
     @Override
@@ -171,7 +171,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     @Override
     public int toOffset(PsiFile file, int line, int character) {
         Document document = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
-        return document!=null?toOffset(document, line, character):0;
+        return document != null ? toOffset(document, line, character) : 0;
     }
 
     @Override
@@ -179,7 +179,11 @@ public class PsiUtilsLSImpl implements IPsiUtils {
         try {
             VirtualFile file = findFile(uri);
             if (file != null) {
-                return PsiManager.getInstance(getModule(file).getProject()).findFile(file);
+                Module module = getModule(file);
+                if (module == null) {
+                    return null;
+                }
+                return PsiManager.getInstance(module.getProject()).findFile(file);
             }
         } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage(), e);
@@ -202,7 +206,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     }
 
     public static String getProjectURI(Module module) {
-        return module != null?module.getModuleFilePath():null;
+        return module != null ? module.getModuleFilePath() : null;
     }
 
     @Override
