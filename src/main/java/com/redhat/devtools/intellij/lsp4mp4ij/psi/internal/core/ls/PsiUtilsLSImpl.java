@@ -20,6 +20,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
@@ -129,7 +130,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     @Override
     public VirtualFile findFile(String uri) throws IOException {
         //return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(Paths.get(new URI(uri)).toFile());
-        return VfsUtil.findFileByURL(new URL(uri));
+        return VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.fixURLforIDEA(uri));
     }
 
     @Override
