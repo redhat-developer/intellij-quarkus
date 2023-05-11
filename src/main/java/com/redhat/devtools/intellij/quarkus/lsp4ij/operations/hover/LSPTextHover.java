@@ -263,7 +263,7 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
 
     @Override
     public boolean handleExternalLink(PsiManager psiManager, String link, PsiElement context) {
-        VirtualFile file = getFile(link);
+        VirtualFile file = LSPIJUtils.findResourceFor(link);
         if (file != null) {
             FileEditorManager.getInstance(psiManager.getProject()).openFile(file, true, true);
             return true;
@@ -274,14 +274,6 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
     @Override
     public boolean canFetchDocumentationLink(String link) {
         return false;
-    }
-
-    private VirtualFile getFile(String link) {
-        try {
-            return VfsUtil.findFileByURL(new URL(link));
-        } catch (MalformedURLException e) {
-            return null;
-        }
     }
 
     @Override
