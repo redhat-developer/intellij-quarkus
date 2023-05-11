@@ -17,8 +17,10 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
@@ -27,6 +29,7 @@ import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Location;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -46,18 +49,20 @@ public class QuteJavaDefinitionAction extends QuteAction {
             Command command = e.getData(LSPCodelensInlayProvider.LSP_COMMAND);
             QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command.getArguments());
             if (params != null) {
-                Location location = QuteSupportForTemplate.getInstance().getJavaDefinition(params, PsiUtilsLSImpl.getInstance(e.getProject()), new EmptyProgressIndicator());
-                VirtualFile f = VfsUtil.findFileByURL(new URL(location.getUri()));
+                Project project = e.getProject();
+                IPsiUtils utils = PsiUtilsLSImpl.getInstance(project);
+                Location location = QuteSupportForTemplate.getInstance().getJavaDefinition(params, utils, new EmptyProgressIndicator());
+                VirtualFile f = (location == null) ? null : utils.findFile(location.getUri());
                 if (f != null) {
                     Document document = FileDocumentManager.getInstance().getDocument(f);
                     if (document != null) {
-                        OpenFileDescriptor desc = new OpenFileDescriptor(e.getProject(), f, LSPIJUtils.toOffset(location.getRange().getStart(), document));
-                        FileEditorManager.getInstance(e.getProject()).openTextEditor(desc, true);
+                        OpenFileDescriptor desc = new OpenFileDescriptor(project, f, LSPIJUtils.toOffset(location.getRange().getStart(), document));
+                        FileEditorManager.getInstance(project).openTextEditor(desc, true);
                     }
                 }
 
             }
-        } catch (MalformedURLException ex) {
+        } catch (IOException ex) {
             LOGGER.log(System.Logger.Level.WARNING, ex.getLocalizedMessage(), ex);
         }
     }

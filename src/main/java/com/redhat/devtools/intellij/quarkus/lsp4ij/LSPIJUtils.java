@@ -15,10 +15,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.PsiElement;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.CompletionParams;
@@ -160,29 +157,25 @@ public class LSPIJUtils {
                 } else if (change.isRight()) {
                     ResourceOperation resourceOperation = change.getRight();
                     if (resourceOperation instanceof CreateFile) {
-                        try {
-                            CreateFile createOperation = (CreateFile) resourceOperation;
-                            URI targetURI = URI.create(createOperation.getUri());
-                            VirtualFile targetFile = VfsUtil.findFileByURL(targetURI.toURL());
-                            if (targetFile != null && createOperation.getOptions() != null) {
-                                if (!createOperation.getOptions().getIgnoreIfExists()) {
-                                    Document document = getDocument(targetFile);
-                                    if (document != null) {
-                                        TextEdit textEdit = new TextEdit(new Range(toPosition(0, document), toPosition(document.getTextLength(), document)), "");
-                                        applyWorkspaceEdit(document, Collections.singletonList(textEdit));
-                                    }
-                                }
-                            } else {
-                                try {
-                                    File f = new File(targetURI);
-                                    f.createNewFile();
-                                    VfsUtil.findFileByIoFile(f, true);
-                                } catch (IOException e) {
-                                    LOGGER.warn(e.getLocalizedMessage(), e);
+                        CreateFile createOperation = (CreateFile) resourceOperation;
+                        VirtualFile targetFile = findResourceFor(createOperation.getUri());
+                        if (targetFile != null && createOperation.getOptions() != null) {
+                            if (!createOperation.getOptions().getIgnoreIfExists()) {
+                                Document document = getDocument(targetFile);
+                                if (document != null) {
+                                    TextEdit textEdit = new TextEdit(new Range(toPosition(0, document), toPosition(document.getTextLength(), document)), "");
+                                    applyWorkspaceEdit(document, Collections.singletonList(textEdit));
                                 }
                             }
-                        } catch (MalformedURLException e) {
-                            LOGGER.warn(e.getLocalizedMessage(), e);
+                        } else {
+                            try {
+                                URI targetURI = URI.create(createOperation.getUri());
+                                File f = new File(targetURI);
+                                f.createNewFile();
+                                VfsUtil.findFileByIoFile(f, true);
+                            } catch (IOException e) {
+                                LOGGER.warn(e.getLocalizedMessage(), e);
+                            }
                         }
                     } else if (resourceOperation instanceof DeleteFile) {
                         try {
@@ -248,11 +241,7 @@ public class LSPIJUtils {
     }
 
     public static VirtualFile findResourceFor(String uri) {
-        try {
-            return VfsUtil.findFileByURL(new URL(uri));
-        } catch (MalformedURLException e) {
-            return null;
-        }
+        return VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.fixURLforIDEA(uri));
     }
 
     public static Editor[] editorsForFile(VirtualFile file) {
