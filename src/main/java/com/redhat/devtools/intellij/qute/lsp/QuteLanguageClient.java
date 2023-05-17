@@ -22,6 +22,7 @@ import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
@@ -74,7 +75,13 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
     connection.disconnect();
   }
 
-  private void sendPropertiesChangeEvent(Set<String> uris) {
+  /**
+   * Send the notification qute/dataModelChanged with the project Uris to
+   * refresh data model used in Qute Template.
+   *
+   * @param uris the project uris where the data model must be refreshed.
+   */
+  private void notifyDataModelChanged(Set<String> uris) {
     QuteLanguageServerAPI server = (QuteLanguageServerAPI) getLanguageServer();
     if (server != null) {
       JavaDataModelChangeEvent event = new JavaDataModelChangeEvent();
@@ -85,16 +92,16 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
 
   @Override
   public void libraryUpdated(Library library) {
-    sendPropertiesChangeEvent(QuarkusModuleUtil.getModulesURIs(getProject()));
+    notifyDataModelChanged(QuarkusModuleUtil.getModulesURIs(getProject()));
   }
 
   @Override
   public void sourceUpdated(List<Pair<Module, VirtualFile>> sources) {
     Set<String> uris = sources.stream().map(pair -> pair.getLeft()).
-            map(module -> PsiUtilsLSImpl.getProjectURI(module)).
+            map(module -> PsiQuteProjectUtils.getProjectURI(module)).
             collect(Collectors.toSet());
     if (!uris.isEmpty()) {
-      sendPropertiesChangeEvent(uris);
+      notifyDataModelChanged(uris);
     }
   }
 

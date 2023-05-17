@@ -36,6 +36,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImp
 import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,7 +177,7 @@ public class QuarkusModuleUtil {
     public static Set<String> getModulesURIs(Project project) {
         Set<String> uris = new HashSet<>();
         for(Module module : ModuleManager.getInstance(project).getModules()) {
-            uris.add(PsiUtilsLSImpl.getProjectURI(module));
+            uris.add(PsiQuteProjectUtils.getProjectURI(module));
         }
         return uris;
     }
