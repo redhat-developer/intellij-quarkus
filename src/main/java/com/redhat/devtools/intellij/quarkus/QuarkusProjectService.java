@@ -39,7 +39,9 @@ import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
@@ -183,13 +185,21 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
 
     private Pair<Module, VirtualFile> toPair(VFileEvent event) {
         VirtualFile file = event.getFile();
-        if (file != null && file.exists() && "java".equalsIgnoreCase(file.getExtension())) {
+        if (file != null && file.exists() && (isJavaFile(file) || isConfigSource(file, LSPIJUtils.getProject(file)))) {
             Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
             if (module != null && (event instanceof VFileCreateEvent || event instanceof VFileContentChangeEvent || event instanceof VFileDeleteEvent)) {
                 return Pair.of(module, file);
             }
         }
         return null;
+    }
+
+    private boolean isJavaFile(VirtualFile file) {
+        return "java".equals(file.getExtension());
+    }
+
+    private boolean isConfigSource(VirtualFile file, Module project) {
+        return PsiMicroProfileProjectManager.getInstance(project.getProject()).isConfigSource(file);
     }
 
     public VirtualFile getSchema(Module module) {
