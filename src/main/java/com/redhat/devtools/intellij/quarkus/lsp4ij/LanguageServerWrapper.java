@@ -21,9 +21,10 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.LanguageServerLifecycleManager;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.internal.SupportedFeatures;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.LanguageServerLifecycleManager;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.NullLanguageServerLifecycleManager;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.ServerTrace;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.UserDefinedLanguageServerSettings;
@@ -42,7 +43,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
@@ -221,12 +221,7 @@ public class LanguageServerWrapper {
             final URI rootURI = getRootURI();
             this.launcherFuture = new CompletableFuture<>();
             this.initializeFuture = CompletableFuture.supplyAsync(() -> {
-                /*if (LoggingStreamConnectionProviderProxy.shouldLog(serverDefinition.id)) {
-                    this.lspStreamProvider = new LoggingStreamConnectionProviderProxy(
-                            serverDefinition.createConnectionProvider(), serverDefinition.id);
-                } else {*/
-                    this.lspStreamProvider = serverDefinition.createConnectionProvider();
-                //}
+                this.lspStreamProvider = serverDefinition.createConnectionProvider();
                 initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
                 try {
                     // Starting process...
@@ -248,7 +243,7 @@ public class LanguageServerWrapper {
                 return null;
             }).thenRun(() -> {
                 languageClient = serverDefinition.createLanguageClient(initialProject.getProject());
-                initParams.setProcessId((int) ProcessHandle.current().pid());
+                initParams.setProcessId(getParentProcessId());
 
                 if (rootURI != null) {
                     initParams.setRootUri(rootURI.toString());
@@ -257,12 +252,11 @@ public class LanguageServerWrapper {
 
                 UnaryOperator<MessageConsumer> wrapper = consumer -> (message -> {
                     if (shouldLog) {
-                        logMessage(message);
+                        logMessage(message, consumer);
                     }
                     try {
                         consumer.consume(message);
-                    }
-                    catch(JsonRpcException e) {
+                    } catch (JsonRpcException e) {
                         // When shutdown or exit is called, the pipe can be closed, in this case the exception must be ignored:
                         if (!isIgnoreException(e)) {
                             throw e;
@@ -404,27 +398,8 @@ public class LanguageServerWrapper {
                 && Boolean.TRUE.equals(serverCapabilities.getWorkspace().getWorkspaceFolders().getSupported());
     }
 
-    private Integer getCurrentProcessId() {
-        String segment = ManagementFactory.getRuntimeMXBean().getName().split("@")[0]; //$NON-NLS-1$
-        try {
-            return Integer.valueOf(segment);
-        } catch (NumberFormatException ex) {
-            return null;
-        }
-    }
-
-    private void logMessage(Message message) {
-        getLanguageServerLifecycleManager().logLSPMessage(message, this);
-
-        /*System.out.println(message);
-        if (message instanceof ResponseMessage && ((ResponseMessage) message).getError() != null
-                && ((ResponseMessage) message).getId()
-                .equals(Integer.toString(ResponseErrorCode.RequestCancelled.getValue()))) {
-            ResponseMessage responseMessage = (ResponseMessage) message;
-            LOGGER.warn("", new ResponseErrorException(responseMessage.getError()));
-        } else if (LOGGER.isDebugEnabled()) {
-            LOGGER.info(message.getClass().getSimpleName() + '\n' + message.toString());
-        }*/
+    private void logMessage(Message message, MessageConsumer consumer) {
+        getLanguageServerLifecycleManager().logLSPMessage(message, consumer, this);
     }
 
     private void removeStopTimer() {
@@ -465,7 +440,7 @@ public class LanguageServerWrapper {
         return this.stopping.get();
     }
 
-    synchronized void stop() {
+    public synchronized void stop() {
         final boolean alreadyStopping = this.stopping.getAndSet(true);
         if (alreadyStopping) {
             return;
@@ -495,17 +470,21 @@ public class LanguageServerWrapper {
                     shutdown.get(5, TimeUnit.SECONDS);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
+                } catch (TimeoutException ex) {
+                    LOGGER.warn("Timeout error while shutdown the language server '" + serverDefinition.id + "'", ex);
                 } catch (Exception ex) {
                     LOGGER.error("Error while shutdown the language server '" + serverDefinition.id + "'", ex);
                 }
             }
 
-            if (serverFuture != null) {
-                serverFuture.cancel(true);
-            }
-
+            // Consume language server exit() before cancelling launcher future (serverFuture.cancel())
+            // to avoid having error like "The pipe is being closed".
             if (languageServerInstance != null) {
                 languageServerInstance.exit();
+            }
+
+            if (serverFuture != null) {
+                serverFuture.cancel(true);
             }
 
             if (provider != null) {
@@ -523,7 +502,7 @@ public class LanguageServerWrapper {
         this.lspStreamProvider = null;
 
         while (!this.connectedDocuments.isEmpty()) {
-            disconnect(this.connectedDocuments.keySet().iterator().next());
+            disconnect(this.connectedDocuments.keySet().iterator().next(), true);
         }
         this.languageServer = null;
         this.languageClient = null;
@@ -721,13 +700,17 @@ public class LanguageServerWrapper {
         }).thenApply(theVoid -> languageServer);
     }
 
-    public void disconnect(URI path) {
+    private void disconnect(URI path) {
+        disconnect(path, false);
+    }
+
+    private void disconnect(URI path, boolean stopping) {
         DocumentContentSynchronizer documentListener = this.connectedDocuments.remove(path);
         if (documentListener != null) {
             documentListener.getDocument().removeDocumentListener(documentListener);
             documentListener.documentClosed();
         }
-        if (this.connectedDocuments.isEmpty()) {
+        if (!stopping && this.connectedDocuments.isEmpty()) {
             if (this.serverDefinition.lastDocumentDisconnectedTimeout != 0 && !ApplicationManager.getApplication().isUnitTestMode()) {
                 removeStopTimer();
                 startStopTimer();
@@ -1013,5 +996,23 @@ public class LanguageServerWrapper {
             return NullLanguageServerLifecycleManager.INSTANCE;
         }
         return LanguageServerLifecycleManager.getInstance(project);
+    }
+
+    /**
+     * Returns the parent process id (process id of Intellij).
+     *
+     * @return the parent process id (process id of Intellij).
+     */
+    private static int getParentProcessId() {
+        return (int) ProcessHandle.current().pid();
+    }
+
+    /**
+     * Returns the current process id and null otherwise.
+     *
+     * @return the current process id and null otherwise.
+     */
+    public Long getCurrentProcessId() {
+        return lspStreamProvider instanceof ProcessStreamConnectionProvider ? ((ProcessStreamConnectionProvider) lspStreamProvider).getPid() : null;
     }
 }

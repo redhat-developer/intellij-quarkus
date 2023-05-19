@@ -18,6 +18,7 @@ import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NlsContexts;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServersRegistry;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -66,6 +67,12 @@ public class LanguageServerConfigurable extends NamedConfigurable<LanguageServer
     @Override
     public @NlsContexts.ConfigurableName String getDisplayName() {
         return languageServerDefinition.getDisplayName();
+    }
+
+    @Override
+    public @Nullable Icon getIcon(boolean expanded) {
+        String serverId = languageServerDefinition.id;
+        return LanguageServersRegistry.getInstance().getServerIcon(serverId);
     }
 
     @Override

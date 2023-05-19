@@ -44,8 +44,7 @@ public class LanguageServerTreeNode extends DefaultMutableTreeNode  {
 
     public Icon getIcon() {
         String serverId = getServerDefinition().id;
-        Icon icon = LanguageServersRegistry.getInstance().getServerIcon(serverId);
-        return icon != null ? icon : AllIcons.Webreferences.Server;
+        return LanguageServersRegistry.getInstance().getServerIcon(serverId);
     }
 
     public String getDisplayName() {

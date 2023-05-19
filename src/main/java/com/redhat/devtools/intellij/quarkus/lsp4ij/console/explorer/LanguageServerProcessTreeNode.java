@@ -58,7 +58,13 @@ public class LanguageServerProcessTreeNode extends DefaultMutableTreeNode {
                 break;
             case started:
                 startTime = -1;
-                super.setUserObject("started");
+                Long pid = languageServer.getCurrentProcessId();
+                StringBuilder name = new StringBuilder("started");
+                if (pid != null) {
+                    name.append(" pid:");
+                    name.append(pid);
+                }
+                super.setUserObject(name.toString());
                 break;
             case stopping:
                 startTime = System.currentTimeMillis();
@@ -70,6 +76,10 @@ public class LanguageServerProcessTreeNode extends DefaultMutableTreeNode {
                 break;
         }
         treeModel.reload(this);
+    }
+
+    public LanguageServerWrapper getLanguageServer() {
+        return languageServer;
     }
 
     public ServerStatus getServerStatus() {

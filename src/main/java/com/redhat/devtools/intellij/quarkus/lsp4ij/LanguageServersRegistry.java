@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp4ij;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -178,7 +179,8 @@ public class LanguageServersRegistry {
 
     public Icon getServerIcon(String serverId) {
         LanguageServerIconProviderDefinition iconProvider = serverIcons.get(serverId);
-        return iconProvider != null ? iconProvider.getIcon() : null;
+        Icon icon = iconProvider != null ? iconProvider.getIcon() : null;
+        return icon != null ? icon : AllIcons.Webreferences.Server;
     }
 
     /**

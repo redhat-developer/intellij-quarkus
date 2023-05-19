@@ -16,6 +16,7 @@ package com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServerWrapper;
+import org.eclipse.lsp4j.jsonrpc.MessageConsumer;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,13 +94,13 @@ public class LanguageServerLifecycleManager {
         }
     }
 
-    public void logLSPMessage(Message message, LanguageServerWrapper languageServer) {
+    public void logLSPMessage(Message message, MessageConsumer consumer, LanguageServerWrapper languageServer) {
         if (isDisposed()) {
             return;
         }
         for (LanguageServerLifecycleListener listener : this.listeners) {
             try {
-                listener.handleLSPMessage(message, languageServer);
+                listener.handleLSPMessage(message, consumer, languageServer);
             } catch (Exception e) {
                 LOGGER.error("Error while handling LSP message of the language server '" + languageServer.serverDefinition.id + "'", e);
             }
