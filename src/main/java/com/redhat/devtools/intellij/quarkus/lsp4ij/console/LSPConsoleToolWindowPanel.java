@@ -18,14 +18,23 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.ui.CardLayoutPanel;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.FormBuilder;
+import com.intellij.util.ui.UI;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServerBundle;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServersRegistry;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.console.explorer.LanguageServerExplorer;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.console.explorer.LanguageServerProcessTreeNode;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.console.explorer.LanguageServerTreeNode;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.ServerTrace;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.UserDefinedLanguageServerSettings;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * LSP consoles
@@ -68,6 +77,13 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         return splitter;
     }
 
+    public void selectDetail(LanguageServerTreeNode treeNode) {
+        if (consoles == null || isDisposed()) {
+            return;
+        }
+        consoles.select(treeNode, true);
+    }
+
     public void selectConsole(LanguageServerProcessTreeNode processTreeNode) {
         if (consoles == null || isDisposed()) {
             return;
@@ -78,19 +94,19 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
     /**
      * A card-panel that displays panels for each language server instances.
      */
-    private class ConsolesPanel extends CardLayoutPanel<LanguageServerProcessTreeNode, LanguageServerProcessTreeNode, LSPConsoleToolWindowPanel.ConsoleOrErrorPanel> {
+    private class ConsolesPanel extends CardLayoutPanel<DefaultMutableTreeNode, DefaultMutableTreeNode, ConsoleContentPanel> {
 
         @Override
-        protected LanguageServerProcessTreeNode prepare(LanguageServerProcessTreeNode key) {
+        protected DefaultMutableTreeNode prepare(DefaultMutableTreeNode key) {
             return key;
         }
 
         @Override
-        protected LSPConsoleToolWindowPanel.ConsoleOrErrorPanel create(LanguageServerProcessTreeNode key) {
+        protected ConsoleContentPanel create(DefaultMutableTreeNode key) {
             if (isDisposed() || LSPConsoleToolWindowPanel.this.isDisposed()) {
                 return null;
             }
-            return new LSPConsoleToolWindowPanel.ConsoleOrErrorPanel();
+            return new ConsoleContentPanel(key);
         }
 
         @Override
@@ -99,27 +115,74 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         }
 
         @Override
-        protected void dispose(LanguageServerProcessTreeNode key, LSPConsoleToolWindowPanel.ConsoleOrErrorPanel value) {
+        protected void dispose(DefaultMutableTreeNode key, ConsoleContentPanel value) {
             if (value != null) {
                 value.dispose();
             }
         }
     }
 
-    private class ConsoleOrErrorPanel extends SimpleCardLayoutPanel<JComponent> {
+    private class ConsoleContentPanel extends SimpleCardLayoutPanel<JComponent> {
 
         private static final String NAME_VIEW_CONSOLE = "console";
 
-        private final ConsoleView consoleView;
+        private static final String NAME_VIEW_DETAIL = "detail";
 
-        public ConsoleOrErrorPanel() {
-            consoleView = createConsoleView(project);
-            add(consoleView.getComponent(), NAME_VIEW_CONSOLE);
-            showConsole();
+        private ConsoleView consoleView;
+
+        public ConsoleContentPanel(DefaultMutableTreeNode key) {
+            if (key instanceof LanguageServerTreeNode) {
+                add(createDetailPanel((LanguageServerTreeNode) key), NAME_VIEW_DETAIL);
+                showDetail();
+            } else if (key instanceof LanguageServerProcessTreeNode) {
+                consoleView = createConsoleView(project);
+                add(consoleView.getComponent(), NAME_VIEW_CONSOLE);
+                showConsole();
+            }
+        }
+
+        private JComponent createDetailPanel(LanguageServerTreeNode key) {
+            LanguageServersRegistry.LanguageServerDefinition serverDefinition = key.getServerDefinition();
+            ComboBox<ServerTrace> serverTraceComboBox = new ComboBox<>(new DefaultComboBoxModel<>(ServerTrace.values()));
+            UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings initialSettings = UserDefinedLanguageServerSettings.getInstance().getLanguageServerSettings(serverDefinition.id);
+            if (initialSettings != null && initialSettings.getServerTrace() != null) {
+                serverTraceComboBox.setSelectedItem(initialSettings.getServerTrace());
+            }
+            serverTraceComboBox.addItemListener(event -> {
+                ServerTrace serverTrace = (ServerTrace) event.getItem();
+                UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance().getLanguageServerSettings(serverDefinition.id);
+                if (settings == null) {
+                    settings = new UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings();
+                }
+                settings.setServerTrace(serverTrace);
+                UserDefinedLanguageServerSettings.getInstance().setLanguageServerSettings(serverDefinition.id, settings);
+            });
+            return FormBuilder.createFormBuilder()
+                    .setFormLeftIndent(10)
+                    .addComponent(createTitleComponent(serverDefinition), 1)
+                    .addLabeledComponent(LanguageServerBundle.message("language.server.trace"), serverTraceComboBox, 1)
+                    .addComponentFillVertically(new JPanel(), 0)
+                    .getPanel();
+        }
+
+        private JComponent createTitleComponent(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) {
+            JLabel title = new JLabel(languageServerDefinition.getDisplayName());
+            String description = languageServerDefinition.description;
+            if (description != null && description.length() > 0) {
+                // @See com.intellij.internal.ui.ComponentPanelTestAction for more details on how to create comment panels
+                return UI.PanelFactory.panel(title)
+                        .withComment(description)
+                        .createPanel();
+            }
+            return title;
         }
 
         private void showConsole() {
             show(NAME_VIEW_CONSOLE);
+        }
+
+        private void showDetail() {
+            show(NAME_VIEW_DETAIL);
         }
 
         public void showMessage(String message) {

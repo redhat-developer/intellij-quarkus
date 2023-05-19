@@ -18,17 +18,12 @@ import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.LanguageServerLifecycleListener;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.ServerTrace;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.UserDefinedLanguageServerSettings;
+import org.eclipse.lsp4j.jsonrpc.MessageConsumer;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
-import org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage;
-import org.eclipse.lsp4j.jsonrpc.messages.RequestMessage;
-import org.eclipse.lsp4j.jsonrpc.messages.ResponseMessage;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Language server listener to refresh the language server explorer according to the server state and fill the LSP console.
@@ -37,23 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LanguageServerExplorerLifecycleListener implements LanguageServerLifecycleListener {
 
-    private static final DateTimeFormatter dateTracePattern = DateTimeFormatter.ofPattern("hh:mm:ss a");
+    private final Map<LanguageServerWrapper, TracingMessageConsumer> tracingPerServer = new HashMap<>(10);
 
     private boolean disposed;
-
-    private static class LSPRequestInfo {
-
-        public final String method;
-
-        public final long startTime;
-
-        public LSPRequestInfo(String method, long startTime) {
-            this.method = method;
-            this.startTime = startTime;
-        }
-    }
-
-    private final Map<LanguageServerWrapper, Map<String, LSPRequestInfo>> pendingRequests = new ConcurrentHashMap<>(10);
 
     private final LanguageServerExplorer explorer;
 
@@ -102,7 +83,7 @@ public class LanguageServerExplorerLifecycleListener implements LanguageServerLi
     }
 
     @Override
-    public void handleLSPMessage(Message message, LanguageServerWrapper languageServer) {
+    public void handleLSPMessage(Message message, MessageConsumer messageConsumer, LanguageServerWrapper languageServer) {
         if (explorer.isDisposed()) {
             return;
         }
@@ -111,87 +92,23 @@ public class LanguageServerExplorerLifecycleListener implements LanguageServerLi
             return;
         }
 
-        StringBuilder formattedMessage = new StringBuilder();
-        fillHeaderTrace(formattedMessage);
-        if (message instanceof RequestMessage) {
-            // [Trace - 12:27:33 AM] Sending request 'initialize - (0)'.
-            //  Params: {
-            String id = ((RequestMessage) message).getId();
-            String method = ((RequestMessage) message).getMethod();
-            registerLSPRequest(id, new LSPRequestInfo(method, System.currentTimeMillis()), languageServer);
-            formattedMessage.append(" Sending request '")
-                    .append(method)
-                    .append(" - (")
-                    .append(id)
-                    .append(")'.");
-        } else if (message instanceof ResponseMessage) {
-            // [Trace - 12:27:35 AM] Received response 'initialize - (0)' in 1921ms.
-            String id = ((ResponseMessage) message).getId();
-            LSPRequestInfo requestInfo = unregisterLSPRequest(id, languageServer);
-            String method = requestInfo != null ? requestInfo.method : "<unknown>";
-            formattedMessage.append(" Received response '")
-                    .append(method)
-                    .append(" - (")
-                    .append(id)
-                    .append(")'");
-            if (requestInfo != null) {
-                formattedMessage.append(" in ");
-                formattedMessage.append(System.currentTimeMillis() - requestInfo.startTime);
-                formattedMessage.append("ms");
-            }
-            formattedMessage.append(".");
-        } else if (message instanceof NotificationMessage) {
-            // [Trace - 12:27:35 AM] Sending notification 'initialized'.
-            String method = ((NotificationMessage) message).getMethod();
-            formattedMessage.append(" Sending notification '")
-                    .append(method)
-                    .append("'.");
-        }
-        if (serverTrace == ServerTrace.verbose) {
-            formattedMessage.append("\n");
-            formattedMessage.append(message.toString());
-            formattedMessage.append("\n");
-        }
-        formattedMessage.append("\n");
-
-        invokeLater(() -> showMessage(languageServer, formattedMessage.toString()));
+        TracingMessageConsumer tracing = getLSPRequestCacheFor(languageServer);
+        String log = tracing.log(message, messageConsumer, serverTrace);
+        invokeLater(() -> showMessage(languageServer, log));
     }
 
-    private static void fillHeaderTrace(StringBuilder formattedMessage) {
-        LocalDateTime datetime = LocalDateTime.now();
-        String dateAsString = datetime.format(dateTracePattern);
-        formattedMessage.append("[Trace")
-                .append(" - ")
-                .append(dateAsString)
-                .append("]");
-    }
-
-    private void registerLSPRequest(String id, LSPRequestInfo lspRequestInfo, LanguageServerWrapper languageServer) {
-        Map<String, LSPRequestInfo> cache = getLSPRequestCacheFor(languageServer);
-        synchronized (cache) {
-            cache.put(id, lspRequestInfo);
-        }
-    }
-
-    private LSPRequestInfo unregisterLSPRequest(String id, LanguageServerWrapper languageServer) {
-        Map<String, LSPRequestInfo> cache = getLSPRequestCacheFor(languageServer);
-        synchronized (cache) {
-            return cache.remove(id);
-        }
-    }
-
-    private Map<String, LSPRequestInfo> getLSPRequestCacheFor(LanguageServerWrapper languageServer) {
-        Map<String, LSPRequestInfo> cache = pendingRequests.get(languageServer);
+    private TracingMessageConsumer getLSPRequestCacheFor(LanguageServerWrapper languageServer) {
+        TracingMessageConsumer cache = tracingPerServer.get(languageServer);
         if (cache != null) {
             return cache;
         }
-        synchronized (pendingRequests) {
-            cache = pendingRequests.get(languageServer);
+        synchronized (tracingPerServer) {
+            cache = tracingPerServer.get(languageServer);
             if (cache != null) {
                 return cache;
             }
-            cache = new HashMap<>();
-            pendingRequests.put(languageServer, cache);
+            cache = new TracingMessageConsumer();
+            tracingPerServer.put(languageServer, cache);
             return cache;
         }
     }
@@ -278,7 +195,7 @@ public class LanguageServerExplorerLifecycleListener implements LanguageServerLi
     @Override
     public void dispose() {
         disposed = true;
-        pendingRequests.clear();
+        tracingPerServer.clear();
     }
 
     private static void invokeLater(Runnable runnable) {

@@ -66,6 +66,11 @@ public abstract class ProcessStreamConnectionProvider implements StreamConnectio
         return p == null ? null : p.getOutputStream();
     }
 
+    public @Nullable Long getPid() {
+        final Process p = process;
+        return p == null ? null : p.pid();
+    }
+
     @Override
     public void stop() {
         Process p = process;

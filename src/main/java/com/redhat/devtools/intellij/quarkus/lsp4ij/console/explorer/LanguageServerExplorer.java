@@ -13,19 +13,24 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp4ij.console.explorer;
 
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.ui.AnimatedIcon;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServersRegistry;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.console.LSPConsoleToolWindowPanel;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.LanguageServerLifecycleListener;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.console.explorer.actions.RestartServerAction;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.console.explorer.actions.StopServerAction;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.LanguageServerLifecycleManager;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 
 /**
  * Language server explorer which shows language servers and their process.
@@ -50,7 +55,14 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
         this.setContent(tree);
     }
 
-    private void onLanguageServerSelected(LanguageServerProcessTreeNode processTreeNode) {
+    private void onLanguageServerSelected(LanguageServerTreeNode treeNode) {
+        if (isDisposed()) {
+            return;
+        }
+        panel.selectDetail(treeNode);
+    }
+
+    private void onLanguageServerProcessSelected(LanguageServerProcessTreeNode processTreeNode) {
         if (isDisposed()) {
             return;
         }
@@ -76,14 +88,55 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
         tree.setCellRenderer(new LanguageServerTreeRenderer());
 
         tree.addTreeSelectionListener(l -> {
+            if(isDisposed()) {
+                return;
+            }
             TreePath selectionPath = tree.getSelectionPath();
             Object selectedItem = selectionPath != null ? selectionPath.getLastPathComponent() : null;
-            if (selectedItem instanceof LanguageServerProcessTreeNode) {
-                LanguageServerProcessTreeNode node = (LanguageServerProcessTreeNode) selectedItem;
+            if (selectedItem instanceof LanguageServerTreeNode) {
+                LanguageServerTreeNode node = (LanguageServerTreeNode) selectedItem;
                 onLanguageServerSelected(node);
+            } else if (selectedItem instanceof LanguageServerProcessTreeNode) {
+                LanguageServerProcessTreeNode node = (LanguageServerProcessTreeNode) selectedItem;
+                onLanguageServerProcessSelected(node);
             }
         });
 
+        DataProvider newDataProvider = new LanguageServerExplorerTreeDataProvider(tree);
+        DataManager.registerDataProvider(tree, newDataProvider);
+
+        tree.addMouseListener(new PopupHandler() {
+            @Override
+            public void invokePopup(Component comp, int x, int y) {
+                final TreePath path = tree.getSelectionPath();
+                if (path != null) {
+                    DefaultActionGroup group = null;
+                    Object node = path.getLastPathComponent();
+                    if (node instanceof LanguageServerProcessTreeNode) {
+                        LanguageServerProcessTreeNode processTreeNode = (LanguageServerProcessTreeNode) node;
+                        switch (processTreeNode.getServerStatus()) {
+                            case started:
+                                // Stop language server action
+                                group = new DefaultActionGroup();
+                                AnAction stopServerAction = ActionManager.getInstance().getAction(StopServerAction.ACTION_ID);
+                                group.add(stopServerAction);
+                                break;
+                            case stopped:
+                                // Restart language server action
+                                group = new DefaultActionGroup();
+                                AnAction restartServerAction = ActionManager.getInstance().getAction(RestartServerAction.ACTION_ID);
+                                group.add(restartServerAction);
+                                break;
+                        }
+                    }
+
+                    if (group != null) {
+                        ActionPopupMenu menu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, group);
+                        menu.getComponent().show(comp, x, y);
+                    }
+                }
+            }
+        });
         tree.putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true);
 
         ((DefaultTreeModel) tree.getModel()).reload(top);

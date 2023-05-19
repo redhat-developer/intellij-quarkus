@@ -27,6 +27,7 @@
 package com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle;
 
 import com.redhat.devtools.intellij.quarkus.lsp4ij.LanguageServerWrapper;
+import org.eclipse.lsp4j.jsonrpc.MessageConsumer;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
 
 /**
@@ -42,7 +43,7 @@ public interface LanguageServerLifecycleListener {
 
     void handleStartedLanguageServer(LanguageServerWrapper languageServer, Throwable exception);
 
-    void handleLSPMessage(Message message, LanguageServerWrapper languageServer);
+    void handleLSPMessage(Message message, MessageConsumer consumer, LanguageServerWrapper languageServer);
 
     void handleStoppingLanguageServer(LanguageServerWrapper languageServer);
 
