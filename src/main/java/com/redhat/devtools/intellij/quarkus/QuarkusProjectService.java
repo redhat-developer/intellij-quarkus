@@ -39,7 +39,9 @@ import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
@@ -78,6 +80,7 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
 
     @Override
     public void dispose() {
+        connection.disconnect();
         executor.shutdown();
     }
 
@@ -171,7 +174,10 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
 
     @Override
     public void after(@NotNull List<? extends VFileEvent> events) {
-        List<Pair<Module, VirtualFile>> pairs = events.stream().map(event -> toPair(event)).filter(Objects::nonNull).collect(Collectors.toList());
+        List<Pair<Module, VirtualFile>> pairs = events.stream()
+                .map(event -> toPair(event))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         if (!pairs.isEmpty()) {
             pairs.forEach(pair -> schemas.computeIfPresent(pair.getLeft(), (m, p) -> {
                 p.setRight(Boolean.FALSE);
@@ -183,13 +189,31 @@ public class QuarkusProjectService implements LibraryTable.Listener, BulkFileLis
 
     private Pair<Module, VirtualFile> toPair(VFileEvent event) {
         VirtualFile file = event.getFile();
-        if (file != null && file.exists() && "java".equalsIgnoreCase(file.getExtension())) {
-            Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
-            if (module != null && (event instanceof VFileCreateEvent || event instanceof VFileContentChangeEvent || event instanceof VFileDeleteEvent)) {
-                return Pair.of(module, file);
-            }
+        if (file == null || !file.exists()) {
+            return null;
         }
-        return null;
+        boolean expectedEvent = (event instanceof VFileCreateEvent || event instanceof VFileContentChangeEvent || event instanceof VFileDeleteEvent);
+        if (!expectedEvent) {
+            return null;
+        }
+        // Here a file has been created, saved ot deleted
+        Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
+        if (module == null || module.isDisposed()) {
+            return null;
+        }
+        if (!isJavaFile(file) && !isConfigSource(file, project)) {
+            return null;
+        }
+        // Here a java file or a microprofile-config.properties, application.properties has been changed
+        return Pair.of(module, file);
+    }
+
+    private static boolean isJavaFile(VirtualFile file) {
+        return "java".equalsIgnoreCase(file.getExtension());
+    }
+
+    private static boolean isConfigSource(VirtualFile file, Project project) {
+        return PsiMicroProfileProjectManager.getInstance(project).isConfigSource(file);
     }
 
     public VirtualFile getSchema(Module module) {

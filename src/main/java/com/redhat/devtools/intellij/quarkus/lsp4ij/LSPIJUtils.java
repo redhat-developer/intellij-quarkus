@@ -4,34 +4,25 @@ import com.intellij.lang.Language;
 import com.intellij.lang.LanguageUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.*;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiNameIdentifierOwner;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.lsp4j.CompletionParams;
-import org.eclipse.lsp4j.CreateFile;
-import org.eclipse.lsp4j.DeleteFile;
-import org.eclipse.lsp4j.HoverParams;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.RenameFile;
-import org.eclipse.lsp4j.ResourceOperation;
-import org.eclipse.lsp4j.TextDocumentEdit;
-import org.eclipse.lsp4j.TextDocumentIdentifier;
-import org.eclipse.lsp4j.TextDocumentPositionParams;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.WorkspaceEdit;
-import org.eclipse.lsp4j.WorkspaceFolder;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +41,32 @@ import java.util.Map;
 
 public class LSPIJUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPIJUtils.class);
+
+    private static final String JAR_PROTOCOL = "jar";
+
+    private static final String JAR_SCHEME = JAR_PROTOCOL + ":";
+
+    public static void openInEditor(Location location, Project project) {
+        if (location == null) {
+            return;
+        }
+        openInEditor(location.getUri(), location.getRange().getStart(), project);
+    }
+
+    public static void openInEditor(String fileUri, Position position, Project project) {
+        VirtualFile file = findResourceFor(fileUri);
+        if (file != null) {
+            if (position == null) {
+                FileEditorManager.getInstance(project).openFile(file, true);
+            } else {
+                Document document = FileDocumentManager.getInstance().getDocument(file);
+                if (document != null) {
+                    OpenFileDescriptor desc = new OpenFileDescriptor(project, file, LSPIJUtils.toOffset(position, document));
+                    FileEditorManager.getInstance(project).openTextEditor(desc, true);
+                }
+            }
+        }
+    }
 
     @Nonnull
     public static Language getFileLanguage(@Nonnull VirtualFile file, Project project) {
@@ -86,8 +103,24 @@ public class LSPIJUtils {
         }
     }
 
+    public static URI toUri(PsiFile file) {
+        return toUri(file.getVirtualFile());
+    }
+
     public static URI toUri(VirtualFile file) {
         return toUri(VfsUtilCore.virtualToIoFile(file));
+    }
+
+    public static String toUriAsString(PsiFile file) {
+        return toUriAsString(file.getVirtualFile());
+    }
+
+    public static String toUriAsString(VirtualFile file) {
+        String protocol = file.getFileSystem() != null ? file.getFileSystem().getProtocol() : null;
+        if (JAR_PROTOCOL.equals(protocol)) {
+            return VfsUtilCore.convertToURL(file.getUrl()).toExternalForm();
+        }
+        return toUri(VfsUtilCore.virtualToIoFile(file)).toASCIIString();
     }
 
     public static URI toUri(Document document) {
@@ -139,13 +172,36 @@ public class LSPIJUtils {
         return file.toURI();
     }
 
+    public static Range toRange(TextRange range, Document document) {
+        return new Range(LSPIJUtils.toPosition(range.getStartOffset(), document), LSPIJUtils.toPosition(range.getEndOffset(), document));
+    }
+
+    public static Location toLocation(PsiElement psiMember) {
+        PsiElement sourceElement = psiMember instanceof PsiNameIdentifierOwner ? ((PsiNameIdentifierOwner) psiMember).getNameIdentifier().getNavigationElement() : psiMember.getNavigationElement();
+        if (sourceElement != null) {
+            PsiFile file = sourceElement.getContainingFile();
+            Document document = PsiDocumentManager.getInstance(psiMember.getProject()).getDocument(file);
+            TextRange range = sourceElement.getTextRange();
+            return toLocation(file, toRange(range, document));
+        }
+        return null;
+    }
+
+    public static Location toLocation(PsiFile file, Range range) {
+        return toLocation(file.getVirtualFile(), range);
+    }
+
+    public static Location toLocation(VirtualFile file, Range range) {
+        return new Location(toUriAsString(file), range);
+    }
+
     public static void applyWorkspaceEdit(WorkspaceEdit edit) {
         applyWorkspaceEdit(edit, null);
     }
 
     public static void applyWorkspaceEdit(WorkspaceEdit edit, String label) {
         if (edit.getDocumentChanges() != null) {
-            for(Either<TextDocumentEdit, ResourceOperation> change : edit.getDocumentChanges()) {
+            for (Either<TextDocumentEdit, ResourceOperation> change : edit.getDocumentChanges()) {
                 if (change.isLeft()) {
                     VirtualFile file = findResourceFor(change.getLeft().getTextDocument().getUri());
                     if (file != null) {
@@ -190,7 +246,7 @@ public class LSPIJUtils {
                 }
             }
         } else if (edit.getChanges() != null) {
-            for(Map.Entry<String, List<TextEdit>> change : edit.getChanges().entrySet()) {
+            for (Map.Entry<String, List<TextEdit>> change : edit.getChanges().entrySet()) {
                 VirtualFile file = findResourceFor(change.getKey());
                 if (file != null) {
                     Document document = getDocument(file);
@@ -205,7 +261,7 @@ public class LSPIJUtils {
     }
 
     private static void applyWorkspaceEdit(Document document, List<TextEdit> edits) {
-        for(TextEdit edit : edits) {
+        for (TextEdit edit : edits) {
             if (edit.getRange() != null) {
                 String text = edit.getNewText();
                 int start = toOffset(edit.getRange().getStart(), document);
@@ -241,6 +297,14 @@ public class LSPIJUtils {
     }
 
     public static VirtualFile findResourceFor(String uri) {
+        if (uri.startsWith(JAR_SCHEME)) {
+            // ex : jar:file:///C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/3.0.1.Final/quarkus-core-3.0.1.Final.jar!/io/quarkus/runtime/ApplicationConfig.class
+            try {
+                return VfsUtil.findFileByURL(new URL(uri));
+            } catch (MalformedURLException e) {
+                return null;
+            }
+        }
         return VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.fixURLforIDEA(uri));
     }
 
@@ -255,7 +319,7 @@ public class LSPIJUtils {
 
     public static Editor[] editorsForFile(VirtualFile file, Document document) {
         Module module = LSPIJUtils.getProject(file);
-        return module!=null?EditorFactory.getInstance().getEditors(document, module.getProject()):new Editor[0];
+        return module != null ? EditorFactory.getInstance().getEditors(document, module.getProject()) : new Editor[0];
     }
 
     public static Editor editorForFile(VirtualFile file) {
@@ -309,9 +373,35 @@ public class LSPIJUtils {
     }
 
     public static boolean hasCapability(final Either<Boolean, ? extends Object> eitherCapability) {
-        if(eitherCapability == null) {
+        if (eitherCapability == null) {
             return false;
         }
         return eitherCapability.isRight() || (eitherCapability.isLeft() && eitherCapability.getLeft());
+    }
+
+    /**
+     * Returns the project URI of the given project.
+     *
+     * @param project the project
+     * @return the project URI of the given project.
+     */
+    public static String getProjectUri(Module project) {
+        if (project == null) {
+            return null;
+        }
+        return project.getName();
+    }
+
+    /**
+     * Returns the project URI of the given project.
+     *
+     * @param project the project
+     * @return the project URI of the given project.
+     */
+    public static String getProjectUri(Project project) {
+        if (project == null) {
+            return null;
+        }
+        return project.getName();
     }
 }

@@ -108,21 +108,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public Location toLocation(PsiElement psiMember) {
-        PsiElement sourceElement = psiMember instanceof PsiNameIdentifierOwner ? ((PsiNameIdentifierOwner) psiMember).getNameIdentifier().getNavigationElement() : psiMember.getNavigationElement();
-        if (sourceElement != null) {
-            PsiFile file = sourceElement.getContainingFile();
-            Location location = new Location();
-            location.setUri(VfsUtilCore.convertToURL(file.getVirtualFile().getUrl()).toExternalForm());
-            Document document = PsiDocumentManager.getInstance(psiMember.getProject()).getDocument(file);
-            TextRange range = sourceElement.getTextRange();
-            int startLine = document.getLineNumber(range.getStartOffset());
-            int startLineOffset = document.getLineStartOffset(startLine);
-            int endLine = document.getLineNumber(range.getEndOffset());
-            int endLineOffset = document.getLineStartOffset(endLine);
-            location.setRange(new Range(LSPIJUtils.toPosition(range.getStartOffset(), document), LSPIJUtils.toPosition(range.getEndOffset(), document)));
-            return location;
-        }
-        return null;
+        return LSPIJUtils.toLocation(psiMember);
     }
 
     @Override
@@ -206,12 +192,12 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     }
 
     public static String getProjectURI(Module module) {
-        return module != null ? module.getModuleFilePath() : null;
+        return LSPIJUtils.getProjectUri(module);
     }
 
     @Override
     public String toUri(PsiFile typeRoot) {
-        return VfsUtil.toUri(typeRoot.getVirtualFile().getUrl()).toString();
+        return LSPIJUtils.toUriAsString(typeRoot);
     }
 
     @Override

@@ -130,7 +130,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 			Module javaProject, List<QuteProjectScope> scopes, IPsiUtils utils, ProgressIndicator monitor) {
 		long startTime = System.currentTimeMillis();
 		if (LOGGER.isLoggable(Level.INFO)) {
-			LOGGER.info("Start collecting Qute data model for '" + PsiQuteProjectUtils.getProjectUri(javaProject)
+			LOGGER.info("Start collecting Qute data model for '" + PsiQuteProjectUtils.getProjectURI(javaProject)
 					+ "' project.");
 		}
 
@@ -151,7 +151,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 			}
 		} finally {
 			if (LOGGER.isLoggable(Level.INFO)) {
-				LOGGER.info("End collecting Qute data model for '" + PsiQuteProjectUtils.getProjectUri(javaProject)
+				LOGGER.info("End collecting Qute data model for '" + PsiQuteProjectUtils.getProjectURI(javaProject)
 						+ "' project in " + (System.currentTimeMillis() - startTime) + "ms.");
 			}
 			monitor.setText(text);

@@ -45,34 +45,22 @@ public class QuteJavaDefinitionAction extends QuteAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        try {
-            Command command = e.getData(LSPCodelensInlayProvider.LSP_COMMAND);
-            QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command.getArguments());
-            if (params != null) {
-                Project project = e.getProject();
-                IPsiUtils utils = PsiUtilsLSImpl.getInstance(project);
-                Location location = QuteSupportForTemplate.getInstance().getJavaDefinition(params, utils, new EmptyProgressIndicator());
-                VirtualFile f = (location == null) ? null : utils.findFile(location.getUri());
-                if (f != null) {
-                    Document document = FileDocumentManager.getInstance().getDocument(f);
-                    if (document != null) {
-                        OpenFileDescriptor desc = new OpenFileDescriptor(project, f, LSPIJUtils.toOffset(location.getRange().getStart(), document));
-                        FileEditorManager.getInstance(project).openTextEditor(desc, true);
-                    }
-                }
-
-            }
-        } catch (IOException ex) {
-            LOGGER.log(System.Logger.Level.WARNING, ex.getLocalizedMessage(), ex);
+        Command command = e.getData(LSPCodelensInlayProvider.LSP_COMMAND);
+        QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command.getArguments());
+        if (params != null) {
+            Project project = e.getProject();
+            IPsiUtils utils = PsiUtilsLSImpl.getInstance(project);
+            Location location = QuteSupportForTemplate.getInstance().getJavaDefinition(params, utils, new EmptyProgressIndicator());
+            LSPIJUtils.openInEditor(location, project);
         }
     }
 
     protected String getString(String name, JsonObject obj) {
-        return obj.has(name)?obj.get(name).getAsString():null;
+        return obj.has(name) ? obj.get(name).getAsString() : null;
     }
 
     protected boolean getBoolean(String name, JsonObject obj) {
-        return obj.has(name)?obj.get(name).getAsBoolean():false;
+        return obj.has(name) ? obj.get(name).getAsBoolean() : false;
     }
 
     private QuteJavaDefinitionParams getQuteJavaDefinitionParams(List<Object> arguments) {
