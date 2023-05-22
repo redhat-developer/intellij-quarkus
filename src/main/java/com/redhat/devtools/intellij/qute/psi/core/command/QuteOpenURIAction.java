@@ -16,27 +16,20 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class QuteOpenURIAction extends QuteAction {
-    private static final System.Logger LOGGER = System.getLogger(QuteOpenURIAction.class.getName());
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        try {
-            String url = getURL(e);
-            Project project = e.getProject();
-            if (url != null && project != null) {
-                VirtualFile f = PsiUtilsLSImpl.getInstance(project).findFile(url);
-                if (f != null) {
-                    FileEditorManager.getInstance(project).openFile(f, true);
-                }
-            }
-        } catch (IOException ex) {
-            LOGGER.log(System.Logger.Level.WARNING, ex.getLocalizedMessage(), ex);
+        String url = getURL(e);
+        Project project = e.getProject();
+        if (url != null && project != null) {
+            LSPIJUtils.openInEditor(url, null, project);
         }
     }
 }

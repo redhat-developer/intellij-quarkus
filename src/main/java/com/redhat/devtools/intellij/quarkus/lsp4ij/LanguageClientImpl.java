@@ -28,6 +28,8 @@ public class LanguageClientImpl implements LanguageClient {
     private LanguageServer server;
     private LanguageServerWrapper wrapper;
 
+    private boolean disposed;
+
     public LanguageClientImpl(Project project) {
         this.project = project;
     }
@@ -101,6 +103,10 @@ public class LanguageClientImpl implements LanguageClient {
     }
 
     public void dispose() {
+        this.disposed = true;
+    }
 
+    public boolean isDisposed() {
+        return disposed;
     }
 }
