@@ -54,7 +54,7 @@ import com.redhat.qute.commons.usertags.UserTagInfo;
  */
 public class QuarkusIntegrationForQute {
 
-	private static final String TEMPLATES_TAGS_ENTRY = "templates.tags";
+	private static final String TEMPLATES_TAGS_ENTRY = "templates/tags";
 	private static final Logger LOGGER = Logger.getLogger(QuarkusIntegrationForQute.class.getName());
 
 	public static DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(Module javaProject,
