@@ -1,0 +1,45 @@
+<idea-plugin>
+
+  <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
+    <!-- Qute LSP -->
+    <server id="qute"
+            label="Qute support"
+            class="com.redhat.devtools.intellij.qute.lsp.QuteServer"
+            clientImpl="com.redhat.devtools.intellij.qute.lsp.QuteLanguageClient"
+            serverInterface="com.redhat.qute.ls.api.QuteLanguageServerAPI">
+      <description><![CDATA[
+        The <a href="https://github.com/redhat-developer/quarkus-ls">Qute language server</a> provides <a href="https://quarkus.io/guides/qute-reference">Qute</a> support in:
+        <ul>
+          <li><b>Java</b> files.</li>
+          <li>and <b>*.html,*.txt,*.yml,*.json</b> Qute template files.</li>
+        </ul>
+        ]]>
+      </description>
+    </server>
+    <languageMapping language="Qute_" serverId="qute"/>
+    <languageMapping language="JAVA" serverId="qute"/>
+    <serverIconProvider serverId="qute" class="com.redhat.devtools.intellij.quarkus.lang.QuarkusServerIconProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Qute -->
+    <lang.documentationProvider id="LSPTextHoverQute" language="Qute_" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverHTML" language="HTML" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverYAML" language="yaml" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverJSON" language="JSON" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverTEXT" language="TEXT" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <codeInsight.inlayProvider language="Qute_" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
+    <codeInsight.inlayProvider language="Qute_" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
+    <codeInsight.inlayProvider language="HTML" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
+    <codeInsight.inlayProvider language="HTML" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
+    <codeInsight.inlayProvider language="yaml" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
+    <codeInsight.inlayProvider language="yaml" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
+    <codeInsight.inlayProvider language="JSON" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
+    <codeInsight.inlayProvider language="JSON" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
+    <codeInsight.inlayProvider language="TEXT" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
+    <codeInsight.inlayProvider language="TEXT" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
+    <externalAnnotator language="Qute_"
+                       implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
+  </extensions>
+
+</idea-plugin>

@@ -13,7 +13,7 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lang;
 
-import com.redhat.devtools.intellij.quarkus.lsp4ij.ServerIconProvider;
+import com.redhat.devtools.intellij.lsp4ij.ServerIconProvider;
 
 import javax.swing.*;
 

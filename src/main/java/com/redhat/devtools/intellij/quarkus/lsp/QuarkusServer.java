@@ -14,8 +14,8 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.server.JavaProcessCommandBuilder;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.server.ProcessStreamConnectionProvider;
+import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
+import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
 
 import java.io.File;
 import java.net.URI;
