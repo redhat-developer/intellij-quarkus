@@ -42,9 +42,9 @@ public class HelloResource {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public TemplateInstance get(@QueryParam("name") String name) {
-		hello.data("age", 12);
-		hello.data("height", 1.50, "weight", 50L);
-		return hello.data("name", name);
+		return hello.data("height", 1.50, "weight", 50L)
+				.data("age", 12)					
+				.data("name", name);
 	}
 
 	@GET
