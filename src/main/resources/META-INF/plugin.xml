@@ -11,6 +11,13 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <p><b>1.19.0</b></p>
+    <ul>
+      <li>performance improvement which should avoid freezing IJ by improving start/stop of language servers</li>
+      <li>LSP console to track LSP request/responses notification for all started language servers</li>
+      <li>Support for WSL2</li>
+      <li>Bug fixes</li>
+    </ul>
     <p><b>1.18.0</b></p>
     <ul>
       <li>Support for Jakarta annotations</li>
