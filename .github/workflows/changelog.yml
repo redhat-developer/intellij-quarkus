@@ -17,5 +17,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           current-tag: '${{ github.event.inputs.tag }}'
           types-mapping: 'feat:Features,fix:Bug Fixes,docs:Documentation,refactor:Refactoring,chore:Other'
-      - run: |
-          echo '${{ steps.changelog.outputs.changelog }}'
