@@ -20,7 +20,8 @@ public class ServerExtensionPointBean extends BaseKeyedLazyInstance<StreamConnec
     public String description;
 
     @Attribute("class")
-    public String clazz;
+    public String serverImpl;
+    private Class<?> serverImplClass;
 
     @Attribute("clientImpl")
     public String clientImpl;
@@ -43,6 +44,13 @@ public class ServerExtensionPointBean extends BaseKeyedLazyInstance<StreamConnec
         return clientClass;
     }
 
+    public Class getServerImpl() throws ClassNotFoundException {
+        if (serverImplClass == null) {
+            serverImplClass = getPluginDescriptor().getPluginClassLoader().loadClass(serverImpl);
+        }
+        return serverImplClass;
+    }
+
     public Class getServerInterface() throws ClassNotFoundException {
         if (serverClass == null) {
             serverClass = getPluginDescriptor().getPluginClassLoader().loadClass(serverInterface);
@@ -52,6 +60,6 @@ public class ServerExtensionPointBean extends BaseKeyedLazyInstance<StreamConnec
 
     @Override
     protected @Nullable String getImplementationClassName() {
-        return clazz;
+        return serverImpl;
     }
 }
