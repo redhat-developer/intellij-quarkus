@@ -25,12 +25,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -270,7 +265,7 @@ public class LanguageServersRegistry {
     public Set<LanguageServerDefinition> getAllDefinitions() {
         return connections
                 .stream()
-                .map(definition -> definition.getValue())
+                .map(AbstractMap.SimpleEntry::getValue)
                 .collect(Collectors.toSet());
     }
 
