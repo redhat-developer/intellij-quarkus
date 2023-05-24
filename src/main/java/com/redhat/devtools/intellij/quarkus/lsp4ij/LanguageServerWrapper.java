@@ -22,12 +22,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.internal.SupportedFeatures;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.LanguageServerLifecycleManager;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.NullLanguageServerLifecycleManager;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.server.StreamConnectionProvider;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.ServerTrace;
 import com.redhat.devtools.intellij.quarkus.lsp4ij.settings.UserDefinedLanguageServerSettings;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.LanguageServerLifecycleManager;
+import com.redhat.devtools.intellij.quarkus.lsp4ij.lifecycle.NullLanguageServerLifecycleManager;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.JsonRpcException;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -128,6 +128,8 @@ public class LanguageServerWrapper {
     Map<String, Runnable> dynamicRegistrations = new HashMap<>();
     private boolean initiallySupportsWorkspaceFolders = false;
 
+    private boolean shouldLog;
+
     /* Backwards compatible constructor */
     public LanguageServerWrapper(@Nonnull Module project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition) {
         this(project, serverDefinition, null);
@@ -217,7 +219,7 @@ public class LanguageServerWrapper {
             }
         }
         if (this.initializeFuture == null) {
-            final boolean shouldLog = shouldLog(serverDefinition.id);
+            shouldLog = shouldLog(serverDefinition.id);
             final URI rootURI = getRootURI();
             this.launcherFuture = new CompletableFuture<>();
             this.initializeFuture = CompletableFuture.supplyAsync(() -> {
@@ -407,15 +409,18 @@ public class LanguageServerWrapper {
             timer.cancel();
             timer = null;
 
-            getLanguageServerLifecycleManager().onStartedLanguageServer(this, null);
+            if (shouldLog) {
+                getLanguageServerLifecycleManager().onStartedLanguageServer(this, null);
+            }
         }
     }
 
     private void startStopTimer() {
         timer = new Timer("Stop Language Server Timer"); //$NON-NLS-1$
 
-        getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
-
+        if (shouldLog) {
+            getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
+        }
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -445,7 +450,9 @@ public class LanguageServerWrapper {
         if (alreadyStopping) {
             return;
         }
-        getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
+        if (shouldLog) {
+            getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
+        }
         removeStopTimer();
         if (this.languageClient != null) {
             this.languageClient.dispose();
@@ -492,8 +499,9 @@ public class LanguageServerWrapper {
             }
             this.stopping.set(false);
 
-            getLanguageServerLifecycleManager().onStoppedLanguageServer(this, null);
-
+            if (shouldLog) {
+                getLanguageServerLifecycleManager().onStoppedLanguageServer(this, null);
+            }
         };
 
         CompletableFuture.runAsync(shutdownKillAndStopFutureAndProvider);
