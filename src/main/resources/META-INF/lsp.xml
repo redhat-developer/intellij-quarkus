@@ -38,7 +38,7 @@
           <li><b>Java</b> files.</li>
           <li>and <b>microprofile-config.properties</b> files.</li>
         </ul>
-        This language server is extended with <a href="https://github.com/redhat-developer/quarkus-ls" >Quakus extension</a> to provide <a href="https://quarkus.io/">Quarkus</a> support in <b>application.properties</b> file.
+        This language server is extended with <a href="https://github.com/redhat-developer/quarkus-ls" >Quarkus extension</a> to provide <a href="https://quarkus.io/">Quarkus</a> support in <b>application.properties</b> file.
         ]]>
       </description>
     </server>
