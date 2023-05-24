@@ -220,7 +220,7 @@ public class LanguageServerWrapper {
             final URI rootURI = getRootURI();
             this.launcherFuture = new CompletableFuture<>();
             this.initializeFuture = CompletableFuture.supplyAsync(() -> {
-                this.lspStreamProvider = serverDefinition.createConnectionProvider();
+                this.lspStreamProvider = serverDefinition.createConnectionProvider(initialProject.getProject());
                 initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
                 try {
                     // Starting process...

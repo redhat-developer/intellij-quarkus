@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 
 /**
  * Language server registry.
- *
  */
 public class LanguageServersRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServersRegistry.class);
@@ -52,7 +51,7 @@ public class LanguageServersRegistry {
             this.label = label;
             this.description = description;
             this.isSingleton = isSingleton;
-            this.lastDocumentDisconnectedTimeout = lastDocumentDisconnectedTimeout != null  && lastDocumentDisconnectedTimeout > 0 ? lastDocumentDisconnectedTimeout : DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT;
+            this.lastDocumentDisconnectedTimeout = lastDocumentDisconnectedTimeout != null && lastDocumentDisconnectedTimeout > 0 ? lastDocumentDisconnectedTimeout : DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT;
             this.languageIdMappings = new ConcurrentHashMap<>();
         }
 
@@ -65,7 +64,7 @@ public class LanguageServersRegistry {
             return label != null ? label : id;
         }
 
-        public abstract StreamConnectionProvider createConnectionProvider();
+        public abstract StreamConnectionProvider createConnectionProvider(Project project);
 
         public LanguageClientImpl createLanguageClient(Project project) {
             return new LanguageClientImpl(project);
@@ -89,9 +88,15 @@ public class LanguageServersRegistry {
         }
 
         @Override
-        public StreamConnectionProvider createConnectionProvider() {
+        public StreamConnectionProvider createConnectionProvider(Project project) {
+            String serverImpl = extension.getImplementationClassName();
+            if (serverImpl == null || serverImpl.isEmpty()) {
+                throw new RuntimeException(
+                        "Exception occurred while creating an instance of the stream connection provider, you have to define server/@class attribute in the extension point."); //$NON-NLS-1$
+            }
             try {
-                return extension.getInstance();
+                return (StreamConnectionProvider) project.instantiateClass(extension.getServerImpl(),
+                        extension.getPluginDescriptor().getPluginId());
             } catch (Exception e) {
                 throw new RuntimeException(
                         "Exception occurred while creating an instance of the stream connection provider", e); //$NON-NLS-1$
@@ -117,17 +122,18 @@ public class LanguageServersRegistry {
         public Class<? extends LanguageServer> getServerInterface() {
             String serverInterface = extension.serverInterface;
             if (serverInterface != null && !serverInterface.isEmpty()) {
-                    try {
-                        return (Class<? extends LanguageServer>) (Class<?>)extension.getServerInterface();
-                    } catch (ClassNotFoundException exception) {
-                        LOGGER.warn(exception.getLocalizedMessage(), exception);
-                    }
+                try {
+                    return (Class<? extends LanguageServer>) (Class<?>) extension.getServerInterface();
+                } catch (ClassNotFoundException exception) {
+                    LOGGER.warn(exception.getLocalizedMessage(), exception);
                 }
-            return super.getServerInterface();
             }
+            return super.getServerInterface();
         }
+    }
 
     private static LanguageServersRegistry INSTANCE = null;
+
     public static LanguageServersRegistry getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new LanguageServersRegistry();
@@ -203,7 +209,8 @@ public class LanguageServersRegistry {
         return this.connections.stream().filter(mapping -> mapping.getValue() instanceof ExtensionLanguageServerDefinition).collect(Collectors.toList());
     }
 
-    public @Nullable LanguageServerDefinition getDefinition(@NonNull String languageServerId) {
+    public @Nullable
+    LanguageServerDefinition getDefinition(@NonNull String languageServerId) {
         for (ContentTypeToLanguageServerDefinition mapping : this.connections) {
             if (mapping.getValue().id.equals(languageServerId)) {
                 return mapping.getValue();
