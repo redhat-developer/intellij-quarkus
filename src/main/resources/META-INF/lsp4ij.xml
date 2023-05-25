@@ -1,5 +1,6 @@
 <idea-plugin>
 
+  <!-- LSP extension points -->
   <extensionPoints>
     <extensionPoint name="server" beanClass="com.redhat.devtools.intellij.lsp4ij.ServerExtensionPointBean">
       <with attribute="clientClass" implements="com.redhat.devtools.intellij.lsp4ij.LanguageClientImpl"/>
@@ -9,6 +10,7 @@
     <extensionPoint name="serverIconProvider" beanClass="com.redhat.devtools.intellij.lsp4ij.ServerIconProviderExtensionPointBean"/>
   </extensionPoints>
 
+  <!-- LSP consoles -->
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable groupId="language"
                            id="LanguageServers"
