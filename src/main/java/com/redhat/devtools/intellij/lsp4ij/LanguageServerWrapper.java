@@ -99,7 +99,7 @@ public class LanguageServerWrapper {
     @Nonnull
     public final LanguageServersRegistry.LanguageServerDefinition serverDefinition;
     @Nullable
-    protected final Module initialProject;
+    protected final Project initialProject;
     @Nonnull
     protected final Set<Module> allWatchedProjects;
     @Nonnull
@@ -129,7 +129,7 @@ public class LanguageServerWrapper {
     private boolean initiallySupportsWorkspaceFolders = false;
 
     /* Backwards compatible constructor */
-    public LanguageServerWrapper(@Nonnull Module project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition) {
+    public LanguageServerWrapper(@Nonnull Project project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition) {
         this(project, serverDefinition, null);
     }
 
@@ -140,7 +140,7 @@ public class LanguageServerWrapper {
     /**
      * Unified private constructor to set sensible defaults in all cases
      */
-    private LanguageServerWrapper(@Nullable Module project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition,
+    private LanguageServerWrapper(@Nullable Project project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition,
                                   @Nullable URI initialPath) {
         this.initialProject = project;
         this.initialPath = initialPath;
@@ -161,7 +161,7 @@ public class LanguageServerWrapper {
     }
 
     public Project getProject() {
-        return initialProject.getProject();
+        return initialProject;
     }
 
     void stopDispatcher() {
@@ -220,7 +220,7 @@ public class LanguageServerWrapper {
             final URI rootURI = getRootURI();
             this.launcherFuture = new CompletableFuture<>();
             this.initializeFuture = CompletableFuture.supplyAsync(() -> {
-                this.lspStreamProvider = serverDefinition.createConnectionProvider(initialProject.getProject());
+                this.lspStreamProvider = serverDefinition.createConnectionProvider(initialProject);
                 initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
                 try {
                     // Starting process...
@@ -235,7 +235,7 @@ public class LanguageServerWrapper {
                 }
                 return null;
             }).thenRun(() -> {
-                languageClient = serverDefinition.createLanguageClient(initialProject.getProject());
+                languageClient = serverDefinition.createLanguageClient(initialProject);
                 initParams.setProcessId(getParentProcessId());
 
                 if (rootURI != null) {
@@ -281,7 +281,7 @@ public class LanguageServerWrapper {
                         final Map<URI, Document> toReconnect = filesToReconnect;
                         initializeFuture.thenRunAsync(() -> {
                             if (this.initialProject != null) {
-                                watchProject(this.initialProject, true);
+                                //watchProject(this.initialProject, true);
                             }
                             for (Map.Entry<URI, Document> fileToReconnect : toReconnect.entrySet()) {
                                 try {
@@ -346,7 +346,7 @@ public class LanguageServerWrapper {
 
     @Nullable
     private URI getRootURI() {
-        final Module project = this.initialProject;
+        final Project project = this.initialProject;
         if (project != null && !project.isDisposed()) {
             return LSPIJUtils.toUri(project);
         }
@@ -509,7 +509,7 @@ public class LanguageServerWrapper {
         return null;
     }
 
-    protected synchronized void watchProject(Module project, boolean isInitializationRootProject) {
+    /*protected synchronized void watchProject(Module project, boolean isInitializationRootProject) {
         if (this.allWatchedProjects.contains(project)) {
             return;
         }
@@ -535,14 +535,14 @@ public class LanguageServerWrapper {
                 unwatchProject(project);
             }
         }, IResourceChangeEvent.POST_CHANGE);*/
-        if (supportsWorkspaceFolderCapability()) {
+      /*  if (supportsWorkspaceFolderCapability()) {
             WorkspaceFoldersChangeEvent event = new WorkspaceFoldersChangeEvent();
             event.getAdded().add(LSPIJUtils.toWorkspaceFolder(project));
             DidChangeWorkspaceFoldersParams params = new DidChangeWorkspaceFoldersParams();
             params.setEvent(event);
             this.languageServer.getWorkspaceService().didChangeWorkspaceFolders(params);
         }
-    }
+    }*/
 
     private synchronized void unwatchProject(@Nonnull Module project) {
         this.allWatchedProjects.remove(project);
@@ -585,7 +585,7 @@ public class LanguageServerWrapper {
      * @return whether this language server can operate on the given project
      * @since 0.5
      */
-    public boolean canOperate(Module project) {
+    public boolean canOperate(Project project) {
         if (project != null && (project.equals(this.initialProject) || this.allWatchedProjects.contains(project))) {
             return true;
         }
@@ -624,7 +624,7 @@ public class LanguageServerWrapper {
 
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
         if (file != null && file.exists()) {
-            watchProject(LSPIJUtils.getProject(file), false);
+            //watchProject(LSPIJUtils.getProject(file), false);
         }
 
         if (this.connectedDocuments.containsKey(thePath)) {
@@ -690,7 +690,7 @@ public class LanguageServerWrapper {
         for (URI path : connectedDocuments.keySet()) {
             VirtualFile foundFiles = LSPIJUtils.findResourceFor(path);
             if (foundFiles != null) {
-                Language fileLanguage = LSPIJUtils.getFileLanguage(foundFiles, initialProject.getProject());
+                Language fileLanguage = LSPIJUtils.getFileLanguage(foundFiles, initialProject);
                 if (fileLanguage.isKindOf(language)) {
                     pathsToDisconnect.add(path);
                 }
@@ -956,7 +956,7 @@ public class LanguageServerWrapper {
     }
 
     private LanguageServerLifecycleManager getLanguageServerLifecycleManager() {
-        Project project = initialProject.getProject();
+        Project project = initialProject;
         if (project.isDisposed()) {
             return NullLanguageServerLifecycleManager.INSTANCE;
         }

@@ -146,7 +146,7 @@ public class LSPDiagnosticsForServer {
                                     return;
                                 }
                                 ApplicationManager.getApplication().runReadAction(() -> {
-                                    Project project = LSPIJUtils.getProject(file).getProject();
+                                    Project project = LSPIJUtils.getProject(file);
                                     if (project.isDisposed()) {
                                         return;
                                     }

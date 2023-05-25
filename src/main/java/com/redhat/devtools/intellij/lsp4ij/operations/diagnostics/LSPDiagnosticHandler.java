@@ -15,7 +15,6 @@ package com.redhat.devtools.intellij.lsp4ij.operations.diagnostics;
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -48,11 +47,7 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             if (file == null) {
                 return;
             }
-            Module module = LSPIJUtils.getProject(file);
-            if (module == null) {
-                return;
-            }
-            Project project = module.getProject();
+            Project project = LSPIJUtils.getProject(file);
             if (project.isDisposed()) {
                 return;
             }
@@ -68,7 +63,7 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             // Trigger Intellij validation to execute
             // {@link LSPDiagnosticAnnotator}.
             // which translates LSP Diagnostics into Intellij Annotation
-            DaemonCodeAnalyzer.getInstance(module.getProject()).restart(psiFile);
+            DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
         });
     }
 }

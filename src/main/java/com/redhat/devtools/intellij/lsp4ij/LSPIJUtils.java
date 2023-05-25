@@ -136,11 +136,11 @@ public class LSPIJUtils {
         return FileDocumentManager.getInstance().getDocument(docFile);
     }
 
-    public static Module getProject(VirtualFile file) {
+    public static Project getProject(VirtualFile file) {
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
             Module module = ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file));
             if (module != null) {
-                return module;
+                return project;
             }
         }
         return null;
@@ -169,6 +169,11 @@ public class LSPIJUtils {
 
     public static URI toUri(Module project) {
         File file = new File(project.getModuleFilePath()).getParentFile();
+        return file.toURI();
+    }
+
+    public static URI toUri(Project project) {
+        File file = new File(project.getProjectFilePath()).getParentFile();
         return file.toURI();
     }
 
@@ -318,8 +323,8 @@ public class LSPIJUtils {
     }
 
     public static Editor[] editorsForFile(VirtualFile file, Document document) {
-        Module module = LSPIJUtils.getProject(file);
-        return module != null ? EditorFactory.getInstance().getEditors(document, module.getProject()) : new Editor[0];
+        Project project = LSPIJUtils.getProject(file);
+        return project != null ? EditorFactory.getInstance().getEditors(document, project) : new Editor[0];
     }
 
     public static Editor editorForFile(VirtualFile file) {

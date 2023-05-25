@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.server.StreamConnectionProvider;
 import org.eclipse.lsp4j.ServerCapabilities;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -295,7 +296,7 @@ public class LanguageServiceAccessor {
     public Collection<LanguageServerWrapper> getLSWrappers(@Nonnull VirtualFile file,
                                                                   @Nullable Predicate<ServerCapabilities> request) throws IOException {
         LinkedHashSet<LanguageServerWrapper> res = new LinkedHashSet<>();
-        Module project = LSPIJUtils.getProject(file);
+        Project project = LSPIJUtils.getProject(file);
         if (project == null) {
             return res;
         }
@@ -305,7 +306,7 @@ public class LanguageServiceAccessor {
         // look for running language servers via content-type
         Queue<Language> contentTypes = new LinkedList<>();
         Set<Language> addedContentTypes = new HashSet<>();
-        contentTypes.add(LSPIJUtils.getFileLanguage(file, project.getProject()));
+        contentTypes.add(LSPIJUtils.getFileLanguage(file, project));
         addedContentTypes.addAll(contentTypes);
 
         while (!contentTypes.isEmpty()) {
@@ -375,7 +376,7 @@ public class LanguageServiceAccessor {
                         // we already checked a compatible LS with this definition
                         continue;
                     }
-                    final Module fileProject = file != null ? LSPIJUtils.getProject(file) : null;
+                    final Project fileProject = file != null ? LSPIJUtils.getProject(file) : null;
                     if (fileProject != null) {
                         LanguageServerWrapper wrapper = new LanguageServerWrapper(fileProject, serverDefinition);
                         startedServers.add(wrapper);
@@ -402,13 +403,13 @@ public class LanguageServiceAccessor {
      * @deprecated
      */
     @Deprecated
-    public LanguageServerWrapper getLSWrapperForConnection(@Nonnull Module project,
+    public LanguageServerWrapper getLSWrapperForConnection(@Nonnull Project project,
                                                                   @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition) throws IOException {
         return getLSWrapperForConnection(project, serverDefinition, null);
     }
 
     @Deprecated
-    private LanguageServerWrapper getLSWrapperForConnection(@Nonnull Module project,
+    private LanguageServerWrapper getLSWrapperForConnection(@Nonnull Project project,
                                                                    @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition, @Nullable URI initialPath) throws IOException {
         LanguageServerWrapper wrapper = null;
 
@@ -453,7 +454,7 @@ public class LanguageServiceAccessor {
 
     private @Nonnull
     List<LanguageServerWrapper> getStartedLSWrappers(
-            @Nonnull Module project) {
+            @Nonnull Project project) {
         return startedServers.stream().filter(wrapper -> wrapper.canOperate(project))
                 .collect(Collectors.toList());
         // TODO multi-root: also return servers which support multi-root?
@@ -503,7 +504,7 @@ public class LanguageServiceAccessor {
      * @return list of Language Servers
      */
     @Nonnull
-    public List<LanguageServer> getLanguageServers(@Nonnull Module project,
+    public List<LanguageServer> getLanguageServers(@Nonnull Project project,
                                                           Predicate<ServerCapabilities> request) {
         return getLanguageServers(project, request, false);
     }
@@ -517,7 +518,7 @@ public class LanguageServiceAccessor {
      * @return list of Language Servers
      */
     @Nonnull
-    public List<LanguageServer> getLanguageServers(@Nullable Module project,
+    public List<LanguageServer> getLanguageServers(@Nullable Project project,
                                                           Predicate<ServerCapabilities> request, boolean onlyActiveLS) {
         List<LanguageServer> serverInfos = new ArrayList<>();
         for (LanguageServerWrapper wrapper : startedServers) {
