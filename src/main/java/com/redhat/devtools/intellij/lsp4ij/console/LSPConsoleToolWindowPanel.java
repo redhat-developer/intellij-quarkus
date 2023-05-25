@@ -13,17 +13,21 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.console;
 
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.ui.CardLayoutPanel;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.FormBuilder;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UI;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerBundle;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServersRegistry;
@@ -32,9 +36,11 @@ import com.redhat.devtools.intellij.lsp4ij.console.explorer.LanguageServerProces
 import com.redhat.devtools.intellij.lsp4ij.console.explorer.LanguageServerTreeNode;
 import com.redhat.devtools.intellij.lsp4ij.settings.ServerTrace;
 import com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.*;
 
 /**
  * LSP consoles
@@ -130,10 +136,27 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
                 add(createDetailPanel((LanguageServerTreeNode) key), NAME_VIEW_DETAIL);
                 showDetail();
             } else if (key instanceof LanguageServerProcessTreeNode) {
-                consoleView = createConsoleView(project);
-                add(consoleView.getComponent(), NAME_VIEW_CONSOLE);
+                consoleView = createConsoleView(((LanguageServerProcessTreeNode)key).getLanguageServer().serverDefinition, project);
+                JComponent consoleComponent = consoleView.getComponent();
+                add(consoleComponent, NAME_VIEW_CONSOLE);
+                configureToolbar(consoleComponent);
                 showConsole();
             }
+        }
+
+        /**
+         * Configure console toolbar on the right of the console to provide some action like "Scroll to End", "Clean", etc
+         *
+         * @param consoleComponent
+         */
+        private void configureToolbar(JComponent consoleComponent) {
+            DefaultActionGroup myToolbarActions = new DefaultActionGroup();
+            myToolbarActions.addAll(consoleView.createConsoleActions());
+
+            ActionToolbar tb = ActionManager.getInstance().createActionToolbar("LSP Console", myToolbarActions, false);
+            tb.setTargetComponent(consoleComponent);
+            tb.getComponent().setBorder(JBUI.Borders.merge(tb.getComponent().getBorder(), JBUI.Borders.customLine(OnePixelDivider.BACKGROUND, 0, 0, 0, 1), true));
+            consoleComponent.add(tb.getComponent(), BorderLayout.EAST);
         }
 
         private JComponent createDetailPanel(LanguageServerTreeNode key) {
@@ -185,8 +208,8 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         }
     }
 
-    private ConsoleView createConsoleView(Project project) {
-        var builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
+    private ConsoleView createConsoleView(@NotNull LanguageServersRegistry.LanguageServerDefinition serverDefinition, @NotNull Project project) {
+        var builder = new LSPTextConsoleBuilderImpl(serverDefinition, project);
         builder.setViewer(true);
         return builder.getConsole();
     }
