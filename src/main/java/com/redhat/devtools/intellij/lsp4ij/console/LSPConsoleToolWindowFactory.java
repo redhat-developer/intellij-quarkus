@@ -13,6 +13,7 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.console;
 
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Angelo ZERR
  */
-public class LSPConsoleToolWindowFactory implements ToolWindowFactory {
+public class LSPConsoleToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
