@@ -31,7 +31,7 @@ public class QuarkusConstants {
     public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
 
     /**
-     * As ConfigProperties is not part anymore of Quarkus since 3.0.3.Final,
+     * As ConfigProperties is not part anymore of Quarkus since 3.0.4.Final,
      * we defined this constant to be compatible with project based on previous Quarkus
      * releases
      */
