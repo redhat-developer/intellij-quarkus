@@ -39,6 +39,7 @@
     <completion.contributor id="LSPCompletionContributor" language="any" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.completion.LSContentAssistProcessor" order="first"/>
     <inspectionToolProvider implementation="com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPInspectionToolProvider"/>
     <gotoDeclarationHandler implementation="com.redhat.devtools.intellij.lsp4ij.operations.navigation.LSPGotoDeclarationHandler"/>
+    <gotoDeclarationHandler implementation="com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkGotoDeclarationHandler"/>
     <highlightUsagesHandlerFactory implementation="com.redhat.devtools.intellij.lsp4ij.operations.highlight.LSPHighlightUsagesHandlerFactory"/>
   </extensions>
 

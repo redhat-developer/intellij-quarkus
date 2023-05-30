@@ -27,11 +27,12 @@
     <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <externalAnnotator language="Properties"
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
-
     <lang.documentationProvider id="LSPTextHoverJAVA" language="JAVA" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <codeInsight.inlayProvider language="JAVA" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
     <externalAnnotator language="JAVA"
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
+    <externalAnnotator language="JAVA"
+                       implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkAnnotator"/>
   </extensions>
 
 </idea-plugin>

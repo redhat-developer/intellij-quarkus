@@ -54,10 +54,9 @@ public class LSPDiagnosticAnnotator extends ExternalAnnotator<LSPVirtualFileWrap
     }
 
     @Override
-    public void apply(@NotNull PsiFile file, LSPVirtualFileWrapper editorWrapper, @NotNull AnnotationHolder holder) {
+    public void apply(@NotNull PsiFile file, LSPVirtualFileWrapper wrapper, @NotNull AnnotationHolder holder) {
         // Get current LSP diagnostics of the current file
-        LSPVirtualFileWrapper fileWrapper = LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file.getVirtualFile());
-        final Collection<LSPDiagnosticsForServer> diagnosticsPerServer = fileWrapper.getAllDiagnostics();
+        final Collection<LSPDiagnosticsForServer> diagnosticsPerServer = wrapper.getAllDiagnostics();
         Document document = LSPIJUtils.getDocument(file.getVirtualFile());
 
         // Loop for language server which report diagnostics for the given file
@@ -75,15 +74,13 @@ public class LSPDiagnosticAnnotator extends ExternalAnnotator<LSPVirtualFileWrap
     }
 
     private static boolean createAnnotation(Diagnostic diagnostic, Document document, LSPDiagnosticsForServer diagnosticsForServer, AnnotationHolder holder) {
-        final int start = LSPIJUtils.toOffset(diagnostic.getRange().getStart(), document);
-        final int end = LSPIJUtils.toOffset(diagnostic.getRange().getEnd(), document);
-        if (start >= end) {
+        TextRange range = LSPIJUtils.toTextRange(diagnostic.getRange(), document);
+        if (range == null) {
             // Language server reports invalid diagnostic, ignore it.
             return false;
         }
         // Collect information required to create Intellij Annotations
         HighlightSeverity severity = toHighlightSeverity(diagnostic.getSeverity());
-        TextRange range = new TextRange(start, end);
         String message = diagnostic.getMessage();
         List<IntentionAction> fixes = diagnosticsForServer.getQuickFixesFor(diagnostic);
         

@@ -22,6 +22,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
@@ -51,7 +52,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
         Editor editor = parameters.getEditor();
         Project project = parameters.getOriginalFile().getProject();
         int offset = parameters.getOffset();
-        CompletableFuture<List<LanguageServer>> completionLanguageServersFuture = initiateLanguageServers(project, document);
+        CompletableFuture<List<Pair<LanguageServerWrapper, LanguageServer>>> completionLanguageServersFuture = initiateLanguageServers(project, document);
         CompletionParams param;
         try {
             /*
@@ -63,8 +64,8 @@ public class LSContentAssistProcessor extends CompletionContributor {
             BlockingDeque<Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer>> proposals = new LinkedBlockingDeque<>();
             CompletableFuture<Void> future = completionLanguageServersFuture
                     .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
-                            .map(languageServer -> languageServer.getTextDocumentService().completion(param)
-                                    .thenAcceptAsync(completion -> proposals.add(new Pair<>(completion, languageServer))))
+                            .map(languageServer -> languageServer.getSecond().getTextDocumentService().completion(param)
+                                    .thenAcceptAsync(completion -> proposals.add(new Pair<>(completion, languageServer.getSecond()))))
                             .toArray(CompletableFuture[]::new)));
             while (!future.isDone() || !proposals.isEmpty()) {
                 ProgressManager.checkCanceled();
@@ -108,7 +109,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
         return LookupElementBuilder.create("Error while computing completion", "");
     }
 
-    private CompletableFuture<List<LanguageServer>> initiateLanguageServers(Project project, Document document) {
+    private CompletableFuture<List<Pair<LanguageServerWrapper, LanguageServer>>> initiateLanguageServers(Project project, Document document) {
         return LanguageServiceAccessor.getInstance(project).getLanguageServers(document,
                 capabilities -> {
                     CompletionOptions provider = capabilities.getCompletionProvider();
