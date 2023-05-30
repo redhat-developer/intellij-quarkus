@@ -161,8 +161,8 @@ dependencies {
     lsp ('com.redhat.microprofile:com.redhat.quarkus.ls:0.13.0') {
         transitive = false
     }
-    implementation 'com.redhat.microprofile:com.redhat.qute.ls:0.13.0'
-    lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.13.0:uber') {
+    implementation 'com.redhat.microprofile:com.redhat.qute.ls:0.14.0'
+    lsp ('com.redhat.microprofile:com.redhat.qute.ls:0.14.0:uber') {
         transitive = false
     }
     implementation files(new File(buildDir, 'server')) {

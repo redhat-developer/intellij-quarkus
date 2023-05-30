@@ -17,6 +17,7 @@ import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiLiteral;
 import com.intellij.psi.PsiType;
 
+import com.redhat.qute.commons.datamodel.DataModelBaseTemplate;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
@@ -48,9 +49,9 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
  */
 public class TemplateDataCollector extends TemplateDataVisitor {
 
-	private final DataModelTemplate<DataModelParameter> template;
+	private final DataModelBaseTemplate<DataModelParameter> template;
 
-	public TemplateDataCollector(DataModelTemplate<DataModelParameter> template, ProgressIndicator monitor) {
+	public TemplateDataCollector(DataModelBaseTemplate<DataModelParameter> template, ProgressIndicator monitor) {
 		this.template = template;
 	}
 

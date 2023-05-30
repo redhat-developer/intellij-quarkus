@@ -377,7 +377,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		ValueResolverInfo resolver = result.get();
 		Assert.assertEquals(namespace, resolver.getNamespace());
 		Assert.assertEquals(signature, resolver.getSignature());
-		Assert.assertEquals(sourceType, resolver.getSourceType());
+		Assert.assertEquals("Expect " + sourceType + " but was " + resolver.getSourceType() + " for " + namespace + ":" + signature, sourceType, resolver.getSourceType());
 		Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
 	}
 
