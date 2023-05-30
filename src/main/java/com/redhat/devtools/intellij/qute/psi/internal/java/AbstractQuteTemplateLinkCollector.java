@@ -17,17 +17,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.PsiLiteralValue;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
@@ -35,6 +25,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.AnnotationLocationSupport;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.TemplatePathInfo;
 import org.eclipse.lsp4j.Range;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +36,7 @@ import java.util.logging.Logger;
 
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION;
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.OLD_CHECKED_TEMPLATE_ANNOTATION;
+import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS;
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.TEMPLATE_CLASS;
 
 /**
@@ -113,7 +105,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 							.getLocationExpressionFromConstructorParameter(node.getName());
 				}
 				String fieldName = node.getName();
-				collectTemplateLink(node, locationExpression, getTypeDeclaration(node), null, fieldName);
+				collectTemplateLink(node, locationExpression, getTypeDeclaration(node), null, fieldName, false);
 			}
 		super.visitField(node);
 	}
@@ -141,8 +133,9 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 				// @CheckedTemplate
 				// public static class Templates {
 				// public static native TemplateInstance book(Book book);
+				boolean ignoreFragments = isIgnoreFragments(annotation);
 				for(PsiMethod method : node.getMethods()) {
-					collectTemplateLink(method, node);
+					collectTemplateLink(method, node, ignoreFragments );
 				}
 			}
 		}
@@ -150,37 +143,68 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 		levelTypeDecl--;
 	}
 
+	/**
+	 * Returns true if @CheckedTemplate annotation declares that fragment must be
+	 * ignored and false otherwise.
+	 *
+	 * <code>
+	 * @CheckedTemplate(ignoreFragments=true)
+	 * </code>
+	 *
+	 * @param checkedTemplateAnnotation the CheckedTemplate annotation.
+	 *
+	 * @return true if @CheckedTemplate annotation declares that fragment must be
+	 *         ignored and false otherwise.
+	 */
+	private static boolean isIgnoreFragments(PsiAnnotation checkedTemplateAnnotation) {
+		Boolean ignoreFragment = null;
+		try {
+			for(PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
+				if (CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS.equalsIgnoreCase(pair.getAttributeName())) {
+					ignoreFragment = AnnotationUtils.getValueAsBoolean(pair);
+				}
+			}
+		} catch (Exception e) {
+			// Do nothing
+		}
+		return ignoreFragment != null ? ignoreFragment.booleanValue() : false;
+	}
+
 	private static PsiClass getTypeDeclaration(PsiElement node) {
 		return PsiTreeUtil.getParentOfType(node, PsiClass.class);
 	}
 
 
-	private void collectTemplateLink(PsiMethod methodDeclaration, PsiClass type) {
+	private void collectTemplateLink(PsiMethod methodDeclaration, PsiClass type, boolean ignoreFragments) {
 		String className = null;
 		boolean innerClass = levelTypeDecl > 1;
 		if (innerClass) {
 			className = PsiTypeUtils.getSimpleClassName(typeRoot.getName());
 		}
 		String methodName = methodDeclaration.getName();
-		collectTemplateLink(methodDeclaration, null, type, className, methodName);
+		collectTemplateLink(methodDeclaration, null, type, className, methodName, ignoreFragments );
 	}
 
 	private void collectTemplateLink(PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className,
-									 String fieldOrMethodName) {
+									 String fieldOrMethodName, boolean ignoreFragment ) {
 		try {
 			String location = locationAnnotation != null && locationAnnotation.getValue() instanceof String ? (String) locationAnnotation.getValue() : null;
 			Module project = utils.getModule();
-			String templateFilePath = location != null ? PsiQuteProjectUtils.getTemplatePath(null, location)
-					: PsiQuteProjectUtils.getTemplatePath(className, fieldOrMethodName);
+			TemplatePathInfo templatePathInfo = location != null
+					? PsiQuteProjectUtils.getTemplatePath(null, location, ignoreFragment)
+					: PsiQuteProjectUtils.getTemplatePath(className, fieldOrMethodName, ignoreFragment);
+
 			VirtualFile templateFile = null;
 			if (location == null) {
-				templateFile = getTemplateFile(project, templateFilePath);
-				templateFilePath = getRelativePath(templateFilePath, templateFile, project);
+				templateFile = getTemplateFile(project, templatePathInfo.getTemplateUri());
+				templatePathInfo = new TemplatePathInfo(
+						getRelativePath(templatePathInfo.getTemplateUri(), templateFile, project),
+						templatePathInfo.getFragmentId());
 			} else {
-				templateFile = getVirtualFile(project, templateFilePath, "");
+				templateFile = getVirtualFile(project, templatePathInfo.getTemplateUri(), "");
 			}
 			collectTemplateLink(fieldOrMethod, locationAnnotation, type, className, fieldOrMethodName, location,
-					templateFile, templateFilePath);
+					templateFile, templatePathInfo);
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.WARNING, "Error while creating Qute CodeLens for Java file.", e);
 		}
@@ -245,7 +269,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 	}
 
 	protected abstract void collectTemplateLink(PsiElement node, PsiLiteralValue locationAnnotation, PsiClass type,
-												String className, String fieldOrMethodName, String location, VirtualFile templateFile, String templateFilePath);
+												String className, String fieldOrMethodName, String location, VirtualFile templateFile, TemplatePathInfo templatePathInfo);
 
 	private static boolean isTemplateType(PsiType type) {
 		if (type instanceof PsiClassType) {

@@ -69,4 +69,22 @@ public class PsiQuteProjectUtils {
 		}
 		return path.append(methodOrFieldName).toString();
 	}
+
+	public static TemplatePathInfo getTemplatePath(String className, String methodOrFieldName, boolean ignoreFragments) {
+		String fragmentId = null;
+		StringBuilder templateUri = new StringBuilder(TEMPLATES_BASE_DIR);
+		if (className != null) {
+			templateUri.append(className);
+			templateUri.append('/');
+			if (!ignoreFragments) {
+				int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
+				if (fragmentIndex != -1) {
+					fragmentId = methodOrFieldName.substring(fragmentIndex + 1, methodOrFieldName.length());
+					methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
+				}
+			}
+		}
+		templateUri.append(methodOrFieldName);
+		return new TemplatePathInfo(templateUri.toString(), fragmentId);
+	}
 }
