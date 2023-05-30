@@ -66,7 +66,7 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
                             capabilities -> LSPIJUtils.hasCapability(capabilities.getDocumentHighlightProvider()))
                     .thenAcceptAsync(languageServers ->
                             CompletableFuture.allOf(languageServers.stream()
-                                    .map(languageServer -> languageServer.getTextDocumentService().documentHighlight(params))
+                                    .map(languageServer -> languageServer.getSecond().getTextDocumentService().documentHighlight(params))
                                     .map(request -> request.thenAcceptAsync(result -> {
                                         if (result != null) {
                                             result.forEach(hightlight -> highlights.add(hightlight));

@@ -17,13 +17,17 @@ package com.redhat.devtools.intellij.lsp4ij;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticsForServer;
+import com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkForServer;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DocumentLink;
 
 import java.util.List;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * LSP wrapper for VirtualFile which maintains the current diagnostics
@@ -37,11 +41,11 @@ public class LSPVirtualFileWrapper {
 
     private final VirtualFile file;
 
-    private final Map<LanguageServerWrapper, LSPDiagnosticsForServer /* current diagnostics */> diagnosticsPerServer;
+    private final Map<LanguageServerWrapper, LSPVirtualFileData /* current LSP data (diagnostics, documentLink, etc) */> dataPerServer;
 
     LSPVirtualFileWrapper(VirtualFile file) {
         this.file = file;
-        this.diagnosticsPerServer = new HashMap<>();
+        this.dataPerServer = new HashMap<>();
     }
 
     public VirtualFile getFile() {
@@ -57,11 +61,7 @@ public class LSPVirtualFileWrapper {
      * @param languageServerWrapper the language server id which has published those diagnostics.
      */
     public void updateDiagnostics(List<Diagnostic> diagnostics, LanguageServerWrapper languageServerWrapper) {
-        LSPDiagnosticsForServer diagnosticsForServer = diagnosticsPerServer.get(languageServerWrapper);
-        if (diagnosticsForServer == null) {
-            diagnosticsForServer = new LSPDiagnosticsForServer(languageServerWrapper, getFile());
-            diagnosticsPerServer.put(languageServerWrapper, diagnosticsForServer);
-        }
+        LSPDiagnosticsForServer diagnosticsForServer = getLSPVirtualFileData(languageServerWrapper).getLSPDiagnosticsForServer();
         diagnosticsForServer.update(diagnostics);
     }
 
@@ -71,17 +71,67 @@ public class LSPVirtualFileWrapper {
      * @return all current diagnostics reported by all language servers mapped with the file.
      */
     public Collection<LSPDiagnosticsForServer> getAllDiagnostics() {
-        if (diagnosticsPerServer.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return diagnosticsPerServer.values();
+        return getData(LSPVirtualFileData::getLSPDiagnosticsForServer);
     }
 
-    public void dispose() {
-        this.diagnosticsPerServer.clear();
+    // ------------------------ LSP textDocument/documentLink
+
+    /**
+     * Update the new collected documentLinks for the given language server id.
+     *
+     * @param documentLinks           the new documentLink list
+     * @param languageServerWrapper the language server id which has collected those documentLinks.
+     */
+    public void updateDocumentLink(List<DocumentLink> documentLinks, LanguageServerWrapper languageServerWrapper) {
+        LSPDocumentLinkForServer documentLinkForServer = getLSPVirtualFileData(languageServerWrapper).getDocumentLinkForServer();
+        documentLinkForServer.update(documentLinks);
+    }
+
+    /**
+     * Returns all current document link reported by all language servers mapped with the file.
+     *
+     * @return all current document link reported by all language servers mapped with the file.
+     */
+    public Collection<LSPDocumentLinkForServer> getAllDocumentLink() {
+        return getData(LSPVirtualFileData::getDocumentLinkForServer);
+    }
+
+    // ------------------------ Other methods
+
+    private LSPVirtualFileData getLSPVirtualFileData(LanguageServerWrapper languageServerWrapper) {
+        LSPVirtualFileData dataForServer = dataPerServer.get(languageServerWrapper);
+        if (dataForServer != null) {
+            return dataForServer;
+        }
+        return getOrCreateLSPVirtualFileData(languageServerWrapper);
+    }
+
+    private synchronized LSPVirtualFileData getOrCreateLSPVirtualFileData(LanguageServerWrapper languageServerWrapper) {
+        LSPVirtualFileData dataForServer = dataPerServer.get(languageServerWrapper);
+        if (dataForServer != null) {
+            return dataForServer;
+        }
+        dataForServer = new LSPVirtualFileData(languageServerWrapper, getFile());
+        dataPerServer.put(languageServerWrapper, dataForServer);
+        return dataForServer;
+    }
+
+    private <T> Collection<T> getData(Function<LSPVirtualFileData, ? extends T> mapper) {
+        if (dataPerServer.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return dataPerServer
+                .values()
+                .stream()
+                .map(mapper)
+                .collect(Collectors.toList());
     }
 
     // ------------------------ Static accessor
+
+    public void dispose() {
+        this.dataPerServer.clear();
+    }
 
     /**
      * Returns the LSPVirtualFileWrapper for the given file.
@@ -105,6 +155,10 @@ public class LSPVirtualFileWrapper {
         wrapper = new LSPVirtualFileWrapper(file);
         file.putUserData(KEY, wrapper);
         return wrapper;
+    }
+
+    public static boolean hasWrapper(VirtualFile file) {
+        return file != null && file.getUserData(KEY) != null;
     }
 
     public static void dispose(VirtualFile file) {

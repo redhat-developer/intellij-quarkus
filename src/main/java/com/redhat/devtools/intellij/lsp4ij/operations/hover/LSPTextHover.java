@@ -15,13 +15,10 @@ import com.intellij.lang.documentation.ExternalDocumentationHandler;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.util.PsiUtilCore;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.vladsch.flexmark.html.HtmlRenderer;
@@ -196,7 +193,7 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
                             languageServers.stream()
                                     .map(languageServer -> {
                                         try {
-                                            return languageServer.getTextDocumentService()
+                                            return languageServer.getSecond().getTextDocumentService()
                                                     .hover(LSPIJUtils.toHoverParams(offset, document)).get();
                                         } catch (ExecutionException e) {
                                             LOGGER.warn(e.getLocalizedMessage(), e);

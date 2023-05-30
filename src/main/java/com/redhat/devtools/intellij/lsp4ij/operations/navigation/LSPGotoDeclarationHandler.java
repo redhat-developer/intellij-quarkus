@@ -27,7 +27,6 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImp
 import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
-import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -55,12 +54,12 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
         try {
             URI uri = LSPIJUtils.toUri(editor.getDocument());
             if (uri != null) {
-                DefinitionParams parms = new DefinitionParams(new TextDocumentIdentifier(uri.toString()), LSPIJUtils.toPosition(offset, editor.getDocument()));
+                DefinitionParams params = new DefinitionParams(LSPIJUtils.toTextDocumentIdentifier(uri), LSPIJUtils.toPosition(offset, editor.getDocument()));
                 Set<PsiElement> targets = new HashSet<>();
                 try {
                     LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(editor.getDocument(), capabilities -> LSPIJUtils.hasCapability(capabilities.getDefinitionProvider())).thenComposeAsync(servers ->
 
-                        CompletableFuture.allOf(servers.stream().map(server -> server.getTextDocumentService().definition(parms).thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
+                        CompletableFuture.allOf(servers.stream().map(server -> server.getSecond().getTextDocumentService().definition(params).thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
                         .toArray(CompletableFuture[]::new))).get(1_000, TimeUnit.MILLISECONDS);
                 } catch (ExecutionException | TimeoutException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);

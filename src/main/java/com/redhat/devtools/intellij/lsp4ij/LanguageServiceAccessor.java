@@ -7,6 +7,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.server.StreamConnectionProvider;
 import org.eclipse.lsp4j.ServerCapabilities;
@@ -561,20 +562,14 @@ public class LanguageServiceAccessor {
         return res;
     }
 
-    /**
-     * @param document
-     * @param filter
-     * @return
-     * @since 0.9
-     */
     @Nonnull
-    public CompletableFuture<List<LanguageServer>> getLanguageServers(@Nonnull Document document,
-                                                                             Predicate<ServerCapabilities> filter) {
+    public CompletableFuture<List<Pair<LanguageServerWrapper, LanguageServer>>> getLanguageServers(@Nonnull Document document,
+                                                                                                   Predicate<ServerCapabilities> filter) {
         URI uri = LSPIJUtils.toUri(document);
         if (uri == null) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
-        final List<LanguageServer> res = Collections.synchronizedList(new ArrayList<>());
+        final List<Pair<LanguageServerWrapper, LanguageServer>> res = Collections.synchronizedList(new ArrayList<>());
         try {
             return CompletableFuture.allOf(getLSWrappers(document).stream().map(wrapper ->
                     wrapper.getInitializedServer().thenComposeAsync(server -> {
@@ -588,15 +583,13 @@ public class LanguageServiceAccessor {
                         return CompletableFuture.completedFuture(null);
                     }).thenAccept(server -> {
                         if (server != null) {
-                            res.add(server);
+                            res.add(new Pair(wrapper, server));
                         }
                     })).toArray(CompletableFuture[]::new)).thenApply(theVoid -> res);
         } catch (final Exception e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return CompletableFuture.completedFuture(Collections.emptyList());
-
-
     }
 
     public boolean checkCapability(LanguageServer languageServer, Predicate<ServerCapabilities> condition) {

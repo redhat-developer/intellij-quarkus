@@ -74,12 +74,12 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
                         CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(project)
                                 .getLanguageServers(editor.getDocument(), capabilities -> capabilities.getCodeLensProvider() != null)
                                 .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
-                                        .map(languageServer -> languageServer.getTextDocumentService().codeLens(param)
+                                        .map(languageServer -> languageServer.getSecond().getTextDocumentService().codeLens(param)
                                                 .thenAcceptAsync(codeLenses -> {
                                                     // textDocument/codeLens may return null
                                                     if (codeLenses != null) {
                                                         codeLenses.stream().filter(Objects::nonNull)
-                                                                .forEach(codeLens -> pairs.add(new Pair(codeLens, languageServer)));
+                                                                .forEach(codeLens -> pairs.add(new Pair(codeLens, languageServer.getSecond())));
                                                     }
                                                 }))
                                         .toArray(CompletableFuture[]::new)));

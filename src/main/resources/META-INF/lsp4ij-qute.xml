@@ -40,6 +40,8 @@
     <codeInsight.inlayProvider language="TEXT" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
     <externalAnnotator language="Qute_"
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
+    <externalAnnotator language="Qute_"
+                       implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkAnnotator"/>
   </extensions>
 
 </idea-plugin>

@@ -57,6 +57,10 @@ public class LSPIJUtils {
 
     public static void openInEditor(String fileUri, Position position, Project project) {
         VirtualFile file = findResourceFor(fileUri);
+        openInEditor(file, position, project);
+    }
+
+    public static void openInEditor(VirtualFile file, Position position, Project project) {
         if (file != null) {
             if (position == null) {
                 FileEditorManager.getInstance(project).openFile(file, true);
@@ -138,7 +142,7 @@ public class LSPIJUtils {
         return FileDocumentManager.getInstance().getDocument(docFile);
     }
 
-    public static Module getProject(VirtualFile file) {
+    public static @Nullable Module getProject(VirtualFile file) {
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
             Module module = ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file));
             if (module != null) {
@@ -176,6 +180,24 @@ public class LSPIJUtils {
 
     public static Range toRange(TextRange range, Document document) {
         return new Range(LSPIJUtils.toPosition(range.getStartOffset(), document), LSPIJUtils.toPosition(range.getEndOffset(), document));
+    }
+
+    /**
+     * Returns the IJ {@link TextRange} from the given LSP range and null otherwise.
+     *
+     * @param range the LSP range to conert.
+     * @param document the document.
+     *
+     * @return the IJ {@link TextRange} from the given LSP range and null otherwise.
+     */
+    public static @Nullable TextRange toTextRange(Range range, Document document) {
+        final int start = LSPIJUtils.toOffset(range.getStart(), document);
+        final int end = LSPIJUtils.toOffset(range.getEnd(), document);
+        if (start >= end) {
+            // Language server reports invalid diagnostic, ignore it.
+            return null;
+        }
+        return new TextRange(start, end);
     }
 
     public static Location toLocation(PsiElement psiMember) {
@@ -238,10 +260,8 @@ public class LSPIJUtils {
                             }
                         } else {
                             try {
-                                URI targetURI = URI.create(createOperation.getUri());
-                                File f = new File(targetURI);
-                                f.createNewFile();
-                                VfsUtil.findFileByIoFile(f, true);
+                                String fileUri = createOperation.getUri();
+                                createFile(fileUri);
                             } catch (IOException e) {
                                 LOGGER.warn(e.getLocalizedMessage(), e);
                             }
@@ -271,6 +291,35 @@ public class LSPIJUtils {
             }
 
         }
+    }
+
+    /**
+     * Create the file with the given file Uri.
+     *
+     * @param fileUri the file Uri.
+     *
+     * @throws IOException
+     *
+     * @return the created virtual file and null otherwise.
+     */
+    public static @Nullable VirtualFile createFile(String fileUri) throws IOException {
+        URI targetURI = URI.create(fileUri);
+        return createFile(targetURI);
+    }
+
+    /**
+     * Create the file with the given file Uri.
+     *
+     * @param fileUri the file Uri.
+     *
+     * @throws IOException
+     *
+     * @return the created virtual file and null otherwise.
+     */
+    public static @Nullable VirtualFile createFile(URI fileUri) throws IOException {
+        File newFile = new File(fileUri);
+        newFile.createNewFile();
+        return VfsUtil.findFileByIoFile(newFile, true);
     }
 
     private static void applyWorkspaceEdit(Document document, List<TextEdit> edits) {

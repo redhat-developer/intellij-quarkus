@@ -76,12 +76,12 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
                         CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(psiElement.getProject())
                                 .getLanguageServers(editor.getDocument(), capabilities -> capabilities.getInlayHintProvider() != null)
                                 .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
-                                        .map(languageServer -> languageServer.getTextDocumentService().inlayHint(param)
+                                        .map(languageServer -> languageServer.getSecond().getTextDocumentService().inlayHint(param)
                                                 .thenAcceptAsync(inlayHints -> {
                                                     // textDocument/codeLens may return null
                                                     if (inlayHints != null) {
                                                         inlayHints.stream().filter(Objects::nonNull)
-                                                                .forEach(inlayHint -> pairs.add(new Pair(inlayHint, languageServer)));
+                                                                .forEach(inlayHint -> pairs.add(new Pair(inlayHint, languageServer.getSecond())));
                                                     }
                                                 }))
                                         .toArray(CompletableFuture[]::new)));
