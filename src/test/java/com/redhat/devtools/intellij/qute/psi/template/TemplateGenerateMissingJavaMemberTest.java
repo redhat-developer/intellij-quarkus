@@ -13,24 +13,16 @@ package com.redhat.devtools.intellij.qute.psi.template;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
-import org.eclipse.lsp4j.CreateFile;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.ResourceOperation;
-import org.eclipse.lsp4j.TextDocumentEdit;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
-import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -42,12 +34,11 @@ import java.util.regex.Pattern;
  * 
  * @author datho7561
  */
-public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingTestCase {
+public class TemplateGenerateMissingJavaMemberTest extends QuteMavenModuleImportingTestCase {
 
 	@Test
 	public void testGenerateField() throws Exception {
-
-		Module project = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.Field, "asdf", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
@@ -61,8 +52,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 
 	@Test
 	public void testUpdateVisibilityOfFieldSimple() throws Exception {
-
-		Module project = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.Field, "volume", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
@@ -76,8 +66,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 
 	@Test
 	public void testUpdateVisibilityOfFieldComplex() throws Exception {
-
-		Module project = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.Field, "identifier", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
@@ -92,8 +81,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 
 	@Test
 	public void testGenerateGetterWithNoMatchingField() throws Exception {
-
-		Module project = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.Getter, "asdf", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
@@ -107,8 +95,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 
 	@Test
 	public void testGenerateGetterWithMatchingField() throws Exception {
-
-		Module project = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.Getter, "identifier", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
@@ -126,7 +113,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 
 		String sep = System.lineSeparator();
 
-		Module project = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.CreateTemplateExtension, "asdf", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
@@ -140,8 +127,7 @@ public class TemplateGenerateMissingJavaMemberTest extends MavenModuleImportingT
 
 	@Test
 	public void testGenerateTemplateExtensionInExistingClass() throws Exception {
-
-		Module project = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.AppendTemplateExtension, "asdf", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart, "org.acme.qute.MyTemplateExtensions");

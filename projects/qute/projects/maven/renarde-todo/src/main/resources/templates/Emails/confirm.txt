@@ -1,0 +1,12 @@
+{#include email.txt}
+
+Welcome to Todos.
+
+You received this email because someone (hopefully you) wants to register on Todos.
+
+If you don't want to register, you can safely ignore this email.
+
+If you want to register, complete your registration by going to the following address:
+
+{uriabs:Login.confirm(user.confirmationCode)}
+{/include}

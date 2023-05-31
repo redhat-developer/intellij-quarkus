@@ -21,6 +21,7 @@ import com.redhat.qute.commons.datamodel.DataModelBaseTemplate;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
+import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVA_LANG_OBJECT_TYPE;
 /**
  * AST visitor used to collect {@link DataModelParameter} parameter for a given
  * {@link DataModelTemplate} template.
@@ -62,7 +63,7 @@ public class TemplateDataCollector extends TemplateDataVisitor {
 			paramName = ((PsiLiteral) name).getValue().toString();
 		}
 		if (paramName != null) {
-			String paramType = "java.lang.Object";
+			String paramType = JAVA_LANG_OBJECT_TYPE;
 			if (type instanceof PsiExpression) {
 				PsiType binding = ((PsiExpression) type).getType();
 				paramType = binding.getCanonicalText();

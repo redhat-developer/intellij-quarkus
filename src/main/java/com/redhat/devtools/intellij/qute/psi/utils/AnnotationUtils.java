@@ -31,8 +31,8 @@ public class AnnotationUtils {
 
 	private static final String ATTRIBUTE_VALUE = "value";
 
-	public static boolean hasAnnotation(PsiElement annotatable, String annotationName) {
-		return getAnnotation(annotatable, annotationName) != null;
+	public static boolean hasAnnotation(PsiElement annotatable, String... annotationNames) {
+		return getAnnotation(annotatable, annotationNames) != null;
 	}
 
 	/**
@@ -40,27 +40,29 @@ public class AnnotationUtils {
 	 * the given name <code>annotationName</code> and null otherwise.
 	 *
 	 * @param annotatable    the class, field which can be annotated.
-	 * @param annotationName the annotation name
+	 * @param annotationNames the annotation names
 	 * @return the annotation from the given <code>annotatable</code> element with
 	 *         the given name <code>annotationName</code> and null otherwise.
 	 */
-	public static PsiAnnotation getAnnotation(PsiElement annotatable, String annotationName) {
+	public static PsiAnnotation getAnnotation(PsiElement annotatable, String... annotationNames) {
 		if (annotatable == null) {
 			return null;
 		}
 		if (annotatable instanceof PsiAnnotationOwner) {
-			return getAnnotation(annotationName, ((PsiAnnotationOwner) annotatable).getAnnotations());
+			return getAnnotation(((PsiAnnotationOwner) annotatable).getAnnotations(), annotationNames);
 		} else if (annotatable instanceof PsiModifierListOwner) {
-			return getAnnotation(annotationName, ((PsiModifierListOwner) annotatable).getAnnotations());
+			return getAnnotation(((PsiModifierListOwner) annotatable).getAnnotations(), annotationNames);
 		}
 		return null;
 	}
 
 	@Nullable
-	private static PsiAnnotation getAnnotation(String annotationName, PsiAnnotation[] annotations) {
+	private static PsiAnnotation getAnnotation(PsiAnnotation[] annotations, String... annotationNames) {
 		for (PsiAnnotation annotation : annotations) {
-			if (isMatchAnnotation(annotation, annotationName)) {
-				return annotation;
+			for (String annotationName : annotationNames) {
+				if (isMatchAnnotation(annotation, annotationName)) {
+					return annotation;
+				}
 			}
 		}
 		return null;

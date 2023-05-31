@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{#insert title /}</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" media="screen" href="/webjars/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" media="screen" href="/webjars/bootstrap-icons/font/bootstrap-icons.css">
+        <link rel="stylesheet" media="screen" href="/stylesheets/main.css">
+        {#insert moreStyles /}
+        <link rel="shortcut icon" type="image/png" href="/webjars/bootstrap-icons/icons/check2-square.svg">
+        <script src="/webjars/bootstrap/js/bootstrap.min.js" type="text/javascript" charset="UTF-8"></script>
+        <script src="/javascripts/main.js" type="text/javascript" charset="UTF-8"></script>
+        {#insert moreScripts /}
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="{uri:Application.index()}">Todo</a>
+            {#if inject:user}
+                <span class="navbar-brand">
+                    {#if inject:user.isAdmin}<span class="bi-star-fill" title="You are an administrator"></span>{/if}
+                    {#user inject:user img=true size=20/}
+                </span>
+            {/if}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {#if !inject:user}
+                    <li class="nav-item"><a class="nav-link" aria-current="page" href="{uri:Login.login()}">Login/Register</a></li>
+                {#else}
+                    <li class="nav-item"><a class="nav-link" aria-current="page" href="{uri:Todos.index()}">Todos</a></li>
+                    <li class="nav-item"><a class="nav-link" aria-current="page" href="{uri:RenardeSecurityController.logout()}">Logout</a></li>
+                {/if}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Help
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="{uri:Application.about()}">About</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        <main class="container">
+            {#if flash:message}
+                <div class="alert alert-{flash:messageType ?: 'success'}">
+                    {flash:message}
+                </div>
+            {/if}
+            {#insert /}
+        </main>
+        <div class="container-fluid fixed-bottom">
+		    <footer>
+		    	<hr />
+		    	&copy; FroMage 2013-2021 <i class="bi-heart-fill"></i>
+		    </footer>
+	    </div>
+    </body>
+</html>

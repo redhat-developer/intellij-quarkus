@@ -131,8 +131,25 @@ public abstract class AbstractDataModelProvider implements IDataModelProvider {
 		if (info != null) {
 			// Register namespace information
 			String namespacekey = info.getNamespaces().get(0);
-			Map<String, NamespaceResolverInfo> infos = context.getDataModelProject().getNamespaceResolverInfos();
-			infos.put(namespacekey, info);
+			if (isNamespaceAvailable(namespacekey, context, monitor)) {
+				Map<String, NamespaceResolverInfo> infos = context.getDataModelProject().getNamespaceResolverInfos();
+				infos.put(namespacekey, info);
+			}
 		}
+	}
+
+	/**
+	 * Returns true if the given namespace is available for the java project and
+	 * false otherwise.
+	 *
+	 * @param namespace the namespace.
+	 * @param context   the search context.
+	 * @param monitor   the progress monitor.
+	 *
+	 * @return true if the given namespace is available for the java project and
+	 *         false otherwise.
+	 */
+	protected boolean isNamespaceAvailable(String namespace, SearchContext context, ProgressIndicator monitor) {
+		return true;
 	}
 }

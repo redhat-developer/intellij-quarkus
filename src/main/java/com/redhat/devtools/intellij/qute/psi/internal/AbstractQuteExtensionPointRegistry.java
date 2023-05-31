@@ -13,35 +13,31 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal;
 
+import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.util.KeyedLazyInstanceEP;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.util.KeyedLazyInstanceEP;
-
 /**
  * Registry to hold providers for an extension point
  *
- * @param T the interface that the providers implement
+ * @param <T> the interface that the providers implement
  * 
  * @author datho7561
  */
 public abstract class AbstractQuteExtensionPointRegistry<T,K extends KeyedLazyInstanceEP<T>>{
 
-	private static final String CLASS_ATTR = "class";
-
 	private static final Logger LOGGER = Logger.getLogger(AbstractQuteExtensionPointRegistry.class.getName());
 
 	private boolean extensionProvidersLoaded;
-	private boolean registryListenerIntialized;
 	private final List<T> providers;
 
 	public AbstractQuteExtensionPointRegistry() {
 		super();
 		this.extensionProvidersLoaded = false;
-		this.registryListenerIntialized = false;
 		this.providers = new ArrayList<>();
 	}
 
@@ -81,7 +77,7 @@ public abstract class AbstractQuteExtensionPointRegistry<T,K extends KeyedLazyIn
 	private void addExtensionProviders(ExtensionPointName<K> cf) {
 		for (K ce : cf.getExtensionList()) {
 			try {
-				T provider = createProvider(ce);
+				T provider = createInstance(ce);
 				synchronized (providers) {
 					providers.add(provider);
 				}
@@ -92,7 +88,7 @@ public abstract class AbstractQuteExtensionPointRegistry<T,K extends KeyedLazyIn
 		}
 	}
 
-	protected T createProvider(K ce) {
+	protected T createInstance(K ce) {
 		return ce.getInstance();
 	}
 }
