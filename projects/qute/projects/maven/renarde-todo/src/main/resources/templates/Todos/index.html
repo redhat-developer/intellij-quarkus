@@ -1,0 +1,49 @@
+{#include main.html }
+{#title}Todos{/title}
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Task</th>
+      <th scope="col">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {#for todo in todos}
+    <tr {#if todo.done}class="table-secondary"{/if}>
+      <th scope="row">{todo.id}</th>
+      <td>
+        {#if todo.done}
+          <del>{todo.task}</del> (done {todo.doneDate.since})
+        {#else}
+          {todo.task}
+        {/if}
+      </td>
+      <td>
+      {#form uri:Todos.done(todo.id) klass="inline"}
+        {#if todo.done}
+          <button type="submit" class="btn btn-warning"><i class="bi-arrow-counterclockwise"></i> Mark Undone</button>
+        {#else}
+          <button type="submit" class="btn btn-success"><i class="bi-check"></i> Mark Done</button>
+        {/if}
+      {/form}
+      {#form uri:Todos.delete(todo.id) klass="inline"}
+        <button type="submit" class="btn btn-danger"><i class="bi-trash"></i> Delete</button>
+      {/form}
+      </td>
+    </tr>
+    {/for}
+    <tr>
+      <th scope="row">New</th>
+      <td>
+      {#form uri:Todos.add()}
+        {#input name="task" placeholder="Type task and press ENTER"/}
+      {/form}
+      </td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+{/include}

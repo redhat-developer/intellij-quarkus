@@ -26,8 +26,6 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.util.KeyedLazyInstanceEP;
@@ -91,8 +89,8 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 	}
 
 	@Override
-	protected IDataModelProvider createProvider(DataModelProviderBean ce) {
-		IDataModelProvider provider = super.createProvider(ce);
+	protected IDataModelProvider createInstance(DataModelProviderBean ce) {
+		IDataModelProvider provider = super.createInstance(ce);
 		String namespaces = ce.namespaces;
 		if (StringUtils.isNotEmpty(namespaces)) {
 			String description = ce.description;

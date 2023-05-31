@@ -1,0 +1,7 @@
+<label class="form-label" for="{name}">{label}</label>
+<div class="mb-3 {class??}">
+    {nested-content}
+{#ifError name}
+    <span class="invalid-feedback">​{#error name/}</span>​
+{/ifError}
+</div>

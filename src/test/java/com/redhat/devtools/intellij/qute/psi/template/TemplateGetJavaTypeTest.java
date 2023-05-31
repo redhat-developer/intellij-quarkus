@@ -19,6 +19,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import org.junit.Assert;
@@ -35,19 +36,19 @@ import com.redhat.qute.commons.QuteJavaTypesParams;
  * @author Angelo ZERR
  *
  */
-public class TemplateGetJavaTypeTest extends MavenModuleImportingTestCase {
+public class TemplateGetJavaTypeTest extends QuteMavenModuleImportingTestCase {
 	private Module module;
 
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		module = createMavenModule(new File("projects/qute/projects/maven/" + QuteMavenProjectName.qute_quickstart));
+		module = loadMavenProject(QuteMavenProjectName.qute_quickstart);
 	}
 
 	@Test
 	public void testpackages() throws Exception {
 
-		QuteJavaTypesParams params = new QuteJavaTypesParams("java.", "qute-quickstart");
+		QuteJavaTypesParams params = new QuteJavaTypesParams("java.", QuteMavenProjectName.qute_quickstart);
 		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(myProject),
 				new EmptyProgressIndicator());
 
@@ -59,7 +60,7 @@ public class TemplateGetJavaTypeTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testlist() throws Exception {
 
-		QuteJavaTypesParams params = new QuteJavaTypesParams("List", "qute-quickstart");
+		QuteJavaTypesParams params = new QuteJavaTypesParams("List", QuteMavenProjectName.qute_quickstart);
 		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(myProject),
 				new EmptyProgressIndicator());
 
@@ -70,7 +71,7 @@ public class TemplateGetJavaTypeTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testitem() throws Exception {
 
-		QuteJavaTypesParams params = new QuteJavaTypesParams("Item", "qute-quickstart");
+		QuteJavaTypesParams params = new QuteJavaTypesParams("Item", QuteMavenProjectName.qute_quickstart);
 		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(myProject),
 				new EmptyProgressIndicator());
 
@@ -83,7 +84,7 @@ public class TemplateGetJavaTypeTest extends MavenModuleImportingTestCase {
 	public void testnested() throws Exception {
 
 		QuteJavaTypesParams params = new QuteJavaTypesParams("org.acme.qute.NestedClass.",
-				"qute-quickstart");
+				QuteMavenProjectName.qute_quickstart);
 		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(myProject),
 				new EmptyProgressIndicator());
 

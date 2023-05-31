@@ -1,0 +1,90 @@
+{#include main.html }
+{#title}Login{/title}
+{#moreScripts}
+    <script src="/webauthn/webauthn.js" type="text/javascript" charset="UTF-8"></script>
+{/moreScripts}
+
+<div class="row">
+  <div class="col-md-2">
+    <fieldset>
+        <legend>Login/Register</legend>
+        <div class="d-grid gap-2">
+          <a class="btn btn-block btn-light" href="{uri:RenardeSecurityController.loginUsingOidc('twitter')}" role="button"><img src="/images/signin-twitter.svg" height="16px" style="vertical-align: text-top"/> Twitter</a>
+          <a class="btn btn-block btn-light" href="{uri:RenardeSecurityController.loginUsingOidc('github')}" role="button"><img src="/images/signin-github.svg" height="16px" style="vertical-align: text-top"/> GitHub</a>
+          <a class="btn btn-block btn-light" href="{uri:RenardeSecurityController.loginUsingOidc('google')}" role="button"><img src="/images/signin-google.svg" height="16px" style="vertical-align: text-top"/> Google</a>
+          <a class="btn btn-block btn-light" href="{uri:RenardeSecurityController.loginUsingOidc('microsoft')}" role="button"><img src="/images/signin-microsoft.svg" height="16px" style="vertical-align: text-top"/> Microsoft</a>
+          <a class="btn btn-block btn-light" href="{uri:RenardeSecurityController.loginUsingOidc('facebook')}" role="button"><img src="/images/signin-facebook.svg" height="16px" style="vertical-align: text-top"/> Facebook</a>
+          <a class="btn btn-block btn-light" href="{uri:RenardeSecurityController.loginUsingOidc('apple')}" role="button"><img src="/images/signin-apple.svg" height="16px" style="vertical-align: text-top"/> Apple</a>
+        </div>
+     </fieldset>
+  </div>
+  <div class="col-md-5">
+    {#form uri:Login.manualLogin() id="login"}
+        <fieldset>
+            <legend>Login</legend>
+            {#formElement name="userName" label="User Name" class="input-group"}
+                {#input name="userName" id="username"/}
+                <button class="btn btn-primary" type="button" id="webauthn"><img src="/images/webauthn.svg" height="16px" title="Use WebAuthn instead of a password"/> WebAuthn Login</button>
+            {/formElement}
+            {#formElement name="password" label="Password" class="input-group"}
+                {#input name="password" type="password" id="password"/}
+                <button type="submit" class="btn btn-primary">Password Login</button>
+            {/formElement}
+            <!-- WebAuthn -->
+            {#input name="webAuthnId" type="hidden" id="webAuthnId"/}
+            {#input name="webAuthnRawId" type="hidden" id="webAuthnRawId"/}
+            {#input name="webAuthnResponseClientDataJSON" type="hidden" id="webAuthnResponseClientDataJSON"/}
+            {#input name="webAuthnResponseAuthenticatorData" type="hidden" id="webAuthnResponseAuthenticatorData"/}
+            {#input name="webAuthnResponseSignature" type="hidden" id="webAuthnResponseSignature"/}
+            {#input name="webAuthnResponseUserHandle" type="hidden" id="webAuthnResponseUserHandle"/}
+            {#input name="webAuthnType" type="hidden" id="webAuthnType"/}
+        </fieldset>
+    {/form}
+  </div>
+  <div class="col-md-5">
+    {#form uri:Login.register()}
+        <fieldset>
+            <legend>Register</legend>
+            {#formElement name="email" label="Email"}
+                {#input name="email"/}
+            {/formElement}
+            <button type="submit" class="btn btn-primary">Register</button>
+        </fieldset>
+    {/form}
+  </div>
+</div>
+
+<script type="text/javascript">
+const webAuthn = new WebAuthn({
+  callbackPath: '/webauthn/callback',
+  registerPath: '/webauthn/register',
+  loginPath: '/webauthn/login'
+});
+
+const loginButton = document.getElementById('webauthn');
+const loginForm = document.getElementById('login');
+
+loginButton.onclick = () => {
+  requireField('username')
+    .then(name => webAuthn.loginOnly({ name: name }))
+    .then(body => {
+      document.getElementById('webAuthnId').value = body.id;
+      document.getElementById('webAuthnRawId').value = body.rawId;
+      document.getElementById('webAuthnResponseClientDataJSON').value = body.response.clientDataJSON;
+      document.getElementById('webAuthnResponseAuthenticatorData').value = body.response.authenticatorData;
+      document.getElementById('webAuthnResponseSignature').value = body.response.signature;
+      document.getElementById('webAuthnResponseUserHandle').value = body.response.userHandle;
+      document.getElementById('webAuthnType').value = body.type;
+      loginForm.submit();
+    })
+    .catch(err => {
+      if(err instanceof Error) {
+        addValidationError(document.getElementById('username'), "invalid username");
+      }
+      console.log('registration failed');
+      console.error(err);
+    });
+};
+</script>
+
+{/include}

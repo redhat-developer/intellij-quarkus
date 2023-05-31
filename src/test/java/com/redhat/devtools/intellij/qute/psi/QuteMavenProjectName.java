@@ -14,4 +14,6 @@ public class QuteMavenProjectName {
     public static String qute_quickstart = "qute-quickstart";
 
     public static String qute_java17 = "qute-java17";
+
+    public static String quarkus_renarde_todo = "renarde-todo";
 }
