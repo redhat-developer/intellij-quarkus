@@ -42,13 +42,5 @@ public class ItemResourceWithFragment {
 		return Templates.items(items);
 	}
 
-	/**
-	 * This template extension method implements the "discountedPrice" computed
-	 * property.
-	 */
-	@TemplateExtension
-	static BigDecimal discountedPrice(Item item) {
-		return item.price.multiply(new BigDecimal("0.9"));
-	}
 
 }
