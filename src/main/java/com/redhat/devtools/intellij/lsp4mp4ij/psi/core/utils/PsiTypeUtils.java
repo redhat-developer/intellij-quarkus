@@ -43,6 +43,7 @@ import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,6 +143,7 @@ public class PsiTypeUtils {
     }
 
 
+    @Nullable
     public static PsiClass findType(PsiManager manager, String name) {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(manager.getProject());
         return facade.findClass(name, GlobalSearchScope.allScope(manager.getProject()));

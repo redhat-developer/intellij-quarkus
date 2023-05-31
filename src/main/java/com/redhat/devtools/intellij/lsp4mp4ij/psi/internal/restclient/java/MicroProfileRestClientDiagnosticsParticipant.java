@@ -123,6 +123,11 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 		boolean hasRestClientAnnotation = AnnotationUtils.hasAnnotation(field, REST_CLIENT_ANNOTATION);
 		String fieldTypeName = PsiTypeUtils.getResolvedTypeName(field);
 		PsiClass fieldType = PsiTypeUtils.findType(field.getManager(), fieldTypeName);
+		if (fieldType == null) {
+			// document is in invalid state? better bail now.
+			// See https://github.com/redhat-developer/intellij-quarkus/issues/823
+			return;
+		}
 		boolean hasRegisterRestClient = AnnotationUtils.hasAnnotation(fieldType, REGISTER_REST_CLIENT_ANNOTATION)
 				&& fieldType.isInterface();
 
