@@ -33,7 +33,8 @@ import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.WorkspaceEdit;
-import org.eclipse.lsp4mp.commons.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.codeaction.ICodeActionId;
 
 /**
  * QuickFix for inserting annotations.
@@ -146,10 +147,18 @@ public abstract class InsertAnnotationMissingQuickFix implements IJavaCodeAction
 		codeAction.setData(new CodeActionResolveData(context.getUri(), getParticipantId(),
 				context.getParams().getRange(), extendedData,
 				context.getParams().isResourceOperationSupported(),
-				context.getParams().isCommandConfigurationUpdateSupported()));
+				context.getParams().isCommandConfigurationUpdateSupported(),
+				getCodeActionId()));
 
 		codeActions.add(codeAction);
 	}
+
+	/**
+	 * Returns the id for this code action.
+	 *
+	 * @return the id for this code action
+	 */
+	protected abstract ICodeActionId getCodeActionId();
 
 	private static String getLabel(String[] annotations) {
 		StringBuilder name = new StringBuilder("Insert ");

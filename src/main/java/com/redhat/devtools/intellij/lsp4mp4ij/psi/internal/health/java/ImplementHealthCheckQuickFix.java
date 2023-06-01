@@ -13,15 +13,8 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiVariable;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -36,7 +29,13 @@ import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.WorkspaceEdit;
-import org.eclipse.lsp4mp.commons.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * QuickFix for fixing {@link MicroProfileHealthErrorCode#ImplementHealthCheck}
@@ -65,7 +64,8 @@ public class ImplementHealthCheckQuickFix implements IJavaCodeActionParticipant 
 		codeAction.setKind(CodeActionKind.QuickFix);
 		codeAction.setData(new CodeActionResolveData(context.getUri(), getParticipantId(),
 				context.getParams().getRange(), null, context.getParams().isResourceOperationSupported(),
-				context.getParams().isCommandConfigurationUpdateSupported()));
+				context.getParams().isCommandConfigurationUpdateSupported(),
+				MicroProfileCodeActionId.ImplementHealthCheck));
 
 		return Collections.singletonList(codeAction);
 	}

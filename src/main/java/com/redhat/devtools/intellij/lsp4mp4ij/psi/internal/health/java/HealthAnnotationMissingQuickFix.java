@@ -19,6 +19,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 
 import java.util.List;
 
@@ -66,5 +67,10 @@ public class HealthAnnotationMissingQuickFix extends InsertAnnotationMissingQuic
 				}
 			}
 		}
+	}
+
+	@Override
+	protected MicroProfileCodeActionId getCodeActionId() {
+		return MicroProfileCodeActionId.InsertMissingHealthAnnotation;
 	}
 }
