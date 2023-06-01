@@ -1,3 +1,6 @@
+import groovy.time.TimeCategory
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     id "org.jetbrains.intellij" version "1.10.1"
@@ -121,6 +124,19 @@ tasks.withType(Test) {
     systemProperty 'idea.log.leaked.projects.in.tests', 'false'
     systemProperty 'idea.maven.test.mirror', 'https://repo1.maven.org/maven2'
     systemProperty 'com.redhat.devtools.intellij.telemetry.mode', 'disabled'
+
+    testLogging {
+        events TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.PASSED
+        showExceptions true
+        exceptionFormat TestExceptionFormat.FULL
+        showCauses true
+        showStackTraces true
+        showStandardStreams = false
+    }
+    afterTest { descriptor, result ->
+        def totalTime = TimeCategory.minus(new Date(result.endTime), new Date(result.startTime))
+        println "$descriptor.name took $totalTime"
+    }
 }
 
 tasks.withType(Copy) {
