@@ -1,13 +1,10 @@
-import groovy.time.TimeCategory
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
     id "org.jetbrains.intellij" version "1.10.1"
     id 'idea'
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.6.0'
     id 'jacoco'
+    id 'com.adarshr.test-logger' version '3.2.0'
 }
 
 sourceCompatibility = '11'
@@ -119,24 +116,31 @@ task integrationTest(type: Test) {
     mustRunAfter test
 }
 
+testlogger {
+    theme 'standard'
+    showExceptions true
+    showStackTraces true
+    showFullStackTraces false
+    showCauses true
+    slowThreshold 2000
+    showSummary true
+    showSimpleNames false
+    showPassed true
+    showSkipped true
+    showFailed true
+    showOnlySlow false
+    showStandardStreams false
+    showPassedStandardStreams true
+    showSkippedStandardStreams true
+    showFailedStandardStreams true
+    logLevel 'lifecycle'
+}
+
 tasks.withType(Test) {
     environment 'GRADLE_RELEASE_REPOSITORY','https://services.gradle.org/distributions'
     systemProperty 'idea.log.leaked.projects.in.tests', 'false'
     systemProperty 'idea.maven.test.mirror', 'https://repo1.maven.org/maven2'
     systemProperty 'com.redhat.devtools.intellij.telemetry.mode', 'disabled'
-
-    testLogging {
-        events TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.PASSED
-        showExceptions true
-        exceptionFormat TestExceptionFormat.FULL
-        showCauses true
-        showStackTraces true
-        showStandardStreams = false
-    }
-    afterTest { descriptor, result ->
-        def totalTime = TimeCategory.minus(new Date(result.endTime), new Date(result.startTime))
-        println "$descriptor.name took $totalTime"
-    }
 }
 
 tasks.withType(Copy) {
