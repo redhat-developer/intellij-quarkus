@@ -19,6 +19,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.ProjectLabelManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
@@ -26,6 +27,7 @@ import com.redhat.devtools.intellij.lsp4ij.IndexAwareLanguageClient;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4mp.commons.*;
+import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.utils.JSONUtility;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageClientAPI;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI;
@@ -116,7 +118,7 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   @Override
-  public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectlabels(MicroProfileJavaProjectLabelsParams javaParams) {
+  public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectLabels(MicroProfileJavaProjectLabelsParams javaParams) {
     return runAsBackground("Computing Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
   }
 
@@ -131,8 +133,13 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   @Override
-  public CompletableFuture<CompletionList> getJavaCompletion(MicroProfileJavaCompletionParams javaParams) {
-    return runAsBackground("Computing Java completion", monitor -> PropertiesManagerForJava.getInstance().completion(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+  public CompletableFuture<MicroProfileJavaCompletionResult> getJavaCompletion(MicroProfileJavaCompletionParams javaParams) {
+    return runAsBackground("Computing Java completion", monitor -> {
+      IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
+      CompletionList completionList = PropertiesManagerForJava.getInstance().completion(javaParams, utils);
+      JavaCursorContextResult cursorContext = PropertiesManagerForJava.getInstance().javaCursorContext(javaParams, utils);
+      return new MicroProfileJavaCompletionResult(completionList, cursorContext);
+    });
   }
 
   @Override

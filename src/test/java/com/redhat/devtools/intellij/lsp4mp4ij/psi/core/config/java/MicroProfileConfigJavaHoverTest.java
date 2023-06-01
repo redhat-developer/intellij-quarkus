@@ -89,9 +89,9 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 		// Hover override default value
 		// Position(26, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.number", defaultValue="0")
-		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(29, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
 				h("`greeting.number = 100` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
-						26, 28, 43));
+						29, 28, 43));
 
 		// Hover when no value
 		// Position(23, 33) is the character after the | symbol:

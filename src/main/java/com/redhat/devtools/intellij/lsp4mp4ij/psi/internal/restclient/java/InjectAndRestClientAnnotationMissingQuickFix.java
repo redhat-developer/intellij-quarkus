@@ -21,6 +21,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfi
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientErrorCode;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 
 import java.util.List;
 
@@ -66,5 +67,10 @@ public class InjectAndRestClientAnnotationMissingQuickFix extends InsertAnnotati
 		} else {
 			insertAnnotation(diagnostic, context, codeActions, MicroProfileRestClientConstants.REST_CLIENT_ANNOTATION);
 		}
+	}
+
+	@Override
+	protected MicroProfileCodeActionId getCodeActionId() {
+		return MicroProfileCodeActionId.InsertInjectAndRestClientAnnotations;
 	}
 }

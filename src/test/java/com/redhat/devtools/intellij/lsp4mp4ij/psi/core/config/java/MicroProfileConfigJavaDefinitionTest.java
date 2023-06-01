@@ -79,8 +79,8 @@ public class MicroProfileConfigJavaDefinitionTest extends MavenModuleImportingTe
 		// Definition override default value
 		// Position(26, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.number", defaultValue="0")
-		assertJavaDefinitions(p(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
-				def(r(26, 28, 43), propertiesFileUri, "greeting.number"));
+		assertJavaDefinitions(p(29, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
+				def(r(29, 28, 43), propertiesFileUri, "greeting.number"));
 
 		// Definition when no value
 		// Position(23, 33) is the character after the | symbol:

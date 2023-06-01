@@ -29,7 +29,8 @@ import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.WorkspaceEdit;
-import org.eclipse.lsp4mp.commons.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -77,7 +78,8 @@ public class MicroProfileGenerateOpenAPIOperation implements IJavaCodeActionPart
 				CodeActionResolveData data = new CodeActionResolveData(context.getUri(), getParticipantId(),
 						context.getParams().getRange(),
 						extendedData, context.getParams().isResourceOperationSupported(),
-						context.getParams().isCommandConfigurationUpdateSupported());
+						context.getParams().isCommandConfigurationUpdateSupported(),
+						MicroProfileCodeActionId.GenerateOpenApiAnnotations);
 
 				ExtendedCodeAction codeAction = new ExtendedCodeAction(
 						MessageFormat.format(MESSAGE, getSimpleName(typeName)));

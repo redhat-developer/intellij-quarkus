@@ -24,6 +24,9 @@ public class GreetingResource {
     @ConfigProperty(name = "greeting.missing")
     String missing;
 
+    /**
+     * The <code>number</code> of the greeting.
+     */
     @ConfigProperty(name = "greeting.number", defaultValue="0")
     int number;
 
