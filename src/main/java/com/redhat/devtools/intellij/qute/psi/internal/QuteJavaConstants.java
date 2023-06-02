@@ -22,6 +22,8 @@ public class QuteJavaConstants {
 
     public static final String JAVAX_INJECT_NAMED_ANNOTATION = "javax.inject.Named";
 
+    public static final String JAKARTA_INJECT_NAMED_ANNOTATION = "jakarta.inject.Named";
+
     public static final String LOCATION_ANNOTATION = "io.quarkus.qute.Location";
 
     public static final String TEMPLATE_CLASS = "io.quarkus.qute.Template";
@@ -33,8 +35,12 @@ public class QuteJavaConstants {
     // @Decorator
     public static final String JAVAX_DECORATOR_ANNOTATION = "javax.decorator.Decorator";
 
+    public static final String JAKARTA_DECORATOR_ANNOTATION = "jakarta.decorator.Decorator";
+
     // @Vetoed
     public static final String JAVAX_INJECT_VETOED_ANNOTATION = "javax.enterprise.inject.Vetoed";
+
+    public static final String JAKARTA_INJECT_VETOED_ANNOTATION = "jakarta.enterprise.inject.Vetoed";
 
     // @CheckedTemplate
 
