@@ -11,11 +11,18 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.utils;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.*;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
+import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.net.URI;
 
 /**
  * Tests for {@link CDIUtils}.
@@ -23,10 +30,10 @@ import org.junit.Test;
  * @author Angelo ZERR
  *
  */
-public class CDIUtilsTest {
+public class CDIUtilsTest extends QuteMavenModuleImportingTestCase  {
 
 	@Test
-	public void namedWithType() {
+	public void testNamedWithType() {
 		String javaType = "MyClass";
 
 		String name = CDIUtils.getSimpleName(javaType, null, PsiClass.class);
@@ -38,7 +45,7 @@ public class CDIUtilsTest {
 	}
 	
 	@Test
-	public void namedWithField() {
+	public void testNamedWithField() {
 		String javaType = "MyField";
 
 		String name = CDIUtils.getSimpleName(javaType, null, PsiField.class);
@@ -72,4 +79,21 @@ public class CDIUtilsTest {
 		name = CDIUtils.getSimpleName(javaType, named, PsiMethod.class, () -> true);
 		Assert.assertEquals("foo", name);
 	}
+
+	@Test
+	public void testIsBeanQuarkus3() throws Exception {
+		Module javaProject = loadMavenProject(QuteMavenProjectName.quarkus3);
+		PsiClass notBean1 = PsiTypeUtils.findType(javaProject, "org.acme.NotBean1");
+		// @Decorator annotated class is not a bean
+		assertFalse(CDIUtils.isValidBean(notBean1));
+
+		PsiClass notBean2 = PsiTypeUtils.findType(javaProject, "org.acme.NotBean2");
+		// @Vetoed annotated class is not a bean
+		assertFalse(CDIUtils.isValidBean(notBean2));
+
+		PsiClass bean1 = PsiTypeUtils.findType(javaProject, "org.acme.Bean1");
+		// Empty class is a bean
+		assertTrue(CDIUtils.isValidBean(bean1));
+	}
+
 }

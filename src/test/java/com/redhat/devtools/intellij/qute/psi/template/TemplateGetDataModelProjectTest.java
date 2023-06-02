@@ -11,25 +11,20 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.template;
 
-import java.io.File;
-import java.util.List;
-import java.util.Optional;
-
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.List;
 
 import static com.redhat.devtools.intellij.qute.psi.QuteAssert.*;
 
@@ -361,6 +356,22 @@ public class TemplateGetDataModelProjectTest extends QuteMavenModuleImportingTes
 		// }
 		assertValueResolver(null, "user() : java.lang.String", "org.acme.qute.Globals", "currentUser", true, resolvers);
 		// }
+	}
+
+	@Test
+	public void quarkus3() throws Exception {
+		loadMavenProject(QuteMavenProjectName.quarkus3);
+
+		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.quarkus3);
+		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
+				.getDataModelProject(params, getJDTUtils(), new EmptyProgressIndicator());
+		Assert.assertNotNull(project);
+
+		// Test value resolvers
+		List<ValueResolverInfo> resolvers = project.getValueResolvers();
+
+		// should pick up the named bean
+		assertValueResolver("inject", "org.acme.Bean2", "org.acme.Bean2", resolvers);
 	}
 
 }

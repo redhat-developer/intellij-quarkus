@@ -11,9 +11,6 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.extensions.quarkus;
 
-import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVAX_INJECT_NAMED_ANNOTATION;
-import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.VALUE_ANNOTATION_NAME;
-
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +32,8 @@ import com.redhat.devtools.intellij.qute.psi.utils.CDIUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
+import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.*;
+
 /**
  * Injecting Beans Directly In Templates support.
  * 
@@ -49,7 +48,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 
 	private static final String INJECT_NAMESPACE = "inject";
 
-	private static final String[] ANNOTATION_NAMES = { JAVAX_INJECT_NAMED_ANNOTATION };
+	private static final String[] ANNOTATION_NAMES = { JAVAX_INJECT_NAMED_ANNOTATION, JAKARTA_INJECT_NAMED_ANNOTATION  };
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -97,7 +96,7 @@ public class InjectNamespaceResolverSupport extends AbstractAnnotationTypeRefere
 	private static String getAnnotationNamedValue(PsiElement javaElement) {
 		try {
 			PsiAnnotation namedAnnotation = AnnotationUtils.getAnnotation(javaElement,
-					JAVAX_INJECT_NAMED_ANNOTATION);
+					JAVAX_INJECT_NAMED_ANNOTATION, JAKARTA_INJECT_NAMED_ANNOTATION);
 			if (namedAnnotation != null) {
 				return AnnotationUtils.getAnnotationMemberValue(namedAnnotation, VALUE_ANNOTATION_NAME);
 			}
