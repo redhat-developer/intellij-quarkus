@@ -28,14 +28,14 @@ import java.util.Collections;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getFirstAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.hasAnyAnnotation;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.HTTP_METHOD_ANNOTATIONS;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_GET_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAKARTA_WS_RS_GET_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAKARTA_WS_RS_PATH_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.PATH_VALUE;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.HTTP_METHOD_ANNOTATIONS;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAVAX_WS_RS_GET_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAKARTA_WS_RS_GET_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAKARTA_WS_RS_PATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.PATH_VALUE;
 
 
 /**
@@ -120,7 +120,7 @@ public class JaxRsUtils {
 	 */
 	public static CodeLens createURLCodeLens(String baseURL, String rootPath, String openURICommandId, PsiMethod method,
 			IPsiUtils utils) {
-		CodeLens lens = createURLCodeLens(method, utils);
+		CodeLens lens = createURLCodeLens(method, utils, true);
 		if (lens != null) {
 			String pathValue = getJaxRsPathValue(method);
 			String url = buildURL(baseURL, rootPath, pathValue);
@@ -130,10 +130,21 @@ public class JaxRsUtils {
 		return lens;
 	}
 
-	private static CodeLens createURLCodeLens(PsiMethod method, IPsiUtils utils) {
+	public static CodeLens createURLCodeLens(PsiMethod method, IPsiUtils utils, boolean shouldHaveAnnotation) {
 		PsiAnnotation[] annotations = method.getAnnotations();
-		if (annotations == null) {
-			return null;
+		if ((annotations == null || annotations.length < 1)) {
+			if (shouldHaveAnnotation) {
+				return null;
+			}
+			CodeLens lens = new CodeLens();
+			TextRange r = method.getModifierList().getTextRange();
+			final Range range = utils.toRange(method, r.getStartOffset(), r.getLength());
+			Position codeLensPosition = new Position(range.getEnd().getLine(), range.getStart().getCharacter());
+			range.setStart(codeLensPosition);
+			range.setEnd(codeLensPosition);
+			lens.setRange(range);
+			return lens;
+
 		}
 		TextRange r = annotations[annotations.length - 1].getTextRange();
 
@@ -163,5 +174,38 @@ public class JaxRsUtils {
 			}
 		}
 		return url.toString();
+	}
+
+	/**
+	 * Returns an HttpMethod given the FQN of a JAX-RS or Jakarta RESTful
+	 * annotation, nor null if the FQN doesn't match any HttpMethod.
+	 *
+	 * @param annotationFQN the FQN of the annotation to convert into a HttpMethod
+	 * @return an HttpMethod given the FQN of a JAX-RS or Jakarta RESTful
+	 *         annotation, nor null if the FQN doesn't match any HttpMethod
+	 */
+	public static HttpMethod getHttpMethodForAnnotation(String annotationFQN) {
+		switch (annotationFQN) {
+			case JaxRsConstants.JAKARTA_WS_RS_GET_ANNOTATION:
+			case JaxRsConstants.JAVAX_WS_RS_GET_ANNOTATION:
+				return HttpMethod.GET;
+			case JaxRsConstants.JAKARTA_WS_RS_HEAD_ANNOTATION:
+			case JaxRsConstants.JAVAX_WS_RS_HEAD_ANNOTATION:
+				return HttpMethod.HEAD;
+			case JaxRsConstants.JAKARTA_WS_RS_POST_ANNOTATION:
+			case JaxRsConstants.JAVAX_WS_RS_POST_ANNOTATION:
+				return HttpMethod.POST;
+			case JaxRsConstants.JAKARTA_WS_RS_PUT_ANNOTATION:
+			case JaxRsConstants.JAVAX_WS_RS_PUT_ANNOTATION:
+				return HttpMethod.PUT;
+			case JaxRsConstants.JAKARTA_WS_RS_DELETE_ANNOTATION:
+			case JaxRsConstants.JAVAX_WS_RS_DELETE_ANNOTATION:
+				return HttpMethod.DELETE;
+			case JaxRsConstants.JAKARTA_WS_RS_PATCH_ANNOTATION:
+			case JaxRsConstants.JAVAX_WS_RS_PATCH_ANNOTATION:
+				return HttpMethod.PATCH;
+			default:
+				return null;
+		}
 	}
 }

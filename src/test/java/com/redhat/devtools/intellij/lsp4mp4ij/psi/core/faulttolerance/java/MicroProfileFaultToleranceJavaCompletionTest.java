@@ -14,35 +14,29 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.faulttolerance.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
 import org.junit.Test;
 
-import java.io.File;
-
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaCompletion;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.c;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.p;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.te;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
  * Tests for completion in Java files
  *
  * @author datho7561
  */
-public class MicroProfileFaultToleranceJavaCompletionTest extends MavenModuleImportingTestCase {
+public class MicroProfileFaultToleranceJavaCompletionTest extends LSP4MPMavenModuleImportingTestCase {
 
 	@Test
 	public void testFallbackMethodCompletion() throws Exception {
-		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
+		String javaFileUri = getFileUri("src/main/java/org/acme/FaultTolerantResource.java", javaProject);
 
 		// fallbackMethod = "b|bb"
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(21, 33)), utils, //
@@ -54,10 +48,10 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends MavenModuleImp
 
 	@Test
 	public void testFallbackMethodCompletionBeginning() throws Exception {
-		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
+		String javaFileUri = getFileUri("src/main/java/org/acme/FaultTolerantResource.java", javaProject);
 
 		// fallbackMethod = "|bbb"
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(21, 32)), utils, //
@@ -70,10 +64,10 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends MavenModuleImp
 
 	@Test
 	public void testFallbackMethodNoCompletionOutside() throws Exception {
-		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
+		String javaFileUri = getFileUri("src/main/java/org/acme/FaultTolerantResource.java", javaProject);
 
 		// fallbackMethod = |"bbb"
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(21, 31)), utils);
@@ -81,10 +75,10 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends MavenModuleImp
 
 	@Test
 	public void testFallbackMethodEmptyQuotes() throws Exception {
-		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/OtherFaultToleranceResource.java").toURI());
+		String javaFileUri = getFileUri("src/main/java/org/acme/OtherFaultToleranceResource.java", javaProject);
 
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(28, 32)), utils, //
 				c(te(28, 32, 28, 32, "hello"), "hello()", CompletionItemKind.Method), //
@@ -96,10 +90,10 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends MavenModuleImp
 
 	@Test
 	public void testFallbackMethodNoSpacesAroundEquals() throws Exception {
-		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/OtherFaultToleranceResource.java").toURI());
+		String javaFileUri = getFileUri("src/main/java/org/acme/OtherFaultToleranceResource.java",javaProject);
 
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(35, 30)), utils, //
 				c(te(35, 30, 35, 30, "hello"), "hello()", CompletionItemKind.Method), //
@@ -111,10 +105,10 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends MavenModuleImp
 
 	@Test
 	public void testFallbackMethodMultiline() throws Exception {
-		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/OtherFaultToleranceResource.java").toURI());
+		String javaFileUri = getFileUri("src/main/java/org/acme/OtherFaultToleranceResource.java", javaProject);
 
 		assertJavaCompletion(new MicroProfileJavaCompletionParams(javaFileUri, p(43, 9)), utils, //
 				c(te(43, 9, 43, 9, "hello"), "hello()", CompletionItemKind.Method), //

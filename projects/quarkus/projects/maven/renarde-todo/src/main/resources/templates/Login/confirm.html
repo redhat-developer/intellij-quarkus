@@ -1,0 +1,74 @@
+{#include main.html }
+{#title}Complete registration{/title}
+{#moreScripts}
+    <script src="/webauthn/webauthn.js" type="text/javascript" charset="UTF-8"></script>
+{/moreScripts}
+
+{#form uri:Login.complete(newUser.confirmationCode)}
+
+<fieldset>
+    <legend>Complete registration for {newUser.email}</legend>
+    {#formElement name="userName" label="User Name"}
+        {#input name="userName" value=newUser.userName id="username"/}
+    {/formElement}
+    {#if !newUser.authId}
+        {#formElement name="password" label="Password" class="input-group"}
+            {#input name="password" type="password" id="password"/}
+            <button class="btn btn-primary" type="button" id="webauthn"><img src="/images/webauthn.svg" height="16px" title="Use WebAuthn instead of a password"/> WebAuthn Login</button>
+        {/formElement}
+        {#formElement name="password2" label="Password Confirmation"}
+            {#input name="password2" type="password" id="password2"/}
+        {/formElement}
+    {/if}
+    {#formElement name="firstName" label="First Name"}
+        {#input name="firstName" value=newUser.firstName id="firstname"/}
+    {/formElement}
+    {#formElement name="lastName" label="Last Name"}
+        {#input name="lastName" value=newUser.lastName id="lastname"/}
+    {/formElement}
+    <!-- WebAuthn -->
+    {#input name="webAuthnId" type="hidden" id="webAuthnId"/}
+    {#input name="webAuthnRawId" type="hidden" id="webAuthnRawId"/}
+    {#input name="webAuthnResponseClientDataJSON" type="hidden" id="webAuthnResponseClientDataJSON"/}
+    {#input name="webAuthnResponseAttestationObject" type="hidden" id="webAuthnResponseAttestationObject"/}
+    {#input name="webAuthnType" type="hidden" id="webAuthnType"/}
+    
+    <button type="submit" class="btn btn-primary">Complete registration</button>
+</fieldset>
+
+{/form}
+
+<script type="text/javascript">
+const webAuthn = new WebAuthn({
+  callbackPath: '/webauthn/callback',
+  registerPath: '/webauthn/register',
+  loginPath: '/webauthn/login'
+});
+
+const registerButton = document.getElementById('webauthn');
+
+registerButton.onclick = () => {
+  requireFields('username', 'firstname', 'lastname')
+    .then(fields => {
+       return  webAuthn
+        .registerOnly({
+          name: fields[0],
+          displayName: fields[1] + " " + fields[2]
+        })
+    }).then(body => {
+      document.getElementById('webAuthnId').value = body.id;
+      document.getElementById('webAuthnRawId').value = body.rawId;
+      document.getElementById('webAuthnResponseAttestationObject').value = body.response.attestationObject;
+      document.getElementById('webAuthnResponseClientDataJSON').value = body.response.clientDataJSON;
+      document.getElementById('webAuthnType').value = body.type;
+      document.getElementById('password').disabled = true;
+      document.getElementById('password2').disabled = true;
+    })
+    .catch(err => {
+      console.log('registration failed');
+      console.error(err);
+    });
+};
+</script>
+
+{/include}

@@ -18,15 +18,14 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.JavaCodeLensContext;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.getJaxRsApplicationPathValue;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
 
 /**
  * JAX-RS context.
@@ -49,6 +48,8 @@ public class JaxRsContext {
 	private String applicationPath;
 
 	private final Module javaProject;
+
+	private boolean applicationPathLoaded = false;
 
 	public JaxRsContext(Module javaProject) {
 		setServerPort(DEFAULT_PORT);
@@ -87,15 +88,19 @@ public class JaxRsContext {
 	 * @return the @ApplicationPath annotation value
 	 */
 	public String getApplicationPath() {
-		if (applicationPath == null) {
-			PsiClass applicationPathType = PsiTypeUtils.findType(javaProject,
-					JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION);
-			if (applicationPathType == null) {
-				applicationPathType = PsiTypeUtils.findType(javaProject,
-						JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION);
-			}
+		if (applicationPathLoaded) {
+			return applicationPath;
+		}
+		PsiClass applicationPathType = PsiTypeUtils.findType(javaProject,
+				JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION);
+		if (applicationPathType == null) {
+			applicationPathType = PsiTypeUtils.findType(javaProject,
+					JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION);
+		}
+		if (applicationPathType != null) {
 			applicationPath = findApplicationPath(applicationPathType, javaProject);
 		}
+		applicationPathLoaded = true;
 		return applicationPath;
 	}
 
@@ -128,6 +133,8 @@ public class JaxRsContext {
 		if (rootPath != null) {
 			localBaseURL.append(getRootPath());
 		}
+		// application path is lazy loaded, but we need it now
+		getApplicationPath();
 		if (applicationPath != null) {
 			if (!applicationPath.startsWith("/")) {
 				localBaseURL.append('/');

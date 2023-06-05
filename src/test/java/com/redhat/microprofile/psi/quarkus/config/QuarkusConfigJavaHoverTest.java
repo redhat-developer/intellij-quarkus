@@ -11,19 +11,18 @@ package com.redhat.microprofile.psi.quarkus.config;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4j.Position;
 import org.junit.Test;
 
 import java.io.File;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaHover;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.fixURI;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.h;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
  * JDT Quarkus manager test for hover in Java file.
@@ -31,7 +30,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/JavaHoverTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/JavaHoverTest.java</a>
  *
  */
-public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
+public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -39,9 +38,9 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameRespectsPrecendence() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-quickstart"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_quickstart);
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingConstructorResource.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/application.properties", javaProject);
 
 		//fix for having application.yaml being part of the QuarkusConfigSourceProvider
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, "", javaProject);
@@ -73,9 +72,9 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameYaml() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String yamlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.yaml").toURI());
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_hover);
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String yamlFileUri = getFileUri("src/main/resources/application.yaml", javaProject);
 		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, //
@@ -111,10 +110,10 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameYml() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String ymlFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.yml").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_hover);
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String ymlFileUri = getFileUri("src/main/resources/application.yml", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/application.properties", javaProject);
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_YML_FILE, //
 				"greeting:\n" + //
@@ -150,8 +149,8 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testConfigPropertyHoverPropertyExpression() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_hover);
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.hover = test", javaProject);
 
@@ -162,9 +161,9 @@ public class QuarkusConfigJavaHoverTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testPerProfileConfigPropertyFile() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application-foo.properties").toURI());
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_hover);
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/application-foo.properties", javaProject);
 
 		saveFile("application-foo.properties", "greeting.message = hello from foo profile\n",
 				javaProject);

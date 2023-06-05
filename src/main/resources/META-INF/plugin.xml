@@ -260,6 +260,7 @@
     <extensionPoint name="javaCodeActionParticipant" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.JavaCodeActionDefinition">
       <with attribute="implementationClass" implements="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant"/>
     </extensionPoint>
+    <extensionPoint name="jaxRsInfoProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.IJaxRsInfoProvider"/>
 
     <!-- Qute -->
     <extensionPoint name="qute.dataModelProvider" beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean">
@@ -342,6 +343,8 @@
     <!--quarkus-ls-->
     <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
     <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
+    <jaxRsInfoProvider
+            implementation="com.redhat.microprofile.psi.internal.quarkus.renarde.java.RenardeJaxRsInfoProvider" />
 
     <!-- Quarkus Core support -->
     <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusCoreProvider"/>

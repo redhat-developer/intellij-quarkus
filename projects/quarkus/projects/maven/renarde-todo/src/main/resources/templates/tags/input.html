@@ -1,0 +1,7 @@
+<input name="{name}" 
+ type="{type ?: 'text'}"
+ {#if placeholder??}placeholder="{placeholder}"{/if}
+ {#if id??}id="{id}"{/if}
+ class="form-control {#ifError name}is-invalid{/ifError}"
+ maxlength="{VARCHAR_SIZE}"
+ value="{inject:flash.get(name) ?: value??}"/>

@@ -10,8 +10,8 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.config.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.TestConfigSourceProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -20,12 +20,8 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroP
 import org.eclipse.lsp4j.Position;
 import org.junit.Test;
 
-import java.io.File;
-
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaHover;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.fixURI;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.h;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
  * JDT Quarkus manager test for hover in Java file.
@@ -33,7 +29,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/JavaHoverTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/JavaHoverTest.java</a>
  *
  */
-public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCase {
+public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -41,9 +37,9 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 
 	@Test
 	public void testConfigPropertyNameHover() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
+		String javaFileUri = getFileUri( "src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String propertiesFileUri = getFileUri( "src/main/resources/META-INF/microprofile-config.properties", javaProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
@@ -101,9 +97,9 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 
 	@Test
 	public void testConfigPropertyNameHoverWithProfiles() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/META-INF/microprofile-config.properties", javaProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //
@@ -144,9 +140,9 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 
 	@Test
 	public void testConfigPropertyNameMethod() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingMethodResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+		String javaFileUri = getFileUri( "src/main/java/org/acme/config/GreetingMethodResource.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/META-INF/microprofile-config.properties", javaProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,
 				"greeting.method.message = hello", javaProject);
@@ -170,9 +166,9 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 
 	@Test
 	public void testConfigPropertyNameConstructor() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingConstructorResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+		String javaFileUri = getFileUri( "src/main/java/org/acme/config/GreetingConstructorResource.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/META-INF/microprofile-config.properties", javaProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,
 				"greeting.constructor.message = hello", javaProject);
@@ -198,10 +194,10 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 	@Test
 	public void testConfigPropertyNamePrecendence() throws Exception {
 		IConfigSourceProvider.EP_NAME.getPoint().registerExtension(new TestConfigSourceProvider(), myProject);
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
-		String configPropertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/config.properties").toURI());
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
+		String javaFileUri = getFileUri( "src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/META-INF/microprofile-config.properties", javaProject);
+		String configPropertiesFileUri = getFileUri( "src/main/resources/META-INF/config.properties", javaProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n", javaProject);
@@ -226,10 +222,10 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 	public void testConfigPropertyNameProfile() throws Exception {
 
 		IConfigSourceProvider.EP_NAME.getPoint().registerExtension(new TestConfigSourceProvider(), myProject);
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
-		String testPropertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config-test.properties").toURI());
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
+		String javaFileUri = getFileUri( "src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String propertiesFileUri = getFileUri( "src/main/resources/META-INF/microprofile-config.properties", javaProject);
+		String testPropertiesFileUri = getFileUri( "src/main/resources/META-INF/microprofile-config-test.properties", javaProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n", javaProject);
@@ -255,9 +251,9 @@ public class MicroProfileConfigJavaHoverTest extends MavenModuleImportingTestCas
 
 	@Test
 	public void testConfigPropertyNameResolveExpression() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-hover"));
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String propertiesFileUri = getFileUri( "src/main/resources/META-INF/microprofile-config.properties", javaProject);
 		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //

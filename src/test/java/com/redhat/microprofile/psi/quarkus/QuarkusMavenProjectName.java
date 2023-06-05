@@ -9,12 +9,21 @@
 *******************************************************************************/
 package com.redhat.microprofile.psi.quarkus;
 
+/**
+ * Quarkus project names used in tests.
+ */
 public class QuarkusMavenProjectName {
 
 	public static final String config_mapping = "config-mapping";
-	public static String cache_quickstart = "cache-quickstart";
-	public static String kubernetes = "kubernetes";
-	public static String quarkus_container_images = "quarkus-container-images";
-	public static String scheduler_quickstart = "scheduler-quickstart";
-	public static String scheduler_diagnostic = "scheduler-diagnostic";
+	public static final String cache_quickstart = "cache-quickstart";
+	public static final String kubernetes = "kubernetes";
+	public static final String quarkus_container_images = "quarkus-container-images";
+	public static final String scheduler_quickstart = "scheduler-quickstart";
+	public static final String scheduler_diagnostic = "scheduler-diagnostic";
+	public static final String quarkus_renarde_todo = "renarde-todo";
+
+	public static final String hibernate_orm_resteasy = "hibernate-orm-resteasy";
+    public static final String config_hover = "config-hover";
+	public static final String config_quickstart = "config-quickstart";
+
 }

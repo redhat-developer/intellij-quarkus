@@ -18,7 +18,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.ASTRewriteCorrectionProposal;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.MicroProfileOpenAPIConstants;
 import org.eclipse.lsp4j.CodeActionKind;
 
