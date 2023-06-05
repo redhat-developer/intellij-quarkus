@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -53,7 +54,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.Mic
 public class MicroProfileRestClientCodeLensParticipant implements IJavaCodeLensParticipant {
 
 	@Override
-	public boolean isAdaptedForCodeLens(JavaCodeLensContext context) {
+	public boolean isAdaptedForCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 		MicroProfileJavaCodeLensParams params = context.getParams();
 		if (!params.isUrlCodeLensEnabled()) {
 			return false;
@@ -65,7 +66,7 @@ public class MicroProfileRestClientCodeLensParticipant implements IJavaCodeLensP
 	}
 
 	@Override
-	public List<CodeLens> collectCodeLens(JavaCodeLensContext context) {
+	public List<CodeLens> collectCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 		PsiFile typeRoot = context.getTypeRoot();
 		PsiElement[] elements = typeRoot.getChildren();
 		IPsiUtils utils = context.getUtils();

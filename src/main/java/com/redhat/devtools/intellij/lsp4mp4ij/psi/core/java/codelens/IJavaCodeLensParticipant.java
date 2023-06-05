@@ -14,7 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant;
+import com.intellij.openapi.progress.ProgressIndicator;
 import org.eclipse.lsp4j.CodeLens;
 
 import java.util.List;
@@ -39,11 +39,12 @@ public interface IJavaCodeLensParticipant {
 	 * </p>
 	 *
 	 * @param context the java codeLens context
+	 * @param monitor
 	 * @return true if codeLens must be collected for the given context and false
 	 *         otherwise.
 	 *
 	 */
-	default boolean isAdaptedForCodeLens(JavaCodeLensContext context) {
+	default boolean isAdaptedForCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 		return true;
 	}
 
@@ -51,9 +52,10 @@ public interface IJavaCodeLensParticipant {
 	 * Begin codeLens collection.
 	 *
 	 * @param context the java codeLens context
+	 * @param monitor
 	 *
 	 */
-	default void beginCodeLens(JavaCodeLensContext context) {
+	default void beginCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 
 	}
 
@@ -65,15 +67,16 @@ public interface IJavaCodeLensParticipant {
 	 * @return the codeLens list and null otherwise.
 	 *
 	 */
-	List<CodeLens> collectCodeLens(JavaCodeLensContext context);
+	List<CodeLens> collectCodeLens(JavaCodeLensContext context, ProgressIndicator monitor);
 
 	/**
 	 * End codeLens collection.
 	 *
 	 * @param context the java codeLens context
+	 * @param monitor
 	 *
 	 */
-	default void endCodeLens(JavaCodeLensContext context) {
+	default void endCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 
 	}
 }

@@ -20,6 +20,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.microprofile.psi.internal.quarkus.scheduler.SchedulerErrorCodes;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
 import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
@@ -30,25 +31,22 @@ import org.junit.Test;
 import java.io.File;
 import java.util.Arrays;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDiagnostics;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.d;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.QUARKUS_PREFIX;
 
 /**
  * Quarkus @Scheduled annotation property test for diagnostics in Java file.
  */
-public class QuarkusScheduledASTVisitorTest extends MavenModuleImportingTestCase {
+public class QuarkusScheduledASTVisitorTest extends QuarkusMavenModuleImportingTestCase {
 
 	@Test
 	public void testScheduledAnnotationTest() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_diagnostic));
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_diagnostic);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/ScheduledResource.java").toURI());
-
-
+		String javaFileUri = getFileUri("src/main/java/org/acme/ScheduledResource.java", javaProject);
 		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 

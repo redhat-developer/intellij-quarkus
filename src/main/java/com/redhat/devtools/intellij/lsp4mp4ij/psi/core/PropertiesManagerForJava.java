@@ -14,6 +14,7 @@ import com.intellij.lang.jvm.JvmParameter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.ThrowableComputable;
@@ -104,7 +105,7 @@ public class PropertiesManagerForJava {
      * @param utils   the utilities class
      * @return the codelens list according the given codelens parameters.
      */
-    public List<? extends CodeLens> codeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
+    public List<? extends CodeLens> codeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils,  ProgressIndicator monitor) {
         return ApplicationManager.getApplication().runReadAction((Computable<List<? extends CodeLens>>) () -> {
             String uri = params.getUri();
             PsiFile typeRoot = resolveTypeRoot(uri, utils);
@@ -112,13 +113,13 @@ public class PropertiesManagerForJava {
                 return Collections.emptyList();
             }
             List<CodeLens> lenses = new ArrayList<>();
-            collectCodeLens(uri, typeRoot, utils, params, lenses);
+            collectCodeLens(uri, typeRoot, utils, params, lenses, monitor);
             return lenses;
         });
     }
 
     private void collectCodeLens(String uri, PsiFile typeRoot, IPsiUtils utils, MicroProfileJavaCodeLensParams params,
-                                 List<CodeLens> lenses) {
+                                 List<CodeLens> lenses, ProgressIndicator monitor) {
         // Collect all adapted codeLens participant
         try {
             Module module = utils.getModule(uri);
@@ -127,21 +128,21 @@ public class PropertiesManagerForJava {
             }
             JavaCodeLensContext context = new JavaCodeLensContext(uri, typeRoot, utils, module, params);
             List<IJavaCodeLensParticipant> definitions = IJavaCodeLensParticipant.EP_NAME.getExtensionList()
-                    .stream().filter(definition -> definition.isAdaptedForCodeLens(context))
+                    .stream().filter(definition -> definition.isAdaptedForCodeLens(context, monitor))
                     .collect(Collectors.toList());
             if (definitions.isEmpty()) {
                 return;
             }
 
             // Begin, collect, end participants
-            definitions.forEach(definition -> definition.beginCodeLens(context));
+            definitions.forEach(definition -> definition.beginCodeLens(context, monitor));
             definitions.forEach(definition -> {
-                List<CodeLens> collectedLenses = definition.collectCodeLens(context);
+                List<CodeLens> collectedLenses = definition.collectCodeLens(context, monitor);
                 if (collectedLenses != null && !collectedLenses.isEmpty()) {
                     lenses.addAll(collectedLenses);
                 }
             });
-            definitions.forEach(definition -> definition.endCodeLens(context));
+            definitions.forEach(definition -> definition.endCodeLens(context, monitor));
         } catch (IOException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }

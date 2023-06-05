@@ -1,0 +1,8 @@
+{#if it??}
+<!-- FIXME: there appears to be a size value coming from outer space -->
+<span class="user-link" title="{it.userName}">
+{#if img??}
+{#gravatar it.email size=size.or(20) default='mm' /}
+{/if}
+{it.userName}<i class="bi bi-{it.iconType}"></i></span>
+{/if}

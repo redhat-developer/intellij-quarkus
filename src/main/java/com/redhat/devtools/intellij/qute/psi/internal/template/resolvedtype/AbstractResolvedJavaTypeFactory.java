@@ -141,7 +141,7 @@ public abstract class AbstractResolvedJavaTypeFactory implements IResolvedJavaTy
 
 		if (modifiers instanceof StubBasedPsiElementBase) {
 			PsiModifierListStub stub = (PsiModifierListStub) ((StubBasedPsiElementBase<?>) modifiers).getGreenStub();
-			result = (stub.getModifiersMask() & 0x00001000) == 0x00001000;
+			result = stub != null && (stub.getModifiersMask() & 0x00001000) == 0x00001000;
 		}
 		return result;
 	}

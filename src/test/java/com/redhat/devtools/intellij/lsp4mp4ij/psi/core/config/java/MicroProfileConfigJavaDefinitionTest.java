@@ -16,6 +16,8 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.config.java;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider;
 import org.junit.Test;
@@ -23,26 +25,23 @@ import org.junit.Test;
 import java.io.File;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDefinitions;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.def;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.fixURI;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.p;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.r;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
  * MicroProfileConfig name definition to properties files.
  *
  *
  */
-public class MicroProfileConfigJavaDefinitionTest extends MavenModuleImportingTestCase {
+public class MicroProfileConfigJavaDefinitionTest extends LSP4MPMavenModuleImportingTestCase {
 
 	@Test
 	public void testConfigPropertyNameDefinition() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-hover"));
 
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/GreetingResource.java").toURI());
-		String propertiesFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/META-INF/microprofile-config.properties").toURI());
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
+
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/META-INF/microprofile-config.properties", javaProject);
 
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
 				"greeting.message = hello\r\n" + //

@@ -15,6 +15,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.restclient.java;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,7 +60,7 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 		params.setUrlCodeLensEnabled(true);
 
 		// No configuration of base url
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
+		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils, new EmptyProgressIndicator());
 		Assert.assertEquals(0, lenses.size());
 
 		// /mp-rest/url
@@ -91,7 +92,7 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 		params.setUrlCodeLensEnabled(true);
 
 		// No configuration of base url
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
+		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils, new EmptyProgressIndicator());
 		Assert.assertEquals(0, lenses.size());
 
 		// /mp-rest/url
@@ -209,7 +210,7 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 		params.setUrlCodeLensEnabled(true);
 
 		// No configuration of base url
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
+		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils, new EmptyProgressIndicator());
 		Assert.assertEquals(0, lenses.size());
 
 		// /mp-rest/url
@@ -232,7 +233,7 @@ public class MicroProfileRestClientJavaCodeLensTest extends MavenModuleImporting
 	}
 
 	private static void assertCodeLenses(String baseURL, MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
+		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils, new EmptyProgressIndicator());
 		Assert.assertEquals(8, lenses.size());
 
 		// @GET

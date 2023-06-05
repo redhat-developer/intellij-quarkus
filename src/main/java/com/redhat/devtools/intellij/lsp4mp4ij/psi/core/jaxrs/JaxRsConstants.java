@@ -11,7 +11,7 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs;
+package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs;
 
 import java.util.Arrays;
 import java.util.List;

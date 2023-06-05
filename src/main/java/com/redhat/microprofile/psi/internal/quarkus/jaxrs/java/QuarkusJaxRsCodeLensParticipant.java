@@ -12,6 +12,7 @@
 package com.redhat.microprofile.psi.internal.quarkus.jaxrs.java;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.JavaCodeLensContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsContext;
@@ -37,7 +38,7 @@ public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant
 	private static final String QUARKUS_HTTP_ROOT_PATH = "quarkus.http.root-path";
 
 	@Override
-	public void beginCodeLens(JavaCodeLensContext context) {
+	public void beginCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 		// Update the JAX-RS server port from the declared quarkus property
 		// "quarkus.http.port"
 		Module javaProject = context.getJavaProject();
@@ -54,7 +55,7 @@ public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant
 	}
 
 	@Override
-	public List<CodeLens> collectCodeLens(JavaCodeLensContext context) {
+	public List<CodeLens> collectCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 		// Do nothing
 		return null;
 	}

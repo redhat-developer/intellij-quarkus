@@ -167,7 +167,8 @@ public class PsiTypeUtils {
 		}
 		if (type instanceof PsiClassReferenceType) {
 			var ref = ((PsiClassReferenceType) type).getReference();
-			var prefix = ClassUtil.getJVMClassName(((PsiClassReferenceType) type).resolve());
+			var resolvedType = ((PsiClassReferenceType) type).resolve();
+			var prefix = resolvedType != null ? ClassUtil.getJVMClassName(resolvedType) : null;
 			if (prefix == null) {
 				prefix = ref.getReferenceName();
 			}
