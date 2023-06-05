@@ -172,8 +172,26 @@ public class QuarkusConfigMappingTest extends MavenModuleImportingTestCase {
 						"optional()Ljava/util/Optional;", 0, null),
 				p(null, "optionals.optional-int", "java.util.OptionalInt", null, false,
 						"org.acme.optionals.Optionals", null,
-						"optionalInt()Ljava/util/OptionalInt;", 0, null)
+						"optionalInt()Ljava/util/OptionalInt;", 0, null),
+
+				// 8) Enum
+
+				// @ConfigMapping(prefix = "my.native")
+				//public interface MyNativeConfig {
+				//
+				//    enum MonitoringOption {
+				//        HEAPDUMP
+				//    }
+				//
+				//    Optional<List<MonitoringOption>> monitoring();
+				//}
+
+				p(null, "my.native.monitoring[*]", "java.util.List", null, false,
+						"org.acme.enums.MyNativeConfig", null,
+						"monitoring()Ljava/util/Optional;", 0, null)
 				);
+
+
 		assertPropertiesDuplicate(infoFromJavaSources);
 	}
 }

@@ -137,6 +137,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 		for (PsiElement child : elements) {
 			if (child instanceof PsiMethod) {
 				PsiMethod method = (PsiMethod) child;
+				assert method.getReturnType() != null : "No constructors are supposed to reach this point";
 				if (method.getModifierList().hasExplicitModifier(PsiModifier.DEFAULT) || method.hasParameters()
 						|| PsiType.VOID.equals(method.getReturnType())) {
 					continue;
@@ -223,7 +224,8 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 	private boolean isSimpleType(String resolvedTypeSignature, PsiClass returnType) {
 		return returnType == null
 				|| isPrimitiveType(resolvedTypeSignature)
-				|| isSimpleOptionalType(resolvedTypeSignature);
+				|| isSimpleOptionalType(resolvedTypeSignature)
+				|| returnType.isEnum();
 	}
 
 	private boolean isSimpleOptionalType(String resolvedTypeSignature) {
