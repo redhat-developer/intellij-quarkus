@@ -7,64 +7,85 @@
   <description><![CDATA[
       <img src="https://raw.githubusercontent.com/redhat-developer/intellij-quarkus/master/src/main/resources/quarkus_icon_rgb_32px_default.png" width="32" height="32"/>
       <h2>Quarkus Tools for IntelliJ</h2>
-      <p>A plugin aim at Quarkus based development, providing easy bootstrapping and code assist from Quarkus related assets.<p>
+      <p>A plugin aim at Quarkus based development, providing easy bootstrapping and code assist from <a href="https://quarkus.io/">Quarkus</a> related assets and <a href="https://quarkus.io/guides/qute-reference">Qute</a>.<p>
   ]]></description>
 
   <change-notes><![CDATA[
-    <p><b>1.19.0</b></p>
+    <h3>1.20.0</h3>
+    <ul>
+      <li>Support for Renarde Quarkus application (URL codelens in Java file, uri/uriabs support in Qute template)</li>
+      <li>Support for Qute fragments</li>
+      <li>Support Quarkus3 for Qute</li>
+      <li>Bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/32?closed=1">changelog</a>.
+    <br><br>
+    <h3>1.19.0</h3>
     <ul>
       <li>performance improvement which should avoid freezing IJ by improving start/stop of language servers</li>
       <li>LSP console to track LSP request/responses notification for all started language servers</li>
       <li>Support for WSL2</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.18.0</b></p>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/30?closed=1">changelog</a>.
+    <br><br>
+    <h3>1.18.0</h3>
     <ul>
       <li>Support for Jakarta annotations</li>
       <li>validation and quickfixes are now much faster and are not blocking the editor any longer</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.17.1</b></p>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/29?closed=1">changelog</a>.
+    <br><br>
+    <h3>1.17.1</h3>
     <ul>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.17.0</b></p>
+    <br><br>
+    <h3>1.17.0</h3>
     <ul>
       <li>Release for 2023.1</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.16.0</b></p>
+    <br><br>
+    <h3>1.16.0</h3>
     <ul>
       <li>LSP4MP 0.6.0 and quarkus-ls 0.13.0 based</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.15.0</b></p>
+    <br><br>
+    <h3>1.15.0</h3>
     <ul>
       <li>Emergency release for 2022.3 as it breaks Quarkus Tools and numerous other plugins</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.14.1</b></p>
+    <br><br>
+    <h3>1.14.1</h3>
     <ul>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.14.0</b></p>
+    <br><br>
+    <h3>1.14.0</h3>
     <ul>
       <li>Add support for CodeActions / QuickFixes</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.13.1</b></p>
+    <br><br>
+    <h3>1.13.1</h3>
     <ul>
       <li>Some Maven projects could not be loaded because of conflicting dependencies</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.13.0</b></p>
+    <br><br>
+    <h3>1.13.0</h3>
     <ul>
       <li>Add support for InlayHint including clickable hints</li>
       <li>Add support for documentHighlight</li>
       <li>Security fixes</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.12.0</b></p>
+    <br><br>
+    <h3>1.12.0</h3>
     <ul>
       <li>New Quarkus project wizard allows to filter extensions by name and by being part of the Quarkus platform</li>
       <li>Improved CodeLens support</li>
@@ -72,90 +93,107 @@
       <li>LSP4MP 0.5.0 and quarkus-ls 0.12.1 based</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.11.1</b></p>
+    <br><br>
+    <h3>1.11.1</h3>
     <ul>
       <li>Fix incompatibilty with JetBrains Quarkus plugin</li>
       <li>Security fixes</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.11.0</b></p>
+    <br><br>
+    <h3>1.11.0</h3>
     <ul>
       <li>Add support for Qute templating engine</li>
       <li>MicroProfile 2.0 support</li>
       <li>IntelliJ 2022.1 compatibility</li>
     </ul>
-    <p><b>1.10.0</b></p>
+    <br><br>
+    <h3>1.10.0</h3>
     <ul>
       <li>Add Quarkus configuration support to run and debug Quarkus applications</li>
       <li>Fix Quarkus library dependencies
       <li>Fix CVE-2021-25738 (Yaml parsing)</li>
     </ul>
-    <p><b>1.9.0</b></p>
+    <br><br>
+    <h3>1.9.0</h3>
     <ul>
       <li>Quarkus wizard allows to select Quarkus stream</li>
       <li>Fix compatibility issue with IntelliJ 2021.3</li>
     </ul>
-    <p><b>1.8.0</b></p>
+    <br><br>
+    <h3>1.8.0</h3>
     <ul>
       <li>Add support for CodeLens/Inlay (for JAX-RS endpoints)</li>
       <li>Configuration files with profile scope get content assist and syntax validation</li>
     </ul>
-    <p><b>1.7.0</b></p>
+    <br><br>
+    <h3>1.7.0</h3>
     <ul>
       <li>Add support for projects with Gradle DSL</li>
       <li>Configuration files with profile scope get content assist and syntax validation</li>
     </ul>
-    <p><b>1.6.0</b></p>
+    <br><br>
+    <h3>1.6.0</h3>
     <ul>
       <li>Quarkus 2.x</li>
       <li>Fix compatibility issues with IntelliJ 2021.2</li>
     </ul>
-    <p><b>1.5.0</b></p>
+    <br><br>
+    <h3>1.5.0</h3>
     <ul>
       <li>Quarkus project wizard now uses POST requests</li>
       <li>Opt-in telemetry</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.4.0</b></p>
+    <br><br>
+    <h3>1.4.0</h3>
     <ul>
       <li>Quarkus project wizard now displays codestarts enabled extensions with an icon</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.3.0</b></p>
+    <br><br>
+    <h3>1.3.0</h3>
     <ul>
       <li>Quarkus project wizard now offers codestarts options</li>
       <li>Bug fixes</li>
     </ul>
-    <p><b>1.2.0</b></p>
+    <br><br>
+    <h3>1.2.0</h3>
     <ul>
       <li>LSP4MP 1.0 based</li>
       <li>Better Eclipse Microprofile support: JWT, Health, GraphQL and Reactive Messagging
       properties added</li>
     </ul>
-    <p><b>1.1.0</b></p>
+    <br><br>
+    <h3>1.1.0</h3>
     <ul>
       <li>Support YAML configuration files (code assist, syntax validation)</li>
     </ul>
-    <p><b>1.0.4</b></p>
+    <br><br>
+    <h3>1.0.4</h3>
     <ul>
       <li>Fix whole IDE deadlock while completion proposals were computed</li>
     </ul>
-    <p><b>1.0.3</b></p>
+    <br><br>
+    <h3>1.0.3</h3>
     <ul>
       <li>Fix whole IDE deadlock while completion proposals were computed</li>
       <li>Various bug fixes</li>
     </ul>
-    <p><b>1.0.2</b></p>
+    <br><br>
+    <h3>1.0.2</h3>
     <ul>
       <li>Extension details and link to guide are now available in the Quarkus wizard</li>
       <li>Java code assist was polluted by snippets (see <a href="https://github.com/redhat-developer/intellij-quarkus/issues/152">#152</a>)</li>
       <li>Various bug fixes</li>
     </ul>
-    <p><b>1.0.1</b></p>
+    <br><br>
+    <h3>1.0.1</h3>
     <ul>
       <li>Java quickdoc was not displayed anymore if Quarkus Tools is installed</li>
     </ul>
-    <p><b>1.0.0</b></p>
+    <br><br>
+    <h3>1.0.0</h3>
     <ul>
       <li>Based on microprofile-ls</li>
       <li>Removed dependency on LSP Support plugin</li>
@@ -169,17 +207,20 @@
       <li>MicroProfile OpenTracing support: new property keys if Microprofile OpenTracing dependency is present</li>
       <li>The Quarkus project/module wizard has been enhanced</li>
     </ul>
-    <p><b>0.0.3</b></p>
+    <br><br>
+    <h3>0.0.3</h3>
     <ul>
       <li>Fix issue in newly created Maven projects causing incomplete completion in application.properties</li>
     </ul>
-    <p><b>0.0.2</b></p>
+    <br><br>
+    <h3>0.0.2</h3>
     <ul>
       <li>Add support for Gradle projects</li>
       <li>Fix issue in wizard causing incorrect version</li>
       <li>Plugin renamed to Quarkus Tools</li>
     </ul>
-    <p><b>0.0.1</b></p>
+    <br><br>
+    <h3>0.0.1</h3>
     <p>Initial release</p>
     <ul>
       <li>Project and module wizard through code.quarkus.io</li>
