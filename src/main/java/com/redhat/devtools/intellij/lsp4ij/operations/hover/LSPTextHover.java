@@ -60,7 +60,7 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
 
     private PsiElement lastElement;
     private int        lastOffset = -1;
-    private CompletableFuture<List<Hover>> request,lspRequest;
+    private CompletableFuture<List<Hover>> lspRequest;
 
     public LSPTextHover() {
         LOGGER.info("LSPTextHover");
@@ -118,30 +118,20 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
         return null;
     }
 
-    private CompletableFuture<Integer> getCursorOffset(Editor editor) {
-        CompletableFuture<Integer> future = new CompletableFuture<>();
-        ApplicationManager.getApplication().invokeLater(() -> {
-            int offset = -1;
-            PointerInfo info = MouseInfo.getPointerInfo();
-            if (info != null/* && EditorUtil.isPointOverText(editor, info.getLocation())*/) {
-                Point location = info.getLocation();
-                SwingUtilities.convertPointFromScreen(location, editor.getContentComponent());
-                LogicalPosition position = editor.xyToLogicalPosition(location);
-                offset = editor.logicalPositionToOffset(position);
-            }
-            future.complete(offset);
-        });
-        return future;
+    @Override
+    public @Nullable PsiElement getCustomDocumentationElement(@NotNull Editor editor, @NotNull PsiFile file, @Nullable PsiElement contextElement, int targetOffset) {
+        return new LSPPsiElementForHover(editor, file, targetOffset);
     }
 
     @Nullable
     @Override
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-        Editor editor = LSPIJUtils.editorForElement(element);
-        if (editor != null) {
-            initiateHoverRequest(element, editor);
+        if (element instanceof LSPPsiElementForHover) {
+            LSPPsiElementForHover data = (LSPPsiElementForHover) element;
+            Editor editor = data.getEditor();
+            initiateHoverRequest(element, data.getTargetOffset());
             try {
-                String result = request.get(500, TimeUnit.MILLISECONDS).stream()
+                String result = lspRequest.get(500, TimeUnit.MILLISECONDS).stream()
                         .filter(Objects::nonNull)
                         .map(LSPTextHover::getHoverString)
                         .filter(Objects::nonNull)
@@ -197,38 +187,34 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
      *
      * @param element
      *            the PSI element.
-     * @param editor
-     *            the editor.
+     * @param offset
+     *            the target offset.
      */
-    private void initiateHoverRequest(PsiElement element, Editor editor) {
+    private void initiateHoverRequest(PsiElement element, int offset) {
         PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
         final Document document = manager.getDocument(element.getContainingFile());
-        this.request = getCursorOffset(editor).thenComposeAsync(offset -> {
-            if (offset != -1 && (this.lspRequest == null || !element.equals(this.lastElement) || offset != this.lastOffset)) {
-                this.lastElement = element;
-                this.lastOffset = offset;
-                this.lspRequest = LanguageServiceAccessor.getInstance(element.getProject())
-                        .getLanguageServers(document, capabilities -> isHoverCapable(capabilities))
-                        .thenApplyAsync(languageServers -> // Async is very important here, otherwise the LS Client thread is in
-                                // deadlock and doesn't read bytes from LS
-                                languageServers.stream()
-                                        .map(languageServer -> {
-                                            try {
-                                                return languageServer.getTextDocumentService()
-                                                        .hover(LSPIJUtils.toHoverParams(offset, document)).get();
-                                            } catch (ExecutionException e) {
-                                                LOGGER.warn(e.getLocalizedMessage(), e);
-                                                return null;
-                                            } catch (InterruptedException e) {
-                                                LOGGER.warn(e.getLocalizedMessage(), e);
-                                                Thread.currentThread().interrupt();
-                                                return null;
-                                            }
-                                        }).filter(Objects::nonNull).collect(Collectors.toList()));
-
-            }
-            return this.lspRequest;
-        });
+        if (offset != -1 && (this.lspRequest == null || !element.equals(this.lastElement) || offset != this.lastOffset)) {
+            this.lastElement = element;
+            this.lastOffset = offset;
+            this.lspRequest = LanguageServiceAccessor.getInstance(element.getProject())
+                    .getLanguageServers(document, capabilities -> isHoverCapable(capabilities))
+                    .thenApplyAsync(languageServers -> // Async is very important here, otherwise the LS Client thread is in
+                            // deadlock and doesn't read bytes from LS
+                            languageServers.stream()
+                                    .map(languageServer -> {
+                                        try {
+                                            return languageServer.getTextDocumentService()
+                                                    .hover(LSPIJUtils.toHoverParams(offset, document)).get();
+                                        } catch (ExecutionException e) {
+                                            LOGGER.warn(e.getLocalizedMessage(), e);
+                                            return null;
+                                        } catch (InterruptedException e) {
+                                            LOGGER.warn(e.getLocalizedMessage(), e);
+                                            Thread.currentThread().interrupt();
+                                            return null;
+                                        }
+                                    }).filter(Objects::nonNull).collect(Collectors.toList()));
+        }
     }
 
     private boolean isHoverCapable(ServerCapabilities capabilities) {
