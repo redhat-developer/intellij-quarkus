@@ -286,7 +286,8 @@ You can download and install CI builds of the latest commits or a pull request:
 - open the [`Java CI with Gradle` workflow](https://github.com/redhat-developer/intellij-quarkus/actions/workflows/ci.yml)
 - click on the build you are interested in
 - scroll down and download the `Quarkus Tools <version>.zip` file
-- install into IntelliJ IDEA by following these [instructions](https://www.jetbrains.com/help/idea/managing-plugins.html#install_plugin_from_disk).
+- the file is [zipped twice](https://github.com/actions/upload-artifact/issues/39), you need to unzip it once
+- install the newly decompressed `Quarkus Tools <version>.zip` into IntelliJ IDEA by following these [instructions](https://www.jetbrains.com/help/idea/managing-plugins.html#install_plugin_from_disk).
 
 Data and Telemetry
 ==================
