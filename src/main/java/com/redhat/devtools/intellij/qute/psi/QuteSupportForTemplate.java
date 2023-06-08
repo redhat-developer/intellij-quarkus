@@ -11,12 +11,14 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -51,7 +53,7 @@ import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.findType;
 
 /**
  * Qute support for Template file.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -69,11 +71,11 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Returns the project information for the given project Uri.
-	 * 
+	 *
 	 * @param params  the project information parameters.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the project information for the given project Uri and null otherwise.
 	 */
 	public ProjectInfo getProjectInfo(QuteProjectParams params, IPsiUtils utils, ProgressIndicator monitor) {
@@ -90,7 +92,7 @@ public class QuteSupportForTemplate {
 	/**
 	 * Collect data model templates from the given project Uri. A data model
 	 * template can be declared with:
-	 * 
+	 *
 	 * <ul>
 	 * <li>@CheckedTemplate support: collect parameters for Qute Template by
 	 * searching @CheckedTemplate annotation.</li>
@@ -99,11 +101,11 @@ public class QuteSupportForTemplate {
 	 * <li>Template extension support: see
 	 * https://quarkus.io/guides/qute-reference#template_extension_methods</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param params  the project uri.
 	 * @param utils   JDT LS utilities
 	 * @param monitor the progress monitor
-	 * 
+	 *
 	 * @return data model templates from the given project Uri.
 	 */
 	public DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(
@@ -121,11 +123,11 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Collect user tags from the given project Uri.
-	 * 
+	 *
 	 * @param params  the project uri.
 	 * @param utils   JDT LS utilities
 	 * @param monitor the progress monitor
-	 * 
+	 *
 	 * @return user tags from the given project Uri.
 	 */
 	public List<UserTagInfo> getUserTags(QuteUserTagParams params, IPsiUtils utils, ProgressIndicator monitor)
@@ -141,11 +143,11 @@ public class QuteSupportForTemplate {
 	/**
 	 * Returns Java types for the given pattern which belong to the given project
 	 * Uri.
-	 * 
+	 *
 	 * @param params  the java types parameters.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return list of Java types.
 	 */
 	public List<JavaTypeInfo> getJavaTypes(QuteJavaTypesParams params, IPsiUtils utils, ProgressIndicator monitor) {
@@ -163,11 +165,11 @@ public class QuteSupportForTemplate {
 	/**
 	 * Returns the Java definition of the given Java type, method, field, method
 	 * parameter, method invocation parameter and null otherwise.
-	 * 
+	 *
 	 * @param params  the Java element information.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the Java definition of the given Java type, method, field, method
 	 *         parameter, method invocation parameter and null otherwise.
 	 */
@@ -249,11 +251,11 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Returns the resolved type (fields and methods) for the given Java type.
-	 * 
+	 *
 	 * @param params  the Java type to resolve.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the resolved type (fields and methods) for the given Java type.
 	 */
 	public ResolvedJavaTypeInfo getResolvedJavaType(QuteResolvedJavaTypeParams params, IPsiUtils utils,
@@ -370,8 +372,10 @@ public class QuteSupportForTemplate {
 			if (type == null) {
 				return null;
 			}
-			return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), utils,
-					monitor, new HashSet<>());
+			final var finalUtils = utils;
+			return ApplicationManager.getApplication()
+					.runReadAction((Computable<String>) () -> getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), finalUtils,
+							monitor, new HashSet<>()));
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Error while collecting Javadoc for " + params.getSourceType() + "#" + params.getMemberName(), e);
