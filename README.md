@@ -283,7 +283,7 @@ You can perform UI testing by running the following command:
 
 You can download and install CI builds of the latest commits or a pull request:
 
-- open the [`Java CI with Gradle` workflow](https://github.com/redhat-developer/intellij-quarkus/actions/workflows/ci.yml)
+- open the [`Build plugin zip` workflow](https://github.com/redhat-developer/intellij-quarkus/actions/workflows/buildZip.yml)
 - click on the build you are interested in
 - scroll down and download the `Quarkus Tools <version>.zip` file
 - the file is [zipped twice](https://github.com/actions/upload-artifact/issues/39), you need to unzip it once

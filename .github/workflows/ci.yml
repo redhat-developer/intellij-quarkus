@@ -23,18 +23,6 @@ jobs:
         cache: 'gradle'
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: Build plugin zip
-      run: ./gradlew buildPlugin
-    - name: Get the file name
-      id: get_name
-      run: |
-        EXTENSION_NAME=$(basename build/distributions/Quarkus*zip)
-        echo "EXTENSION_NAME=$EXTENSION_NAME" >> "$GITHUB_OUTPUT"
-    - uses: actions/upload-artifact@v1
-      with:
-        name: ${{ steps.get_name.outputs.EXTENSION_NAME }}
-        path: build/distributions/${{ steps.get_name.outputs.EXTENSION_NAME }}
-      if: always()
     - name: Build with Gradle
       run: ./gradlew build
     - uses: actions/upload-artifact@v1

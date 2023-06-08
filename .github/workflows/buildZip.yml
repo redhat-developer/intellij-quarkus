@@ -1,0 +1,38 @@
+# This workflow will build a Java project with Gradle
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Build Plugin zip
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-plugin:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: 11
+        distribution: 'temurin'
+        cache: 'gradle'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build plugin zip
+      run: ./gradlew buildPlugin
+    - name: Get the file name
+      id: get_name
+      run: |
+        EXTENSION_NAME=$(basename build/distributions/Quarkus*zip)
+        echo "EXTENSION_NAME=$EXTENSION_NAME" >> "$GITHUB_OUTPUT"
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{ steps.get_name.outputs.EXTENSION_NAME }}
+        path: build/distributions/${{ steps.get_name.outputs.EXTENSION_NAME }}
+      if: always()
+
