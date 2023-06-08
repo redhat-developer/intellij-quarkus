@@ -73,7 +73,7 @@ public class JavaProcessCommandBuilder {
 
     public List<String> create() {
         List<String> commands = new ArrayList<>();
-        commands.add(computeJavaPath());
+        commands.add(javaPath);
         if (debugPort != null && !debugPort.isEmpty()) {
             String suspend = debugSuspend ? "y" : "n";
             commands.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + suspend + ",address=" + debugPort);
@@ -90,14 +90,7 @@ public class JavaProcessCommandBuilder {
     }
 
     private static String computeJavaPath() {
-        String javaPath = "java";
-        boolean existsInPath = Stream.of(System.getenv("PATH").split(Pattern.quote(File.pathSeparator))).map(Paths::get)
-                .anyMatch(path -> Files.exists(path.resolve("java")));
-        if (!existsInPath) {
-            File f = new File(System.getProperty("java.home"),
-                    "bin/java" + (OS.current() == OS.WINDOWS ? ".exe" : ""));
-            javaPath = f.getAbsolutePath();
-        }
-        return javaPath;
+        return new File(System.getProperty("java.home"),
+                "bin/java" + (OS.current() == OS.WINDOWS ? ".exe" : "")).getAbsolutePath();
     }
 }
