@@ -24,8 +24,6 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4ij.internal.SupportedFeatures;
 import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.lsp4ij.server.StreamConnectionProvider;
-import com.redhat.devtools.intellij.lsp4ij.settings.ServerTrace;
-import com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings;
 import com.redhat.devtools.intellij.lsp4ij.lifecycle.LanguageServerLifecycleManager;
 import com.redhat.devtools.intellij.lsp4ij.lifecycle.NullLanguageServerLifecycleManager;
 import org.eclipse.lsp4j.*;
@@ -114,7 +112,11 @@ public class LanguageServerWrapper {
     private LanguageServer languageServer;
     private LanguageClientImpl languageClient;
     private ServerCapabilities serverCapabilities;
-    private Timer timer;
+
+    private final Timer timer = new Timer("Stop Language Server Task Processor"); //$NON-NLS-1$
+
+    private TimerTask stopTimerTask;
+
     private final AtomicBoolean stopping = new AtomicBoolean(false);
 
     private final ExecutorService dispatcher;
@@ -295,7 +297,7 @@ public class LanguageServerWrapper {
                         messageBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
                         messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, fileBufferListener);
                         messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, fileBufferListener);
-                       getLanguageServerLifecycleManager().onStartedLanguageServer(this, null);
+                        getLanguageServerLifecycleManager().onStartedLanguageServer(this, null);
                     }).exceptionally(e -> {
                         LOGGER.error("Error while starting language server '" + serverDefinition.id + "'", e);
                         initializeFuture.completeExceptionally(e);
@@ -372,23 +374,36 @@ public class LanguageServerWrapper {
         getLanguageServerLifecycleManager().logLSPMessage(message, consumer, this);
     }
 
-    private void removeStopTimer() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-            getLanguageServerLifecycleManager().onStartedLanguageServer(this, null);
+    private void removeStopTimerTask() {
+        if (!shouldUseStopTimer()) {
+            return;
+        }
+        synchronized (timer) {
+            if (stopTimerTask != null) {
+                stopTimerTask.cancel();
+                stopTimerTask = null;
+                getLanguageServerLifecycleManager().onStartedLanguageServer(this, null);
+            }
         }
     }
 
-    private void startStopTimer() {
-        timer = new Timer("Stop Language Server Timer"); //$NON-NLS-1$
-        getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                stop();
+    private void startStopTimerTask() {
+        if (!shouldUseStopTimer()) {
+            return;
+        }
+        synchronized (timer) {
+            if (stopTimerTask != null) {
+                stopTimerTask.cancel();
             }
-        }, TimeUnit.SECONDS.toMillis(this.serverDefinition.lastDocumentDisconnectedTimeout));
+            getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
+            stopTimerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    stop();
+                }
+            };
+            timer.schedule(stopTimerTask, TimeUnit.SECONDS.toMillis(this.serverDefinition.lastDocumentDisconnectedTimeout));
+        }
     }
 
     /**
@@ -413,7 +428,7 @@ public class LanguageServerWrapper {
             return;
         }
         getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
-        removeStopTimer();
+        removeStopTimerTask();
         if (this.languageClient != null) {
             this.languageClient.dispose();
         }
@@ -619,7 +634,7 @@ public class LanguageServerWrapper {
      * @noreference internal so far
      */
     private CompletableFuture<LanguageServer> connect(@Nonnull URI absolutePath, Document document) throws IOException {
-        removeStopTimer();
+        removeStopTimerTask();
         final URI thePath = absolutePath; // should be useless
 
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
@@ -676,9 +691,8 @@ public class LanguageServerWrapper {
             documentListener.documentClosed();
         }
         if (!stopping && this.connectedDocuments.isEmpty()) {
-            if (this.serverDefinition.lastDocumentDisconnectedTimeout != 0 && !ApplicationManager.getApplication().isUnitTestMode()) {
-                removeStopTimer();
-                startStopTimer();
+            if (shouldUseStopTimer()) {
+                startStopTimerTask();
             } else {
                 stop();
             }
@@ -979,5 +993,9 @@ public class LanguageServerWrapper {
      */
     public Long getCurrentProcessId() {
         return lspStreamProvider instanceof ProcessStreamConnectionProvider ? ((ProcessStreamConnectionProvider) lspStreamProvider).getPid() : null;
+    }
+
+    private boolean shouldUseStopTimer() {
+        return this.serverDefinition.lastDocumentDisconnectedTimeout != 0 && !ApplicationManager.getApplication().isUnitTestMode();
     }
 }
