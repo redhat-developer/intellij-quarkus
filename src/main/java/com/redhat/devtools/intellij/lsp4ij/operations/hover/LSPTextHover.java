@@ -12,16 +12,16 @@ package com.redhat.devtools.intellij.lsp4ij.operations.hover;
 
 import com.intellij.lang.documentation.DocumentationProviderEx;
 import com.intellij.lang.documentation.ExternalDocumentationHandler;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.PsiUtilCore;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.vladsch.flexmark.html.HtmlRenderer;
@@ -36,11 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.SwingUtilities;
-import java.awt.Color;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.PointerInfo;
+import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -59,7 +55,7 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
     private static final HtmlRenderer RENDERER = HtmlRenderer.builder().build();
 
     private PsiElement lastElement;
-    private int        lastOffset = -1;
+    private int lastOffset = -1;
     private CompletableFuture<List<Hover>> lspRequest;
 
     public LSPTextHover() {
@@ -99,7 +95,7 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
     }
 
     private static void appendAsHexString(StringBuilder buffer, int intValue) {
-        String hexValue= Integer.toHexString(intValue);
+        String hexValue = Integer.toHexString(intValue);
         if (hexValue.length() == 1) {
             buffer.append('0');
         }
@@ -114,43 +110,39 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
 
     @Nullable
     @Override
-    public List<String> getUrlFor(PsiElement element, PsiElement originalElement) {
-        return null;
-    }
-
-    @Override
-    public @Nullable PsiElement getCustomDocumentationElement(@NotNull Editor editor, @NotNull PsiFile file, @Nullable PsiElement contextElement, int targetOffset) {
-        return new LSPPsiElementForHover(editor, file, targetOffset);
-    }
-
-    @Nullable
-    @Override
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-        if (element instanceof LSPPsiElementForHover) {
-            LSPPsiElementForHover data = (LSPPsiElementForHover) element;
-            Editor editor = data.getEditor();
-            initiateHoverRequest(element, data.getTargetOffset());
-            try {
-                String result = lspRequest.get(500, TimeUnit.MILLISECONDS).stream()
-                        .filter(Objects::nonNull)
-                        .map(LSPTextHover::getHoverString)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.joining("\n\n")) //$NON-NLS-1$
-                        .trim();
-                if (!result.isEmpty()) {
-                    return styleHtml(editor, RENDERER.render(PARSER.parse(result)));
-                }
-            } catch (ExecutionException | TimeoutException e) {
-                LOGGER.warn(e.getLocalizedMessage(), e);
-            } catch (InterruptedException e) {
-                LOGGER.warn(e.getLocalizedMessage(), e);
-                Thread.currentThread().interrupt();
+        Editor editor = LSPIJUtils.editorForElement(element);
+        if (editor == null) {
+            return null;
+        }
+        int targetOffset = getTargetOffset(originalElement);
+        initiateHoverRequest(element, targetOffset);
+        try {
+            String result = lspRequest.get(500, TimeUnit.MILLISECONDS).stream()
+                    .filter(Objects::nonNull)
+                    .map(LSPTextHover::getHoverString)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining("\n\n")) //$NON-NLS-1$
+                    .trim();
+            if (!result.isEmpty()) {
+                return styleHtml(editor, RENDERER.render(PARSER.parse(result)));
             }
+        } catch (ExecutionException | TimeoutException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+        } catch (InterruptedException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+            Thread.currentThread().interrupt();
         }
         return null;
     }
 
-    protected static @Nullable String getHoverString(Hover hover) {
+    private int getTargetOffset(PsiElement originalElement) {
+        int startOffset = originalElement.getTextOffset();
+        int textLength = originalElement.getTextLength();
+        return startOffset + textLength / 2;
+    }
+
+    private static @Nullable String getHoverString(Hover hover) {
         Either<List<Either<String, MarkedString>>, MarkupContent> hoverContent = hover.getContents();
         if (hoverContent.isLeft()) {
             List<Either<String, MarkedString>> contents = hoverContent.getLeft();
@@ -185,10 +177,8 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
      * Initialize hover requests with hover (if available) and codelens (if
      * available).
      *
-     * @param element
-     *            the PSI element.
-     * @param offset
-     *            the target offset.
+     * @param element the PSI element.
+     * @param offset  the target offset.
      */
     private void initiateHoverRequest(PsiElement element, int offset) {
         PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
@@ -230,12 +220,6 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
     @Nullable
     @Override
     public PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public PsiElement getCustomDocumentationElement(@NotNull Editor editor, @NotNull PsiFile file, @Nullable PsiElement contextElement) {
         return null;
     }
 
