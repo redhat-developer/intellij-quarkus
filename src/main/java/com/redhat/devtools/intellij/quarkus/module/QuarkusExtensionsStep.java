@@ -71,6 +71,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
     private final WizardContext wizardContext;
 
     private class ExtensionsTreeCellRenderer extends CheckboxTree.CheckboxTreeCellRenderer {
+
         @Override
         public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
             Object userObject = ((DefaultMutableTreeNode) value).getUserObject();
@@ -140,10 +141,10 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             filter.setAlignmentX(Component.LEFT_ALIGNMENT);
             panel.add(filter);
 
-            JCheckBox platformChecbox = new JCheckBox();
-            platformChecbox.setSelected(true);
-            platformChecbox.setText("Platform only extensions");
-            panel.add(platformChecbox);
+            JCheckBox platformCheckbox = new JCheckBox();
+            platformCheckbox.setSelected(true);
+            platformCheckbox.setText("Platform only extensions");
+            panel.add(platformCheckbox);
 
             JBSplitter extensionsPanel = new JBSplitter(false, 0.8f);
             extensionsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -152,7 +153,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             List<QuarkusCategory> categories = wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY).getCategories();
 
             //extensions component
-            CheckedTreeNode root = getModel(categories, filter, platformChecbox.isSelected());
+            CheckedTreeNode root = getModel(categories, filter, platformCheckbox.isSelected());
             CheckboxTree extensionsTree = new ExtensionsTree(root);
             JTextPane extensionDetailTextPane = new JTextPane();
             extensionDetailTextPane.setEditorKit(getHtmlEditorKit());
@@ -183,14 +184,14 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                 @Override
                 protected void textChanged(@NotNull DocumentEvent e) {
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter, platformChecbox.isSelected())));
+                        extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter, platformCheckbox.isSelected())));
                         expandTree(extensionsTree);
                     });
                 }
             });
-            platformChecbox.addItemListener(e -> {
+            platformCheckbox.addItemListener(e -> {
                 ApplicationManager.getApplication().invokeLater(() -> {
-                    extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter, platformChecbox.isSelected())));
+                    extensionsTree.setModel(new DefaultTreeModel(getModel(categories, filter, platformCheckbox.isSelected())));
                     expandTree(extensionsTree);
                 });
             });
@@ -205,7 +206,16 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             extensionsTree.addCheckboxTreeListener(new CheckboxTreeListener() {
                 @Override
                 public void nodeStateChanged(@NotNull CheckedTreeNode node) {
-                    ((QuarkusExtension) node.getUserObject()).setSelected(node.isChecked());
+                    QuarkusExtension extension = (QuarkusExtension) node.getUserObject();
+                    if (extension == null) {
+                        // Since ExtensionsTree doesn't extend CheckboxTreeBase directly,
+                        // you can't customize its CheckboxTreeBase.CheckPolicy,
+                        // so CheckboxTreeHelper.adjustParentsAndChildren basically calls nodeStateChanged(node.getParent())
+                        // which doesn't hold a QuarkusExtension and leads to https://github.com/redhat-developer/intellij-quarkus/issues/639
+                        // So we bail here.
+                        return;
+                    }
+                    extension.setSelected(node.isChecked());
                     selectedExtensions.setModel(new SelectedExtensionsModel(categories));
                 }
             });
