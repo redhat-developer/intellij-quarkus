@@ -300,6 +300,26 @@ public class TemplateGetResolvedJavaTypeTest extends QuteMavenModuleImportingTes
 	}
 
 	@Test
+	public void testItemWithAnnotationInParams() throws Exception {
+
+		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.ItemWithAnnotationInParams",
+				QuteMavenProjectName.qute_quickstart);
+		ResolvedJavaTypeInfo result = QuteSupportForTemplate.getInstance().getResolvedJavaType(params, getJDTUtils(),
+				new EmptyProgressIndicator());
+		Assert.assertNotNull(result);
+		Assert.assertEquals("org.acme.qute.ItemWithAnnotationInParams", result.getSignature());
+		Assert.assertEquals(JavaTypeKind.Class, result.getJavaTypeKind());
+
+		// Methods
+		Assert.assertNotNull(result.getMethods());
+		Assert.assertEquals(1, result.getMethods().size());
+		// public Item getItemByIndex(@NotNull Item item, @NotNull int index) {
+		Assert.assertEquals("getItemByIndex(item : org.acme.qute.Item, index : int) : org.acme.qute.Item",
+				result.getMethods().get(0).getSignature());
+
+	}
+
+	@Test
 	public void teststatusesEnum() throws Exception {
 
 		QuteResolvedJavaTypeParams params = new QuteResolvedJavaTypeParams("org.acme.qute.StatusesEnum",
