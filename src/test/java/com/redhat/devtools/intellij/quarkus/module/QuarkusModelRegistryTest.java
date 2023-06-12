@@ -42,7 +42,7 @@ public class QuarkusModelRegistryTest  {
     public static void init() throws Exception {
         System.setProperty(QUARKUS_CODE_URL_PROPERTY_NAME, QUARKUS_CODE_URL_TEST);
         IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
-        TestFixtureBuilder<IdeaProjectTestFixture> fixtureBuilder = factory.createLightFixtureBuilder();
+        TestFixtureBuilder<IdeaProjectTestFixture> fixtureBuilder = factory.createLightFixtureBuilder(QuarkusModelRegistryTest.class.getName());
         IdeaProjectTestFixture fixture = fixtureBuilder.getFixture();
 
         myFixture = IdeaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(fixture);

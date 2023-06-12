@@ -1,7 +1,8 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package org.jetbrains.idea.maven;
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+package com.intellij.maven.testFramework;
 
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.execution.wsl.WSLDistribution;
+import com.intellij.execution.wsl.WslDistributionManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -11,38 +12,46 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.rt.execution.junit.FileComparisonFailure;
-import com.intellij.testFramework.EdtTestUtil;
-import com.intellij.testFramework.PsiTestUtil;
-import com.intellij.testFramework.RunAll;
-import com.intellij.testFramework.UsefulTestCase;
+import com.intellij.testFramework.*;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ThrowableRunnable;
-import gnu.trove.THashSet;
+import com.intellij.util.containers.CollectionFactory;
+import com.intellij.util.containers.ContainerUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.indices.MavenIndicesManager;
 import org.jetbrains.idea.maven.project.*;
+import org.jetbrains.idea.maven.server.MavenServerConnector;
+import org.jetbrains.idea.maven.server.MavenServerConnectorImpl;
 import org.jetbrains.idea.maven.server.MavenServerManager;
+import org.jetbrains.idea.maven.server.RemotePathTransformerFactory;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
+import org.jetbrains.idea.maven.utils.MavenUtil;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class MavenTestCase extends UsefulTestCase {
   protected static final String MAVEN_COMPILER_PROPERTIES = "<properties>\n" +
@@ -51,14 +60,16 @@ public abstract class MavenTestCase extends UsefulTestCase {
                                                             "        <maven.compiler.target>1.7</maven.compiler.target>\n" +
                                                             "</properties>\n";
   protected static final MavenConsole NULL_MAVEN_CONSOLE = new NullMavenConsole();
-  // should not be static
-  protected static MavenProgressIndicator EMPTY_MAVEN_PROCESS =
-    new MavenProgressIndicator(new EmptyProgressIndicator(ModalityState.NON_MODAL), null);
+  private MavenProgressIndicator myProgressIndicator;
+  private MavenEmbeddersManager myEmbeddersManager;
+  private WSLDistribution myWSLDistribution;
+  protected RemotePathTransformerFactory.Transformer myPathTransformer;
 
   private File ourTempDir;
 
   protected IdeaProjectTestFixture myTestFixture;
 
+  @NotNull
   protected Project myProject;
 
   protected File myDir;
@@ -71,14 +82,17 @@ public abstract class MavenTestCase extends UsefulTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
+    setUpFixtures();
+    myProject = myTestFixture.getProject();
+    myPathTransformer = RemotePathTransformerFactory.createForProject(myProject);
+    setupWsl();
     ensureTempDirCreated();
 
     myDir = new File(ourTempDir, getTestName(false));
     FileUtil.ensureExists(myDir);
 
-    setUpFixtures();
 
-    myProject = myTestFixture.getProject();
+    myProgressIndicator = new MavenProgressIndicator(myProject, new EmptyProgressIndicator(ModalityState.NON_MODAL), null);
 
     MavenWorkspaceSettingsComponent.getInstance(myProject).loadState(new MavenWorkspaceSettings());
 
@@ -87,48 +101,118 @@ public abstract class MavenTestCase extends UsefulTestCase {
       getMavenGeneralSettings().setMavenHome(home);
     }
 
+    getMavenGeneralSettings().setAlwaysUpdateSnapshots(true);
+
+    MavenUtil.cleanAllRunnables();
+
     EdtTestUtil.runInEdtAndWait(() -> {
       restoreSettingsFile();
 
-      ApplicationManager.getApplication().runWriteAction(() -> {
+      try {
+        WriteAction.run(this::setUpInWriteAction);
+      }
+      catch (Throwable e) {
         try {
-          setUpInWriteAction();
+          tearDown();
         }
-        catch (Throwable e) {
-          try {
-            tearDown();
-          }
-          catch (Exception e1) {
-            e1.printStackTrace();
-          }
-          throw new RuntimeException(e);
+        catch (Exception e1) {
+          e1.printStackTrace();
         }
-      });
+        throw new RuntimeException(e);
+      }
     });
   }
 
+  private void setupWsl() {
+    String wslMsId = System.getProperty("wsl.distribution.name");
+    if (wslMsId == null) return;
+    List<WSLDistribution> distributions = WslDistributionManager.getInstance().getInstalledDistributions();
+    if (distributions.isEmpty()) throw new IllegalStateException("no WSL distributions configured!");
+    myWSLDistribution = distributions.stream().filter(it -> wslMsId.equals(it.getMsId())).findFirst()
+      .orElseThrow(() -> new IllegalStateException("Distribution " + wslMsId + " was not found"));
+    String jdkPath = System.getProperty("wsl.jdk.path");
+    if (jdkPath == null) {
+      jdkPath = "/usr/lib/jvm/java-11-openjdk-amd64";
+    }
+
+    Sdk wslSdk = getWslSdk(myWSLDistribution.getWindowsPath(jdkPath));
+    WriteAction.runAndWait(() -> ProjectRootManagerEx.getInstanceEx(myProject).setProjectSdk(wslSdk));
+    assertTrue(new File(myWSLDistribution.getWindowsPath(myWSLDistribution.getUserHome())).isDirectory());
+  }
+
+  protected void waitForMavenUtilRunnablesComplete() {
+    PlatformTestUtil.waitWithEventsDispatching(() -> "Waiting for MavenUtils runnables completed" + MavenUtil.getUncompletedRunnables(),
+                                               () -> MavenUtil.noUncompletedRunnables(), 15);
+  }
+
+  @Override
+  protected void runBare(@NotNull ThrowableRunnable<Throwable> testRunnable) throws Throwable {
+    LoggedErrorProcessor.executeWith(new LoggedErrorProcessor() {
+      @Override
+      public boolean processError(@NotNull String category, String message, Throwable t, String @NotNull [] details) {
+        if (t.getMessage().contains("The network name cannot be found") && message.contains("Couldn't read shelf information")) {
+          return false;
+        }
+        if ("JDK annotations not found".equals(t.getMessage()) && "#com.intellij.openapi.projectRoots.impl.JavaSdkImpl".equals(category)) {
+          return false;
+        }
+        return super.processError(category, message, t, details);
+      }
+    }, () -> super.runBare(testRunnable));
+  }
+
+  private Sdk getWslSdk(String jdkPath) {
+    Sdk sdk = ContainerUtil.find(ProjectJdkTable.getInstance().getAllJdks(), it -> jdkPath.equals(it.getHomePath()));
+    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+    for (Sdk existingSdk : jdkTable.getAllJdks()) {
+      if (existingSdk == sdk) return sdk;
+    }
+    Sdk newSdk = JavaSdk.getInstance().createJdk("Wsl JDK For Tests", jdkPath);
+    WriteAction.runAndWait(() -> jdkTable.addJdk(newSdk, myProject));
+    return newSdk;
+  }
+
+
   @Override
   protected void tearDown() throws Exception {
+    String basePath = myProject.getBasePath();
     new RunAll(
+      () -> {
+        MavenProgressIndicator.MavenProgressTracker mavenProgressTracker =
+          myProject.getServiceIfCreated(MavenProgressIndicator.MavenProgressTracker.class);
+        if (mavenProgressTracker != null) {
+          mavenProgressTracker.assertProgressTasksCompleted();
+        }
+      },
       () -> MavenServerManager.getInstance().shutdown(true),
+      () -> tearDownEmbedders(),
       () -> checkAllMavenConnectorsDisposed(),
       () -> MavenArtifactDownloader.awaitQuiescence(100, TimeUnit.SECONDS),
       () -> myProject = null,
       () -> EdtTestUtil.runInEdtAndWait(() -> tearDownFixtures()),
-      () -> MavenIndicesManager.getInstance().clear(),
       () -> {
-        FileUtil.delete(myDir);
-        // cannot use reliably the result of the com.intellij.openapi.util.io.FileUtil.delete() method
-        // because com.intellij.openapi.util.io.FileUtilRt.deleteRecursivelyNIO() does not honor this contract
-        if (myDir.exists()) {
-          System.err.println("Cannot delete " + myDir);
-          //printDirectoryContent(myDir);
-          myDir.deleteOnExit();
+        Project defaultProject = ProjectManager.getInstance().getDefaultProject();
+        MavenIndicesManager mavenIndicesManager = defaultProject.getServiceIfCreated(MavenIndicesManager.class);
+        if (mavenIndicesManager != null) {
+          Disposer.dispose(mavenIndicesManager);
+        }
+      },
+      () -> deleteDirOnTearDown(myDir),
+      () -> {
+        if (myWSLDistribution != null) {
+          deleteDirOnTearDown(new File(basePath));
         }
       },
       () -> super.tearDown()
     ).run();
   }
+
+  private void tearDownEmbedders() {
+    MavenProjectsManager manager = MavenProjectsManager.getInstanceIfCreated(myProject);
+    if(manager == null) return;
+    manager.getEmbeddersManager().releaseInTests();
+  }
+
 
   private void checkAllMavenConnectorsDisposed() {
     assertEmpty("all maven connectors should be disposed", MavenServerManager.getInstance().getAllConnectors());
@@ -137,13 +221,28 @@ public abstract class MavenTestCase extends UsefulTestCase {
   private void ensureTempDirCreated() throws IOException {
     if (ourTempDir != null) return;
 
-    ourTempDir = new File(FileUtil.getTempDirectory(), "mavenTests");
+    if (myWSLDistribution == null) {
+      ourTempDir = new File(FileUtil.getTempDirectory(), "mavenTests");
+    }
+    else {
+      ourTempDir = new File(myWSLDistribution.getWindowsPath("/tmp"), "mavenTests");
+    }
+
     FileUtil.delete(ourTempDir);
     FileUtil.ensureExists(ourTempDir);
   }
 
   protected void setUpFixtures() throws Exception {
-    myTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName()).getFixture();
+    String wslMsId = System.getProperty("wsl.distribution.name");
+    if (wslMsId != null) {
+      Path path = TemporaryDirectory
+        .generateTemporaryPath(FileUtil.sanitizeFileName(getName(), false), Paths.get("\\\\wsl$\\" + wslMsId + "\\tmp"));
+      myTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName(), path, false).getFixture();
+    }
+    else {
+      myTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName()).getFixture();
+    }
+
     myTestFixture.setUp();
   }
 
@@ -151,6 +250,21 @@ public abstract class MavenTestCase extends UsefulTestCase {
     File projectDir = new File(myDir, "project");
     projectDir.mkdirs();
     myProjectRoot = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir);
+  }
+
+  protected MavenProgressIndicator getMavenProgressIndicator() {
+    return myProgressIndicator;
+  }
+
+  protected static void deleteDirOnTearDown(File dir) {
+    FileUtil.delete(dir);
+    // cannot use reliably the result of the com.intellij.openapi.util.io.FileUtil.delete() method
+    // because com.intellij.openapi.util.io.FileUtilRt.deleteRecursivelyNIO() does not honor this contract
+    if (dir.exists()) {
+      System.err.println("Cannot delete " + dir);
+      //printDirectoryContent(myDir);
+      dir.deleteOnExit();
+    }
   }
 
   private static void printDirectoryContent(File dir) {
@@ -178,12 +292,7 @@ public abstract class MavenTestCase extends UsefulTestCase {
   @Override
   protected void runTestRunnable(@NotNull ThrowableRunnable<Throwable> testRunnable) throws Throwable {
     try {
-      if (runInWriteAction()) {
-        WriteAction.runAndWait(() -> super.runTestRunnable(testRunnable));
-      }
-      else {
-        super.runTestRunnable(testRunnable);
-      }
+      super.runTestRunnable(testRunnable);
     }
     catch (Throwable throwable) {
       if (ExceptionUtil.causedBy(throwable, HeadlessException.class)) {
@@ -191,10 +300,6 @@ public abstract class MavenTestCase extends UsefulTestCase {
       }
       throw throwable;
     }
-  }
-
-  protected boolean runInWriteAction() {
-    return false;
   }
 
   protected static String getRoot() {
@@ -268,20 +373,9 @@ public abstract class MavenTestCase extends UsefulTestCase {
   }
 
   private static String createSettingsXmlContent(String content) {
-    String mirror = System.getProperty("idea.maven.test.mirror",
-                                       // use JB maven proxy server for internal use by default, see details at
-                                       // https://confluence.jetbrains.com/display/JBINT/Maven+proxy+server
-                                       "https://repo.labs.intellij.net/repo1");
     return "<settings>" +
            content +
-           "<mirrors>" +
-           "  <mirror>" +
-           "    <id>jb-central-proxy</id>" +
-           "    <url>" + mirror + "</url>" +
-           "    <mirrorOf>external:*,!flex-repository</mirrorOf>" +
-           "  </mirror>" +
-           "</mirrors>" +
-           "</settings>";
+           "</settings>\r\n";
   }
 
   protected void restoreSettingsFile() throws IOException {
@@ -330,7 +424,7 @@ public abstract class MavenTestCase extends UsefulTestCase {
       }
       myAllPoms.add(f);
     }
-    setFileContent(f, createPomXml(xml), true);
+    setPomContent(f, xml);
     return f;
   }
 
@@ -446,6 +540,10 @@ public abstract class MavenTestCase extends UsefulTestCase {
     return file;
   }
 
+  protected static void setPomContent(VirtualFile file, @Language(value = "XML", prefix = "<project>", suffix = "</project>") String xml) {
+    setFileContent(file, createPomXml(xml), true);
+  }
+
   private static void setFileContent(final VirtualFile file, final String content, final boolean advanceStamps) {
     try {
       WriteAction.runAndWait(() -> {
@@ -467,12 +565,12 @@ public abstract class MavenTestCase extends UsefulTestCase {
   }
 
   protected static <T> void assertUnorderedElementsAreEqual(@NotNull Collection<T> actual, @NotNull Collection<T> expected) {
-    assertThat(actual).hasSameElementsAs(expected);
+    assertSameElements(actual, expected);
   }
 
   protected static void assertUnorderedPathsAreEqual(Collection<String> actual, Collection<String> expected) {
-    assertEquals(new SetWithToString<>(new THashSet<>(expected, FileUtil.PATH_HASHING_STRATEGY)),
-                 new SetWithToString<>(new THashSet<>(actual, FileUtil.PATH_HASHING_STRATEGY)));
+    assertEquals(new SetWithToString<>(CollectionFactory.createFilePathSet(expected)),
+                 new SetWithToString<>(CollectionFactory.createFilePathSet(actual)));
   }
 
   protected static <T> void assertUnorderedElementsAreEqual(T[] actual, T... expected) {
@@ -495,7 +593,7 @@ public abstract class MavenTestCase extends UsefulTestCase {
     }
   }
 
-  protected static <T> void assertContain(List<? extends T> actual, T... expected) {
+  protected static <T> void assertContain(Collection<? extends T> actual, T... expected) {
     List<T> expectedList = Arrays.asList(expected);
     assertTrue("expected: " + expectedList + "\n" + "actual: " + actual.toString(), actual.containsAll(expectedList));
   }
@@ -518,14 +616,30 @@ public abstract class MavenTestCase extends UsefulTestCase {
   }
 
   protected boolean ignore() {
-    printIgnoredMessage(null);
-    return true;
+    //printIgnoredMessage(null);
+    return false;
   }
 
   protected boolean hasMavenInstallation() {
     boolean result = getTestMavenHome() != null;
     if (!result) printIgnoredMessage("Maven installation not found");
     return result;
+  }
+
+  protected static MavenServerConnector ensureConnected(MavenServerConnector connector) {
+    assertTrue("Connector is Dummy!", connector instanceof MavenServerConnectorImpl);
+    long timeout = TimeUnit.SECONDS.toMillis(10);
+    long start = System.currentTimeMillis();
+    while (connector.getState() == MavenServerConnectorImpl.State.STARTING) {
+      if (System.currentTimeMillis() > start + timeout) {
+        throw new RuntimeException("Server connector not connected in 10 seconds");
+      }
+      EdtTestUtil.runInEdtAndWait(() -> {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+      });
+    }
+    assertTrue(connector.checkConnected());
+    return connector;
   }
 
   private void printIgnoredMessage(String message) {

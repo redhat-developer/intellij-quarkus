@@ -72,9 +72,9 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
     @Override
     protected void importProject() {
         super.importProject();
-        for(Module m : ModuleManager.getInstance(myProject).getModules()) {
-            setupJdkForModule(m.getName());
-        }
+//        for(Module m : ModuleManager.getInstance(myProject).getModules()) {
+//            setupJdkForModule(m.getName());
+//        }
         QuarkusProjectService.getInstance(myProject).processModules();
     }
 

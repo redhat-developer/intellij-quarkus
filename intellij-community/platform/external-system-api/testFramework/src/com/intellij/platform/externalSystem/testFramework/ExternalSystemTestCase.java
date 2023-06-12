@@ -1,25 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package com.intellij.openapi.externalSystem.test;
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+package com.intellij.platform.externalSystem.testFramework;
 
-import com.intellij.compiler.artifacts.ArtifactsTestUtil;
-import com.intellij.compiler.impl.ModuleCompileScope;
-import com.intellij.compiler.server.BuildManager;
+import com.intellij.execution.wsl.WSLDistribution;
+import com.intellij.execution.wsl.WslDistributionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.compiler.CompileScope;
-import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.externalSystem.service.remote.ExternalSystemProgressNotificationManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.ByteArraySequence;
@@ -29,20 +22,21 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
-import com.intellij.packaging.artifacts.Artifact;
-import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
-import com.intellij.task.ProjectTaskManager;
-import com.intellij.testFramework.*;
+import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.testFramework.RunAll;
+import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.util.*;
+import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.SmartList;
+import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.containers.CollectionFactory;
 import com.intellij.util.io.PathKt;
-import com.intellij.util.io.TestFileSystemItem;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.concurrency.Promise;
 
 import java.awt.*;
 import java.io.File;
@@ -51,7 +45,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -59,6 +52,8 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+
+import static com.intellij.util.PathUtil.toSystemIndependentName;
 
 /**
  * @author Vladislav.Soroka
@@ -75,18 +70,21 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
   protected VirtualFile myProjectRoot;
   protected VirtualFile myProjectConfig;
   protected List<VirtualFile> myAllConfigs = new ArrayList<>();
-  protected boolean useProjectTaskManager;
+  protected @Nullable WSLDistribution myWSLDistribution;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    ensureTempDirCreated();
-
-    myTestDir = new File(ourTempDir, getTestName(false));
-    FileUtil.ensureExists(myTestDir);
-
     setUpFixtures();
     myProject = myTestFixture.getProject();
+
+    setupWsl();
+    ensureTempDirCreated();
+
+    String testDirName = "testDir" + System.currentTimeMillis();
+    myTestDir = new File(ourTempDir, testDirName);
+    FileUtil.ensureExists(myTestDir);
+
 
     EdtTestUtil.runInEdtAndWait(() -> ApplicationManager.getApplication().runWriteAction(() -> {
       try {
@@ -110,10 +108,19 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     }
   }
 
+  protected void setupWsl() {
+    String wslMsId = System.getProperty("wsl.distribution.name");
+    if (wslMsId == null) return;
+    List<WSLDistribution> distributions = WslDistributionManager.getInstance().getInstalledDistributions();
+    if (distributions.isEmpty()) throw new IllegalStateException("no WSL distributions configured!");
+    myWSLDistribution = distributions.stream().filter(it -> wslMsId.equals(it.getMsId())).findFirst().orElseThrow(
+      () -> new IllegalStateException("Distribution " + wslMsId + " was not found"));
+  }
+
   protected void collectAllowedRoots(List<String> roots) {
   }
 
-  public static Collection<String> collectRootsInside(String root) {
+  public static Collection<String> collectRootsInside(@NotNull String root) {
     final List<String> roots = new SmartList<>();
     roots.add(root);
     FileUtil.processFilesRecursively(new File(root), file -> {
@@ -134,7 +141,14 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
   private void ensureTempDirCreated() throws IOException {
     if (ourTempDir != null) return;
 
-    ourTempDir = new File(FileUtil.getTempDirectory(), getTestsTempDir());
+    if (myWSLDistribution == null) {
+      ourTempDir = new File(FileUtil.getTempDirectory(), getTestsTempDir());
+    }
+    else {
+      ourTempDir = new File(myWSLDistribution.getWindowsPath("/tmp"), getTestsTempDir());
+    }
+
+
     FileUtil.delete(ourTempDir);
     FileUtil.ensureExists(ourTempDir);
   }
@@ -151,6 +165,10 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
   }
 
   protected void setUpInWriteAction() throws Exception {
+    setUpProjectRoot();
+  }
+
+  protected void setUpProjectRoot() throws Exception {
     File projectDir = new File(myTestDir, "project");
     FileUtil.ensureExists(projectDir);
     myProjectRoot = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir);
@@ -167,22 +185,18 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
       () -> EdtTestUtil.runInEdtAndWait(() -> tearDownFixtures()),
       () -> myProject = null,
       () -> PathKt.delete(myTestDir.toPath()),
-      () -> ExternalSystemProgressNotificationManagerImpl.assertListenersReleased(null),
+      () -> ExternalSystemProgressNotificationManagerImpl.assertListenersReleased(),
       () -> ExternalSystemProgressNotificationManagerImpl.cleanupListeners(),
       () -> super.tearDown(),
       () -> resetClassFields(getClass())
     ).run();
   }
 
-  protected void tearDownFixtures() {
-    if (myTestFixture != null) {
-      try {
-        myTestFixture.tearDown();
-      }
-      catch (Exception ignored) {
-      }
-    }
-    myTestFixture = null;
+  protected void tearDownFixtures() throws Exception {
+    RunAll.runAll(
+      () -> myTestFixture.tearDown(),
+      () -> myTestFixture = null
+    );
   }
 
   private void resetClassFields(final Class<?> aClass) {
@@ -211,17 +225,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
   @Override
   protected void runTestRunnable(@NotNull ThrowableRunnable<Throwable> testRunnable) throws Throwable {
     try {
-      if (runInWriteAction()) {
-        try {
-          WriteAction.runAndWait(() -> super.runTestRunnable(testRunnable));
-        }
-        catch (Throwable throwable) {
-          ExceptionUtil.rethrowAllAsUnchecked(throwable);
-        }
-      }
-      else {
-        super.runTestRunnable(testRunnable);
-      }
+      super.runTestRunnable(testRunnable);
     }
     catch (Exception throwable) {
       Throwable each = throwable;
@@ -236,19 +240,9 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     }
   }
 
-  protected boolean runInWriteAction() {
-    return false;
-  }
-
   protected static String getRoot() {
     if (SystemInfo.isWindows) return "c:";
     return "";
-  }
-
-  protected static String getEnvVar() {
-    if (SystemInfo.isWindows) return "TEMP";
-    else if (SystemInfo.isLinux) return "HOME";
-    return "TMPDIR";
   }
 
   protected String getProjectPath() {
@@ -261,15 +255,11 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
 
   @SystemIndependent
   protected String path(@NotNull String relativePath) {
-    return PathUtil.toSystemIndependentName(file(relativePath).getPath());
+    return toSystemIndependentName(file(relativePath).getPath());
   }
 
   protected File file(@NotNull String relativePath) {
     return new File(getProjectPath(), relativePath);
-  }
-
-  protected Module createModule(String name) {
-    return createModule(name, StdModuleTypes.JAVA);
   }
 
   protected Module createModule(final String name, final ModuleType type) {
@@ -309,13 +299,6 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
 
   protected abstract String getExternalSystemConfigFileName();
 
-  protected void createStdProjectFolders() throws IOException {
-    createProjectSubDirs("src/main/java",
-                         "src/main/resources",
-                         "src/test/java",
-                         "src/test/resources");
-  }
-
   protected void createProjectSubDirs(String... relativePaths) throws IOException {
     for (String path : relativePaths) {
       createProjectSubDir(path);
@@ -328,7 +311,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(f);
   }
 
-  protected VirtualFile createProjectSubFile(String relativePath) throws IOException {
+  public VirtualFile createProjectSubFile(String relativePath) throws IOException {
     File f = new File(getProjectPath(), relativePath);
     FileUtil.ensureExists(f.getParentFile());
     FileUtil.ensureCanCreateFile(f);
@@ -354,7 +337,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
     JarOutputStream target = new JarOutputStream(new FileOutputStream(f), manifest);
     for (Pair<ByteArraySequence, String> contentEntry : contentEntries) {
-      addJarEntry(contentEntry.first.getBytes(), contentEntry.second, target);
+      addJarEntry(contentEntry.first.toBytes(), contentEntry.second, target);
     }
     target.close();
 
@@ -372,102 +355,10 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     target.close();
   }
 
-  protected VirtualFile createProjectSubFile(String relativePath, String content) throws IOException {
+  public VirtualFile createProjectSubFile(String relativePath, String content) throws IOException {
     VirtualFile file = createProjectSubFile(relativePath);
     setFileContent(file, content, false);
     return file;
-  }
-
-
-  protected void compileModules(final String... moduleNames) {
-    if (useProjectTaskManager) {
-      Module[] modules = Arrays.stream(moduleNames).map(moduleName -> getModule(moduleName)).toArray(Module[]::new);
-      build(modules);
-    }
-    else {
-      compile(createModulesCompileScope(moduleNames));
-    }
-  }
-
-  protected void buildArtifacts(String... artifactNames) {
-    if (useProjectTaskManager) {
-      Artifact[] artifacts = Arrays.stream(artifactNames)
-        .map(artifactName -> ArtifactsTestUtil.findArtifact(myProject, artifactName)).toArray(Artifact[]::new);
-      build(artifacts);
-    }
-    else {
-      compile(createArtifactsScope(artifactNames));
-    }
-  }
-
-  private void build(Object [] buildableElements) {
-    Promise<ProjectTaskManager.Result> promise;
-    if (buildableElements instanceof Module[]) {
-      promise = ProjectTaskManager.getInstance(myProject).build((Module[])buildableElements);
-    }
-    else if (buildableElements instanceof Artifact[]) {
-      promise = ProjectTaskManager.getInstance(myProject).build((Artifact[])buildableElements);
-    }
-    else {
-      throw new AssertionError("Unsupported buildableElements: " + Arrays.toString(buildableElements));
-    }
-    edt(() -> PlatformTestUtil.waitForPromise(promise));
-  }
-
-  private void compile(@NotNull CompileScope scope) {
-    try {
-      CompilerTester tester = new CompilerTester(myProject, Arrays.asList(scope.getAffectedModules()), null);
-      try {
-        List<CompilerMessage> messages = tester.make(scope);
-        for (CompilerMessage message : messages) {
-          switch (message.getCategory()) {
-            case ERROR:
-              fail("Compilation failed with error: " + message.getMessage());
-              break;
-            case WARNING:
-              System.out.println("Compilation warning: " + message.getMessage());
-              break;
-            case INFORMATION:
-              break;
-            case STATISTICS:
-              break;
-          }
-        }
-      }
-      finally {
-        tester.tearDown();
-      }
-    }
-    catch (Exception e) {
-      ExceptionUtil.rethrow(e);
-    }
-  }
-
-
-  private CompileScope createModulesCompileScope(final String[] moduleNames) {
-    final List<Module> modules = new ArrayList<>();
-    for (String name : moduleNames) {
-      modules.add(getModule(name));
-    }
-    return new ModuleCompileScope(myProject, modules.toArray(Module.EMPTY_ARRAY), false);
-  }
-
-  private CompileScope createArtifactsScope(String[] artifactNames) {
-    List<Artifact> artifacts = new ArrayList<>();
-    for (String name : artifactNames) {
-      artifacts.add(ArtifactsTestUtil.findArtifact(myProject, name));
-    }
-    return ArtifactCompileScope.createArtifactsScope(myProject, artifacts);
-  }
-
-  protected Sdk setupJdkForModule(final String moduleName) {
-    final Sdk sdk = true ? JavaAwareProjectJdkTableImpl.getInstanceEx().getInternalJdk() : createJdk();
-    ModuleRootModificationUtil.setModuleSdk(getModule(moduleName), sdk);
-    return sdk;
-  }
-
-  protected static Sdk createJdk() {
-    return IdeaTestUtil.getMockJdk17();
   }
 
   protected Module getModule(final String name) {
@@ -480,32 +371,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     return m;
   }
 
-  protected void assertExplodedLayout(String artifactName, String expected) {
-    assertJarLayout(artifactName + " exploded", expected);
-  }
-
-  protected void assertJarLayout(String artifactName, String expected) {
-    ArtifactsTestUtil.assertLayout(myProject, artifactName, expected);
-  }
-
-  protected void assertArtifactOutputPath(final String artifactName, final String expected) {
-    ArtifactsTestUtil.assertOutputPath(myProject, artifactName, expected);
-  }
-
-  protected void assertArtifactOutputFileName(final String artifactName, final String expected) {
-    ArtifactsTestUtil.assertOutputFileName(myProject, artifactName, expected);
-  }
-
-  protected void assertArtifactOutput(String artifactName, TestFileSystemItem fs) {
-    final Artifact artifact = ArtifactsTestUtil.findArtifact(myProject, artifactName);
-    final String outputFile = artifact.getOutputFilePath();
-    assert outputFile != null;
-    final File file = new File(outputFile);
-    assert file.exists();
-    fs.assertFileEqual(file);
-  }
-
-  protected static void setFileContent(final VirtualFile file, final String content, final boolean advanceStamps) {
+  public static void setFileContent(final VirtualFile file, final String content, final boolean advanceStamps) {
     try {
       WriteAction.runAndWait(() -> {
         if (advanceStamps) {
@@ -563,12 +429,6 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     assertTrue("expected: " + expectedList + "\n" + "actual: " + actual.toString(), actual.containsAll(expectedList));
   }
 
-  protected static <T> void assertDoNotContain(List<? extends T> actual, T... expected) {
-    java.util.List<T> actualCopy = new ArrayList<>(actual);
-    actualCopy.removeAll(Arrays.asList(expected));
-    assertEquals(actual.toString(), actualCopy.size(), actual.size());
-  }
-
   protected boolean ignore() {
     printIgnoredMessage(null);
     return true;
@@ -577,24 +437,6 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
   protected static <T, U> BiPredicate<T, U> equalsPredicate() {
     //noinspection unchecked
     return (BiPredicate<T, U>)EQUALS_PREDICATE;
-  }
-
-  public static void deleteBuildSystemDirectory() {
-    BuildManager buildManager = BuildManager.getInstance();
-    if (buildManager == null) return;
-    Path buildSystemDirectory = buildManager.getBuildSystemDirectory();
-    try {
-      PathKt.delete(buildSystemDirectory);
-      return;
-    }
-    catch (Exception ignore) {
-    }
-    try {
-      FileUtil.delete(buildSystemDirectory.toFile());
-    }
-    catch (Exception e) {
-      LOG.warn("Unable to remove build system directory.", e);
-    }
   }
 
   private void printIgnoredMessage(String message) {
