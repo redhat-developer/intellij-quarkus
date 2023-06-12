@@ -12,17 +12,13 @@
 package com.redhat.devtools.intellij.qute.psi.utils;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
-import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.net.URI;
 
 /**
  * Tests for {@link CDIUtils}.
