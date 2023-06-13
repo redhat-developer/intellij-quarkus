@@ -21,9 +21,11 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNameIdentifierOwner;
+import com.intellij.psi.impl.light.LightRecordField;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,7 +179,7 @@ public class LSPIJUtils {
     }
 
     public static Location toLocation(PsiElement psiMember) {
-        PsiElement sourceElement = psiMember instanceof PsiNameIdentifierOwner ? ((PsiNameIdentifierOwner) psiMember).getNameIdentifier().getNavigationElement() : psiMember.getNavigationElement();
+        PsiElement sourceElement = getNavigationElement(psiMember);
         if (sourceElement != null) {
             PsiFile file = sourceElement.getContainingFile();
             Document document = PsiDocumentManager.getInstance(psiMember.getProject()).getDocument(file);
@@ -187,6 +189,15 @@ public class LSPIJUtils {
             }
         }
         return null;
+    }
+
+    private static @Nullable PsiElement getNavigationElement(PsiElement psiMember) {
+        if (psiMember instanceof LightRecordField) {
+            psiMember = ((LightRecordField) psiMember).getRecordComponent();
+        }
+        return psiMember instanceof PsiNameIdentifierOwner ?
+                ((PsiNameIdentifierOwner) psiMember).getNameIdentifier().getNavigationElement() :
+                psiMember.getNavigationElement();
     }
 
     public static Location toLocation(PsiFile file, Range range) {
