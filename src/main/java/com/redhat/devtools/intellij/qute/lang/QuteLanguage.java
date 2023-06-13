@@ -16,7 +16,12 @@ import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.templateLanguages.TemplateLanguage;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Qute language.
+ */
 public class QuteLanguage extends Language implements TemplateLanguage, InjectableLanguage {
+
+    @NotNull
     public static final QuteLanguage INSTANCE = new QuteLanguage();
 
     private QuteLanguage() {

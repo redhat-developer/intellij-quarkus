@@ -78,11 +78,11 @@ public class SupportedFeatures {
 		textDocumentClientCapabilities.setInlayHint(new InlayHintCapabilities());
 		// TODO : support textDocument/colorPresentation
 		// textDocumentClientCapabilities.setColorProvider(new ColorProviderCapabilities());
-		final var completionItemCapabilities = new CompletionItemCapabilities(Boolean.TRUE);
+		final var completionItemCapabilities = new CompletionItemCapabilities(Boolean.FALSE);
 		completionItemCapabilities
 				.setDocumentationFormat(Arrays.asList(MarkupKind.MARKDOWN, MarkupKind.PLAINTEXT));
-		completionItemCapabilities.setInsertTextModeSupport(new CompletionItemInsertTextModeSupportCapabilities(List.of(InsertTextMode.AsIs, InsertTextMode.AdjustIndentation)));
-		completionItemCapabilities.setResolveSupport(new CompletionItemResolveSupportCapabilities(List.of("documentation", "detail", "additionalTextEdits"))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		// completionItemCapabilities.setInsertTextModeSupport(new CompletionItemInsertTextModeSupportCapabilities(List.of(InsertTextMode.AsIs, InsertTextMode.AdjustIndentation)));
+		// completionItemCapabilities.setResolveSupport(new CompletionItemResolveSupportCapabilities(List.of("documentation", "detail", "additionalTextEdits"))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		textDocumentClientCapabilities.setCompletion(new CompletionCapabilities(completionItemCapabilities));
 		final var definitionCapabilities = new DefinitionCapabilities();
 		definitionCapabilities.setLinkSupport(Boolean.TRUE);
@@ -115,11 +115,13 @@ public class SupportedFeatures {
 		textDocumentClientCapabilities.setOnTypeFormatting(null); // TODO
 		// TODO : support textDocument/rangeFormatting
 		// textDocumentClientCapabilities.setRangeFormatting(new RangeFormattingCapabilities());
-		textDocumentClientCapabilities.setReferences(new ReferencesCapabilities());
-		final var renameCapabilities = new RenameCapabilities();
-		renameCapabilities.setPrepareSupport(true);
-		textDocumentClientCapabilities.setRename(renameCapabilities);
-		// TODO
+		// TODO : support textDocument/references
+		// textDocumentClientCapabilities.setReferences(new ReferencesCapabilities());
+		// TODO : support textDocument/rename
+		//final var renameCapabilities = new RenameCapabilities();
+		//renameCapabilities.setPrepareSupport(true);
+		//textDocumentClientCapabilities.setRename(renameCapabilities);
+		// TODO : support textDocument/signatureHelp
 		// textDocumentClientCapabilities.setSignatureHelp(new SignatureHelpCapabilities());
 		textDocumentClientCapabilities
 				.setSynchronization(new SynchronizationCapabilities(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
@@ -151,9 +153,9 @@ public class SupportedFeatures {
 
 	public static WindowClientCapabilities getWindowClientCapabilities() {
 		final var windowClientCapabilities = new WindowClientCapabilities();
-		windowClientCapabilities.setShowDocument(new ShowDocumentCapabilities(true));
-		windowClientCapabilities.setWorkDoneProgress(true);
-		windowClientCapabilities.setShowMessage(new WindowShowMessageRequestCapabilities());
+		//windowClientCapabilities.setShowDocument(new ShowDocumentCapabilities(true));
+		//windowClientCapabilities.setWorkDoneProgress(true);
+		//windowClientCapabilities.setShowMessage(new WindowShowMessageRequestCapabilities());
 		return windowClientCapabilities;
 	}
 

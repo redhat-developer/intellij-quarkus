@@ -15,7 +15,9 @@ import com.intellij.codeInsight.highlighting.HighlightUsagesHandlerBase;
 import com.intellij.codeInsight.highlighting.HighlightUsagesHandlerFactory;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
@@ -43,12 +45,12 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
 
     @Override
     public @Nullable HighlightUsagesHandlerBase createHighlightUsagesHandler(@NotNull Editor editor, @NotNull PsiFile file) {
-        List<PsiElement> targets = getTargets(editor, file);
+        List<LSPHighlightPsiElement> targets = getTargets(editor, file);
         return targets.isEmpty()?null:new LSPHighlightUsagesHandler(editor, file, targets);
     }
 
-    private List<PsiElement> getTargets(Editor editor, PsiFile file) {
-        List<PsiElement> elements = new ArrayList<>();
+    private List<LSPHighlightPsiElement> getTargets(Editor editor, PsiFile file) {
+        List<LSPHighlightPsiElement> elements = new ArrayList<>();
         try {
             int offset = TargetElementUtil.adjustOffset(file, editor.getDocument(), editor.getCaretModel().getOffset());
             Document document = editor.getDocument();
@@ -76,13 +78,14 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
                 ProgressManager.checkCanceled();
                 DocumentHighlight highlight = highlights.poll(25, TimeUnit.MILLISECONDS);
                 if (highlight != null) {
-                    int highlightOffset = LSPIJUtils.toOffset(highlight.getRange().getStart(), document);
-                    PsiElement element = file.findElementAt(highlightOffset);
-                    if (element != null) {
-                        elements.add(element);
+                    TextRange textRange = LSPIJUtils.toTextRange(highlight.getRange(), document);
+                    if (textRange != null) {
+                        elements.add(new LSPHighlightPsiElement(textRange, highlight.getKind()));
                     }
                 }
             }
+        } catch (ProcessCanceledException cancellation){
+            throw cancellation;
         } catch (InterruptedException e) {
             LOGGER.log(Level.WARNING, e, e::getLocalizedMessage);
         }

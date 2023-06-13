@@ -8,19 +8,25 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.qute.lang;
+package com.redhat.devtools.intellij.qute.lang.psi;
 
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.extapi.psi.PsiFileBase;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.psi.FileViewProvider;
+import com.redhat.devtools.intellij.qute.lang.QuteFileType;
+import com.redhat.devtools.intellij.qute.lang.QuteLanguage;
 import org.jetbrains.annotations.NotNull;
 
-public class QuteElementType extends IElementType {
-    public QuteElementType(@NonNls @NotNull String debugName) {
-        super(debugName, QuteLanguage.INSTANCE);
+/**
+ * Qute Psi file.
+ */
+public class QutePsiFile extends PsiFileBase {
+    public QutePsiFile(FileViewProvider viewProvider) {
+        super(viewProvider, QuteLanguage.INSTANCE);
     }
 
     @Override
-    public String toString() {
-        return "QuteElementType." + getDebugName();
+    public @NotNull FileType getFileType() {
+        return QuteFileType.QUTE;
     }
 }

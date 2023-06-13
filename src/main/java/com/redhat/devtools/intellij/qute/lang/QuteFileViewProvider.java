@@ -13,6 +13,9 @@ package com.redhat.devtools.intellij.qute.lang;
 import com.intellij.lang.Language;
 import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.lang.ParserDefinition;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.MultiplePsiFilesPerDocumentFileViewProvider;
 import com.intellij.psi.PsiFile;
@@ -20,20 +23,39 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.templateLanguages.TemplateLanguageFileViewProvider;
 import com.intellij.psi.tree.IElementType;
+import com.redhat.devtools.intellij.qute.lang.psi.QuteElementTypes;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * Qute file view provider.
+ */
 public class QuteFileViewProvider extends MultiplePsiFilesPerDocumentFileViewProvider implements TemplateLanguageFileViewProvider {
     private final Language language;
     private final Language templateLanguage;
 
-    public QuteFileViewProvider(VirtualFile file, Language language, Language templateLanguage, PsiManager manager, boolean eventSystemEnabled) {
+    public QuteFileViewProvider(VirtualFile file, Language language, PsiManager manager, boolean eventSystemEnabled) {
+        this(file, language, getTemplateLanguage(file), manager, eventSystemEnabled);
+    }
+
+    private QuteFileViewProvider(VirtualFile file, Language language, Language templateLanguage, PsiManager manager, boolean eventSystemEnabled) {
         super(manager, file, eventSystemEnabled);
         this.language = language;
         this.templateLanguage = templateLanguage;
+    }
+
+    /**
+     * Returns the template language of the given file (ex : "HTML", "YAML", language etc) and the "Qute_" language otherwise.
+     *
+     * @param file the virtual file.
+     *
+     * @return the template language of the given file (ex : "HTML", "YAML", language etc) and the "Qute_" language otherwise.
+     */
+    public static Language getTemplateLanguage(VirtualFile file) {
+        FileType fileType = FileTypeManager.getInstance().getFileTypeByExtension(file.getExtension());
+        return fileType instanceof LanguageFileType ? ((LanguageFileType) fileType).getLanguage() : QuteLanguage.INSTANCE;
     }
 
     protected PsiFile createFile(@NotNull Language lang) {
@@ -58,8 +80,8 @@ public class QuteFileViewProvider extends MultiplePsiFilesPerDocumentFileViewPro
     @Override
     public @NotNull Set<Language> getLanguages() {
         Set<Language> languages = new LinkedHashSet<>();
-        languages.add(getTemplateDataLanguage());
         languages.add(getBaseLanguage());
+        languages.add(getTemplateDataLanguage());
         return languages;
     }
 
@@ -70,7 +92,7 @@ public class QuteFileViewProvider extends MultiplePsiFilesPerDocumentFileViewPro
 
     @Override
     public IElementType getContentElementType(@NotNull Language language) {
-        return language == getTemplateDataLanguage()?QuteElementTypes.QUTE_FILE_DATA:null;
+        return language == getTemplateDataLanguage() ? QuteElementTypes.QUTE_FILE_DATA : null;
     }
 
     @Override
