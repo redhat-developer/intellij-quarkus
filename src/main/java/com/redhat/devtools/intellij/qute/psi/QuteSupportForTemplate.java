@@ -79,14 +79,13 @@ public class QuteSupportForTemplate {
 	 * @return the project information for the given project Uri and null otherwise.
 	 */
 	public ProjectInfo getProjectInfo(QuteProjectParams params, IPsiUtils utils, ProgressIndicator monitor) {
-		Module javaProject = getJavaProjectFromTemplateFile(params.getTemplateFileUri(), utils);
-		if (javaProject == null) {
-			return null;
-		}
-
-		utils = utils.refine(javaProject);
-
-		return PsiQuteProjectUtils.getProjectInfo(javaProject);
+		return ApplicationManager.getApplication().runReadAction((Computable<ProjectInfo>) () -> {
+			Module javaProject = getJavaProjectFromTemplateFile(params.getTemplateFileUri(), utils);
+			if (javaProject == null) {
+				return null;
+			}
+			return PsiQuteProjectUtils.getProjectInfo(javaProject);
+		});
 	}
 
 	/**
@@ -301,14 +300,15 @@ public class QuteSupportForTemplate {
 		try {
 			templateFileUri = templateFileUri.replace("vscode-notebook-cell", "file");
 			VirtualFile file = utils.findFile(templateFileUri);
+
 			Module module = utils.getModule(file);
 			if (file == null || module == null) {
-				// The uri doesn't belong to an Eclipse project
+				// The uri doesn't belong to an IntelliJ project
 				return null;
 			}
-			// The uri belong to an Eclipse project
+			// The uri belong to an IntelliJ project
 			if (ModuleType.get(module) != JavaModuleType.getModuleType()) {
-				// The uri doesn't belong to a Java project
+				// The uri doesn't belong to a IntelliJ project
 				return null;
 			}
 

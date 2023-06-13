@@ -364,22 +364,24 @@ public class PropertiesManagerForJava {
      * @return the cursor context for the given file and cursor position
      */
     public JavaCursorContextResult javaCursorContext(MicroProfileJavaCompletionParams params, IPsiUtils utils) {
-        String uri = params.getUri();
-        PsiFile typeRoot = resolveTypeRoot(uri, utils);
-        if (!(typeRoot instanceof PsiJavaFile)) {
-            return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
-        }
-        Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
-        if (document == null) {
-            return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
-        }
-        Position completionPosition = params.getPosition();
-        int completionOffset = utils.toOffset(document, completionPosition.getLine(), completionPosition.getCharacter());
+        return ApplicationManager.getApplication().runReadAction((Computable<JavaCursorContextResult>) () -> {
+            String uri = params.getUri();
+            PsiFile typeRoot = resolveTypeRoot(uri, utils);
+            if (!(typeRoot instanceof PsiJavaFile)) {
+                return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
+            }
+            Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
+            if (document == null) {
+                return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
+            }
+            Position completionPosition = params.getPosition();
+            int completionOffset = utils.toOffset(document, completionPosition.getLine(), completionPosition.getCharacter());
 
-        JavaCursorContextKind kind = getJavaCursorContextKind((PsiJavaFile)typeRoot, completionOffset);
-        String prefix = getJavaCursorPrefix(document, completionOffset);
+            JavaCursorContextKind kind = getJavaCursorContextKind((PsiJavaFile) typeRoot, completionOffset);
+            String prefix = getJavaCursorPrefix(document, completionOffset);
 
-        return new JavaCursorContextResult(kind, prefix);
+            return new JavaCursorContextResult(kind, prefix);
+        });
     }
 
     private static @NotNull JavaCursorContextKind getJavaCursorContextKind(PsiJavaFile javaFile, int completionOffset) {
