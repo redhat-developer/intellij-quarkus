@@ -11,8 +11,6 @@
 package com.redhat.devtools.intellij.qute.lang;
 
 import com.intellij.lang.Language;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -27,7 +25,13 @@ import com.intellij.psi.LanguageSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
+/**
+ * Qute language substitutor to force some language file (ex:HTML, YAML, etc) to "_Qute" language when:
+ * <ul>
+ *     <li>the HTML, YAML, etc file is hosted in a Qute project.</li>
+ *     <li>the HTML, YAML, etc file is hosted in the src/main/resources/templates folder.</li>
+ * </ul>
+ */
 public class QuteLanguageSubstitutor extends LanguageSubstitutor {
     protected boolean isTemplate(VirtualFile file, Module module) {
         return file.getPath().contains("templates") && ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
@@ -51,8 +55,8 @@ public class QuteLanguageSubstitutor extends LanguageSubstitutor {
     }
 
     private Module findModule(VirtualFile file) {
-        for(Project project : ProjectManager.getInstance().getOpenProjects()) {
-            for(Module module : ModuleManager.getInstance(project).getModules()) {
+        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+            for (Module module : ModuleManager.getInstance(project).getModules()) {
                 if (ModuleUtilCore.moduleContainsFile(module, file, false)) {
                     return module;
                 }

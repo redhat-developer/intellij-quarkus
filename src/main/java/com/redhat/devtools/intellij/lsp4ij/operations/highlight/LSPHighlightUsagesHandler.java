@@ -15,33 +15,41 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.Consumer;
+import org.eclipse.lsp4j.DocumentHighlightKind;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.logging.Logger;
 
-public class LSPHighlightUsagesHandler extends HighlightUsagesHandlerBase<PsiElement> {
+public class LSPHighlightUsagesHandler extends HighlightUsagesHandlerBase<LSPHighlightPsiElement> {
     private static final Logger LOGGER = Logger.getLogger(LSPHighlightUsagesHandler.class.getName());
-    private final List<PsiElement> targets;
+    private final List<LSPHighlightPsiElement> targets;
 
-    public LSPHighlightUsagesHandler(Editor editor, PsiFile file, List<PsiElement> targets) {
+    public LSPHighlightUsagesHandler(Editor editor, PsiFile file, List<LSPHighlightPsiElement> targets) {
         super(editor, file);
         this.targets = targets;
     }
 
     @Override
-    public @NotNull List<PsiElement> getTargets() {
+    public @NotNull List<LSPHighlightPsiElement> getTargets() {
         return targets;
     }
 
     @Override
-    protected void selectTargets(@NotNull List<? extends PsiElement> targets,
-                                 @NotNull Consumer<? super List<? extends PsiElement>> selectionConsumer) {
+    protected void selectTargets(@NotNull List<? extends LSPHighlightPsiElement> targets,
+                                 @NotNull Consumer<? super List<? extends LSPHighlightPsiElement>> selectionConsumer) {
         selectionConsumer.consume(targets);
     }
 
     @Override
-    public void computeUsages(@NotNull List<? extends PsiElement> targets) {
-        targets.forEach(target -> myReadUsages.add(target.getTextRange()));
+    public void computeUsages(@NotNull List<? extends LSPHighlightPsiElement> targets) {
+        targets.forEach(target ->
+        {
+            if (target.getKind() == DocumentHighlightKind.Read) {
+                myReadUsages.add(target.getTextRange());
+            } else {
+                myWriteUsages.add(target.getTextRange());
+            }
+        });
     }
 }

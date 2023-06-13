@@ -11,19 +11,18 @@
 package com.redhat.devtools.intellij.qute.lang;
 
 import com.intellij.lang.Language;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.FileViewProviderFactory;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Qute file view provider factory.
+ */
 public class QuteFileViewProviderFactory implements FileViewProviderFactory {
     @Override
     public @NotNull FileViewProvider createFileViewProvider(@NotNull VirtualFile file, Language language, @NotNull PsiManager manager, boolean eventSystemEnabled) {
-        FileType fileType = FileTypeManager.getInstance().getFileTypeByExtension(file.getExtension());
-        return new QuteFileViewProvider(file, language, fileType instanceof LanguageFileType?((LanguageFileType) fileType).getLanguage():language, manager, eventSystemEnabled);
+        return new QuteFileViewProvider(file, language, manager, eventSystemEnabled);
     }
 }

@@ -32,9 +32,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.Icon;
 
+/**
+ * Qute language file type.
+ */
 public class QuteFileType extends LanguageFileType {
     private static final Icon QUARKUS_ICON = IconLoader.findIcon("/quarkus_icon_rgb_16px_default.png", QuarkusIconProvider.class);
 
+    @NotNull
     public static final QuteFileType QUTE = new QuteFileType();
 
     private QuteFileType() {
