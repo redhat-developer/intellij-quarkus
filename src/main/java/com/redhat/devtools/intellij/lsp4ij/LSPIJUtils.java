@@ -181,8 +181,10 @@ public class LSPIJUtils {
         if (sourceElement != null) {
             PsiFile file = sourceElement.getContainingFile();
             Document document = PsiDocumentManager.getInstance(psiMember.getProject()).getDocument(file);
-            TextRange range = sourceElement.getTextRange();
-            return toLocation(file, toRange(range, document));
+            if (document != null) {
+                TextRange range = sourceElement.getTextRange();
+                return toLocation(file, toRange(range, document));
+            }
         }
         return null;
     }
