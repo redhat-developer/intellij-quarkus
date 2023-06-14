@@ -116,6 +116,11 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         }
 
         @Override
+        public void dispose() {
+            removeAll();
+        }
+
+        @Override
         protected void dispose(DefaultMutableTreeNode key, ConsoleContentPanel value) {
             if (value != null) {
                 value.dispose();
@@ -206,6 +211,14 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         public void showMessage(String message) {
             consoleView.print(message, ConsoleViewContentType.SYSTEM_OUTPUT);
         }
+
+        @Override
+        public void dispose() {
+            super.dispose();
+            if(consoleView != null) {
+                consoleView.dispose();
+            }
+        }
     }
 
     private ConsoleView createConsoleView(@NotNull LanguageServersRegistry.LanguageServerDefinition serverDefinition, @NotNull Project project) {
@@ -227,6 +240,9 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
     @Override
     public void dispose() {
         disposed = true;
+        if (consoles != null) {
+            consoles.dispose();
+        }
         explorer.dispose();
     }
 
