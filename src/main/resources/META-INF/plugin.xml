@@ -11,6 +11,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <h3>1.20.1</h3>
+    <ul>
+      <li>Bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/33?closed=1">changelog</a>.
     <h3>1.20.0</h3>
     <ul>
       <li>Support for Renarde Quarkus application (URL codelens in Java file, uri/uriabs support in Qute template)</li>
