@@ -366,16 +366,16 @@ public class QuteSupportForTemplate {
 				return null;
 			}
 
-			utils = utils.refine(javaProject);
-
-			PsiClass type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), javaProject, monitor);
-			if (type == null) {
-				return null;
-			}
-			final var finalUtils = utils;
+			final var refinedUtils = utils.refine(javaProject);
 			return ApplicationManager.getApplication()
-					.runReadAction((Computable<String>) () -> getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), finalUtils,
-							monitor, new HashSet<>()));
+					.runReadAction((Computable<String>) () -> {
+						PsiClass type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), javaProject, monitor);
+						if (type == null) {
+							return null;
+						}
+						return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), refinedUtils,
+										monitor, new HashSet<>());
+					});
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Error while collecting Javadoc for " + params.getSourceType() + "#" + params.getMemberName(), e);
