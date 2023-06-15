@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.quarkus.lsp;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.ProjectLabelManager;
@@ -22,9 +22,8 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfilePr
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
-import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import com.redhat.devtools.intellij.lsp4ij.IndexAwareLanguageClient;
-import org.apache.commons.lang3.tuple.Pair;
+import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4mp.commons.*;
 import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
@@ -41,21 +40,20 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 
-public class QuarkusLanguageClient extends IndexAwareLanguageClient implements MicroProfileLanguageClientAPI, QuarkusProjectService.Listener {
+public class QuarkusLanguageClient extends IndexAwareLanguageClient implements MicroProfileLanguageClientAPI, ClasspathResourceChangedManager.Listener {
   private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusLanguageClient.class);
-  private static final String JAVA_FILE_EXTENSION = "java";
 
   private final MessageBusConnection connection;
 
   public QuarkusLanguageClient(Project project) {
     super(project);
     connection = project.getMessageBus().connect(project);
-    connection.subscribe(QuarkusProjectService.TOPIC, this);
-    QuarkusProjectService.getInstance(project);
+    connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
   }
 
   @Override
   public void dispose() {
+    super.dispose();
     connection.disconnect();
   }
 
@@ -70,19 +68,38 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   @Override
-  public void libraryUpdated(Library library) {
+  public void librariesChanged() {
+    if (isDisposed()) {
+      // The language client has been disposed, ignore changes in libraries
+      return;
+    }
     sendPropertiesChangeEvent(Collections.singletonList(MicroProfilePropertiesScope.dependencies), QuarkusModuleUtil.getModulesURIs(getProject()));
   }
 
   @Override
-  public void sourceUpdated(List<Pair<Module, VirtualFile>> sources) {
-    List<Pair<String,MicroProfilePropertiesScope>> info = sources.stream().
-            filter(pair -> isJavaFile(pair.getRight()) || isConfigSource(pair.getRight(), pair.getLeft())).
-            map(pair -> Pair.of(PsiUtilsLSImpl.getProjectURI(pair.getLeft()), getScope(pair.getRight()))).
+  public void sourceFilesChanged(Set<Pair<VirtualFile, Module>> sources) {
+    if (isDisposed()) {
+      // The language client has been disposed, ignore changes in Java source / microprofile-config.properties files
+      return;
+    }
+    List<Pair<String,MicroProfilePropertiesScope>> info = sources.stream()
+            .filter(pair -> isJavaFile(pair.getFirst()) || isConfigSource(pair.getFirst()))
+            .map(pair -> Pair.pair(PsiUtilsLSImpl.getProjectURI(pair.getSecond()), getScope(pair.getFirst()))).
             collect(Collectors.toList());
     if (!info.isEmpty()) {
-      sendPropertiesChangeEvent(info.stream().map(Pair::getRight).collect(Collectors.toList()), info.stream().map(Pair::getLeft).collect(Collectors.toSet()));
+      sendPropertiesChangeEvent(info.stream().map(p -> p.getSecond()).collect(Collectors.toList()),
+              info.stream().map(p -> p.getFirst()).collect(Collectors.toSet()));
     }
+  }
+
+  @Override
+  public void modulesUpdated() {
+    // Do nothing
+  }
+
+  @Override
+  public void moduleUpdated(Module module) {
+    // Do nothing
   }
 
   private MicroProfilePropertiesScope getScope(VirtualFile file) {
@@ -90,11 +107,11 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   private boolean isJavaFile(VirtualFile file) {
-    return JAVA_FILE_EXTENSION.equals(file.getExtension());
+    return PsiMicroProfileProjectManager.isJavaFile(file);
   }
 
-  private boolean isConfigSource(VirtualFile file, Module project) {
-    return PsiMicroProfileProjectManager.getInstance(project.getProject()).isConfigSource(file);
+  private boolean isConfigSource(VirtualFile file) {
+    return PsiMicroProfileProjectManager.isConfigSource(file);
   }
 
   @Override

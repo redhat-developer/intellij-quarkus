@@ -26,5 +26,6 @@ public class MicroProfileMavenProjectName {
     public static final String hibernate_orm_resteasy = "hibernate-orm-resteasy";
     public static final String hibernate_orm_resteasy_yaml = "hibernate-orm-resteasy-yaml";
 
+    public static final String config_quickstart_test = "config-quickstart-test";
 }
 
