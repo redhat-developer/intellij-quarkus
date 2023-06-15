@@ -142,9 +142,12 @@ public class LSPIJUtils {
         return FileDocumentManager.getInstance().getDocument(docFile);
     }
 
-    public static @Nullable Module getProject(VirtualFile file) {
+    public static @Nullable Module getProject(@Nullable VirtualFile file) {
+        if (file == null) {
+            return null;
+        }
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            Module module = ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file));
+            Module module = ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file, false));
             if (module != null) {
                 return module;
             }

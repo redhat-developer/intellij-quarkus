@@ -235,7 +235,7 @@
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="203"/>
+  <idea-version since-build="213"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products -->
@@ -264,6 +264,8 @@
 
     <properties.implicitPropertyUsageProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusProjectService"/>
+    <projectService serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager"/>
+    <projectService serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager"/>
     <configurationType implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationType"/>
     <consoleActionsPostProcessor implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConsolePostProcessor"/>
 

@@ -26,4 +26,5 @@ public class QuarkusMavenProjectName {
     public static final String config_hover = "config-hover";
 	public static final String config_quickstart = "config-quickstart";
 
+    public static String microprofile_applicationpath = "microprofile-applicationpath";
 }
