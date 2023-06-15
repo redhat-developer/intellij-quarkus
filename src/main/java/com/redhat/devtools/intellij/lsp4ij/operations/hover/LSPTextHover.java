@@ -111,6 +111,9 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
     @Nullable
     @Override
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+        if (originalElement == null || !Objects.equals(element.getContainingFile(), originalElement.getContainingFile())) {
+            return null;
+        }
         Editor editor = LSPIJUtils.editorForElement(element);
         if (editor == null) {
             return null;
