@@ -23,22 +23,15 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.corrections
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CodeActionKind;
-import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
+import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -128,7 +121,7 @@ public class CodeActionHandler {
 			if (!forDiagnostics.isEmpty()) {
 				// It exists code action to fix diagnostics, loop for each diagnostics
 				params.getContext().getDiagnostics().forEach(diagnostic -> {
-					String code = getCode(diagnostic);
+					String code = getCodeString(diagnostic.getCode());
 					if (code != null) {
 						// Try to get code action definition registered with the "for" source#code
 						String key = diagnostic.getSource() + "#" + code;
@@ -221,24 +214,7 @@ public class CodeActionHandler {
 		return unit;
 	}
 
-	private static String getCode(Diagnostic diagnostic) {
-		Object code = null;
-		try {
-			Field f = diagnostic.getClass().getDeclaredField("code");
-			f.setAccessible(true);
-			code = f.get(diagnostic);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return getCodeString(code);
-	}
-
-	private static String getCodeString(Object codeObject) {
-		if (codeObject instanceof String) {
-			return ((String) codeObject);
-		}
-		@SuppressWarnings("unchecked")
-		Either<String, Number> code = (Either<String, Number>) codeObject;
+	private static String getCodeString(Either<String, Integer> code) {
 		if (code == null || code.isRight()) {
 			return null;
 		}
