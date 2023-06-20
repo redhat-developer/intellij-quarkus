@@ -48,14 +48,14 @@ public class QuteSupportForJava {
     public List<? extends CodeLens> codeLens(QuteJavaCodeLensParams params, IPsiUtils utils, ProgressIndicator monitor) {
         String uri = params.getUri();
 
-        Module javaProject = QuteSupportForTemplate.getJavaProjectFromTemplateFile(uri, utils);
-        if (javaProject == null) {
-            return Collections.emptyList();
-        }
-
-        final var refinedUtils = utils.refine(javaProject);
         return ApplicationManager.getApplication()
                 .runReadAction((Computable<List<? extends CodeLens>>) () -> {
+                    Module javaProject = QuteSupportForTemplate.getJavaProjectFromTemplateFile(uri, utils);
+                    if (javaProject == null) {
+                        return Collections.emptyList();
+                    }
+
+                    final var refinedUtils = utils.refine(javaProject);
                     PsiFile typeRoot = resolveTypeRoot(uri, refinedUtils, monitor);
                     if (monitor.isCanceled()) {
                         return Collections.emptyList();
@@ -98,17 +98,14 @@ public class QuteSupportForJava {
     public List<DocumentLink> documentLink(QuteJavaDocumentLinkParams params, IPsiUtils utils,
                                            ProgressIndicator monitor) {
         String uri = params.getUri();
-
-        Module javaProject = QuteSupportForTemplate.getJavaProjectFromTemplateFile(uri, utils);
-        if (javaProject == null) {
-            return Collections.emptyList();
-        }
-
-        utils = utils.refine(javaProject);
-
-        final var refinedUtils = utils.refine(javaProject);
         return ApplicationManager.getApplication()
                 .runReadAction((Computable<List<DocumentLink>>) () -> {
+                    Module javaProject = QuteSupportForTemplate.getJavaProjectFromTemplateFile(uri, utils);
+                    if (javaProject == null) {
+                        return Collections.emptyList();
+                    }
+
+                    var refinedUtils = utils.refine(javaProject);
                     PsiFile typeRoot = resolveTypeRoot(uri, refinedUtils, monitor);
                     if (monitor.isCanceled()) {
                         return Collections.emptyList();
