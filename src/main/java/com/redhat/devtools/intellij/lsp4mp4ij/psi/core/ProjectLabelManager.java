@@ -93,9 +93,7 @@ public class ProjectLabelManager {
 				// The uri doesn't belong to an Eclipse project
 				return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 			}
-			Module module = ApplicationManager.getApplication().runReadAction((Computable<Module>) () -> {
-				return utils.getModule(file);
-			});
+			Module module = utils.getModule(file);
 			if (module == null) {
 				return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 			}

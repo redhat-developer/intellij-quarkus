@@ -79,13 +79,11 @@ public class QuteSupportForTemplate {
 	 * @return the project information for the given project Uri and null otherwise.
 	 */
 	public ProjectInfo getProjectInfo(QuteProjectParams params, IPsiUtils utils, ProgressIndicator monitor) {
-		return ApplicationManager.getApplication().runReadAction((Computable<ProjectInfo>) () -> {
-			Module javaProject = getJavaProjectFromTemplateFile(params.getTemplateFileUri(), utils);
-			if (javaProject == null) {
-				return null;
-			}
-			return PsiQuteProjectUtils.getProjectInfo(javaProject);
-		});
+		Module javaProject = getJavaProjectFromTemplateFile(params.getTemplateFileUri(), utils);
+		if (javaProject == null) {
+			return null;
+		}
+		return PsiQuteProjectUtils.getProjectInfo(javaProject);
 	}
 
 	/**
@@ -367,15 +365,13 @@ public class QuteSupportForTemplate {
 			}
 
 			final var refinedUtils = utils.refine(javaProject);
-			return ApplicationManager.getApplication()
-					.runReadAction((Computable<String>) () -> {
-						PsiClass type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), javaProject, monitor);
-						if (type == null) {
-							return null;
-						}
-						return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), refinedUtils,
-										monitor, new HashSet<>());
-					});
+
+			PsiClass type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), javaProject, monitor);
+			if (type == null) {
+				return null;
+			}
+			return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), refinedUtils,
+							monitor, new HashSet<>());
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Error while collecting Javadoc for " + params.getSourceType() + "#" + params.getMemberName(), e);
