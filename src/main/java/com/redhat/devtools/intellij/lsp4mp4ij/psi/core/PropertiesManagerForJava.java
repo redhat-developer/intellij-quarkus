@@ -85,17 +85,15 @@ public class PropertiesManagerForJava {
      *         and null otherwise.
      */
     public JavaFileInfo fileInfo(MicroProfileJavaFileInfoParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<JavaFileInfo>) () -> {
-            String uri = params.getUri();
-            final PsiFile unit = utils.resolveCompilationUnit(uri);
-            if (unit != null && unit.isValid() && unit instanceof PsiJavaFile) {
-                JavaFileInfo fileInfo = new JavaFileInfo();
-                String packageName = ((PsiJavaFile) unit).getPackageName();
-                fileInfo.setPackageName(packageName);
-                return fileInfo;
-            }
-            return null;
-        });
+        String uri = params.getUri();
+        final PsiFile unit = utils.resolveCompilationUnit(uri);
+        if (unit != null && unit.isValid() && unit instanceof PsiJavaFile) {
+            JavaFileInfo fileInfo = new JavaFileInfo();
+            String packageName = ((PsiJavaFile) unit).getPackageName();
+            fileInfo.setPackageName(packageName);
+            return fileInfo;
+        }
+        return null;
     }
 
     /**
@@ -106,16 +104,14 @@ public class PropertiesManagerForJava {
      * @return the codelens list according the given codelens parameters.
      */
     public List<? extends CodeLens> codeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils,  ProgressIndicator monitor) {
-        return ApplicationManager.getApplication().runReadAction((Computable<List<? extends CodeLens>>) () -> {
-            String uri = params.getUri();
-            PsiFile typeRoot = resolveTypeRoot(uri, utils);
-            if (typeRoot == null) {
-                return Collections.emptyList();
-            }
-            List<CodeLens> lenses = new ArrayList<>();
-            collectCodeLens(uri, typeRoot, utils, params, lenses, monitor);
-            return lenses;
-        });
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return Collections.emptyList();
+        }
+        List<CodeLens> lenses = new ArrayList<>();
+        collectCodeLens(uri, typeRoot, utils, params, lenses, monitor);
+        return lenses;
     }
 
     private void collectCodeLens(String uri, PsiFile typeRoot, IPsiUtils utils, MicroProfileJavaCodeLensParams params,
@@ -156,49 +152,47 @@ public class PropertiesManagerForJava {
      * @return the CompletionItems for the given the completion item params
      */
     public CompletionList completion(MicroProfileJavaCompletionParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<CompletionList>) () -> {
-            try {
-                String uri = params.getUri();
-                PsiFile typeRoot = resolveTypeRoot(uri, utils);
-                if (typeRoot == null) {
-                    return null;
-                }
-
-                Module module = utils.getModule(uri);
-                if (module == null) {
-                    return null;
-                }
-
-                Position completionPosition = params.getPosition();
-                int completionOffset = utils.toOffset(typeRoot, completionPosition.getLine(),
-                        completionPosition.getCharacter());
-
-                List<CompletionItem> completionItems = new ArrayList<>();
-                JavaCompletionContext completionContext = new JavaCompletionContext(uri, typeRoot, utils, module, completionOffset);
-
-                List<IJavaCompletionParticipant> completions = IJavaCompletionParticipant.EP_NAME.extensions()
-                        .filter(completion -> completion.isAdaptedForCompletion(completionContext))
-                        .collect(Collectors.toList());
-
-                if (completions.isEmpty()) {
-                    return null;
-                }
-
-                completions.forEach(completion -> {
-                    List<? extends CompletionItem> collectedCompletionItems = completion.collectCompletionItems(completionContext);
-                    if (collectedCompletionItems != null) {
-                        completionItems.addAll(collectedCompletionItems);
-                    }
-                });
-
-                CompletionList completionList = new CompletionList();
-                completionList.setItems(completionItems);
-                return completionList;
-            } catch (IOException e) {
-                LOGGER.warn(e.getLocalizedMessage(), e);
+        try {
+            String uri = params.getUri();
+            PsiFile typeRoot = resolveTypeRoot(uri, utils);
+            if (typeRoot == null) {
                 return null;
             }
-        });
+
+            Module module = utils.getModule(uri);
+            if (module == null) {
+                return null;
+            }
+
+            Position completionPosition = params.getPosition();
+            int completionOffset = utils.toOffset(typeRoot, completionPosition.getLine(),
+                    completionPosition.getCharacter());
+
+            List<CompletionItem> completionItems = new ArrayList<>();
+            JavaCompletionContext completionContext = new JavaCompletionContext(uri, typeRoot, utils, module, completionOffset);
+
+            List<IJavaCompletionParticipant> completions = IJavaCompletionParticipant.EP_NAME.extensions()
+                    .filter(completion -> completion.isAdaptedForCompletion(completionContext))
+                    .collect(Collectors.toList());
+
+            if (completions.isEmpty()) {
+                return null;
+            }
+
+            completions.forEach(completion -> {
+                List<? extends CompletionItem> collectedCompletionItems = completion.collectCompletionItems(completionContext);
+                if (collectedCompletionItems != null) {
+                    completionItems.addAll(collectedCompletionItems);
+                }
+            });
+
+            CompletionList completionList = new CompletionList();
+            completionList.setItems(completionItems);
+            return completionList;
+        } catch (IOException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+            return null;
+        }
     }
 
     /**
@@ -209,22 +203,20 @@ public class PropertiesManagerForJava {
      * @return the definition list according the given definition parameters.
      */
     public List<MicroProfileDefinition> definition(MicroProfileJavaDefinitionParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<List<MicroProfileDefinition>>)() -> {
-            String uri = params.getUri();
-            PsiFile typeRoot = resolveTypeRoot(uri, utils);
-            if (typeRoot == null) {
-                return Collections.emptyList();
-            }
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return Collections.emptyList();
+        }
 
-            Position hyperlinkedPosition = params.getPosition();
-            int definitionOffset = utils.toOffset(typeRoot, hyperlinkedPosition.getLine(),
-                    hyperlinkedPosition.getCharacter());
-            PsiElement hyperlinkedElement = getHoveredElement(typeRoot, definitionOffset);
+        Position hyperlinkedPosition = params.getPosition();
+        int definitionOffset = utils.toOffset(typeRoot, hyperlinkedPosition.getLine(),
+                hyperlinkedPosition.getCharacter());
+        PsiElement hyperlinkedElement = getHoveredElement(typeRoot, definitionOffset);
 
-            List<MicroProfileDefinition> locations = new ArrayList<>();
-            collectDefinition(uri, typeRoot, hyperlinkedElement, utils, hyperlinkedPosition, locations);
-            return locations;
-        });
+        List<MicroProfileDefinition> locations = new ArrayList<>();
+        collectDefinition(uri, typeRoot, hyperlinkedElement, utils, hyperlinkedPosition, locations);
+        return locations;
     }
 
     private void collectDefinition(String uri, PsiFile typeRoot, PsiElement hyperlinkedElement, IPsiUtils utils,
@@ -327,32 +319,30 @@ public class PropertiesManagerForJava {
      * @return the hover information according to the given <code>params</code>
      */
     public Hover hover(MicroProfileJavaHoverParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<Hover>) () -> {
-            String uri = params.getUri();
-            PsiFile typeRoot = resolveTypeRoot(uri, utils);
-            if (typeRoot == null) {
-                return null;
-            }
-            Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
-            if (document == null) {
-                return null;
-            }
-            Position hoverPosition = params.getPosition();
-            int hoveredOffset = utils.toOffset(document, hoverPosition.getLine(), hoverPosition.getCharacter());
-            PsiElement hoverElement = getHoveredElement(typeRoot, hoveredOffset);
-            if (hoverElement == null) return null;
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return null;
+        }
+        Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
+        if (document == null) {
+            return null;
+        }
+        Position hoverPosition = params.getPosition();
+        int hoveredOffset = utils.toOffset(document, hoverPosition.getLine(), hoverPosition.getCharacter());
+        PsiElement hoverElement = getHoveredElement(typeRoot, hoveredOffset);
+        if (hoverElement == null) return null;
 
-            DocumentFormat documentFormat = params.getDocumentFormat();
-            boolean surroundEqualsWithSpaces = params.isSurroundEqualsWithSpaces();
-            List<Hover> hovers = new ArrayList<>();
-            collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, surroundEqualsWithSpaces,
-                    hovers);
-            if (hovers.isEmpty()) {
-                return null;
-            }
-            // TODO : aggregate the hover
-            return hovers.get(0);
-        });
+        DocumentFormat documentFormat = params.getDocumentFormat();
+        boolean surroundEqualsWithSpaces = params.isSurroundEqualsWithSpaces();
+        List<Hover> hovers = new ArrayList<>();
+        collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, surroundEqualsWithSpaces,
+                hovers);
+        if (hovers.isEmpty()) {
+            return null;
+        }
+        // TODO : aggregate the hover
+        return hovers.get(0);
     }
 
     /**
@@ -364,24 +354,22 @@ public class PropertiesManagerForJava {
      * @return the cursor context for the given file and cursor position
      */
     public JavaCursorContextResult javaCursorContext(MicroProfileJavaCompletionParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<JavaCursorContextResult>) () -> {
-            String uri = params.getUri();
-            PsiFile typeRoot = resolveTypeRoot(uri, utils);
-            if (!(typeRoot instanceof PsiJavaFile)) {
-                return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
-            }
-            Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
-            if (document == null) {
-                return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
-            }
-            Position completionPosition = params.getPosition();
-            int completionOffset = utils.toOffset(document, completionPosition.getLine(), completionPosition.getCharacter());
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (!(typeRoot instanceof PsiJavaFile)) {
+            return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
+        }
+        Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
+        if (document == null) {
+            return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
+        }
+        Position completionPosition = params.getPosition();
+        int completionOffset = utils.toOffset(document, completionPosition.getLine(), completionPosition.getCharacter());
 
-            JavaCursorContextKind kind = getJavaCursorContextKind((PsiJavaFile) typeRoot, completionOffset);
-            String prefix = getJavaCursorPrefix(document, completionOffset);
+        JavaCursorContextKind kind = getJavaCursorContextKind((PsiJavaFile) typeRoot, completionOffset);
+        String prefix = getJavaCursorPrefix(document, completionOffset);
 
-            return new JavaCursorContextResult(kind, prefix);
-        });
+        return new JavaCursorContextResult(kind, prefix);
     }
 
     private static @NotNull JavaCursorContextKind getJavaCursorContextKind(PsiJavaFile javaFile, int completionOffset) {
@@ -581,7 +569,6 @@ public class PropertiesManagerForJava {
             }
         }
         return method;
-
     }
 
     private void collectHover(String uri, PsiFile typeRoot, PsiElement hoverElement, IPsiUtils utils,
@@ -638,9 +625,7 @@ public class PropertiesManagerForJava {
      * @return the codeAction list according the given codeAction parameters.
      */
     public List<? extends CodeAction> codeAction(MicroProfileJavaCodeActionParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<List<? extends CodeAction>>) () -> {
-            return codeActionHandler.codeAction(params, utils);
-        });
+        return codeActionHandler.codeAction(params, utils);
     }
 
     /**
@@ -651,9 +636,7 @@ public class PropertiesManagerForJava {
      * @return the codeAction list according the given codeAction parameters.
      */
     public CodeAction resolveCodeAction(CodeAction unresolved, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<CodeAction>) () -> {
-            return codeActionHandler.resolveCodeAction(unresolved, utils);
-        });
+        return codeActionHandler.resolveCodeAction(unresolved, utils);
     }
 
 }

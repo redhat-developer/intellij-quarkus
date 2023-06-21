@@ -54,14 +54,11 @@ public class QuteSupportForJava {
         }
 
         final var refinedUtils = utils.refine(javaProject);
-        return ApplicationManager.getApplication()
-                .runReadAction((Computable<List<? extends CodeLens>>) () -> {
-                    PsiFile typeRoot = resolveTypeRoot(uri, refinedUtils, monitor);
-                    if (monitor.isCanceled()) {
-                        return Collections.emptyList();
-                    }
-                    return QuarkusIntegrationForQute.codeLens(typeRoot, refinedUtils, monitor);
-                });
+        PsiFile typeRoot = resolveTypeRoot(uri, refinedUtils, monitor);
+        if (monitor.isCanceled()) {
+            return Collections.emptyList();
+        }
+        return QuarkusIntegrationForQute.codeLens(typeRoot, refinedUtils, monitor);
     }
 
     public List<PublishDiagnosticsParams> diagnostics(QuteJavaDiagnosticsParams params, IPsiUtils utils,
@@ -107,14 +104,11 @@ public class QuteSupportForJava {
         utils = utils.refine(javaProject);
 
         final var refinedUtils = utils.refine(javaProject);
-        return ApplicationManager.getApplication()
-                .runReadAction((Computable<List<DocumentLink>>) () -> {
-                    PsiFile typeRoot = resolveTypeRoot(uri, refinedUtils, monitor);
-                    if (monitor.isCanceled()) {
-                        return Collections.emptyList();
-                    }
-                    return QuarkusIntegrationForQute.documentLink(typeRoot, refinedUtils, monitor);
-                });
+        PsiFile typeRoot = resolveTypeRoot(uri, refinedUtils, monitor);
+        if (monitor.isCanceled()) {
+            return Collections.emptyList();
+        }
+        return QuarkusIntegrationForQute.documentLink(typeRoot, refinedUtils, monitor);
     }
 
     /**
