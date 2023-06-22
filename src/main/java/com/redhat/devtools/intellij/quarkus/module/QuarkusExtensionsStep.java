@@ -16,13 +16,7 @@ import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.CheckboxTree;
-import com.intellij.ui.CheckboxTreeListener;
-import com.intellij.ui.CheckedTreeNode;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.SearchTextField;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -32,16 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.AbstractListModel;
-import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JTextPane;
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -53,9 +38,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -65,12 +48,12 @@ import java.util.regex.Pattern;
 
 public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposable {
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusExtensionsStep.class);
-    private static final Icon PLATFORM_ICON = IconLoader.findIcon("/images/platform-icon.svg");
+    private static final Icon PLATFORM_ICON = IconLoader.findIcon("/images/platform-icon.svg", QuarkusExtensionsStep.class);
 
-    private JPanel panel;
+    private JPanel outerPanel;
     private final WizardContext wizardContext;
 
-    private class ExtensionsTreeCellRenderer extends CheckboxTree.CheckboxTreeCellRenderer {
+    private static class ExtensionsTreeCellRenderer extends CheckboxTree.CheckboxTreeCellRenderer {
 
         @Override
         public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -86,14 +69,14 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
         }
     }
 
-    private class ExtensionsTree extends CheckboxTree {
+    private static class ExtensionsTree extends CheckboxTree {
 
         public ExtensionsTree(CheckedTreeNode root) {
             super(new ExtensionsTreeCellRenderer(), root);
         }
     }
 
-    private class SelectedExtensionsModel extends AbstractListModel<QuarkusExtension> {
+    private static class SelectedExtensionsModel extends AbstractListModel<QuarkusExtension> {
 
         private final List<QuarkusExtension> extensions = new ArrayList<>();
 
@@ -124,18 +107,23 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
 
     @Override
     public JComponent getComponent() {
-        if (panel == null && wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY) != null) {
-            panel = new JPanel();
+        if (outerPanel == null && wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY) != null) {
+            outerPanel = new JPanel();
+            outerPanel.setLayout(new BorderLayout());
+
+            JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            panel.setBorder(JBUI.Borders.empty(20));
+
+
             JLabel label1 = new JLabel("Filter extensions");
             label1.setAlignmentX(Component.LEFT_ALIGNMENT);
             panel.add(label1);
             SearchTextField filter = new SearchTextField() {
                 @Override
                 public Dimension getMaximumSize() {
-                    Dimension size = super.getPreferredSize();
-                    size.height = JBUI.scale(30);
-                    return size;
+                    Dimension maxSize = super.getMaximumSize();
+                    return new Dimension(maxSize.width, JBUI.scale(30));
                 }
             };
             filter.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -162,20 +150,33 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             extensionsSplitter.setFirstComponent(new JBScrollPane(extensionsTree));
             extensionsSplitter.setSecondComponent(extensionDetailTextPane);
             extensionsPanel.setFirstComponent(extensionsSplitter);
+
             JBList<QuarkusExtension> selectedExtensions = new JBList<>();
+            selectedExtensions.setBackground(null);
+            selectedExtensions.setAlignmentX(Component.LEFT_ALIGNMENT);
             selectedExtensions.setModel(new SelectedExtensionsModel(categories));
             ColoredListCellRenderer<QuarkusExtension> selectedExtensionRenderer = new ColoredListCellRenderer<QuarkusExtension>() {
                 @Override
                 protected void customizeCellRenderer(@NotNull JList<? extends QuarkusExtension> list, QuarkusExtension extension, int index, boolean selected, boolean hasFocus) {
                     append(extension.getName());
                 }
+
+                @Override
+                public Component getListCellRendererComponent(JList<? extends QuarkusExtension> list, QuarkusExtension value, int index, boolean selected, boolean hasFocus) {
+                    super.getListCellRendererComponent(list, value, index, selected, hasFocus);
+                    setAlignmentX(Component.LEFT_ALIGNMENT);
+                    return this;
+                }
             };
             selectedExtensions.setCellRenderer(selectedExtensionRenderer);
+
             JPanel selectedExtensionsPanel = new JPanel();
             selectedExtensionsPanel.setLayout(new BoxLayout(selectedExtensionsPanel, BoxLayout.Y_AXIS));
+            selectedExtensionsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
             JLabel label = new JLabel("Selected extensions");
             label.setFont(label.getFont().deriveFont(label.getFont().getStyle() | Font.BOLD));
             selectedExtensionsPanel.add(label);
+
             selectedExtensionsPanel.add(selectedExtensions);
             extensionsPanel.setSecondComponent(new JBScrollPane(selectedExtensionsPanel));
             panel.add(extensionsPanel);
@@ -237,8 +238,9 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                     }
                 }
             });
+            outerPanel.add(panel, BorderLayout.CENTER);
         }
-        return panel;
+        return outerPanel;
     }
 
     private void expandTree(JTree tree) {

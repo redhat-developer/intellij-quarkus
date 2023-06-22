@@ -25,6 +25,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
+import com.intellij.util.ui.JBUI;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.annotations.NotNull;
@@ -99,6 +100,8 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
     @Override
     public void _init() {
+        panel.setBorder(JBUI.Borders.empty(20));
+
         ProgressIndicator indicator = new EmptyProgressIndicator() {
             @Override
             public void setText(String text) {
