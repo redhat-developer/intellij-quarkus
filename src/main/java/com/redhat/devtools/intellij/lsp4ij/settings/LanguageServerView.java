@@ -15,14 +15,18 @@ package com.redhat.devtools.intellij.lsp4ij.settings;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.PortField;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UI;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerBundle;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServersRegistry;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * UI settings view to configure a given language server:
@@ -35,33 +39,37 @@ import javax.swing.*;
 public class LanguageServerView implements Disposable {
 
     private final JPanel myMainPanel;
-    private JBTextField debugPortField = new JBTextField();
-
-    private JBCheckBox debugSuspendCheckBox = new JBCheckBox(LanguageServerBundle.message("language.server.debug.suspend"));
-
-    private ComboBox<ServerTrace> serverTraceComboBox = new ComboBox<>(new DefaultComboBoxModel<>(ServerTrace.values()));
+    private final PortField debugPortField = new PortField();
+    private final JBCheckBox debugSuspendCheckBox = new JBCheckBox(LanguageServerBundle.message("language.server.debug.suspend"));
+    private final ComboBox<ServerTrace> serverTraceComboBox = new ComboBox<>(new DefaultComboBoxModel<>(ServerTrace.values()));
 
     public LanguageServerView(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) {
         this.myMainPanel = FormBuilder.createFormBuilder()
-                .setFormLeftIndent(10)
+                .setFormLeftIndent(5)
                 .addComponent(createTitleComponent(languageServerDefinition), 1)
-                .addLabeledComponent(LanguageServerBundle.message("language.server.debug.port"), debugPortField, 1)
-                .addComponent(debugSuspendCheckBox, 1)
-                .addLabeledComponent(LanguageServerBundle.message("language.server.trace"), serverTraceComboBox, 1)
+                .addLabeledComponent(LanguageServerBundle.message("language.server.debug.port"), debugPortField, 5)
+                .addComponent(debugSuspendCheckBox, 5)
+                .addLabeledComponent(LanguageServerBundle.message("language.server.trace"), serverTraceComboBox, 5)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
+        this.myMainPanel.setBorder(JBUI.Borders.empty(5, 10));
     }
 
     private JComponent createTitleComponent(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) {
-        JLabel title = new JLabel(languageServerDefinition.getDisplayName());
+        JPanel titledComponent = UI.PanelFactory.grid().createPanel();
         String description = languageServerDefinition.description;
-        if (description != null && description.length() > 0) {
-            // @See com.intellij.internal.ui.ComponentPanelTestAction for more details on how to create comment panels
-            return UI.PanelFactory.panel(title)
-                    .withComment(description)
-                    .createPanel();
+        if (description != null && !description.isBlank()) {
+            titledComponent = UI.PanelFactory.panel(titledComponent)
+                                    //FIXME I can't figure out how to reduce the margin between the title and the comment
+                                    // https://jetbrains.github.io/ui/controls/inline_help_text/#group-of-controls example
+                                    // doesn't show as big of a margin
+                                    .withComment(description.trim())
+                                    .resizeX(true)
+                                    .resizeY(true)
+                                    .createPanel();
         }
-        return title;
+        titledComponent.setBorder(IdeBorderFactory.createTitledBorder(languageServerDefinition.getDisplayName()));
+        return titledComponent;
     }
 
     public JComponent getComponent() {
@@ -69,11 +77,18 @@ public class LanguageServerView implements Disposable {
     }
 
     public String getDebugPort() {
-        return debugPortField.getText();
+        return debugPortField.getNumber() <= 0? "": Integer.toString(debugPortField.getNumber());
     }
 
     public void setDebugPort(String debugPort) {
-        debugPortField.setText(debugPort);
+        int port = 0;
+        try {
+            port = Integer.parseInt(debugPort);
+            if (port < debugPortField.getMin() || port > debugPortField.getMax()) {
+                port = 0;
+            }
+        } catch (Exception ignore) {}
+        debugPortField.setNumber(port);
     }
 
     public boolean isDebugSuspend() {
