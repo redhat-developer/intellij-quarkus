@@ -21,6 +21,7 @@ import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.TextFieldWithStoredHistory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBRadioButton;
@@ -104,6 +105,7 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep {
         builder.addTooltip("Make sure your network connection is active before continuing.");
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(builder.getPanel(), "North");
+        panel.setBorder(JBUI.Borders.empty(20));
         return panel;
     }
 
