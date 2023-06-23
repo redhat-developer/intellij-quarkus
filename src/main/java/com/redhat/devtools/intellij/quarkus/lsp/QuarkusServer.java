@@ -16,6 +16,7 @@ import com.intellij.openapi.extensions.PluginId;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 
 import java.io.File;
 import java.net.URI;
@@ -46,19 +47,11 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
 
     @Override
     public Object getInitializationOptions(URI rootUri) {
+
         Map<String, Object> root = new HashMap<>();
-        Map<String, Object> settings = new HashMap<>();
-        Map<String, Object> quarkus = new HashMap<>();
-        Map<String, Object> tools = new HashMap<>();
-        Map<String, Object> trace = new HashMap<>();
-        trace.put("server", "verbose");
-        tools.put("trace", trace);
-        Map<String, Object> codeLens = new HashMap<>();
-        codeLens.put("urlCodeLensEnabled", "true");
-        tools.put("codeLens", codeLens);
-        quarkus.put("tools", tools);
-        settings.put("microprofile", quarkus);
+        Map<String, Object> settings = UserDefinedMicroProfileSettings.getInstance().toSettingsForMicroProfileLS();
         root.put("settings", settings);
+
         Map<String, Object> extendedClientCapabilities = new HashMap<>();
         Map<String, Object> commands = new HashMap<>();
         Map<String, Object> commandsKind = new HashMap<>();
@@ -70,4 +63,5 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         root.put("extendedClientCapabilities", extendedClientCapabilities);
         return root;
     }
+
 }

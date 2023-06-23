@@ -27,7 +27,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
-import com.intellij.workspaceModel.ide.WorkspaceModelTopics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  *
  *
  * <ul>
- *     <li>Track update of libraries is done with {@link WorkspaceModelTopics}.
+ *     <li>Track update of libraries is done with {@link com.intellij.openapi.roots.libraries.LibraryTable.Listener}.
  *     In other words {@link Listener#librariesChanged()}  are fired when all libraries are inserted, deleted, updated.</li>
  *     <li>Track update of Java, microprofile-config properties files are done when Java Psi file is updated, when Java file is created, deleted, saved.</li>
  * </ul>

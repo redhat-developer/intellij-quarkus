@@ -4,15 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticHandler;
-import org.eclipse.lsp4j.ApplyWorkspaceEditParams;
-import org.eclipse.lsp4j.ApplyWorkspaceEditResponse;
-import org.eclipse.lsp4j.MessageActionItem;
-import org.eclipse.lsp4j.MessageParams;
-import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.eclipse.lsp4j.RegistrationParams;
-import org.eclipse.lsp4j.ShowMessageRequestParams;
-import org.eclipse.lsp4j.UnregistrationParams;
-import org.eclipse.lsp4j.WorkspaceFolder;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
 
@@ -29,6 +21,8 @@ public class LanguageClientImpl implements LanguageClient {
     private LanguageServerWrapper wrapper;
 
     private boolean disposed;
+
+    private Runnable didChangeConfigurationListener;
 
     public LanguageClientImpl(Project project) {
         this.project = project;
@@ -109,4 +103,28 @@ public class LanguageClientImpl implements LanguageClient {
     public boolean isDisposed() {
         return disposed;
     }
+
+    protected Object createSettings() {
+        return null;
+    }
+
+    protected synchronized Runnable getDidChangeConfigurationListener() {
+        if (didChangeConfigurationListener != null) {
+            return didChangeConfigurationListener;
+        }
+        didChangeConfigurationListener = () -> {
+            LanguageServer languageServer = getLanguageServer();
+            if (languageServer == null) {
+                return;
+            }
+            Object settings = createSettings();
+            if(settings == null) {
+                return;
+            }
+            DidChangeConfigurationParams params = new DidChangeConfigurationParams(settings);
+            languageServer.getWorkspaceService().didChangeConfiguration(params);
+        };
+        return didChangeConfigurationListener;
+    }
+
 }

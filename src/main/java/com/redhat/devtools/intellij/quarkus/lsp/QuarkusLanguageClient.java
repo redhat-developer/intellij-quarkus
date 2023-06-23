@@ -21,6 +21,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.lsp4ij.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
@@ -41,7 +42,6 @@ import java.util.stream.Collectors;
 
 
 public class QuarkusLanguageClient extends IndexAwareLanguageClient implements MicroProfileLanguageClientAPI, ClasspathResourceChangedManager.Listener {
-  private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusLanguageClient.class);
 
   private final MessageBusConnection connection;
 
@@ -49,12 +49,20 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
     super(project);
     connection = project.getMessageBus().connect(project);
     connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
+    // Track MicroProfile settings changed to push them to the language server with LSP didChangeConfiguration.
+    UserDefinedMicroProfileSettings.getInstance().addChangeHandler(getDidChangeConfigurationListener());
   }
 
   @Override
   public void dispose() {
     super.dispose();
     connection.disconnect();
+    UserDefinedMicroProfileSettings.getInstance().removeChangeHandler(getDidChangeConfigurationListener());
+  }
+
+  @Override
+  protected Object createSettings() {
+    return UserDefinedMicroProfileSettings.getInstance().toSettingsForMicroProfileLS();
   }
 
   private void sendPropertiesChangeEvent(List<MicroProfilePropertiesScope> scope, Set<String> uris) {

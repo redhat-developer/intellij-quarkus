@@ -1,0 +1,139 @@
+/*******************************************************************************
+ * Copyright (c) 2023 Red Hat Inc. and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
+package com.redhat.devtools.intellij.lsp4mp4ij.settings;
+
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.xmlb.annotations.Tag;
+import com.jetbrains.jsonSchema.JsonSchemaCatalogProjectConfiguration;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * User defined MicroProfile settings for:
+ *
+ * <ul>
+ *     <li>properties files managed with the MicroProfile language server</li>
+ *     <li>Java files managed with the MicroProfile language server</li>
+ * </ul>
+ */
+@State(
+        name = "MicroProfileSettingsState",
+        storages = {@Storage("microProfileSettings.xml")}
+)
+public class UserDefinedMicroProfileSettings implements PersistentStateComponent<UserDefinedMicroProfileSettings.MyState> {
+
+    public volatile MyState myState = new MyState();
+
+    private final List<Runnable> myChangeHandlers = ContainerUtil.createConcurrentList();
+
+    public static UserDefinedMicroProfileSettings getInstance() {
+        return ServiceManager.getService(UserDefinedMicroProfileSettings.class);
+    }
+
+    public void addChangeHandler(Runnable runnable) {
+        myChangeHandlers.add(runnable);
+    }
+
+    public void removeChangeHandler(Runnable runnable) {
+        myChangeHandlers.remove(runnable);
+    }
+
+    public void fireStateChanged() {
+        for (Runnable handler : myChangeHandlers) {
+            handler.run();
+        }
+    }
+
+    // ---------- Properties
+
+    public boolean isInlayHintEnabled() {
+        return myState.myInlayHintEnabled;
+    }
+
+    public void setInlayHintEnabled(boolean inlayHintEnabled) {
+        myState.myInlayHintEnabled = inlayHintEnabled;
+    }
+
+    // ---------- Java
+
+    public boolean isUrlCodeLensEnabled() {
+        return myState.myUrlCodeLensEnabled;
+    }
+
+    public void setUrlCodeLensEnabled(boolean urlCodeLensEnabled) {
+        myState.myUrlCodeLensEnabled = urlCodeLensEnabled;
+    }
+
+    @Nullable
+    @Override
+    public MyState getState() {
+        return myState;
+    }
+
+    @Override
+    public void loadState(@NotNull MyState state) {
+        myState = state;
+        for (Runnable handler : myChangeHandlers) {
+            handler.run();
+        }
+    }
+
+    /**
+     * Returns the proper settings expected by the MicroProfile language server.
+     *
+     * @return the proper settings expected by the MicroProfile language server.
+     */
+    public Map<String, Object> toSettingsForMicroProfileLS() {
+        Map<String, Object> settings = new HashMap<>();
+        Map<String, Object> microprofile = new HashMap<>();
+        settings.put("microprofile", microprofile);
+        Map<String, Object> tools = new HashMap<>();
+        microprofile.put("tools", tools);
+
+        // Properties settings
+        // Inlay hint
+        Map<String, Object> inlayHint = new HashMap<>();
+        inlayHint.put("enabled", isInlayHintEnabled());
+        tools.put("inlayHint", inlayHint);
+
+        // Java settings
+        // URL code lens
+        Map<String, Object> codeLens = new HashMap<>();
+        codeLens.put("urlCodeLensEnabled", isUrlCodeLensEnabled());
+        tools.put("codeLens", codeLens);
+
+        return settings;
+    }
+
+    static class MyState {
+        @Tag("inlayHintEnabled")
+        public boolean myInlayHintEnabled = true;
+
+        @Tag("urlCodeLensEnabled")
+        public boolean myUrlCodeLensEnabled = true;
+
+        MyState() {
+        }
+
+    }
+
+}
