@@ -18,7 +18,6 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.PortField;
 import com.intellij.ui.components.JBCheckBox;
-import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UI;
@@ -26,6 +25,7 @@ import com.redhat.devtools.intellij.lsp4ij.LanguageServerBundle;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServersRegistry;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 
 /**
@@ -44,31 +44,40 @@ public class LanguageServerView implements Disposable {
     private final ComboBox<ServerTrace> serverTraceComboBox = new ComboBox<>(new DefaultComboBoxModel<>(ServerTrace.values()));
 
     public LanguageServerView(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) {
-        this.myMainPanel = FormBuilder.createFormBuilder()
-                .setFormLeftIndent(5)
-                .addComponent(createTitleComponent(languageServerDefinition), 1)
+        JComponent descriptionPanel = createDescription(languageServerDefinition.description.trim());
+        JPanel settingsPanel = createSettings(descriptionPanel);
+        TitledBorder title = IdeBorderFactory.createTitledBorder(languageServerDefinition.getDisplayName());
+        settingsPanel.setBorder(title);
+        JPanel wrapper = JBUI.Panels.simplePanel(settingsPanel);
+        wrapper.setBorder(JBUI.Borders.emptyLeft(10));
+        this.myMainPanel = wrapper;
+    }
+
+    private JPanel createSettings(JComponent description) {
+        return FormBuilder.createFormBuilder()
+                .addComponent(description, 0)
                 .addLabeledComponent(LanguageServerBundle.message("language.server.debug.port"), debugPortField, 5)
                 .addComponent(debugSuspendCheckBox, 5)
                 .addLabeledComponent(LanguageServerBundle.message("language.server.trace"), serverTraceComboBox, 5)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
-        this.myMainPanel.setBorder(JBUI.Borders.empty(5, 10));
     }
 
-    private JComponent createTitleComponent(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) {
+    private JComponent createDescription(String description) {
+        /**
+         * Normally comments are below the controls.
+         * Here we want the comments to precede the controls, we therefore create an empty, 0-sized panel.
+         */
         JPanel titledComponent = UI.PanelFactory.grid().createPanel();
-        String description = languageServerDefinition.description;
+        titledComponent.setMinimumSize(JBUI.emptySize());
+        titledComponent.setPreferredSize(JBUI.emptySize());
         if (description != null && !description.isBlank()) {
             titledComponent = UI.PanelFactory.panel(titledComponent)
-                                    //FIXME I can't figure out how to reduce the margin between the title and the comment
-                                    // https://jetbrains.github.io/ui/controls/inline_help_text/#group-of-controls example
-                                    // doesn't show as big of a margin
-                                    .withComment(description.trim())
+                                    .withComment(description)
                                     .resizeX(true)
                                     .resizeY(true)
                                     .createPanel();
         }
-        titledComponent.setBorder(IdeBorderFactory.createTitledBorder(languageServerDefinition.getDisplayName()));
         return titledComponent;
     }
 
