@@ -23,6 +23,18 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <!-- MicroProfile settings -->
+    <applicationConfigurable groupId="language"
+                             id="MicroProfile"
+                             provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileConfigurableProvider"/>
+    <applicationConfigurable parentId="MicroProfile"
+                             id="MicroProfileProperties"
+                             provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.properties.MicroProfilePropertiesConfigurableProvider"/>
+    <applicationConfigurable parentId="MicroProfile"
+                             id="MicroProfileJava"
+                             provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.java.MicroProfileJavaConfigurableProvider"/>
+    <applicationService id="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"
+                        serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"/>
     <!-- Quarkus -->
     <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <externalAnnotator language="Properties"
@@ -33,6 +45,8 @@
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
     <externalAnnotator language="JAVA"
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkAnnotator"/>
+    <codeInsight.inlayProvider language="Properties"
+                               implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
   </extensions>
 
 </idea-plugin>

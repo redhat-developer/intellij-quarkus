@@ -48,6 +48,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * LSP textDocument/codeLens support.
+ */
 public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPCodelensInlayProvider.class);
 
