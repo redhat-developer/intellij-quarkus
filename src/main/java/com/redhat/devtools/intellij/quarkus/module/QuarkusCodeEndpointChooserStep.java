@@ -105,7 +105,7 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep {
         builder.addTooltip("Make sure your network connection is active before continuing.");
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(builder.getPanel(), "North");
-        panel.setBorder(JBUI.Borders.empty(20));
+        panel.setBorder(JBUI.Borders.emptyLeft(20));
         return panel;
     }
 
