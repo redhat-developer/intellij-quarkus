@@ -13,9 +13,8 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.console.explorer.actions;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.redhat.devtools.intellij.lsp4ij.console.explorer.LanguageServerExplorerTreeDataProvider;
+import com.intellij.ui.treeStructure.Tree;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerBundle;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +26,7 @@ import java.io.IOException;
 /**
  * Action to restart the selected language server process from the language explorer.
  */
-public class RestartServerAction extends AnAction {
+public class RestartServerAction extends TreeAction {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestartServerAction.class);//$NON-NLS-1$
 
@@ -38,11 +37,11 @@ public class RestartServerAction extends AnAction {
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-        Object lsData = e.getDataContext().getData(LanguageServerExplorerTreeDataProvider.LANGUAGE_SERVER_DATA_ID);
-        if (lsData instanceof LanguageServerWrapper) {
+    protected void actionPerformed(@NotNull Tree tree, @NotNull AnActionEvent e) {
+        LanguageServerWrapper languageServer = getSelectedLanguageServer(tree);
+        if (languageServer != null) {
             try {
-                ((LanguageServerWrapper)lsData).start();
+                languageServer.start();
             } catch (IOException ex) {
                 LOGGER.error("Failed restarting server", ex);
             }
