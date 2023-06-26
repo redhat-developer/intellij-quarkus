@@ -251,10 +251,7 @@
     <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>
     <!-- Add your extensions here -->
     <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
-    <frameworkSupport implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkSupportProvider"/>
     <framework.detector implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkDetector"/>
-    <library.type implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusLibraryType"/>
-    <framework.type implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkType"/>
     <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.module.QuarkusModuleBuilder"/>
     <iconProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusIconProvider"/>
     <completion.contributor
@@ -271,10 +268,7 @@
 
     <!-- Qute -->
     <facetType implementation="com.redhat.devtools.intellij.qute.facet.QuteFacetType"/>
-    <frameworkSupport implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkSupportProvider"/>
     <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
-    <library.type implementation="com.redhat.devtools.intellij.qute.facet.QuteLibraryType"/>
-    <framework.type implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkType"/>
     <fileType name="Qute_"
               language="Qute_"
               instance="QUTE"
