@@ -13,7 +13,6 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.console.explorer;
 
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -48,7 +47,7 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
     private boolean disposed;
 
     private TreeSelectionListener treeSelectionListener = event -> {
-        if(isDisposed()) {
+        if (isDisposed()) {
             return;
         }
         TreePath selectionPath = event.getPath();
@@ -106,9 +105,6 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
         tree.setCellRenderer(new LanguageServerTreeRenderer());
 
         tree.addTreeSelectionListener(treeSelectionListener);
-
-        DataProvider newDataProvider = new LanguageServerExplorerTreeDataProvider(tree);
-        DataManager.registerDataProvider(tree, newDataProvider);
 
         tree.addMouseListener(new PopupHandler() {
             @Override

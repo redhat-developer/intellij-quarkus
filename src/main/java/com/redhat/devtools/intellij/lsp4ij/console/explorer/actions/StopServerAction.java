@@ -13,9 +13,8 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.console.explorer.actions;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.redhat.devtools.intellij.lsp4ij.console.explorer.LanguageServerExplorerTreeDataProvider;
+import com.intellij.ui.treeStructure.Tree;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerBundle;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Action to stop the selected language server process from the language explorer.
  */
-public class StopServerAction extends AnAction {
+public class StopServerAction extends TreeAction {
 
     public static final String ACTION_ID = "com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.StopServerAction";
 
@@ -32,10 +31,11 @@ public class StopServerAction extends AnAction {
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-        Object lsData = e.getDataContext().getData(LanguageServerExplorerTreeDataProvider.LANGUAGE_SERVER_DATA_ID);
-        if (lsData instanceof LanguageServerWrapper) {
-            ((LanguageServerWrapper)lsData).stop();
+    protected void actionPerformed(@NotNull Tree tree, @NotNull AnActionEvent e) {
+        LanguageServerWrapper languageServer = getSelectedLanguageServer(tree);
+        if (languageServer != null) {
+            languageServer.stop();
         }
     }
+
 }
