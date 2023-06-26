@@ -63,42 +63,58 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
         return new FactoryInlayHintsCollector(editor) {
             @Override
             public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
+                Document document = editor.getDocument();
                 try {
-                    URI docURI = LSPIJUtils.toUri(editor.getDocument());
-                    if (docURI != null) {
-                        Range viewPortRange = getViewPortRange(editor);
-                        InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(docURI.toString()), viewPortRange);
-                        BlockingDeque<Pair<InlayHint, LanguageServer>> pairs = new LinkedBlockingDeque<>();
-                        List<Pair<Integer, Pair<InlayHint, LanguageServer>>> inlayhints = new ArrayList<>();
-                        CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(psiElement.getProject())
-                                .getLanguageServers(editor.getDocument(), capabilities -> capabilities.getInlayHintProvider() != null)
-                                .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
-                                        .map(languageServer -> languageServer.getSecond().getTextDocumentService().inlayHint(param)
-                                                .thenAcceptAsync(inlayHints -> {
-                                                    // textDocument/codeLens may return null
-                                                    if (inlayHints != null) {
-                                                        inlayHints.stream().filter(Objects::nonNull)
-                                                                .forEach(inlayHint -> pairs.add(new Pair(inlayHint, languageServer.getSecond())));
-                                                    }
-                                                }))
-                                        .toArray(CompletableFuture[]::new)));
-                        while (!future.isDone() || !pairs.isEmpty()) {
-                            ProgressManager.checkCanceled();
-                            Pair<InlayHint, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
-                            if (pair != null) {
-                                int offset = LSPIJUtils.toOffset(pair.getFirst().getPosition(), editor.getDocument());
-                                inlayhints.add(Pair.create(offset, pair));
-                            }
-                        }
-                        Map<Integer, List<Pair<Integer, Pair<InlayHint, LanguageServer>>>> elements = inlayhints.stream().collect(Collectors.groupingBy(p -> p.first));
-                        elements.forEach((offset, list) -> inlayHintsSink.addInlineElement(offset, false,
-                                toPresentation(editor, offset, list, getFactory()), false));
+                    URI docURI = LSPIJUtils.toUri(document);
+                    if (docURI == null) {
+                        return false;
                     }
+                    Range viewPortRange = getViewPortRange(editor);
+                    InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(docURI.toString()), viewPortRange);
+                    BlockingDeque<Pair<InlayHint, LanguageServer>> pairs = new LinkedBlockingDeque<>();
+                    CompletableFuture<Void> future = collect(psiElement.getProject(), document, param, pairs);
+                    List<Pair<Integer, Pair<InlayHint, LanguageServer>>> inlayHints = createInlayHints(document, pairs, future);
+                    Map<Integer, List<Pair<Integer, Pair<InlayHint, LanguageServer>>>> elements = inlayHints.stream().collect(Collectors.groupingBy(p -> p.first));
+                    elements.forEach((offset, list) ->
+                            inlayHintsSink.addInlineElement(offset, false, toPresentation(editor, list, getFactory()), false));
                 } catch (InterruptedException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);
                     Thread.currentThread().interrupt();
                 }
                 return false;
+            }
+
+            @NotNull
+            private List<Pair<Integer, Pair<InlayHint, LanguageServer>>> createInlayHints(
+                    @NotNull Document document,
+                    BlockingDeque<Pair<InlayHint, LanguageServer>> pairs,
+                    CompletableFuture<Void> future)
+                    throws InterruptedException {
+                List<Pair<Integer, Pair<InlayHint, LanguageServer>>> inlayHints = new ArrayList<>();
+                while (!future.isDone() || !pairs.isEmpty()) {
+                    ProgressManager.checkCanceled();
+                    Pair<InlayHint, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
+                    if (pair != null) {
+                        int offset = LSPIJUtils.toOffset(pair.getFirst().getPosition(), document);
+                        inlayHints.add(Pair.create(offset, pair));
+                    }
+                }
+                return inlayHints;
+            }
+
+            private CompletableFuture<Void> collect(@NotNull Project project, @NotNull Document document, InlayHintParams param, BlockingDeque<Pair<InlayHint, LanguageServer>> pairs) {
+                return LanguageServiceAccessor.getInstance(project)
+                        .getLanguageServers(document, capabilities -> capabilities.getInlayHintProvider() != null)
+                        .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
+                                .map(languageServer -> languageServer.getSecond().getTextDocumentService().inlayHint(param)
+                                        .thenAcceptAsync(inlayHints -> {
+                                            // textDocument/codeLens may return null
+                                            if (inlayHints != null) {
+                                                inlayHints.stream().filter(Objects::nonNull)
+                                                        .forEach(inlayHint -> pairs.add(new Pair(inlayHint, languageServer.getSecond())));
+                                            }
+                                        }))
+                                .toArray(CompletableFuture[]::new)));
             }
         };
     }
@@ -114,7 +130,7 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
         return new Range(start, end);
     }
 
-    private InlayPresentation toPresentation(Editor editor, int offset,
+    private InlayPresentation toPresentation(Editor editor,
                                              List<Pair<Integer, Pair<InlayHint, LanguageServer>>> elements,
                                              PresentationFactory factory) {
         List<InlayPresentation> presentations = new ArrayList<>();
@@ -125,17 +141,7 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
             } else {
                 int index = 0;
                 for (InlayHintLabelPart part : label.getRight()) {
-                    InlayPresentation text = factory.smallText(part.getValue());
-                    if (!hasCommand(part)) {
-                        // No command, create a simple text inlay hint
-                        presentations.add(text);
-                    } else {
-                        // InlayHintLabelPart defines a Command, create a clickable inlay hint
-                        int finalIndex = index;
-                        text = factory.referenceOnHover(text, (event, translated) -> {
-                            executeClientCommand(p.second.second, p.second.first, finalIndex, (Component) event.getSource(), editor.getProject());
-                        });
-                    }
+                    InlayPresentation text = createInlayPresentation(editor.getProject(), factory, presentations, p, index, part);
                     if (part.getTooltip() != null && part.getTooltip().isLeft()) {
                         text = factory.withTooltip(part.getTooltip().getLeft(), text);
                     }
@@ -147,13 +153,40 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
         return factory.roundWithBackground(new SequencePresentation(presentations));
     }
 
+    @NotNull
+    private InlayPresentation createInlayPresentation(
+            Project project,
+            PresentationFactory factory,
+            List<InlayPresentation> presentations, Pair<Integer,
+            Pair<InlayHint, LanguageServer>> p,
+            int index,
+            InlayHintLabelPart part) {
+        InlayPresentation text = factory.smallText(part.getValue());
+        if (!hasCommand(part)) {
+            // No command, create a simple text inlay hint
+            presentations.add(text);
+        } else {
+            // InlayHintLabelPart defines a Command, create a clickable inlay hint
+            int finalIndex = index;
+            text = factory.referenceOnHover(text, (event, translated) ->
+                executeClientCommand(p.second.second, p.second.first, finalIndex, (Component) event.getSource(), project)
+            );
+        }
+        return text;
+    }
+
     private static boolean hasCommand(InlayHintLabelPart part) {
         Command command = part.getCommand();
         return (command != null && command.getCommand() != null && !command.getCommand().isEmpty());
     }
 
-    private void executeClientCommand(LanguageServer languageServer, InlayHint inlayHint, int index, Component source,
-                                      Project project) {
+    private void executeClientCommand(
+            LanguageServer languageServer,
+            InlayHint inlayHint,
+            int index,
+            Component source,
+            Project project
+    ) {
         if (LanguageServiceAccessor.getInstance(project)
                 .checkCapability(languageServer, capabilites -> isResolveSupported(capabilites.getInlayHintProvider()))) {
             languageServer.getTextDocumentService()
