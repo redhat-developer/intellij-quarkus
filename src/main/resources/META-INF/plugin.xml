@@ -2,7 +2,7 @@
   <id>com.redhat.devtools.intellij.quarkus</id>
   <name>Quarkus Tools</name>
   <version>1.0</version>
-  <vendor email="developers@redhat.com" url="https://github.com/redhat-developer/intellij-quarkus/issues">Red Hat</vendor>
+  <vendor email="developers@redhat.com" url="https://github.com/redhat-developer/intellij-quarkus/issues">Red-Hat</vendor>
 
   <description><![CDATA[
       <img src="https://raw.githubusercontent.com/redhat-developer/intellij-quarkus/master/src/main/resources/quarkus_icon_rgb_32px_default.png" width="32" height="32"/>
