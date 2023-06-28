@@ -18,6 +18,7 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -76,6 +77,8 @@ public class LSContentAssistProcessor extends CompletionContributor {
                 }
 
             }
+        } catch (ProcessCanceledException cancellation){
+            throw cancellation;
         } catch (RuntimeException | InterruptedException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
             result.addElement(createErrorProposal(offset, e));
@@ -88,7 +91,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
             CompletionList> completion, LanguageServer languageServer) {
         if (completion != null) {
             List<CompletionItem> items = completion.isLeft()?completion.getLeft():completion.getRight().getItems();
-            boolean isIncomplete = completion.isLeft()?false:completion.getRight().isIncomplete();
+            boolean isIncomplete = completion.isRight() && completion.getRight().isIncomplete();
             return items.stream().map(item -> createLookupItem(project, editor, offset, item, isIncomplete, languageServer)).
                     filter(item -> item.validate(document, offset, null)).
                     map(item -> PrioritizedLookupElement.withGrouping(item, item.getItem().getKind().getValue())).
