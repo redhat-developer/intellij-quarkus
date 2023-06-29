@@ -23,13 +23,7 @@ import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.command.internal.CommandExecutor;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.lsp4j.Command;
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.InsertReplaceEdit;
-import org.eclipse.lsp4j.InsertTextFormat;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +33,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.redhat.devtools.intellij.lsp4ij.ui.IconMapper.getIcon;
 
 public class LSIncompleteCompletionProposal extends LookupElement {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSIncompleteCompletionProposal.class);
@@ -185,12 +181,15 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     }
 
     private boolean isDeprecated() {
-        return item.getDeprecated() != null && item.getDeprecated().booleanValue();
+        return (item.getTags() != null && item.getTags().contains(CompletionItemTag.Deprecated))
+        || (item.getDeprecated() != null && item.getDeprecated().booleanValue());
     }
 
     @Override
     public void renderElement(LookupElementPresentation presentation) {
         presentation.setItemText(item.getLabel());
+        presentation.setTypeText(item.getDetail());
+        presentation.setIcon(getIcon(item.getKind()));
         if (isDeprecated()) {
             presentation.setStrikeout(true);
         }
