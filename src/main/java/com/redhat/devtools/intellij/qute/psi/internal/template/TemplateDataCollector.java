@@ -20,6 +20,7 @@ import com.intellij.psi.PsiType;
 import com.redhat.qute.commons.datamodel.DataModelBaseTemplate;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import org.jetbrains.annotations.Nullable;
 
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVA_LANG_OBJECT_TYPE;
 /**
@@ -60,16 +61,21 @@ public class TemplateDataCollector extends TemplateDataVisitor {
 	protected boolean visitParameter(Object name, Object type) {
 		String paramName = null;
 		if (name instanceof PsiLiteral) {
-			paramName = ((PsiLiteral) name).getValue().toString();
+			@Nullable Object literalValue = ((PsiLiteral) name).getValue();
+			if (literalValue != null) {
+				paramName = literalValue.toString();
+			}
 		}
 		if (paramName != null) {
 			String paramType = JAVA_LANG_OBJECT_TYPE;
 			if (type instanceof PsiExpression) {
 				PsiType binding = ((PsiExpression) type).getType();
-				paramType = binding.getCanonicalText();
+				if (binding != null) {
+					paramType = binding.getCanonicalText();
+				}
 			}
 
-			if (paramName != null && template.getParameter(paramName) == null) {
+			if (template.getParameter(paramName) == null) {
 				DataModelParameter parameter = new DataModelParameter();
 				parameter.setKey(paramName);
 				parameter.setSourceType(paramType);
