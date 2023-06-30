@@ -6,11 +6,13 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.server.StreamConnectionProvider;
 import org.eclipse.lsp4j.ServerCapabilities;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -586,6 +588,8 @@ public class LanguageServiceAccessor {
                             res.add(new Pair(wrapper, server));
                         }
                     })).toArray(CompletableFuture[]::new)).thenApply(theVoid -> res);
+        } catch (final ProcessCanceledException cancellation) {
+            throw cancellation;
         } catch (final Exception e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }

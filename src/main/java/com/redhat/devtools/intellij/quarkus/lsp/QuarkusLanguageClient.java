@@ -148,6 +148,11 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   @Override
+  public CompletableFuture<List<ProjectLabelInfoEntry>> getAllJavaProjectLabels() {
+    return runAsBackground("Computing All Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(getProject())));
+  }
+
+  @Override
   public CompletableFuture<JavaFileInfo> getJavaFileInfo(MicroProfileJavaFileInfoParams javaParams) {
     return runAsBackground("Computing Java file info", monitor -> PropertiesManagerForJava.getInstance().fileInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
   }
@@ -184,5 +189,22 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
       unresolved.setData(data);
       return (CodeAction) PropertiesManagerForJava.getInstance().resolveCodeAction(unresolved, PsiUtilsLSImpl.getInstance(getProject()));
     });
+  }
+
+  @Override
+  public CompletableFuture<JavaCursorContextResult> getJavaCursorContext(MicroProfileJavaCompletionParams params) {
+    return runAsBackground("Computing Java Cursor context", monitor -> PropertiesManagerForJava.getInstance().javaCursorContext(params, PsiUtilsLSImpl.getInstance(getProject())));
+  }
+
+  @Override
+  public CompletableFuture<List<SymbolInformation>> getJavaWorkspaceSymbols(String projectUri) {
+    //Workspace symbols not supported yet https://github.com/redhat-developer/intellij-quarkus/issues/808
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public CompletableFuture<String> getPropertyDocumentation(MicroProfilePropertyDocumentationParams params) {
+    // Requires porting https://github.com/eclipse/lsp4mp/issues/321 / https://github.com/eclipse/lsp4mp/pull/329
+    return CompletableFuture.completedFuture(null);
   }
 }
