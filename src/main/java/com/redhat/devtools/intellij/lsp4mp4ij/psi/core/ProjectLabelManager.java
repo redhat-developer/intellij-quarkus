@@ -90,7 +90,7 @@ public class ProjectLabelManager {
 		try {
 			VirtualFile file = utils.findFile(params.getUri());
 			if (file == null) {
-				// The uri doesn't belong to an Eclipse project
+				// The uri doesn't belong to an IDEA project
 				return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 			}
 			Module module = utils.getModule(file);
