@@ -39,6 +39,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -204,6 +205,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                     }
                 }
             });
+
             extensionsTree.addCheckboxTreeListener(new CheckboxTreeListener() {
                 @Override
                 public void nodeStateChanged(@NotNull CheckedTreeNode node) {
@@ -220,6 +222,57 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                     selectedExtensions.setModel(new SelectedExtensionsModel(categories));
                 }
             });
+
+            //(Un)Check extension on double-click
+            extensionsTree.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        TreePath path = extensionsTree.getPathForLocation(e.getX(), e.getY());
+                        if (path != null && path.getLastPathComponent() instanceof CheckedTreeNode) {
+                            var treeNode = (CheckedTreeNode) path.getLastPathComponent();
+                            extensionsTree.setNodeState(treeNode, !treeNode.isChecked());
+                        }
+                    }
+                }
+            });
+
+            //Unselect extensions on double-click
+            selectedExtensions.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        int selectedIndex = selectedExtensions.getSelectedIndex();
+                        if (selectedIndex > -1) {
+                            QuarkusExtension extension = selectedExtensions.getModel().getElementAt(selectedIndex);
+                            if (unselectExtension(extensionsTree, extension)) {
+                                // The extensions was not visible in the tree so didn't trigger a selectedExtension model refresh
+                                // so we force it manually
+                                selectedExtensions.setModel(new SelectedExtensionsModel(categories));
+                            };
+                        }
+                    }
+                }
+            });
+
+            //Unselect extensions when pressing the DELETE or BACKSPACE key
+            selectedExtensions.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_DELETE || e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+                        boolean requiresModelRefresh = false;
+                        for (QuarkusExtension extension : selectedExtensions.getSelectedValuesList()) {
+                            requiresModelRefresh = unselectExtension(extensionsTree, extension) || requiresModelRefresh;
+                        }
+                        selectedExtensions.clearSelection();
+                        if (requiresModelRefresh) {
+                            // Some extensions were not visible in the tree so didn't trigger a selectedExtension model refresh
+                            // so we force it manually
+                            selectedExtensions.setModel(new SelectedExtensionsModel(categories));
+                        }
+                    }
+                }
+            });
+
             extensionsTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
                 @Override
                 public void valueChanged(TreeSelectionEvent e) {
@@ -228,7 +281,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                         if (comp instanceof QuarkusExtension) {
                             StringBuilder builder = new StringBuilder("<html><body>" + ((QuarkusExtension) comp).getDescription() + ".");
                             if (StringUtils.isNotBlank(((QuarkusExtension) comp).getGuide())) {
-                                builder.append(" <a href=\"" + ((QuarkusExtension) comp).getGuide() + "\">Click to open guide</a>");
+                                builder.append(" <a href=\"").append(((QuarkusExtension) comp).getGuide()).append("\">Click to open guide</a>");
                             }
                             builder.append("</body></html>");
                             extensionDetailTextPane.setText(builder.toString());
@@ -272,6 +325,34 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             }
         }
         return root;
+    }
+
+    /**
+     * Unselects a selected extension from the extension tree. Returns true if the extension was not found in the tree, false otherwise.
+     */
+    private boolean unselectExtension(@NotNull CheckboxTree extensionsTree, @NotNull QuarkusExtension extension) {
+        var treeNodes = findTreeNodesForExtension(extensionsTree, extension);
+        for (var treeNode : treeNodes) {
+            extensionsTree.setNodeState(treeNode, false);
+        }
+        extension.setSelected(false);
+        return treeNodes.isEmpty();
+    }
+
+    /**
+     * Find CheckedTreeNode for a given extension, as it can belong to several categories
+     */
+    private @NotNull Set<CheckedTreeNode> findTreeNodesForExtension(@NotNull CheckboxTree extensionsTree, @NotNull QuarkusExtension extension) {
+        DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) extensionsTree.getModel().getRoot();
+        Enumeration<TreeNode> enumeration = rootNode.depthFirstEnumeration();
+        Set<CheckedTreeNode> nodes = new HashSet<>();
+        while (enumeration.hasMoreElements()) {
+            TreeNode node = enumeration.nextElement();
+            if (node instanceof CheckedTreeNode && ((CheckedTreeNode)node).getUserObject() == extension) {
+                nodes.add( (CheckedTreeNode)node);
+            }
+        }
+        return nodes;
     }
 
     /**
