@@ -46,6 +46,11 @@ public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFact
 
 	private static final String JAKARTA_WS_RS_FORM_PARAM_ANNOTATION = "jakarta.ws.rs.FormParam";
 
+
+	private static final String JAVAX_VALIDATION_CONSTRAINTS_NOTBLANK_ANNOTATION = "javax.validation.constraints.NotBlank";
+
+	private static final String JAKARTA_VALIDATION_CONSTRAINTS_NOTBLANK_ANNOTATION = "jakarta.validation.constraints.NotBlank";
+
 	private static final String REST_PATH_ANNOTATION = "org.jboss.resteasy.reactive.RestPath";
 
 	private static final String JAVAX_WS_RS_PATH_PARAM_ANNOTATION = "javax.ws.rs.PathParam";
@@ -104,7 +109,11 @@ public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFact
 					if (restParameters == null) {
 						restParameters = new HashMap<>();
 					}
-					fillRestParam(parameter, formAnnotation, JaxRsParamKind.FORM, restParameters);
+					PsiAnnotation notBlankAnnotation = AnnotationUtils.getAnnotation(parameter,
+							JAVAX_VALIDATION_CONSTRAINTS_NOTBLANK_ANNOTATION,
+							JAKARTA_VALIDATION_CONSTRAINTS_NOTBLANK_ANNOTATION);
+					boolean required = notBlankAnnotation != null;
+					fillRestParam(parameter, formAnnotation, JaxRsParamKind.FORM, restParameters, required);
 				} else {
 					// @RestPath, @PathParam
 					PsiAnnotation pathAnnotation = AnnotationUtils.getAnnotation(parameter, REST_PATH_ANNOTATION,
@@ -137,13 +146,18 @@ public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFact
 
 	private static void fillRestParam(PsiParameter parameter, PsiAnnotation formAnnotation,
 									  JaxRsParamKind parameterKind, Map<String, RestParam> restParameters) {
+		fillRestParam(parameter, formAnnotation, parameterKind, restParameters, false);
+	}
+
+	private static void fillRestParam(PsiParameter parameter, PsiAnnotation formAnnotation,
+									  JaxRsParamKind parameterKind, Map<String, RestParam> restParameters, boolean required) {
 		String parameterName = parameter.getName();
 		String formName = parameterName;
 		String value = AnnotationUtils.getAnnotationMemberValue(formAnnotation, "value");
 		if (value != null) {
 			formName = value;
 		}
-		restParameters.put(parameterName, new RestParam(formName, parameterKind, false));
+		restParameters.put(parameterName, new RestParam(formName, parameterKind, required));
 	}
 
 	private static boolean isPostMethod(PsiMethod method) {
