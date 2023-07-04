@@ -86,7 +86,7 @@ public class MicroProfileAssert {
 		}).collect(Collectors.toList());
 
 		assertEquals(
-				expected.getName() + " should only exist once: Actual: "
+				"'" + expected.getName() + "'" + " should exist exactly once: Actual: "
 						+ info.getProperties().stream().map(c -> c.getName()).collect(Collectors.joining(",")),
 				1, matches.size());
 

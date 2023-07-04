@@ -15,6 +15,7 @@ package com.redhat.microprofile.psi.quarkus.config;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
@@ -54,7 +55,7 @@ public class JavaCodeLensQuarkusRestClientTest extends MavenModuleImportingTestC
 		params.setUrlCodeLensEnabled(true);
 
 		// No configuration of base url
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
+		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils, new EmptyProgressIndicator());
 		Assert.assertEquals(0, lenses.size());
 
 		// /mp-rest/url
@@ -82,7 +83,7 @@ public class JavaCodeLensQuarkusRestClientTest extends MavenModuleImportingTestC
 	}
 
 	private static void assertCodeLenses(String baseURL, MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
+		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils, new EmptyProgressIndicator());
 		Assert.assertEquals(2, lenses.size());
 
 		// @GET

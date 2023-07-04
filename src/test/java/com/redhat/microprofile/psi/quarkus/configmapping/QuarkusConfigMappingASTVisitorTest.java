@@ -18,6 +18,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
 import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
@@ -27,9 +28,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.Arrays;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaDiagnostics;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.d;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.fixURI;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.QUARKUS_PREFIX;
 
 /**
@@ -38,16 +37,16 @@ import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.QUAR
  * @author Angelo ZERR
  *
  */
-public class QuarkusConfigMappingASTVisitorTest extends MavenModuleImportingTestCase {
+public class QuarkusConfigMappingASTVisitorTest extends QuarkusMavenModuleImportingTestCase {
 
 	@Test
 	public void testExpectedInterface() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.config_mapping));
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_mapping);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/validation/ServerClass.java").toURI());
+		String javaFileUri = getFileUri("src/main/java/org/acme/validation/ServerClass.java", javaProject);
 		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 		assertJavaDiagnostics(diagnosticsParams, utils, //

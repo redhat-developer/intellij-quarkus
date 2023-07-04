@@ -12,23 +12,17 @@ package com.redhat.devtools.intellij.qute.psi.core.command;
 
 import com.google.gson.JsonObject;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.project.Project;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Location;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 
 public class QuteJavaDefinitionAction extends QuteAction {
@@ -42,32 +36,22 @@ public class QuteJavaDefinitionAction extends QuteAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        try {
-            Command command = e.getData(LSPCodelensInlayProvider.LSP_COMMAND);
-            QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command.getArguments());
-            if (params != null) {
-                Location location = QuteSupportForTemplate.getInstance().getJavaDefinition(params, PsiUtilsLSImpl.getInstance(e.getProject()), new EmptyProgressIndicator());
-                VirtualFile f = VfsUtil.findFileByURL(new URL(location.getUri()));
-                if (f != null) {
-                    Document document = FileDocumentManager.getInstance().getDocument(f);
-                    if (document != null) {
-                        OpenFileDescriptor desc = new OpenFileDescriptor(e.getProject(), f, LSPIJUtils.toOffset(location.getRange().getStart(), document));
-                        FileEditorManager.getInstance(e.getProject()).openTextEditor(desc, true);
-                    }
-                }
-
-            }
-        } catch (MalformedURLException ex) {
-            LOGGER.log(System.Logger.Level.WARNING, ex.getLocalizedMessage(), ex);
+        Command command = e.getData(LSPCodelensInlayProvider.LSP_COMMAND);
+        QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command.getArguments());
+        if (params != null) {
+            Project project = e.getProject();
+            IPsiUtils utils = PsiUtilsLSImpl.getInstance(project);
+            Location location = QuteSupportForTemplate.getInstance().getJavaDefinition(params, utils, new EmptyProgressIndicator());
+            LSPIJUtils.openInEditor(location, project);
         }
     }
 
     protected String getString(String name, JsonObject obj) {
-        return obj.has(name)?obj.get(name).getAsString():null;
+        return obj.has(name) ? obj.get(name).getAsString() : null;
     }
 
     protected boolean getBoolean(String name, JsonObject obj) {
-        return obj.has(name)?obj.get(name).getAsBoolean():false;
+        return obj.has(name) ? obj.get(name).getAsBoolean() : false;
     }
 
     private QuteJavaDefinitionParams getQuteJavaDefinitionParams(List<Object> arguments) {

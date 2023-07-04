@@ -16,21 +16,17 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
-import org.eclipse.lsp4j.CodeLens;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
-import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.List;
-
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
  * JAX-RS URL Codelens test for Java file.
@@ -38,18 +34,17 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Angelo ZERR
  *
  */
-public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
+public class JaxRsCodeLensTest extends QuarkusMavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/hibernate-orm-resteasy"));
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.hibernate_orm_resteasy);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);
-		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(javaProject) + "/src/main/java/org/acme/hibernate/orm/FruitResource.java");
-		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
-		params.setUri(uri);
+		String javaFileUri = getFileUri("/src/main/java/org/acme/hibernate/orm/FruitResource.java", javaProject);
+		params.setUri(javaFileUri);
 
 		params.setUrlCodeLensEnabled(true);
 
@@ -96,14 +91,13 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensYaml() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/hibernate-orm-resteasy"));
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.hibernate_orm_resteasy);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);
-		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(javaProject) + "/src/main/java/org/acme/hibernate/orm/FruitResource.java");
-		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
-		params.setUri(uri);
+		String javaFileUri = getFileUri("/src/main/java/org/acme/hibernate/orm/FruitResource.java", javaProject);
+		params.setUri(javaFileUri);
 		params.setUrlCodeLensEnabled(true);
 
 		//fix for having application.yaml being part of the QuarkusConfigSourceProvider
@@ -140,51 +134,13 @@ public class JaxRsCodeLensTest extends MavenModuleImportingTestCase {
 
 	}
 
-	private static void assertCodeLenses(int port, String rootPath, MicroProfileJavaCodeLensParams params,
-										 IPsiUtils utils) {
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
-		Assert.assertEquals(5, lenses.size());
-
-		// @GET
-		// public Fruit[] get() {
-		CodeLens lensForGet = lenses.get(0);
-		Assert.assertNotNull(lensForGet.getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits", lensForGet.getCommand().getTitle());
-
-		// @GET
-		// @Path("{id}")
-		// public Fruit getSingle(@PathParam Integer id) {
-		CodeLens lensForGetSingle = lenses.get(1);
-		Assert.assertNotNull(lensForGetSingle.getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}",
-				lensForGetSingle.getCommand().getTitle());
-
-		// @POST
-		// @Transactional
-		// public Response create(Fruit fruit) {
-		CodeLens lensForPost = lenses.get(2);
-		Assert.assertNotNull(lensForPost.getCommand());
-		Assert.assertEquals("", lensForPost.getCommand().getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits", lensForPost.getCommand().getTitle());
-
-		// @PUT
-		// @Path("{id}")
-		// @Transactional
-		// public Fruit update(@PathParam Integer id, Fruit fruit) {
-		CodeLens lensForPut = lenses.get(3);
-		Assert.assertNotNull(lensForPut.getCommand());
-		Assert.assertEquals("", lensForPut.getCommand().getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}", lensForPut.getCommand().getTitle());
-
-		// @DELETE
-		// @Path("{id}")
-		// @Transactional
-		// public Response delete(@PathParam Integer id) {
-		CodeLens lensForDelete = lenses.get(4);
-		Assert.assertNotNull(lensForDelete.getCommand());
-		Assert.assertEquals("", lensForDelete.getCommand().getCommand());
-		Assert.assertEquals("http://localhost:" + port + rootPath + "/fruits/{id}",
-				lensForDelete.getCommand().getTitle());
+	private static void assertCodeLenses(int port, String rootPath, MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
+		assertCodeLens(params, utils, //
+				cl("http://localhost:" + port + rootPath + "/fruits", "", r(31, 4, 4)), //
+				cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(38, 4, 4)), //
+				cl("http://localhost:" + port + rootPath + "/fruits", "", r(48, 4, 4)), //
+				cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(60, 4, 4)), //
+				cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(79, 4, 4)));
 	}
 
 }

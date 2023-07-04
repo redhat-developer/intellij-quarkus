@@ -15,10 +15,10 @@ package com.redhat.microprofile.psi.quarkus.scheduler;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
 import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4j.Position;
 import org.junit.Test;
@@ -26,22 +26,21 @@ import org.junit.Test;
 import java.io.File;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.assertJavaHover;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.h;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
  * Quarkus Scheduled annotation property test for hover in Java file.
  */
-public class QuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
+public class QuarkusScheduledHoverTest extends QuarkusMavenModuleImportingTestCase {
 
 	private static Module javaProject;
 
 	@Test
 	public void testConfigFirstPropertyNameHover() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
-		String propertiesFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
+		String javaFileUri = getFileUri("src/main/java/org/acme/scheduler/CounterBean.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/application.properties", javaProject);
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "cron.expr=*/5 * * * * ?\r\n", javaProject);
 
@@ -54,9 +53,9 @@ public class QuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testConfigSecondPropertyNameHover() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
-		String propertiesFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
+		String javaFileUri = getFileUri("src/main/java/org/acme/scheduler/CounterBean.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/application.properties", javaProject);
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "every.expr=*/5 * * * * ?\r\n", javaProject);
 
@@ -69,9 +68,9 @@ public class QuarkusScheduledHoverTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testConfigPropertyExpressionHover() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.scheduler_quickstart));
-		String javaFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/scheduler/CounterBean.java").toURI());
-		String propertiesFileUri = MicroProfileForJavaAssert.fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/resources/application.properties").toURI());
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
+		String javaFileUri = getFileUri("src/main/java/org/acme/scheduler/CounterBean.java", javaProject);
+		String propertiesFileUri = getFileUri("src/main/resources/application.properties", javaProject);
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "cron.expr=*/5 * * * * ?\r\n", javaProject);
 

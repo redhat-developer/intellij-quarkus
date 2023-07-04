@@ -22,8 +22,7 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiNamedElement;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVAX_DECORATOR_ANNOTATION;
-import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVAX_INJECT_VETOED_ANNOTATION;
+import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.*;
 
 /**
  * CDI utilities.
@@ -78,8 +77,8 @@ public class CDIUtils {
 			PsiClass type = ((PsiClass) javaElement);
 			return (type.getContainingClass() == null
 					&& !type.getModifierList().hasExplicitModifier(PsiModifier.ABSTRACT)
-					&& !AnnotationUtils.hasAnnotation(javaElement, JAVAX_DECORATOR_ANNOTATION)
-					&& !AnnotationUtils.hasAnnotation(javaElement, JAVAX_INJECT_VETOED_ANNOTATION)
+					&& !AnnotationUtils.hasAnnotation(javaElement, JAVAX_DECORATOR_ANNOTATION, JAKARTA_DECORATOR_ANNOTATION)
+					&& !AnnotationUtils.hasAnnotation(javaElement, JAVAX_INJECT_VETOED_ANNOTATION, JAKARTA_INJECT_VETOED_ANNOTATION)
 					&& PsiTypeUtils.isClass(type) && hasNoArgConstructor(type));
 		} catch (Exception e) {
 			return false;

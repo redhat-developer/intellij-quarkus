@@ -11,38 +11,18 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaErrorCode;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
-import org.eclipse.lsp4j.CodeAction;
-import org.eclipse.lsp4j.CodeActionContext;
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemKind;
-import org.eclipse.lsp4j.CompletionList;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.LocationLink;
-import org.eclipse.lsp4j.MarkupContent;
-import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.TextDocumentEdit;
-import org.eclipse.lsp4j.TextDocumentIdentifier;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
-import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4mp.commons.DocumentFormat;
-import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaDefinitionParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
+import org.eclipse.lsp4mp.commons.*;
 import org.junit.Assert;
 
+import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -302,5 +282,44 @@ public class MicroProfileForJavaAssert {
 	public static String fixURI(URI uri) {
 		String uriString = uri.toString();
 		return uriString.replaceFirst("file:/([^/])", "file:///$1");
+	}
+
+	public static String getFileUri(String relativeFilePath, Module javaProject) {
+		return fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), relativeFilePath).toURI());
+	}
+
+	// Assert for CodeLens
+
+	/**
+	 * Asserts that the expected code lens are in the document specified by the
+	 * params.
+	 *
+	 * @param params   the parameters specifying the document to get the code lens
+	 *                 for
+	 * @param utils    the jdt utils
+	 * @param expected the list of expected code lens
+	 */
+	public static void assertCodeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils, CodeLens... expected) {
+		List<? extends CodeLens> actual = PropertiesManagerForJava.getInstance().codeLens(params, utils,
+				new EmptyProgressIndicator());
+		assertEquals(expected.length, actual.size());
+
+		for (int i = 0; i < expected.length; i++) {
+			assertEquals(expected[i], actual.get(i));
+		}
+	}
+
+	/**
+	 * Returns a new code lens.
+	 *
+	 * @param title     the title of the code lens
+	 * @param commandId the id of the command to run when the code lens is clicked
+	 * @param range     the range of the code lens
+	 * @return a new code lens
+	 */
+	public static CodeLens cl(String title, String commandId, Range range) {
+		CodeLens codeLens = new CodeLens(range);
+		codeLens.setCommand(new Command(title, commandId, Collections.singletonList(title)));
+		return codeLens;
 	}
 }

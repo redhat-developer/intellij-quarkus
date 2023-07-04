@@ -16,9 +16,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -28,13 +25,12 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JsonRpcHelpers;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.quarkus.javadoc.JavadocContentAccess;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
@@ -44,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URL;
 import java.util.Scanner;
 
 /**
@@ -84,16 +79,13 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public Module getModule(VirtualFile file) {
-        if (file != null) {
-            return ProjectFileIndex.getInstance(project).getModuleForFile(file, false);
-        }
-        return null;
+        return LSPIJUtils.getProject(file);
     }
 
     @Override
     public Module getModule(String uri) throws IOException {
         VirtualFile file = findFile(uri);
-        return file!=null?getModule(file):null;
+        return file != null ? getModule(file) : null;
     }
 
     @Override
@@ -109,27 +101,12 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public Location toLocation(PsiElement psiMember) {
-        PsiElement sourceElement = psiMember instanceof PsiNameIdentifierOwner ? ((PsiNameIdentifierOwner) psiMember).getNameIdentifier().getNavigationElement() : psiMember.getNavigationElement();
-        if (sourceElement != null) {
-            PsiFile file = sourceElement.getContainingFile();
-            Location location = new Location();
-            location.setUri(VfsUtilCore.convertToURL(file.getVirtualFile().getUrl()).toExternalForm());
-            Document document = PsiDocumentManager.getInstance(psiMember.getProject()).getDocument(file);
-            TextRange range = sourceElement.getTextRange();
-            int startLine = document.getLineNumber(range.getStartOffset());
-            int startLineOffset = document.getLineStartOffset(startLine);
-            int endLine = document.getLineNumber(range.getEndOffset());
-            int endLineOffset = document.getLineStartOffset(endLine);
-            location.setRange(new Range(LSPIJUtils.toPosition(range.getStartOffset(), document), LSPIJUtils.toPosition(range.getEndOffset(), document)));
-            return location;
-        }
-        return null;
+        return LSPIJUtils.toLocation(psiMember);
     }
 
     @Override
     public VirtualFile findFile(String uri) throws IOException {
-        //return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(Paths.get(new URI(uri)).toFile());
-        return VfsUtil.findFileByURL(new URL(uri));
+        return LSPIJUtils.findResourceFor(uri);
     }
 
     @Override
@@ -173,7 +150,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     @Override
     public int toOffset(PsiFile file, int line, int character) {
         Document document = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
-        return document!=null?toOffset(document, line, character):0;
+        return document != null ? toOffset(document, line, character) : 0;
     }
 
     @Override
@@ -181,7 +158,11 @@ public class PsiUtilsLSImpl implements IPsiUtils {
         try {
             VirtualFile file = findFile(uri);
             if (file != null) {
-                return PsiManager.getInstance(getModule(file).getProject()).findFile(file);
+                Module module = getModule(file);
+                if (module == null) {
+                    return null;
+                }
+                return PsiManager.getInstance(module.getProject()).findFile(file);
             }
         } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage(), e);
@@ -204,12 +185,12 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     }
 
     public static String getProjectURI(Module module) {
-        return module != null?module.getModuleFilePath():null;
+        return LSPIJUtils.getProjectUri(module);
     }
 
     @Override
     public String toUri(PsiFile typeRoot) {
-        return VfsUtil.toUri(typeRoot.getVirtualFile().getUrl()).toString();
+        return LSPIJUtils.toUriAsString(typeRoot);
     }
 
     @Override

@@ -1,9 +1,7 @@
 package com.redhat.devtools.intellij.qute.psi.internal.template;
 
-import com.intellij.psi.JavaElementVisitor;
-import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
 
 public abstract class TemplateDataVisitor extends JavaElementVisitor {
 
@@ -15,7 +13,9 @@ public abstract class TemplateDataVisitor extends JavaElementVisitor {
 	public void visitMethodCallExpression(PsiMethodCallExpression node) {
 		String methodName = node.resolveMethod().getName();
 		if (DATA_METHOD.equals(methodName)) {
-			// .data("book", book)
+			// collect the first data method
+			// ex : hello.data("height", 1.50, "weight", 50L);
+			// will collect data model parameters for "height" and "weight"
 			@SuppressWarnings("rawtypes")
 			PsiExpression[] arguments = node.getArgumentList().getExpressions();
 			Object paramName = null;
@@ -30,6 +30,17 @@ public abstract class TemplateDataVisitor extends JavaElementVisitor {
 					}
 				}
 			}
+		}
+
+		// Fluent API support
+		PsiMethodCallExpression nextCallExpression = PsiTreeUtil.getParentOfType(node, PsiMethodCallExpression.class);
+		if (nextCallExpression != null){
+			// collect the other data methods
+			// ex : hello.data("height", 1.50, "weight", 50L)
+			//		.data("age", 12)
+			//		.data("name", name)
+			// will collect data model parameters for "age" and "name"
+			visitMethodCallExpression(nextCallExpression);
 		}
 		super.visitMethodCallExpression(node);
 	}

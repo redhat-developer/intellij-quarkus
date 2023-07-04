@@ -9,8 +9,10 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.util.Computable;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.GradleTestCase;
 import org.apache.commons.io.FileUtils;
@@ -46,7 +48,7 @@ public class GradlePropertiesManagerForJavaTest extends GradleTestCase {
 		MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
 		String javaFileUri = getJavaFileUri("src/main/java/org/acme/config/GreetingResource.java");
 		params.setUri(javaFileUri);
-		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
+		JavaFileInfo javaFileInfo = getJavaFileInfo(params);
 		assertNotNull(javaFileInfo);
 		assertEquals("org.acme.config", javaFileInfo.getPackageName());
 	}
@@ -57,7 +59,7 @@ public class GradlePropertiesManagerForJavaTest extends GradleTestCase {
 
 		MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
 		params.setUri(javaFileUri);
-		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
+		JavaFileInfo javaFileInfo = getJavaFileInfo(params);
 		assertNotNull(javaFileInfo);
 		assertEquals("", javaFileInfo.getPackageName());
 	}
@@ -68,7 +70,15 @@ public class GradlePropertiesManagerForJavaTest extends GradleTestCase {
 
 		MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
 		params.setUri(javaFileUri);
-		JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
+		JavaFileInfo javaFileInfo = getJavaFileInfo(params);
 		assertNull(javaFileInfo);
 	}
+
+	private JavaFileInfo getJavaFileInfo(MicroProfileJavaFileInfoParams params) {
+		return ApplicationManager.getApplication().runReadAction((Computable<JavaFileInfo>) () ->
+			PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject))
+		);
+	}
+
+
 }

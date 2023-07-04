@@ -19,13 +19,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifierListOwner;
-import com.intellij.psi.PsiParameter;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.JavaCodeLensContext;
@@ -43,21 +37,12 @@ import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
-import org.eclipse.lsp4mp.commons.DocumentFormat;
-import org.eclipse.lsp4mp.commons.JavaFileInfo;
-import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaDefinitionParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsSettings;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaFileInfoParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
+import org.eclipse.lsp4mp.commons.*;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,17 +85,15 @@ public class PropertiesManagerForJava {
      *         and null otherwise.
      */
     public JavaFileInfo fileInfo(MicroProfileJavaFileInfoParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<JavaFileInfo>) () -> {
-            String uri = params.getUri();
-            final PsiFile unit = utils.resolveCompilationUnit(uri);
-            if (unit != null && unit.isValid() && unit instanceof PsiJavaFile) {
-                JavaFileInfo fileInfo = new JavaFileInfo();
-                String packageName = ((PsiJavaFile) unit).getPackageName();
-                fileInfo.setPackageName(packageName);
-                return fileInfo;
-            }
-            return null;
-        });
+        String uri = params.getUri();
+        final PsiFile unit = utils.resolveCompilationUnit(uri);
+        if (unit != null && unit.isValid() && unit instanceof PsiJavaFile) {
+            JavaFileInfo fileInfo = new JavaFileInfo();
+            String packageName = ((PsiJavaFile) unit).getPackageName();
+            fileInfo.setPackageName(packageName);
+            return fileInfo;
+        }
+        return null;
     }
 
     /**
@@ -120,21 +103,19 @@ public class PropertiesManagerForJava {
      * @param utils   the utilities class
      * @return the codelens list according the given codelens parameters.
      */
-    public List<? extends CodeLens> codeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<List<? extends CodeLens>>) () -> {
-            String uri = params.getUri();
-            PsiFile typeRoot = resolveTypeRoot(uri, utils);
-            if (typeRoot == null) {
-                return Collections.emptyList();
-            }
-            List<CodeLens> lenses = new ArrayList<>();
-            collectCodeLens(uri, typeRoot, utils, params, lenses);
-            return lenses;
-        });
+    public List<? extends CodeLens> codeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils,  ProgressIndicator monitor) {
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return Collections.emptyList();
+        }
+        List<CodeLens> lenses = new ArrayList<>();
+        collectCodeLens(uri, typeRoot, utils, params, lenses, monitor);
+        return lenses;
     }
 
     private void collectCodeLens(String uri, PsiFile typeRoot, IPsiUtils utils, MicroProfileJavaCodeLensParams params,
-                                 List<CodeLens> lenses) {
+                                 List<CodeLens> lenses, ProgressIndicator monitor) {
         // Collect all adapted codeLens participant
         try {
             Module module = utils.getModule(uri);
@@ -143,21 +124,21 @@ public class PropertiesManagerForJava {
             }
             JavaCodeLensContext context = new JavaCodeLensContext(uri, typeRoot, utils, module, params);
             List<IJavaCodeLensParticipant> definitions = IJavaCodeLensParticipant.EP_NAME.getExtensionList()
-                    .stream().filter(definition -> definition.isAdaptedForCodeLens(context))
+                    .stream().filter(definition -> definition.isAdaptedForCodeLens(context, monitor))
                     .collect(Collectors.toList());
             if (definitions.isEmpty()) {
                 return;
             }
 
             // Begin, collect, end participants
-            definitions.forEach(definition -> definition.beginCodeLens(context));
+            definitions.forEach(definition -> definition.beginCodeLens(context, monitor));
             definitions.forEach(definition -> {
-                List<CodeLens> collectedLenses = definition.collectCodeLens(context);
+                List<CodeLens> collectedLenses = definition.collectCodeLens(context, monitor);
                 if (collectedLenses != null && !collectedLenses.isEmpty()) {
                     lenses.addAll(collectedLenses);
                 }
             });
-            definitions.forEach(definition -> definition.endCodeLens(context));
+            definitions.forEach(definition -> definition.endCodeLens(context, monitor));
         } catch (IOException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
@@ -171,49 +152,47 @@ public class PropertiesManagerForJava {
      * @return the CompletionItems for the given the completion item params
      */
     public CompletionList completion(MicroProfileJavaCompletionParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<CompletionList>) () -> {
-            try {
-                String uri = params.getUri();
-                PsiFile typeRoot = resolveTypeRoot(uri, utils);
-                if (typeRoot == null) {
-                    return null;
-                }
-
-                Module module = utils.getModule(uri);
-                if (module == null) {
-                    return null;
-                }
-
-                Position completionPosition = params.getPosition();
-                int completionOffset = utils.toOffset(typeRoot, completionPosition.getLine(),
-                        completionPosition.getCharacter());
-
-                List<CompletionItem> completionItems = new ArrayList<>();
-                JavaCompletionContext completionContext = new JavaCompletionContext(uri, typeRoot, utils, module, completionOffset);
-
-                List<IJavaCompletionParticipant> completions = IJavaCompletionParticipant.EP_NAME.extensions()
-                        .filter(completion -> completion.isAdaptedForCompletion(completionContext))
-                        .collect(Collectors.toList());
-
-                if (completions.isEmpty()) {
-                    return null;
-                }
-
-                completions.forEach(completion -> {
-                    List<? extends CompletionItem> collectedCompletionItems = completion.collectCompletionItems(completionContext);
-                    if (collectedCompletionItems != null) {
-                        completionItems.addAll(collectedCompletionItems);
-                    }
-                });
-
-                CompletionList completionList = new CompletionList();
-                completionList.setItems(completionItems);
-                return completionList;
-            } catch (IOException e) {
-                LOGGER.warn(e.getLocalizedMessage(), e);
+        try {
+            String uri = params.getUri();
+            PsiFile typeRoot = resolveTypeRoot(uri, utils);
+            if (typeRoot == null) {
                 return null;
             }
-        });
+
+            Module module = utils.getModule(uri);
+            if (module == null) {
+                return null;
+            }
+
+            Position completionPosition = params.getPosition();
+            int completionOffset = utils.toOffset(typeRoot, completionPosition.getLine(),
+                    completionPosition.getCharacter());
+
+            List<CompletionItem> completionItems = new ArrayList<>();
+            JavaCompletionContext completionContext = new JavaCompletionContext(uri, typeRoot, utils, module, completionOffset);
+
+            List<IJavaCompletionParticipant> completions = IJavaCompletionParticipant.EP_NAME.extensions()
+                    .filter(completion -> completion.isAdaptedForCompletion(completionContext))
+                    .collect(Collectors.toList());
+
+            if (completions.isEmpty()) {
+                return null;
+            }
+
+            completions.forEach(completion -> {
+                List<? extends CompletionItem> collectedCompletionItems = completion.collectCompletionItems(completionContext);
+                if (collectedCompletionItems != null) {
+                    completionItems.addAll(collectedCompletionItems);
+                }
+            });
+
+            CompletionList completionList = new CompletionList();
+            completionList.setItems(completionItems);
+            return completionList;
+        } catch (IOException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+            return null;
+        }
     }
 
     /**
@@ -224,22 +203,20 @@ public class PropertiesManagerForJava {
      * @return the definition list according the given definition parameters.
      */
     public List<MicroProfileDefinition> definition(MicroProfileJavaDefinitionParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<List<MicroProfileDefinition>>)() -> {
-            String uri = params.getUri();
-            PsiFile typeRoot = resolveTypeRoot(uri, utils);
-            if (typeRoot == null) {
-                return Collections.emptyList();
-            }
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return Collections.emptyList();
+        }
 
-            Position hyperlinkedPosition = params.getPosition();
-            int definitionOffset = utils.toOffset(typeRoot, hyperlinkedPosition.getLine(),
-                    hyperlinkedPosition.getCharacter());
-            PsiElement hyperlinkedElement = getHoveredElement(typeRoot, definitionOffset);
+        Position hyperlinkedPosition = params.getPosition();
+        int definitionOffset = utils.toOffset(typeRoot, hyperlinkedPosition.getLine(),
+                hyperlinkedPosition.getCharacter());
+        PsiElement hyperlinkedElement = getHoveredElement(typeRoot, definitionOffset);
 
-            List<MicroProfileDefinition> locations = new ArrayList<>();
-            collectDefinition(uri, typeRoot, hyperlinkedElement, utils, hyperlinkedPosition, locations);
-            return locations;
-        });
+        List<MicroProfileDefinition> locations = new ArrayList<>();
+        collectDefinition(uri, typeRoot, hyperlinkedElement, utils, hyperlinkedPosition, locations);
+        return locations;
     }
 
     private void collectDefinition(String uri, PsiFile typeRoot, PsiElement hyperlinkedElement, IPsiUtils utils,
@@ -342,32 +319,217 @@ public class PropertiesManagerForJava {
      * @return the hover information according to the given <code>params</code>
      */
     public Hover hover(MicroProfileJavaHoverParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<Hover>) () -> {
-            String uri = params.getUri();
-            PsiFile typeRoot = resolveTypeRoot(uri, utils);
-            if (typeRoot == null) {
-                return null;
-            }
-            Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
-            if (document == null) {
-                return null;
-            }
-            Position hoverPosition = params.getPosition();
-            int hoveredOffset = utils.toOffset(document, hoverPosition.getLine(), hoverPosition.getCharacter());
-            PsiElement hoverElement = getHoveredElement(typeRoot, hoveredOffset);
-            if (hoverElement == null) return null;
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return null;
+        }
+        Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
+        if (document == null) {
+            return null;
+        }
+        Position hoverPosition = params.getPosition();
+        int hoveredOffset = utils.toOffset(document, hoverPosition.getLine(), hoverPosition.getCharacter());
+        PsiElement hoverElement = getHoveredElement(typeRoot, hoveredOffset);
+        if (hoverElement == null) return null;
 
-            DocumentFormat documentFormat = params.getDocumentFormat();
-            boolean surroundEqualsWithSpaces = params.isSurroundEqualsWithSpaces();
-            List<Hover> hovers = new ArrayList<>();
-            collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, surroundEqualsWithSpaces,
-                    hovers);
-            if (hovers.isEmpty()) {
-                return null;
+        DocumentFormat documentFormat = params.getDocumentFormat();
+        boolean surroundEqualsWithSpaces = params.isSurroundEqualsWithSpaces();
+        List<Hover> hovers = new ArrayList<>();
+        collectHover(uri, typeRoot, hoverElement, utils, hoverPosition, documentFormat, surroundEqualsWithSpaces,
+                hovers);
+        if (hovers.isEmpty()) {
+            return null;
+        }
+        // TODO : aggregate the hover
+        return hovers.get(0);
+    }
+
+    /**
+     * Returns the cursor context for the given file and cursor position.
+     *
+     * @param params  the completion params that provide the file and cursor
+     *                position to get the context for
+     * @param utils   the jdt utils
+     * @return the cursor context for the given file and cursor position
+     */
+    public JavaCursorContextResult javaCursorContext(MicroProfileJavaCompletionParams params, IPsiUtils utils) {
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (!(typeRoot instanceof PsiJavaFile)) {
+            return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
+        }
+        Document document = PsiDocumentManager.getInstance(typeRoot.getProject()).getDocument(typeRoot);
+        if (document == null) {
+            return new JavaCursorContextResult(JavaCursorContextKind.IN_EMPTY_FILE, "");
+        }
+        Position completionPosition = params.getPosition();
+        int completionOffset = utils.toOffset(document, completionPosition.getLine(), completionPosition.getCharacter());
+
+        JavaCursorContextKind kind = getJavaCursorContextKind((PsiJavaFile) typeRoot, completionOffset);
+        String prefix = getJavaCursorPrefix(document, completionOffset);
+
+        return new JavaCursorContextResult(kind, prefix);
+    }
+
+    private static @NotNull JavaCursorContextKind getJavaCursorContextKind(PsiJavaFile javaFile, int completionOffset) {
+        if (javaFile.getClasses().length == 0) {
+            return JavaCursorContextKind.IN_EMPTY_FILE;
+        }
+
+        PsiElement element = javaFile.findElementAt(completionOffset);
+        PsiElement parent = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner.class);
+
+        if (parent == null) {
+            // We are likely before or after the class declaration
+            PsiElement firstClass = javaFile.getClasses()[0];
+
+            if (completionOffset <= firstClass.getTextOffset()) {
+                return JavaCursorContextKind.BEFORE_CLASS;
             }
-            // TODO : aggregate the hover
-            return hovers.get(0);
-        });
+
+            return JavaCursorContextKind.NONE;
+        }
+
+        if (parent instanceof PsiClass) {
+            PsiClass psiClass = (PsiClass) parent;
+            return getContextKindFromClass(completionOffset, psiClass, element);
+        }
+        if (parent instanceof PsiAnnotation) {
+            PsiAnnotation psiAnnotation = (PsiAnnotation) parent;
+            @Nullable PsiAnnotationOwner annotationOwner = psiAnnotation.getOwner();
+            if (annotationOwner instanceof PsiClass) {
+                return (psiAnnotation.getStartOffsetInParent() == 0)? JavaCursorContextKind.BEFORE_CLASS:JavaCursorContextKind.IN_CLASS_ANNOTATIONS;
+            }
+            if (annotationOwner instanceof PsiMethod){
+                return (psiAnnotation.getStartOffsetInParent() == 0)? JavaCursorContextKind.BEFORE_METHOD:JavaCursorContextKind.IN_METHOD_ANNOTATIONS;
+            }
+            if (annotationOwner instanceof PsiField) {
+                return (psiAnnotation.getStartOffsetInParent() == 0)? JavaCursorContextKind.BEFORE_FIELD:JavaCursorContextKind.IN_FIELD_ANNOTATIONS;
+            }
+        }
+        if (parent instanceof PsiMethod) {
+            PsiMethod psiMethod = (PsiMethod) parent;
+            if (completionOffset == psiMethod.getTextRange().getStartOffset()) {
+                return JavaCursorContextKind.BEFORE_METHOD;
+            }
+            int methodStartOffset = getMethodStartOffset(psiMethod);
+            if (completionOffset <= methodStartOffset) {
+                if (psiMethod.getAnnotations().length > 0) {
+                    return JavaCursorContextKind.IN_METHOD_ANNOTATIONS;
+                }
+                return JavaCursorContextKind.BEFORE_METHOD;
+            }
+        }
+
+        if (parent instanceof PsiField) {
+            PsiField psiField = (PsiField) parent;
+            if (completionOffset == psiField.getTextRange().getStartOffset()) {
+                return JavaCursorContextKind.BEFORE_FIELD;
+            }
+            int fieldStartOffset = getFieldStartOffset(psiField);
+            if (completionOffset <= fieldStartOffset) {
+                if (psiField.getAnnotations().length > 0) {
+                    return JavaCursorContextKind.IN_FIELD_ANNOTATIONS;
+                }
+                return JavaCursorContextKind.BEFORE_FIELD;
+            }
+        }
+
+        return JavaCursorContextKind.NONE;
+    }
+
+    @NotNull
+    private static JavaCursorContextKind getContextKindFromClass(int completionOffset, PsiClass psiClass, PsiElement element) {
+        if (completionOffset <= psiClass.getTextRange().getStartOffset()) {
+            return JavaCursorContextKind.BEFORE_CLASS;
+        }
+        int classStartOffset = getClassStartOffset(psiClass);
+        if (completionOffset <= classStartOffset) {
+            if (psiClass.getAnnotations().length > 0) {
+                return JavaCursorContextKind.IN_CLASS_ANNOTATIONS;
+            }
+            return JavaCursorContextKind.BEFORE_CLASS;
+        }
+
+        PsiElement nextElement = element.getNextSibling();
+
+        if (nextElement instanceof  PsiField) {
+            return JavaCursorContextKind.BEFORE_FIELD;
+        }
+        if (nextElement instanceof  PsiMethod) {
+            return JavaCursorContextKind.BEFORE_METHOD;
+        }
+        if (nextElement instanceof  PsiClass) {
+            return JavaCursorContextKind.BEFORE_CLASS;
+        }
+
+        return JavaCursorContextKind.IN_CLASS;
+    }
+
+    private static @NotNull String getJavaCursorPrefix(@NotNull Document document, int completionOffset) {
+        String fileContents = document.getText();
+        int i;
+        for (i = completionOffset; i > 0 && !Character.isWhitespace(fileContents.charAt(i - 1)); i--) {
+        }
+        return fileContents.substring(i, completionOffset);
+    }
+
+    private static int getMethodStartOffset(PsiMethod psiMethod) {
+        int startOffset = psiMethod.getTextOffset();
+
+        int modifierStartOffset = getFirstKeywordOffset(psiMethod);
+        if (modifierStartOffset > -1) {
+            return Math.min(startOffset, modifierStartOffset);
+        }
+
+        PsiTypeElement returnTypeElement = psiMethod.getReturnTypeElement();
+        if (returnTypeElement != null) {
+            int returnTypeEndOffset = returnTypeElement.getTextRange().getStartOffset();
+            startOffset = Math.min(startOffset, returnTypeEndOffset);
+        }
+
+        return startOffset;
+    }
+
+    private static int getClassStartOffset(PsiClass psiClass) {
+        int startOffset = psiClass.getTextOffset();
+
+        int modifierStartOffset = getFirstKeywordOffset(psiClass);
+        if (modifierStartOffset > -1) {
+            return Math.min(startOffset, modifierStartOffset);
+        }
+        return startOffset;
+    }
+
+    private static int getFieldStartOffset(PsiField psiField) {
+        int startOffset = psiField.getTextOffset();
+
+        int modifierStartOffset = getFirstKeywordOffset(psiField);
+        if (modifierStartOffset > -1) {
+            return Math.min(startOffset, modifierStartOffset);
+        }
+
+        PsiTypeElement typeElement = psiField.getTypeElement();
+        if (typeElement != null) {
+            int typeElementOffset = typeElement.getTextRange().getStartOffset();
+            startOffset = Math.min(startOffset, typeElementOffset);
+        }
+
+        return startOffset;
+    }
+
+    private static int getFirstKeywordOffset(PsiModifierListOwner modifierOwner) {
+        PsiModifierList modifierList = modifierOwner.getModifierList();
+        if (modifierList != null) {
+            PsiElement[] modifiers = modifierList.getChildren();
+            for (PsiElement modifier : modifiers) {
+                if (modifier instanceof PsiKeyword) {
+                    return modifier.getTextRange().getStartOffset();
+                }
+            }
+        }
+        return -1;
     }
 
     @Nullable
@@ -407,7 +569,6 @@ public class PropertiesManagerForJava {
             }
         }
         return method;
-
     }
 
     private void collectHover(String uri, PsiFile typeRoot, PsiElement hoverElement, IPsiUtils utils,
@@ -464,9 +625,7 @@ public class PropertiesManagerForJava {
      * @return the codeAction list according the given codeAction parameters.
      */
     public List<? extends CodeAction> codeAction(MicroProfileJavaCodeActionParams params, IPsiUtils utils) {
-        return ApplicationManager.getApplication().runReadAction((Computable<List<? extends CodeAction>>) () -> {
-            return codeActionHandler.codeAction(params, utils);
-        });
+        return codeActionHandler.codeAction(params, utils);
     }
 
     /**
@@ -474,11 +633,9 @@ public class PropertiesManagerForJava {
      *
      * @param unresolved the CodeAction to resolve
      * @param utils      the utilities class
-     * @param monitor    the monitor
      * @return the codeAction list according the given codeAction parameters.
      */
-    public CodeAction resolveCodeAction(CodeAction unresolved, IPsiUtils utils,
-                                        ProgressIndicator monitor) {
+    public CodeAction resolveCodeAction(CodeAction unresolved, IPsiUtils utils) {
         return codeActionHandler.resolveCodeAction(unresolved, utils);
     }
 

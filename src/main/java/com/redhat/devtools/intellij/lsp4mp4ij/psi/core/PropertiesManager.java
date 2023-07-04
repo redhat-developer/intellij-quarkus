@@ -82,7 +82,7 @@ public class PropertiesManager {
     }
 
     public MicroProfileProjectInfo getMicroProfileProjectInfo(VirtualFile file, List<MicroProfilePropertiesScope> scopes, IPsiUtils utils, DocumentFormat documentFormat) {
-        Module module = ApplicationManager.getApplication().runReadAction((Computable<Module>) () -> utils.getModule(file));
+        Module module = utils.getModule(file);
         ClasspathKind classpathKind = PsiUtilsLSImpl.getClasspathKind(file, module);
         return getMicroProfileProjectInfo(module, scopes, classpathKind, utils, documentFormat);
     }

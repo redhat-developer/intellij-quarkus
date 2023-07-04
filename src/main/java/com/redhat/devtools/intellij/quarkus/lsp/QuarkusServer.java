@@ -14,44 +14,48 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.server.ProcessStreamConnectionProvider;
+import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
+import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
+import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+/**
+ * Start the MicroProfile language server process with the Quarkus extension.
+ */
 public class QuarkusServer extends ProcessStreamConnectionProvider {
+
     public QuarkusServer() {
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
         File lsp4mpServerPath = new File(descriptor.getPath(), "lib/server/org.eclipse.lsp4mp.ls-uber.jar");
         File quarkusServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls.jar");
-        String javaHome = System.getProperty("java.home");
-        setCommands(Arrays.asList(javaHome + File.separator + "bin" + File.separator + "java", "-jar",
-                lsp4mpServerPath.getAbsolutePath(), "-cp", quarkusServerPath.getAbsolutePath(), "-DrunAsync=true"));
+
+        List<String> commands = new JavaProcessCommandBuilder("quarkus")
+                .setJar(lsp4mpServerPath.getAbsolutePath())
+                .setCp(quarkusServerPath.getAbsolutePath())
+                .create();
+        commands.add("-DrunAsync=true");
+        super.setCommands(commands);
+
         TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "start").send();
     }
 
     @Override
     public Object getInitializationOptions(URI rootUri) {
+
         Map<String, Object> root = new HashMap<>();
-        Map<String, Object> settings = new HashMap<>();
-        Map<String, Object> quarkus = new HashMap<>();
-        Map<String, Object> tools = new HashMap<>();
-        Map<String, Object> trace = new HashMap<>();
-        trace.put("server", "verbose");
-        tools.put("trace", trace);
-        Map<String, Object> codeLens = new HashMap<>();
-        codeLens.put("urlCodeLensEnabled", "true");
-        tools.put("codeLens", codeLens);
-        quarkus.put("tools", tools);
-        settings.put("microprofile", quarkus);
+        Map<String, Object> settings = UserDefinedMicroProfileSettings.getInstance().toSettingsForMicroProfileLS();
         root.put("settings", settings);
+
         Map<String, Object> extendedClientCapabilities = new HashMap<>();
         Map<String, Object> commands = new HashMap<>();
         Map<String, Object> commandsKind = new HashMap<>();
-        commandsKind.put("valueSet", Arrays.asList("microprofile.command.configuration.update", "microprofile.command.open.uri"));
+        commandsKind.put("valueSet", Arrays.asList(/* TODO support "microprofile.command.configuration.update",*/ "microprofile.command.open.uri"));
         commands.put("commandsKind", commandsKind);
         extendedClientCapabilities.put("commands", commands);
         extendedClientCapabilities.put("completion", new HashMap<>());
@@ -59,4 +63,5 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         root.put("extendedClientCapabilities", extendedClientCapabilities);
         return root;
     }
+
 }

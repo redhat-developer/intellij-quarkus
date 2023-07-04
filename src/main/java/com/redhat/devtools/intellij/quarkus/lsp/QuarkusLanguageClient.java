@@ -12,38 +12,23 @@ package com.redhat.devtools.intellij.quarkus.lsp;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.ProjectLabelManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
-import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.IndexAwareLanguageClient;
-import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.lsp4j.CodeAction;
-import org.eclipse.lsp4j.CodeLens;
-import org.eclipse.lsp4j.CompletionList;
-import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.eclipse.lsp4mp.commons.JavaFileInfo;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaFileInfoParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaHoverParams;
-import org.eclipse.lsp4mp.commons.MicroProfileJavaProjectLabelsParams;
-import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
-import org.eclipse.lsp4mp.commons.MicroProfileProjectInfoParams;
-import org.eclipse.lsp4mp.commons.MicroProfilePropertiesChangeEvent;
-import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
-import org.eclipse.lsp4mp.commons.MicroProfilePropertyDefinitionParams;
-import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
+import com.redhat.devtools.intellij.lsp4ij.IndexAwareLanguageClient;
+import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4mp.commons.*;
+import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.utils.JSONUtility;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageClientAPI;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI;
 import org.slf4j.Logger;
@@ -56,17 +41,28 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 
-public class QuarkusLanguageClient extends IndexAwareLanguageClient implements MicroProfileLanguageClientAPI, QuarkusProjectService.Listener {
-  private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusLanguageClient.class);
-  private static final String JAVA_FILE_EXTENSION = "java";
+public class QuarkusLanguageClient extends IndexAwareLanguageClient implements MicroProfileLanguageClientAPI, ClasspathResourceChangedManager.Listener {
 
   private final MessageBusConnection connection;
 
   public QuarkusLanguageClient(Project project) {
     super(project);
     connection = project.getMessageBus().connect(project);
-    connection.subscribe(QuarkusProjectService.TOPIC, this);
-    QuarkusProjectService.getInstance(project);
+    connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
+    // Track MicroProfile settings changed to push them to the language server with LSP didChangeConfiguration.
+    UserDefinedMicroProfileSettings.getInstance().addChangeHandler(getDidChangeConfigurationListener());
+  }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+    connection.disconnect();
+    UserDefinedMicroProfileSettings.getInstance().removeChangeHandler(getDidChangeConfigurationListener());
+  }
+
+  @Override
+  protected Object createSettings() {
+    return UserDefinedMicroProfileSettings.getInstance().toSettingsForMicroProfileLS();
   }
 
   private void sendPropertiesChangeEvent(List<MicroProfilePropertiesScope> scope, Set<String> uris) {
@@ -80,19 +76,38 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   @Override
-  public void libraryUpdated(Library library) {
+  public void librariesChanged() {
+    if (isDisposed()) {
+      // The language client has been disposed, ignore changes in libraries
+      return;
+    }
     sendPropertiesChangeEvent(Collections.singletonList(MicroProfilePropertiesScope.dependencies), QuarkusModuleUtil.getModulesURIs(getProject()));
   }
 
   @Override
-  public void sourceUpdated(List<Pair<Module, VirtualFile>> sources) {
-    List<Pair<String,MicroProfilePropertiesScope>> info = sources.stream().
-            filter(pair -> isJavaFile(pair.getRight()) || isConfigSource(pair.getRight(), pair.getLeft())).
-            map(pair -> Pair.of(PsiUtilsLSImpl.getProjectURI(pair.getLeft()), getScope(pair.getRight()))).
+  public void sourceFilesChanged(Set<Pair<VirtualFile, Module>> sources) {
+    if (isDisposed()) {
+      // The language client has been disposed, ignore changes in Java source / microprofile-config.properties files
+      return;
+    }
+    List<Pair<String,MicroProfilePropertiesScope>> info = sources.stream()
+            .filter(pair -> isJavaFile(pair.getFirst()) || isConfigSource(pair.getFirst()))
+            .map(pair -> Pair.pair(PsiUtilsLSImpl.getProjectURI(pair.getSecond()), getScope(pair.getFirst()))).
             collect(Collectors.toList());
     if (!info.isEmpty()) {
-      sendPropertiesChangeEvent(info.stream().map(Pair::getRight).collect(Collectors.toList()), info.stream().map(Pair::getLeft).collect(Collectors.toSet()));
+      sendPropertiesChangeEvent(info.stream().map(p -> p.getSecond()).collect(Collectors.toList()),
+              info.stream().map(p -> p.getFirst()).collect(Collectors.toSet()));
     }
+  }
+
+  @Override
+  public void modulesUpdated() {
+    // Do nothing
+  }
+
+  @Override
+  public void moduleUpdated(Module module) {
+    // Do nothing
   }
 
   private MicroProfilePropertiesScope getScope(VirtualFile file) {
@@ -100,11 +115,11 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   private boolean isJavaFile(VirtualFile file) {
-    return JAVA_FILE_EXTENSION.equals(file.getExtension());
+    return PsiMicroProfileProjectManager.isJavaFile(file);
   }
 
-  private boolean isConfigSource(VirtualFile file, Module project) {
-    return PsiMicroProfileProjectManager.getInstance(project.getProject()).isConfigSource(file);
+  private boolean isConfigSource(VirtualFile file) {
+    return PsiMicroProfileProjectManager.isConfigSource(file);
   }
 
   @Override
@@ -119,7 +134,7 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
   @Override
   public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(MicroProfileJavaDiagnosticsParams javaParams) {
-    return runAsBackground("Computing Java diagnostics", monitor -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+    return runAsBackground("Computing Java diagnostics", monitor -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject())), false);
   }
 
   @Override
@@ -128,8 +143,13 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   @Override
-  public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectlabels(MicroProfileJavaProjectLabelsParams javaParams) {
+  public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectLabels(MicroProfileJavaProjectLabelsParams javaParams) {
     return runAsBackground("Computing Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+  }
+
+  @Override
+  public CompletableFuture<List<ProjectLabelInfoEntry>> getAllJavaProjectLabels() {
+    return runAsBackground("Computing All Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(getProject())));
   }
 
   @Override
@@ -138,17 +158,53 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
   }
 
   @Override
-  public CompletableFuture<CompletionList> getJavaCompletion(MicroProfileJavaCompletionParams javaParams) {
-    return runAsBackground("Computing Java completion", monitor -> PropertiesManagerForJava.getInstance().completion(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+  public CompletableFuture<List<MicroProfileDefinition>> getJavaDefinition(MicroProfileJavaDefinitionParams javaParams) {
+    return runAsBackground("Computing Java definitions", monitor -> PropertiesManagerForJava.getInstance().definition(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+  }
+
+  @Override
+  public CompletableFuture<MicroProfileJavaCompletionResult> getJavaCompletion(MicroProfileJavaCompletionParams javaParams) {
+    return runAsBackground("Computing Java completion", monitor -> {
+      IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
+      CompletionList completionList = PropertiesManagerForJava.getInstance().completion(javaParams, utils);
+      JavaCursorContextResult cursorContext = PropertiesManagerForJava.getInstance().javaCursorContext(javaParams, utils);
+      return new MicroProfileJavaCompletionResult(completionList, cursorContext);
+    });
   }
 
   @Override
   public CompletableFuture<List<? extends CodeLens>> getJavaCodelens(MicroProfileJavaCodeLensParams javaParams) {
-    return runAsBackground("Computing Java codelens", monitor -> PropertiesManagerForJava.getInstance().codeLens(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+    return runAsBackground("Computing Java codelens", monitor -> PropertiesManagerForJava.getInstance().codeLens(javaParams, PsiUtilsLSImpl.getInstance(getProject()), monitor));
   }
 
   @Override
   public CompletableFuture<List<CodeAction>> getJavaCodeAction(MicroProfileJavaCodeActionParams javaParams) {
     return runAsBackground("Computing Java code actions", monitor -> (List<CodeAction>) PropertiesManagerForJava.getInstance().codeAction(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+  }
+
+  @Override
+  public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved) {
+    return runAsBackground("Computing Java resolve code actions", monitor -> {
+      CodeActionResolveData data = JSONUtility.toModel(unresolved.getData(), CodeActionResolveData.class);
+      unresolved.setData(data);
+      return (CodeAction) PropertiesManagerForJava.getInstance().resolveCodeAction(unresolved, PsiUtilsLSImpl.getInstance(getProject()));
+    });
+  }
+
+  @Override
+  public CompletableFuture<JavaCursorContextResult> getJavaCursorContext(MicroProfileJavaCompletionParams params) {
+    return runAsBackground("Computing Java Cursor context", monitor -> PropertiesManagerForJava.getInstance().javaCursorContext(params, PsiUtilsLSImpl.getInstance(getProject())));
+  }
+
+  @Override
+  public CompletableFuture<List<SymbolInformation>> getJavaWorkspaceSymbols(String projectUri) {
+    //Workspace symbols not supported yet https://github.com/redhat-developer/intellij-quarkus/issues/808
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public CompletableFuture<String> getPropertyDocumentation(MicroProfilePropertyDocumentationParams params) {
+    // Requires porting https://github.com/eclipse/lsp4mp/issues/321 / https://github.com/eclipse/lsp4mp/pull/329
+    return CompletableFuture.completedFuture(null);
   }
 }

@@ -24,6 +24,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry;
 
 import com.redhat.qute.commons.QuteProjectScope;
@@ -54,7 +55,7 @@ import com.redhat.qute.commons.usertags.UserTagInfo;
  */
 public class QuarkusIntegrationForQute {
 
-	private static final String TEMPLATES_TAGS_ENTRY = "templates.tags";
+	private static final String TEMPLATES_TAGS_ENTRY = "templates/tags";
 	private static final Logger LOGGER = Logger.getLogger(QuarkusIntegrationForQute.class.getName());
 
 	public static DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(Module javaProject,
@@ -132,6 +133,6 @@ public class QuarkusIntegrationForQute {
 	// https://github.com/microsoft/vscode-java-dependency/blob/27c306b770c23b1eba1f9a7c3e70d2793baced68/jdtls.ext/com.microsoft.jdtls.ext.core/src/com/microsoft/jdtls/ext/core/ExtUtils.java#L39
 
 	private static String toUri(VirtualFile jarEntryFile) {
-		return jarEntryFile.getUrl();
+		return LSPIJUtils.toUriAsString(jarEntryFile);
 	}
 }

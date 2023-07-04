@@ -36,10 +36,14 @@ import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.PsiVariable;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiTypesUtil;
+import com.intellij.psi.util.PsiUtil;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * PSI Type utilities.
@@ -61,6 +66,9 @@ public class PsiTypeUtils {
     private static final List<String> NUMBER_TYPES = Arrays.asList("short", "int", "long", "double", "float");
 
     public static String getResolvedTypeName(PsiType type) {
+        if (type == null) {
+            return null;
+        }
         while (type instanceof PsiArrayType) {
             type = ((PsiArrayType)type).getComponentType();
         }
@@ -135,6 +143,7 @@ public class PsiTypeUtils {
     }
 
 
+    @Nullable
     public static PsiClass findType(PsiManager manager, String name) {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(manager.getProject());
         return facade.findClass(name, GlobalSearchScope.allScope(manager.getProject()));
@@ -176,6 +185,44 @@ public class PsiTypeUtils {
         // extract the enclosed type MyType.
         int end = typeName.lastIndexOf('>');
         return typeName.substring(start + 1, end);
+    }
+
+    /**
+     * Returns the first (generic) type parameter for the given <code>psiType</code>.
+     * Returns <code>null</code> if the given psiType has no generic type parameter.
+     *
+     * Examples:
+     * <ul>.
+     *  <li>returns {@code String} for {@code List<String>}</li>
+     *  <li>returns {@code List<String>} for {@code Optional<List<String>>}</li>
+     *  <li>returns {@code null} for {@code OptionalInt}</li>
+     * </ul>
+     *
+     * @param psiType the psiType to return the generic type parameter for
+     * @return the generic type parameter for the given psiType
+     */
+    public static PsiType getFirstTypeParameter(PsiType psiType) {
+        PsiType type = null;
+        PsiClassType classType = getPsiClassType(psiType);
+        PsiClass resolvedClassType = classType.resolve();
+        if (resolvedClassType != null) {
+            PsiTypeParameter[] types = resolvedClassType.getTypeParameters();
+            if (types.length > 0) {
+                PsiClassType.ClassResolveResult resolved = PsiUtil.resolveGenericsClassInType(psiType);
+                Map<PsiTypeParameter, PsiType> substitutions = resolved.getSubstitutor().getSubstitutionMap();
+                type = substitutions.get(types[0]);
+            }
+        }
+        return type;
+    }
+
+    private static PsiClassType getPsiClassType(PsiType psiType) {
+        PsiClass psiClass = PsiTypesUtil.getPsiClass(psiType);
+        if (psiClass == null) {
+            return null;
+        }
+        PsiClassType psiClassType = PsiTypesUtil.getClassType(psiClass);
+        return psiClassType;
     }
 
     public static PsiClass getEnclosedType(PsiClass type, String typeName, PsiManager javaProject) {
@@ -237,7 +284,6 @@ public class PsiTypeUtils {
                 || (type != null && type.isEnum());
     }
 
-
     public static VirtualFile getRootDirectory(PsiElement element) {
         return getRootDirectory(PsiTreeUtil.getParentOfType(element, PsiFile.class));
     }
@@ -281,6 +327,9 @@ public class PsiTypeUtils {
     }
 
     public static String getRawResolvedTypeName(PsiType type) {
+        if (type == null) {
+            return null;
+        }
         if (type instanceof PsiClassType) {
             type = ((PsiClassType) type).rawType();
         }

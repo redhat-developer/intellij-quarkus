@@ -15,6 +15,8 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java;
 
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.InsertAnnotationMissingQuickFix;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientConstants;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientErrorCode;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 
 /**
  * QuickFix for fixing
@@ -39,4 +41,8 @@ public class RegisterRestClientAnnotationMissingQuickFix extends InsertAnnotatio
 		return RegisterRestClientAnnotationMissingQuickFix.class.getName();
 	}
 
+	@Override
+	protected MicroProfileCodeActionId getCodeActionId() {
+		return MicroProfileCodeActionId.InsertRegisterRestClient;
+	}
 }

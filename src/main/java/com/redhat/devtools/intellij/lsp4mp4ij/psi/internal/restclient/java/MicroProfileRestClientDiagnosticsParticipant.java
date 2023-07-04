@@ -36,7 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.INJECT_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.INJECT_JAKARTA_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.INJECT_JAVAX_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientConstants.REGISTER_REST_CLIENT_ANNOTATION;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.MicroProfileRestClientConstants.REST_CLIENT_ANNOTATION;
 
@@ -118,10 +119,15 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 	private static void validateField(PsiField field, List<Diagnostic> diagnostics, JavaDiagnosticsContext context) {
 		String uri = context.getUri();
 		DocumentFormat documentFormat = context.getDocumentFormat();
-		boolean hasInjectAnnotation = AnnotationUtils.hasAnnotation(field, INJECT_ANNOTATION);
+		boolean hasInjectAnnotation = AnnotationUtils.hasAnyAnnotation(field, INJECT_JAVAX_ANNOTATION, INJECT_JAKARTA_ANNOTATION);
 		boolean hasRestClientAnnotation = AnnotationUtils.hasAnnotation(field, REST_CLIENT_ANNOTATION);
 		String fieldTypeName = PsiTypeUtils.getResolvedTypeName(field);
 		PsiClass fieldType = PsiTypeUtils.findType(field.getManager(), fieldTypeName);
+		if (fieldType == null) {
+			// document is in invalid state? better bail now.
+			// See https://github.com/redhat-developer/intellij-quarkus/issues/823
+			return;
+		}
 		boolean hasRegisterRestClient = AnnotationUtils.hasAnnotation(fieldType, REGISTER_REST_CLIENT_ANNOTATION)
 				&& fieldType.isInterface();
 
@@ -199,10 +205,9 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 		final AtomicInteger nbReferences = new AtomicInteger(0);
 		Query<PsiReference> query = ReferencesSearch.search(interfaceType, createSearchScope(context.getJavaProject()));
 		query.forEach(match -> {
-			PsiElement o = PsiTreeUtil.getParentOfType(match.getElement(), PsiField.class);
-			if (o instanceof PsiField) {
-				PsiField field = (PsiField) o;
-				boolean hasInjectAnnotation = AnnotationUtils.hasAnnotation(field, INJECT_ANNOTATION);
+			PsiField field = PsiTreeUtil.getParentOfType(match.getElement(), PsiField.class);
+			if (field != null) {
+				boolean hasInjectAnnotation = AnnotationUtils.hasAnyAnnotation(field, INJECT_JAVAX_ANNOTATION, INJECT_JAKARTA_ANNOTATION);
 				boolean hasRestClientAnnotation = AnnotationUtils.hasAnnotation(field, REST_CLIENT_ANNOTATION);
 				if (hasInjectAnnotation && hasRestClientAnnotation) {
 					nbReferences.incrementAndGet();

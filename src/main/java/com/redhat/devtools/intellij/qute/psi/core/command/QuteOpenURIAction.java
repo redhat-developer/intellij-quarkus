@@ -11,28 +11,17 @@
 package com.redhat.devtools.intellij.qute.psi.core.command;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.intellij.openapi.project.Project;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 
 public class QuteOpenURIAction extends QuteAction {
-    private static System.Logger LOGGER = System.getLogger(QuteOpenURIAction.class.getName());
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        try {
-            String url = getURL(e);
-            if (url != null) {
-                VirtualFile f = VfsUtil.findFileByURL(new URL(url));
-                if (f != null) {
-                    FileEditorManager.getInstance(e.getProject()).openFile(f, true);
-                }
-            }
-        } catch (MalformedURLException ex) {
-            LOGGER.log(System.Logger.Level.WARNING, ex.getLocalizedMessage(), ex);
+        String url = getURL(e);
+        Project project = e.getProject();
+        if (url != null && project != null) {
+            LSPIJUtils.openInEditor(url, null, project);
         }
     }
 }

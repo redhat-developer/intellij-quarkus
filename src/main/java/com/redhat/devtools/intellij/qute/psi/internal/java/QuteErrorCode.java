@@ -13,7 +13,8 @@ package com.redhat.devtools.intellij.qute.psi.internal.java;
 
 public enum QuteErrorCode implements IQuteErrorCode {
 
-	NoMatchingTemplate("No template matching the path {0} could be found for: {1}");
+	NoMatchingTemplate("No template matching the path {0} could be found for: {1}"),
+	FragmentNotDefined("Fragment [{0}] not defined in template {1}");
 
 	private final String rawMessage;
 

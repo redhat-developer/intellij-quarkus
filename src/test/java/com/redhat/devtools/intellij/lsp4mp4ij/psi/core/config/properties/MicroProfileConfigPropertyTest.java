@@ -37,7 +37,7 @@ public class MicroProfileConfigPropertyTest extends MavenModuleImportingTestCase
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
         MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
-        File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar");
+        File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar").toFile();
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
         assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //

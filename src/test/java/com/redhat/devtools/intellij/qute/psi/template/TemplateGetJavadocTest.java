@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.qute.psi.template;
 
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.qute.commons.DocumentFormat;
@@ -26,12 +27,11 @@ import java.io.File;
  * 
  * @author datho7561
  */
-public class TemplateGetJavadocTest extends MavenModuleImportingTestCase {
+public class TemplateGetJavadocTest extends QuteMavenModuleImportingTestCase {
 
 	@Test
 	public void testgetFieldJavadoc() throws Exception {
-		createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
-
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavadocParams params = new QuteJavadocParams(//
 				"org.acme.qute.Item", //
@@ -47,7 +47,7 @@ public class TemplateGetJavadocTest extends MavenModuleImportingTestCase {
 	
 	@Test
 	public void testgetMethodJavadoc() throws Exception {
-		createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavadocParams params = new QuteJavadocParams(//
 				"org.acme.qute.Item", //
@@ -65,7 +65,7 @@ public class TemplateGetJavadocTest extends MavenModuleImportingTestCase {
 	
 	@Test
 	public void testgetFieldJavadocPlainText() throws Exception {
-		createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavadocParams params = new QuteJavadocParams(//
 				"org.acme.qute.Item", //
@@ -81,7 +81,7 @@ public class TemplateGetJavadocTest extends MavenModuleImportingTestCase {
 	
 	@Test
 	public void testgetMethodJavadocPlainText() throws Exception {
-		createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavadocParams params = new QuteJavadocParams(//
 				"org.acme.qute.Item", //
@@ -97,7 +97,7 @@ public class TemplateGetJavadocTest extends MavenModuleImportingTestCase {
 	
 	@Test
 	public void testgetMethodJavadocCyclic() throws Exception {
-		createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavadocParams params = new QuteJavadocParams(//
 				"org.acme.qute.cyclic.ClassC", //
@@ -113,7 +113,7 @@ public class TemplateGetJavadocTest extends MavenModuleImportingTestCase {
 	
 	@Test
 	public void testgetMethodJavadocMethodTypeParams() throws Exception {
-		createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
 		QuteJavadocParams params = new QuteJavadocParams(//
 				"org.acme.qute.generic.B", //

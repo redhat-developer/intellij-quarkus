@@ -19,7 +19,6 @@ import java.io.File
 import java.util.*
 import java.util.function.Consumer
 import javax.swing.JComponent
-import kotlin.collections.LinkedHashMap
 
 abstract class SdkTestCase : LightPlatformTestCase() {
 
@@ -100,8 +99,8 @@ abstract class SdkTestCase : LightPlatformTestCase() {
   interface TestSdkType : JavaSdkType, SdkTypeId {
     companion object : SdkType("test-type"), TestSdkType {
       override fun getPresentableName(): String = name
-      override fun isValidSdkHome(path: String?): Boolean = true
-      override fun suggestSdkName(currentSdkName: String?, sdkHome: String?): String = TestSdkGenerator.findTestSdk(sdkHome!!)!!.name
+      override fun isValidSdkHome(path: String): Boolean = true
+      override fun suggestSdkName(currentSdkName: String?, sdkHome: String): String = TestSdkGenerator.findTestSdk(sdkHome)!!.name
       override fun suggestHomePath(): String? = null
       override fun suggestHomePaths(): Collection<String> = TestSdkGenerator.getAllTestSdks().map { it.homePath }
       override fun createAdditionalDataConfigurable(sdkModel: SdkModel, sdkModificator: SdkModificator): AdditionalDataConfigurable? = null
@@ -120,8 +119,8 @@ abstract class SdkTestCase : LightPlatformTestCase() {
         ?.let { File(it, relativePath).path }
 
     override fun getPresentableName(): String = name
-    override fun isValidSdkHome(path: String?): Boolean = true
-    override fun suggestSdkName(currentSdkName: String?, sdkHome: String?): String = "dependent-sdk-name"
+    override fun isValidSdkHome(path: String): Boolean = true
+    override fun suggestSdkName(currentSdkName: String?, sdkHome: String): String = "dependent-sdk-name"
     override fun suggestHomePath(): String? = null
     override fun createAdditionalDataConfigurable(sdkModel: SdkModel, sdkModificator: SdkModificator): AdditionalDataConfigurable? = null
     override fun saveAdditionalData(additionalData: SdkAdditionalData, additional: Element) {}
@@ -234,10 +233,17 @@ abstract class SdkTestCase : LightPlatformTestCase() {
   }
 
   companion object {
-    fun assertSdk(expected: TestSdk, actual: Sdk) {
-      assertEquals(expected.name, actual.name)
-      assertEquals(expected.sdkType, actual.sdkType)
-      assertEquals(expected, TestSdkGenerator.findTestSdk(actual))
+    fun assertSdk(expected: TestSdk?, actual: Sdk?, isAssertSdkName: Boolean = true) {
+      if (expected != null && actual != null) {
+        if (isAssertSdkName) {
+          assertEquals(expected.name, actual.name)
+        }
+        assertEquals(expected.sdkType, actual.sdkType)
+        assertEquals(expected, TestSdkGenerator.findTestSdk(actual))
+      }
+      else {
+        assertEquals(expected, actual)
+      }
     }
 
     fun registerSdk(sdk: TestSdk, parentDisposable: Disposable) {

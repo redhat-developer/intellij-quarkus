@@ -32,10 +32,70 @@ import java.util.regex.Pattern;
  */
 public class AnnotationUtils {
 
+	/**
+	 * Returns checks if the <code>annotatable</code> parameter is annotated with the given annotation.
+	 *
+	 * @param annotatable the class, field which can be annotated
+	 * @param annotationName a non-null FQCN annotation to check against
+	 * @return <code>true</code> if the <code>annotatable</code> parameter is annotated with the given annotation, <code>false</code> otherwise.
+	 */
 	public static boolean hasAnnotation(PsiElement annotatable, String annotationName) {
-		return getAnnotation(annotatable, annotationName) != null;
+		return hasAnyAnnotation(annotatable, annotationName);
 	}
 
+	/**
+	 * Returns checks if the <code>annotatable</code> parameter is annotated with ANY of the given annotations.
+	 *
+	 * @param annotatable the class, field which can be annotated
+	 * @param annotationNames a non-null, non-empty array of FQCN annotations to check against
+	 * @return <code>true</code> if the <code>annotatable</code> parameter is annotated with ANY of the given annotations, <code>false</code> otherwise.
+	 */
+	public static boolean hasAnyAnnotation(PsiElement annotatable, String... annotationNames) {
+		return getFirstAnnotation(annotatable, annotationNames) != null;
+	}
+
+	/**
+	 * Returns an {@link PsiAnnotation} of the first annotation in
+	 * <code>annotationNames</code> that appears on the given annotatable.
+	 *
+	 * It returns the first in the <code>annotationNames</code> list, <b>not</b> the
+	 * first in the order that the annotations appear on the annotatable. <br /> <br />
+	 * e.g.
+	 *
+	 * <pre>
+	 * &commat;Singleton &commat;Deprecated String myString;
+	 * </pre>
+	 *
+	 * when given the <code>annotationNames</code> list <code>{"Potato", "Deprecated",
+	 * "Singleton"}</code> will return the IAnnotation for <code>&commat;Deprecated</code>.
+	 *
+	 * @param annotatable     the annotatable to check for the annotations
+	 * @param annotationNames the FQNs of the annotations to check for
+	 * @return an {@link PsiAnnotation} of the first annotation in
+	 * <code>annotationNames</code> that appears on the given annotatable
+	 */
+	public static PsiAnnotation getFirstAnnotation(PsiElement annotatable, String... annotationNames) {
+		if (annotatable instanceof PsiAnnotationOwner) {
+			return getFirstAnnotation(((PsiAnnotationOwner) annotatable).getAnnotations(), annotationNames);
+		} else if (annotatable instanceof PsiModifierListOwner) {
+			return getFirstAnnotation(((PsiModifierListOwner) annotatable).getAnnotations(), annotationNames);
+		}
+		return null;
+	}
+
+	private static PsiAnnotation getFirstAnnotation(PsiAnnotation[] annotations, String...annotationNames) {
+		if (annotations == null || annotations.length == 0 || annotationNames == null || annotationNames.length == 0) {
+			return null;
+		}
+		for (PsiAnnotation annotation : annotations) {
+			for (String annotationName: annotationNames) {
+				if (isMatchAnnotation(annotation, annotationName)) {
+					return annotation;
+				}
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Returns the annotation from the given <code>annotatable</code> element with
@@ -75,15 +135,10 @@ public class AnnotationUtils {
 	 *         false otherwise.
 	 */
 	public static boolean isMatchAnnotation(PsiAnnotation annotation, String annotationName) {
-		if(annotation == null) {
-		    return false;
-        }
-		else if ( annotation.getQualifiedName() == null){
+		if(annotation == null || annotation.getQualifiedName() == null){
 			return false;
 		}
-		else {
-			return annotationName.endsWith(annotation.getQualifiedName());
-		}
+		return annotationName.endsWith(annotation.getQualifiedName());
 	}
 
 	/**
@@ -111,7 +166,6 @@ public class AnnotationUtils {
 	 * of annotation members
 	 *
 	 * @param annotation            the annotation of the retrieved members
-	 * @param annotationSource      the qualified name of the annotation
 	 * @param annotationMemberNames the supported members of the annotation
 	 * @param position              the hover position
 	 * @param typeRoot              the java type root

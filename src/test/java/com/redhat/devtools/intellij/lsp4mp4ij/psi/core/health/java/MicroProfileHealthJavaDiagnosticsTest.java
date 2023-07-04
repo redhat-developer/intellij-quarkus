@@ -48,13 +48,11 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
 public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingTestCase {
 	@Test
 	public void testImplementHealthCheck() throws Exception {
-
 		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-health-quickstart"));
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 		VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/health/DontImplementHealthCheck.java");
-
 		String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
 		diagnosticsParams.setUris(Arrays.asList(uri));
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
@@ -72,7 +70,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 		codeActionParams.setCommandConfigurationUpdateSupported(true);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Let 'DontImplementHealthCheck' implement '@HealthCheck'", d, //
-						te(0, 0, 17, 0, "package org.acme.health;\n\nimport javax.enterprise.context.ApplicationScoped;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\n@ApplicationScoped\npublic class DontImplementHealthCheck implements HealthCheck {\n\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n} \n")));
+						te(0, 0, 16, 0, "package org.acme.health;\n\nimport javax.enterprise.context.ApplicationScoped;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\n@ApplicationScoped\npublic class DontImplementHealthCheck implements HealthCheck {\n\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n} \n")));
 	}
 
 	@Test
@@ -97,11 +95,11 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @Health", d, //
-						te(0, 0, 15, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.Health;\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\n\n@Health\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")),
+						te(0, 0, 13, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.Health;\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\n\n@Health\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")),
 				ca(uri, "Insert @Liveness", d, //
-						te(0, 0, 15, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")), //
+						te(0, 0, 13, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")), //
 				ca(uri, "Insert @Readiness", d, //
-						te(0, 0, 15, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")) //
+						te(0, 0, 13, 0, "package org.acme.health;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class ImplementHealthCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return null;\n    }\n\n}\n")) //
 		);
 	}
 
@@ -138,11 +136,11 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		assertJavaCodeAction(codeActionParams, utils, //
 				ca(uri, "Insert @Liveness", d, //
-						te(0, 0, 15, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")), //
+						te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")), //
 				ca(uri, "Insert @Readiness", d, //
-						te(0, 0, 15, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")), //
+						te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")), //
 				ca(uri, "Generate OpenAPI Annotations for 'MyLivenessCheck'", d, //
-						te(0, 0, 15, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.openapi.annotations.Operation;\n\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Operation(summary = \"\", description = \"\")\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")) //
+						te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\n\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")) //
 		);
 	}
 }

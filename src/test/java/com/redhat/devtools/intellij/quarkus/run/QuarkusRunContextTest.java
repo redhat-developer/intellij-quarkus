@@ -16,6 +16,8 @@ package com.redhat.devtools.intellij.quarkus.run;
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.junit.Test;
 
 import java.io.File;
@@ -27,11 +29,11 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * quarkus.http.non-application-root-path and quarkus.http.port.
  *
  */
-public class QuarkusRunContextTest extends MavenModuleImportingTestCase {
+public class QuarkusRunContextTest extends QuarkusMavenModuleImportingTestCase {
 
 	@Test
 	public void testDevUIURL() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.microprofile_applicationpath);
 
 		QuarkusRunContext context = new QuarkusRunContext(javaProject);
 
@@ -53,7 +55,7 @@ public class QuarkusRunContextTest extends MavenModuleImportingTestCase {
 
 	@Test
 	public void testApplicationURL() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.microprofile_applicationpath);
 
 		QuarkusRunContext context = new QuarkusRunContext(javaProject);
 

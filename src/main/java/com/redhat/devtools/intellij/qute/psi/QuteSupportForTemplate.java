@@ -11,76 +11,49 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.intellij.extapi.psi.StubBasedPsiElementBase;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiCompiledElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiRecordComponent;
-import com.intellij.psi.impl.java.stubs.PsiModifierListStub;
+import com.intellij.psi.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
-import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ClassFileTypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
 import com.redhat.devtools.intellij.qute.psi.internal.template.JavaTypesSearch;
 import com.redhat.devtools.intellij.qute.psi.internal.template.QuarkusIntegrationForQute;
 import com.redhat.devtools.intellij.qute.psi.internal.template.QuteSupportForTemplateGenerateMissingJavaMemberHandler;
 import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSupport;
+import com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.ResolvedJavaTypeFactoryRegistry;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
-import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
-import com.redhat.devtools.intellij.qute.psi.utils.QuteReflectionAnnotationUtils;
-import com.redhat.qute.commons.DocumentFormat;
-import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
-import com.redhat.qute.commons.QuteJavadocParams;
-import org.eclipse.lsp4j.Location;
-
-import com.redhat.qute.commons.InvalidMethodReason;
-import com.redhat.qute.commons.JavaFieldInfo;
-import com.redhat.qute.commons.JavaMethodInfo;
-import com.redhat.qute.commons.JavaTypeInfo;
-import com.redhat.qute.commons.ProjectInfo;
-import com.redhat.qute.commons.QuteJavaDefinitionParams;
-import com.redhat.qute.commons.QuteJavaTypesParams;
-import com.redhat.qute.commons.QuteProjectParams;
-import com.redhat.qute.commons.QuteResolvedJavaTypeParams;
-import com.redhat.qute.commons.ResolvedJavaTypeInfo;
+import com.redhat.qute.commons.*;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
+import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.WorkspaceEdit;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.findType;
 
 /**
  * Qute support for Template file.
- * 
+ *
  * @author Angelo ZERR
  *
  */
@@ -98,11 +71,11 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Returns the project information for the given project Uri.
-	 * 
+	 *
 	 * @param params  the project information parameters.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the project information for the given project Uri and null otherwise.
 	 */
 	public ProjectInfo getProjectInfo(QuteProjectParams params, IPsiUtils utils, ProgressIndicator monitor) {
@@ -110,16 +83,13 @@ public class QuteSupportForTemplate {
 		if (javaProject == null) {
 			return null;
 		}
-
-		utils = utils.refine(javaProject);
-
 		return PsiQuteProjectUtils.getProjectInfo(javaProject);
 	}
 
 	/**
 	 * Collect data model templates from the given project Uri. A data model
 	 * template can be declared with:
-	 * 
+	 *
 	 * <ul>
 	 * <li>@CheckedTemplate support: collect parameters for Qute Template by
 	 * searching @CheckedTemplate annotation.</li>
@@ -128,11 +98,11 @@ public class QuteSupportForTemplate {
 	 * <li>Template extension support: see
 	 * https://quarkus.io/guides/qute-reference#template_extension_methods</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param params  the project uri.
 	 * @param utils   JDT LS utilities
 	 * @param monitor the progress monitor
-	 * 
+	 *
 	 * @return data model templates from the given project Uri.
 	 */
 	public DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(
@@ -150,11 +120,11 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Collect user tags from the given project Uri.
-	 * 
+	 *
 	 * @param params  the project uri.
 	 * @param utils   JDT LS utilities
 	 * @param monitor the progress monitor
-	 * 
+	 *
 	 * @return user tags from the given project Uri.
 	 */
 	public List<UserTagInfo> getUserTags(QuteUserTagParams params, IPsiUtils utils, ProgressIndicator monitor)
@@ -170,11 +140,11 @@ public class QuteSupportForTemplate {
 	/**
 	 * Returns Java types for the given pattern which belong to the given project
 	 * Uri.
-	 * 
+	 *
 	 * @param params  the java types parameters.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return list of Java types.
 	 */
 	public List<JavaTypeInfo> getJavaTypes(QuteJavaTypesParams params, IPsiUtils utils, ProgressIndicator monitor) {
@@ -192,11 +162,11 @@ public class QuteSupportForTemplate {
 	/**
 	 * Returns the Java definition of the given Java type, method, field, method
 	 * parameter, method invocation parameter and null otherwise.
-	 * 
+	 *
 	 * @param params  the Java element information.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the Java definition of the given Java type, method, field, method
 	 *         parameter, method invocation parameter and null otherwise.
 	 */
@@ -278,11 +248,11 @@ public class QuteSupportForTemplate {
 
 	/**
 	 * Returns the resolved type (fields and methods) for the given Java type.
-	 * 
+	 *
 	 * @param params  the Java type to resolve.
 	 * @param utils   the JDT LS utility.
 	 * @param monitor the progress monitor.
-	 * 
+	 *
 	 * @return the resolved type (fields and methods) for the given Java type.
 	 */
 	public ResolvedJavaTypeInfo getResolvedJavaType(QuteResolvedJavaTypeParams params, IPsiUtils utils,
@@ -306,68 +276,8 @@ public class QuteSupportForTemplate {
 			return null;
 		}
 
-		ITypeResolver typeResolver = createTypeResolver(type, javaProject);
-
-		// 1) Collect fields
-		List<JavaFieldInfo> fieldsInfo = new ArrayList<>();
-
-		// Standard fields
-		PsiField[] fields = type.getFields();
-		for (PsiField field : fields) {
-			if (isValidField(field, type)) {
-				// Only public fields are available
-				JavaFieldInfo info = new JavaFieldInfo();
-				info.setSignature(typeResolver.resolveFieldSignature(field));
-				fieldsInfo.add(info);
-			}
-		}
-
-		// Record fields
-		if (type.isRecord()) {
-			for (PsiRecordComponent field : type.getRecordComponents()) {
-				// All record components are valid
-				JavaFieldInfo info = new JavaFieldInfo();
-				info.setSignature(typeResolver.resolveFieldSignature(field));
-				fieldsInfo.add(info);
-			}
-		}
-
-		// 2) Collect methods
-		List<JavaMethodInfo> methodsInfo = new ArrayList<>();
-		Map<String, InvalidMethodReason> invalidMethods = new HashMap<>();
-		PsiMethod[] methods = type.getMethods();
-		for (PsiMethod method : methods) {
-			if (isValidMethod(method, type)) {
-				try {
-					InvalidMethodReason invalid = getValidMethodForQute(method, typeName);
-					if (invalid != null) {
-						invalidMethods.put(method.getName(), invalid);
-					} else {
-						JavaMethodInfo info = new JavaMethodInfo();
-						info.setSignature(typeResolver.resolveMethodSignature(method));
-						methodsInfo.add(info);
-					}
-				} catch (Exception e) {
-					LOGGER.log(Level.WARNING,
-							"Error while getting method signature of '" + method.getName() + "'.", e);
-				}
-			}
-		}
-
-		String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
-		if (typeSignature != null) {
-			ResolvedJavaTypeInfo resolvedType = new ResolvedJavaTypeInfo();
-			resolvedType.setBinary(type instanceof PsiCompiledElement);
-			resolvedType.setSignature(typeSignature);
-			resolvedType.setFields(fieldsInfo);
-			resolvedType.setMethods(methodsInfo);
-			resolvedType.setInvalidMethods(invalidMethods);
-			resolvedType.setExtendedTypes(typeResolver.resolveExtendedType());
-			resolvedType.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
-			QuteReflectionAnnotationUtils.collectAnnotations(resolvedType, type, typeResolver, javaProject);
-			return resolvedType;
-		}
-		return null;
+		ValueResolverKind kind = params.getKind();
+		return ResolvedJavaTypeFactoryRegistry.getInstance().create(type, kind,javaProject);
 	}
 
 	private static boolean isValidField(PsiField field, PsiClass type) {
@@ -375,60 +285,6 @@ public class QuteSupportForTemplate {
 			return true;
 		}
 		return field.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
-	}
-
-	private static boolean isSynthetic(PsiMember member) {
-		var modifiers = member.getModifierList();
-		var result = false;
-
-		if (modifiers instanceof StubBasedPsiElementBase) {
-			PsiModifierListStub stub = (PsiModifierListStub) ((StubBasedPsiElementBase<?>) modifiers).getGreenStub();
-			result = (stub.getModifiersMask() & 0x00001000) == 0x00001000;
-		}
-		return result;
-	}
-
-	private static boolean isValidMethod(PsiMethod method, PsiClass type) {
-		try {
-			if (method.isConstructor() || !method.isValid() || isSynthetic(method)) {
-				return false;
-			}
-			if (!type.isInterface() && !method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
-				return false;
-			}
-
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error while checking if '" + method.getName() + "' is valid.", e);
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Returns the reason
-	 * 
-	 * @param method
-	 * @param typeName
-	 * 
-	 * @return
-	 * 
-	 * @see <a href="https://github.com/quarkusio/quarkus/blob/ce19ff75e9f732ff731bb30c2141b44b42c66050/independent-projects/qute/core/src/main/java/io/quarkus/qute/ReflectionValueResolver.java#L176">https://github.com/quarkusio/quarkus/blob/ce19ff75e9f732ff731bb30c2141b44b42c66050/independent-projects/qute/core/src/main/java/io/quarkus/qute/ReflectionValueResolver.java#L176</a>
-	 */
-	private static InvalidMethodReason getValidMethodForQute(PsiMethod method, String typeName) {
-		if (JAVA_LANG_OBJECT.equals(typeName)) {
-			return InvalidMethodReason.FromObject;
-		}
-		try {
-			if ("void".equals(method.getReturnType().getCanonicalText(true))) {
-				return InvalidMethodReason.VoidReturn;
-			}
-			if (method.getModifierList().hasExplicitModifier(PsiModifier.STATIC)) {
-				return InvalidMethodReason.Static;
-			}
-		} catch (RuntimeException e) {
-			LOGGER.log(Level.WARNING, "Error while checking if '" + method.getName() + "' is valid.", e);
-		}
-		return null;
 	}
 
 	private static Module getJavaProjectFromProjectUri(String projectName, IPsiUtils utils) {
@@ -442,14 +298,15 @@ public class QuteSupportForTemplate {
 		try {
 			templateFileUri = templateFileUri.replace("vscode-notebook-cell", "file");
 			VirtualFile file = utils.findFile(templateFileUri);
+
 			Module module = utils.getModule(file);
 			if (file == null || module == null) {
-				// The uri doesn't belong to an Eclipse project
+				// The uri doesn't belong to an IntelliJ project
 				return null;
 			}
-			// The uri belong to an Eclipse project
+			// The uri belong to an IntelliJ project
 			if (ModuleType.get(module) != JavaModuleType.getModuleType()) {
-				// The uri doesn't belong to a Java project
+				// The uri doesn't belong to a IntelliJ project
 				return null;
 			}
 
@@ -507,14 +364,14 @@ public class QuteSupportForTemplate {
 				return null;
 			}
 
-			utils = utils.refine(javaProject);
+			final var refinedUtils = utils.refine(javaProject);
 
 			PsiClass type = getTypeFromParams(params.getSourceType(), params.getProjectUri(), javaProject, monitor);
 			if (type == null) {
 				return null;
 			}
-			return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), utils,
-					monitor, new HashSet<>());
+			return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), refinedUtils,
+							monitor, new HashSet<>());
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Error while collecting Javadoc for " + params.getSourceType() + "#" + params.getMemberName(), e);
@@ -566,20 +423,16 @@ public class QuteSupportForTemplate {
 		// 2) Check the methods for the member
 		PsiMethod[] methods = type.getMethods();
 		for (PsiMethod method : methods) {
-			if (isValidMethod(method, type)) {
-				try {
-					InvalidMethodReason invalid = getValidMethodForQute(method, type.getQualifiedName());
-					if (invalid == null && (signature.equals(typeResolver.resolveMethodSignature(method)))) {
-						String javadoc = utils.getJavadoc(method, documentFormat);
-						if (javadoc != null) {
-							return javadoc;
-						}
-						// otherwise, maybe a supertype has it
+			try {
+				if (signature.equals(typeResolver.resolveMethodSignature(method))) {
+					String javadoc = utils.getJavadoc(method, documentFormat);
+					if (javadoc != null) {
+						return javadoc;
 					}
-				} catch (Exception e) {
-					LOGGER.log(Level.WARNING,
-							"Error while getting method signature of '" + method.getName() + "'.", e);
 				}
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Error while getting method signature of '" + method.getName() + "'.",
+						e);
 			}
 		}
 

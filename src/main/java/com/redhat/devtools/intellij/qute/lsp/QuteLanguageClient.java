@@ -13,15 +13,17 @@ package com.redhat.devtools.intellij.qute.lsp;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.IndexAwareLanguageClient;
+import com.redhat.devtools.intellij.lsp4ij.IndexAwareLanguageClient;
+import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
@@ -43,7 +45,6 @@ import com.redhat.qute.commons.usertags.QuteUserTagParams;
 import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 import com.redhat.qute.ls.api.QuteLanguageServerAPI;
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Location;
@@ -52,12 +53,13 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class QuteLanguageClient extends IndexAwareLanguageClient implements QuteLanguageClientAPI, QuarkusProjectService.Listener {
+public class QuteLanguageClient extends IndexAwareLanguageClient implements QuteLanguageClientAPI, ClasspathResourceChangedManager.Listener {
   private static final Logger LOGGER = LoggerFactory.getLogger(QuteLanguageClient.class);
 
   private final MessageBusConnection connection;
@@ -65,11 +67,22 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
   public QuteLanguageClient(Project project) {
     super(project);
     connection = project.getMessageBus().connect(project);
-    connection.subscribe(QuarkusProjectService.TOPIC, this);
-    QuarkusProjectService.getInstance(project);
+    connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
   }
 
-  private void sendPropertiesChangeEvent(Set<String> uris) {
+  @Override
+  public void dispose() {
+    super.dispose();
+    connection.disconnect();
+  }
+
+  /**
+   * Send the notification qute/dataModelChanged with the project Uris to
+   * refresh data model used in Qute Template.
+   *
+   * @param uris the project uris where the data model must be refreshed.
+   */
+  private void notifyQuteDataModelChanged(Set<String> uris) {
     QuteLanguageServerAPI server = (QuteLanguageServerAPI) getLanguageServer();
     if (server != null) {
       JavaDataModelChangeEvent event = new JavaDataModelChangeEvent();
@@ -79,18 +92,41 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
   }
 
   @Override
-  public void libraryUpdated(Library library) {
-    sendPropertiesChangeEvent(QuarkusModuleUtil.getModulesURIs(getProject()));
+  public void librariesChanged() {
+    if (isDisposed()) {
+      // The language client has been disposed, ignore changes in libraries
+      return;
+    }
+    Set<String> uris = new HashSet<>();
+    uris.add(PsiQuteProjectUtils.getProjectURI(getProject()));
+    notifyQuteDataModelChanged(uris);
   }
 
   @Override
-  public void sourceUpdated(List<Pair<Module, VirtualFile>> sources) {
-    Set<String> uris = sources.stream().map(pair -> pair.getLeft()).
-            map(module -> PsiUtilsLSImpl.getProjectURI(module)).
-            collect(Collectors.toSet());
-    if (!uris.isEmpty()) {
-      sendPropertiesChangeEvent(uris);
+  public void sourceFilesChanged(Set<Pair<VirtualFile, Module>> sources) {
+    if (isDisposed()) {
+      // The language client has been disposed, ignore changes in Java source files
+      return;
     }
+    Set<String> uris = sources.stream()
+            // qute/dataModelChanged must be sent only if there are some Java files which are changed
+            .filter(pair -> PsiMicroProfileProjectManager.isJavaFile(pair.getFirst()))
+            .map(pair -> pair.getSecond())
+            .map(module -> PsiUtilsLSImpl.getProjectURI(module))
+            .collect(Collectors.toSet());
+    if (!uris.isEmpty()) {
+      notifyQuteDataModelChanged(uris);
+    }
+  }
+
+  @Override
+  public void modulesUpdated() {
+    // Do nothing
+  }
+
+  @Override
+  public void moduleUpdated(Module module) {
+    // Do nothing
   }
 
   @Override

@@ -4,7 +4,7 @@ import com.google.gson.JsonPrimitive;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.redhat.devtools.intellij.quarkus.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
+import com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
 
 import java.util.List;
 

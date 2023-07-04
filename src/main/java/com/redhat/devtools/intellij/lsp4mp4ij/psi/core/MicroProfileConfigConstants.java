@@ -25,7 +25,8 @@ public class MicroProfileConfigConstants {
 
 	public static final String MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE = "microprofile-config";
 
-	public static final String INJECT_ANNOTATION = "javax.inject.Inject";
+	public static final String INJECT_JAVAX_ANNOTATION = "javax.inject.Inject";
+	public static final String INJECT_JAKARTA_ANNOTATION = "jakarta.inject.Inject";
 
 	// @ConfigProperty annotation
 

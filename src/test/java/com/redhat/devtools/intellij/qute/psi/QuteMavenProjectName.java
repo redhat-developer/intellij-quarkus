@@ -10,8 +10,16 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi;
 
+/**
+ * Qute project names used in tests.
+ */
 public class QuteMavenProjectName {
-    public static String qute_quickstart = "qute-quickstart";
+    public static final String qute_quickstart = "qute-quickstart";
 
-    public static String qute_java17 = "qute-java17";
+    public static final String qute_java17 = "qute-java17";
+
+    public static final String quarkus_renarde_todo = "renarde-todo";
+
+    public static final String quarkus3 = "quarkus3";
+
 }

@@ -11,23 +11,22 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.template;
 
-import java.io.File;
-import java.util.List;
-import java.util.Optional;
-
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.redhat.devtools.intellij.qute.psi.QuteAssert.*;
 
 /**
  * Tests for
@@ -36,14 +35,14 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
  * @author Angelo ZERR
  *
  */
-public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCase {
+public class TemplateGetDataModelProjectTest extends QuteMavenModuleImportingTestCase {
 
 	@Test
-	public void testquteQuickStart() throws Exception {
+	public void testQuteQuickStart() throws Exception {
 
-		Module module = createMavenModule(new File("projects/qute/projects/maven/qute-quickstart"));
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
 
-		QuteDataModelProjectParams params = new QuteDataModelProjectParams("qute-quickstart");
+		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.qute_quickstart);
 		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
 				.getDataModelProject(params, PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
 		Assert.assertNotNull(project);
@@ -86,14 +85,14 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		List<DataModelParameter> parameters = helloTemplate.getParameters();
 		Assert.assertNotNull(parameters);
 
-		// hello.data("age", 12);
-		// hello.data("height", 1.50, "weight", 50.5);
-		// return hello.data("name", name);
+		// hello.data("height", 1.50, "weight", 50L)
+		// .data("age", 12)
+		// .data("name", name);
 
 		Assert.assertEquals(4, parameters.size());
-		assertParameter("age", "int", true, parameters, 0);
-		assertParameter("height", "double", true, parameters, 1);
-		assertParameter("weight", "long", true, parameters, 2);
+		assertParameter("height", "double", true, parameters, 0);
+		assertParameter("weight", "long", true, parameters, 1);
+		assertParameter("age", "int", true, parameters, 2);
 		assertParameter("name", "java.lang.String", true, parameters, 3);
 
 		// Template goodbye;
@@ -112,8 +111,8 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// return goodbye.data("name2", name);
 
 		Assert.assertEquals(2, parameters2.size());
-		assertParameter("age2", "int", true, parameters2, 0);
-		assertParameter("name2", "java.lang.String", true, parameters2, 1);
+		assertParameter("age2", "int", true, goodbyeTemplate);
+		assertParameter("name2", "java.lang.String", true, goodbyeTemplate);
 
 		// Template hallo;
 
@@ -131,8 +130,8 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// return hallo.data("name3", name);
 
 		Assert.assertEquals(2, parameters3.size());
-		assertParameter("age3", "int", true, parameters3, 0);
-		assertParameter("name3", "java.lang.String", true, parameters3, 1);
+		assertParameter("age3", "int", true, halloTemplate);
+		assertParameter("name3", "java.lang.String", true, halloTemplate);
 
 	}
 
@@ -149,7 +148,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		Assert.assertNotNull(parameters);
 
 		Assert.assertEquals(1, parameters.size());
-		assertParameter("items", "java.util.List<org.acme.qute.Item>", false, parameters, 0);
+		assertParameter("items", "java.util.List<org.acme.qute.Item>", false, items);
 
 		// static native TemplateInstance map(Map<String, List<Item>> items,
 		// Map.Entry<String, Integer> entry);
@@ -166,8 +165,8 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 
 		Assert.assertEquals(2, parameters.size());
 		assertParameter("items", "java.util.Map<java.lang.String,java.util.List<org.acme.qute.Item>>", false,
-				parameters, 0);
-		assertParameter("entry", "java.util.Map$Entry<java.lang.String,java.lang.Integer>", false, parameters, 1);
+				map);
+		assertParameter("entry", "java.util.Map$Entry<java.lang.String,java.lang.Integer>", false,map);
 	}
 
 	private static void checkedTemplate(DataModelProject<DataModelTemplate<DataModelParameter>> project) {
@@ -185,7 +184,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// public static native TemplateInstance hello2(String name);
 
 		Assert.assertEquals(1, hello2Parameters.size());
-		assertParameter("name", "java.lang.String", false, hello2Parameters, 0);
+		assertParameter("name", "java.lang.String", false, hello2Template);
 
 		// hello3
 		DataModelTemplate<DataModelParameter> hello3Template = project
@@ -201,7 +200,7 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// public static native TemplateInstance hello3(String name);
 
 		Assert.assertEquals(1, hello3Parameters.size());
-		assertParameter("name", "java.lang.String", false, hello3Parameters, 0);
+		assertParameter("name", "java.lang.String", false, hello3Template);
 	}
 
 	private static void testValueResolversFromTemplateExtension(List<ValueResolverInfo> resolvers) {
@@ -359,46 +358,20 @@ public class TemplateGetDataModelProjectTest extends MavenModuleImportingTestCas
 		// }
 	}
 
-	private static void assertValueResolver(String namespace, String signature, String sourceType,
-			List<ValueResolverInfo> resolvers) {
-		assertValueResolver(namespace, signature, sourceType, null, resolvers);
-	}
+	@Test
+	public void quarkus3() throws Exception {
+		loadMavenProject(QuteMavenProjectName.quarkus3);
 
-	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-											List<ValueResolverInfo> resolvers) {
-		assertValueResolver(namespace, signature, sourceType, named, false, resolvers);
-	}
+		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.quarkus3);
+		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
+				.getDataModelProject(params, getJDTUtils(), new EmptyProgressIndicator());
+		Assert.assertNotNull(project);
 
-	private static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-			boolean globalVariable, List<ValueResolverInfo> resolvers) {
-		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
-				.findFirst();
-		Assert.assertFalse("Find '" + signature + "' value resolver.", result.isEmpty());
-		ValueResolverInfo resolver = result.get();
-		Assert.assertEquals(namespace, resolver.getNamespace());
-		Assert.assertEquals(signature, resolver.getSignature());
-		Assert.assertEquals(sourceType, resolver.getSourceType());
-		Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
-	}
+		// Test value resolvers
+		List<ValueResolverInfo> resolvers = project.getValueResolvers();
 
-	private static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
-											   List<ValueResolverInfo> resolvers) {
-		assertNotValueResolver(namespace, signature, sourceType, named, false, resolvers);
-	}
-
-	private static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
-											   boolean globalVariable, List<ValueResolverInfo> resolvers) {
-		Optional<ValueResolverInfo> result = resolvers.stream().filter(r -> signature.equals(r.getSignature()))
-				.findFirst();
-		Assert.assertTrue("Find '" + signature + "' value resolver.", result.isEmpty());
-	}
-
-	private static void assertParameter(String key, String sourceType, boolean dataMethodInvocation,
-										List<DataModelParameter> parameters, int index) {
-		DataModelParameter parameter = parameters.stream().filter(p -> key.equals(p.getKey())).findFirst().get();
-		Assert.assertEquals(key, parameter.getKey());
-		Assert.assertEquals(sourceType, parameter.getSourceType());
-		Assert.assertEquals(dataMethodInvocation, parameter.isDataMethodInvocation());
+		// should pick up the named bean
+		assertValueResolver("inject", "org.acme.Bean2", "org.acme.Bean2", resolvers);
 	}
 
 }

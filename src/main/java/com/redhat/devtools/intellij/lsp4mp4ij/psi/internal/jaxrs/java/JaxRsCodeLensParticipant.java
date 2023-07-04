@@ -14,33 +14,27 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.JavaCodeLensContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.HttpMethod;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.IJaxRsInfoProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsMethodInfo;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.createURLCodeLens;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.getJaxRsPathValue;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isClickableJaxRsRequestMethod;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.isJaxRsRequestMethod;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.overlaps;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_PATH_ANNOTATION;
 
 /**
  *
@@ -51,88 +45,89 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsCon
  */
 public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 
+	private static final Logger LOGGER = Logger.getLogger(JaxRsCodeLensParticipant.class.getName());
+
 	private static final String LOCALHOST = "localhost";
 
 	private static final int PING_TIMEOUT = 2000;
 
+	private static final String JAX_RS_INFO_PROVIDER = IJaxRsInfoProvider.class.getName();
 	@Override
-	public boolean isAdaptedForCodeLens(JavaCodeLensContext context) {
+	public boolean isAdaptedForCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 		MicroProfileJavaCodeLensParams params = context.getParams();
 		if (!params.isUrlCodeLensEnabled()) {
 			return false;
 		}
-		// Collection of URL codeLens is done only if JAX-RS is on the classpath
-		Module javaProject = context.getJavaProject();
-		return PsiTypeUtils.findType(javaProject, JAVAX_WS_RS_PATH_ANNOTATION) != null;
+		PsiFile typeRoot = context.getTypeRoot();
+		Module project = context.getJavaProject();
+		IJaxRsInfoProvider jaxRsProvider= JaxRsInfoProviderRegistry.getInstance().getProviderForType(typeRoot, project, monitor);
+		if (jaxRsProvider != null) {
+			context.put(JAX_RS_INFO_PROVIDER, jaxRsProvider);
+		}
+		// if some jaxrs info provider can provide jaxrs method info for this class, provide lens
+		return jaxRsProvider != null;
 	}
 
 	@Override
-	public void beginCodeLens(JavaCodeLensContext context) {
+	public void beginCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
 		JaxRsContext.getJaxRsContext(context).getApplicationPath();
 	}
 
 	@Override
-	public List<CodeLens> collectCodeLens(JavaCodeLensContext context) {
+	public List<CodeLens> collectCodeLens(JavaCodeLensContext context, ProgressIndicator monitor)  {
 		PsiFile typeRoot = context.getTypeRoot();
-		PsiElement[] elements = typeRoot.getChildren();
 		JaxRsContext jaxrsContext = JaxRsContext.getJaxRsContext(context);
 		IPsiUtils utils = context.getUtils();
+
+		if (context.getParams().isCheckServerAvailable()
+				&& !isServerAvailable(LOCALHOST, jaxrsContext.getServerPort(), PING_TIMEOUT)) {
+			return Collections.emptyList();
+		}
+
+		IJaxRsInfoProvider provider = (IJaxRsInfoProvider) context.get(JAX_RS_INFO_PROVIDER);
+		if (provider == null) {
+			return Collections.emptyList();
+		}
+		List<JaxRsMethodInfo> infos = provider.getJaxRsMethodInfo(typeRoot, jaxrsContext, utils, monitor);
+
 		MicroProfileJavaCodeLensParams params = context.getParams();
-		List<CodeLens> lenses = new ArrayList<>();
-		collectURLCodeLenses(elements, null, lenses, params, jaxrsContext, utils);
-		return lenses;
+		return infos.stream() //
+				.map(methodInfo -> {
+					try {
+						return createCodeLens(methodInfo, params.getOpenURICommand(), utils);
+					} catch (Exception e) {
+						LOGGER.log(Level.WARNING, "failed to create codelens for jax-rs method", e);
+						return null;
+					}
+				}) //
+				.filter(lens -> lens != null) //
+				.collect(Collectors.toList());
 	}
 
-	private static void collectURLCodeLenses(PsiElement[] elements, String rootPath, Collection<CodeLens> lenses,
-			MicroProfileJavaCodeLensParams params, JaxRsContext jaxRsContext, IPsiUtils utils) {
-		for (PsiElement element : elements) {
-			if (element instanceof PsiClass) {
-				PsiClass type = (PsiClass) element;
-				// Get value of JAX-RS @Path annotation from the class
-				String pathValue = getJaxRsPathValue(type);
-				if (pathValue != null) {
-					// Class is annotated with @Path
-					// Display code lens only if local server is available.
-					if (!params.isCheckServerAvailable()
-							|| isServerAvailable(LOCALHOST, jaxRsContext.getServerPort(), PING_TIMEOUT)) {
-						// Loop for each method annotated with @Path to generate
-						// URL code lens per
-						// method.
-						collectURLCodeLenses(type.getChildren(), pathValue, lenses, params, jaxRsContext, utils);
-					}
-				}
-				continue;
-			} else if (element instanceof PsiMethod) {
-				if (utils.isHiddenGeneratedElement(element)) {
-					continue;
-				}
-				// ignore element if method range overlaps the type range, happens for generated
-				// bytecode, i.e. with lombok
-				PsiClass parentType = PsiTreeUtil.getParentOfType(element, PsiClass.class);
-				if (parentType != null && overlaps(parentType.getNameIdentifier().getTextRange(),
-						((PsiMethod) element).getNameIdentifier().getTextRange())) {
-					continue;
-				}
-			} else {// neither a type nor a method, we bail
-				continue;
-			}
-
-			// Here java element is a method
-			if (rootPath != null) {
-				PsiMethod method = (PsiMethod) element;
-				// A JAX-RS method is a public method annotated with @GET @POST, @DELETE, @PUT
-				// JAX-RS
-				// annotation
-				if (isJaxRsRequestMethod(method) && method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
-					String baseURL = jaxRsContext.getLocalBaseURL();
-					String openURICommandId = isClickableJaxRsRequestMethod(method) ? params.getOpenURICommand() : null;
-					CodeLens lens = createURLCodeLens(baseURL, rootPath, openURICommandId, (PsiMethod) element, utils);
-					if (lens != null) {
-						lenses.add(lens);
-					}
-				}
-			}
+	/**
+	 * Returns a code lens for the given JAX-RS method information.
+	 *
+	 * @param methodInfo       the JAX-RS method information to build the code lens
+	 *                         out of
+	 * @param openUriCommandId the id of the client command to invoke to open a URL
+	 *                         in the browser
+	 * @param utils            the jdt utils
+	 * @return a code lens for the given JAX-RS method information
+	 */
+	private static CodeLens createCodeLens(JaxRsMethodInfo methodInfo, String openUriCommandId, IPsiUtils utils) {
+		PsiMethod method = methodInfo.getJavaMethod();
+		CodeLens lens = createURLCodeLens(method, utils, false);
+		if(lens == null) {
+			return null;
 		}
+		lens.setCommand(new Command(methodInfo.getUrl(), //
+				isHttpMethodClickable(methodInfo.getHttpMethod()) && openUriCommandId != null ? openUriCommandId : "", //
+				Collections.singletonList(methodInfo.getUrl())));
+		return lens;
+	}
+
+	private static boolean isHttpMethodClickable(HttpMethod httpMethod) {
+		return HttpMethod.GET.equals(httpMethod);
 	}
 
 	private static boolean isServerAvailable(String host, int port, int timeout) {
@@ -149,4 +144,5 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 		// By returning true, the URL codelens will be displayed even if the server is not started.
 		return true;
 	}
+
 }

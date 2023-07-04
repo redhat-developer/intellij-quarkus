@@ -45,12 +45,12 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Angelo ZERR
  *
  */
-public class PropertiesManagerClassPathKindTest extends MavenModuleImportingTestCase {
+public class PropertiesManagerClassPathKindTest extends LSP4MPMavenModuleImportingTestCase {
 
 	@Test
 	public void testconfigQuickstartTest() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart-test"));
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart_test);
 		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(javaProject.getProject());
 
 		// not in classpath -> 0 quarkus properties

@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
  */
 public class PsiMicroProfileProject {
 
-
 	private final Module javaProject;
 
 	private List<IConfigSource> configSources;

@@ -13,18 +13,19 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.JavaCodeLensContext;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsUtils.getJaxRsApplicationPathValue;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsConstants.JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION;
 
 /**
  * JAX-RS context.
@@ -46,11 +47,13 @@ public class JaxRsContext {
 	// The value of the @ApplicationPath annotation
 	private String applicationPath;
 
-	private final JavaCodeLensContext javaCodeLensContext;
+	private final Module javaProject;
 
-	public JaxRsContext(JavaCodeLensContext javaCodeLensContext) {
+	private boolean applicationPathLoaded = false;
+
+	public JaxRsContext(Module javaProject) {
 		setServerPort(DEFAULT_PORT);
-		this.javaCodeLensContext = javaCodeLensContext;
+		this.javaProject = javaProject;
 	}
 
 	public int getServerPort() {
@@ -85,11 +88,19 @@ public class JaxRsContext {
 	 * @return the @ApplicationPath annotation value
 	 */
 	public String getApplicationPath() {
-		if (applicationPath == null) {
-			PsiClass applicationPathType = PsiTypeUtils.findType(javaCodeLensContext.getJavaProject(),
-					JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION);
-			applicationPath = findApplicationPath(applicationPathType, javaCodeLensContext);
+		if (applicationPathLoaded) {
+			return applicationPath;
 		}
+		PsiClass applicationPathType = PsiTypeUtils.findType(javaProject,
+				JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION);
+		if (applicationPathType == null) {
+			applicationPathType = PsiTypeUtils.findType(javaProject,
+					JAKARTA_WS_RS_APPLICATIONPATH_ANNOTATION);
+		}
+		if (applicationPathType != null) {
+			applicationPath = findApplicationPath(applicationPathType, javaProject);
+		}
+		applicationPathLoaded = true;
 		return applicationPath;
 	}
 
@@ -105,7 +116,7 @@ public class JaxRsContext {
 	public static JaxRsContext getJaxRsContext(JavaCodeLensContext context) {
 		JaxRsContext jaxRsContext = (JaxRsContext) context.get(CONTEXT_KEY);
 		if (jaxRsContext == null) {
-			jaxRsContext = new JaxRsContext(context);
+			jaxRsContext = new JaxRsContext(context.getJavaProject());
 			context.put(CONTEXT_KEY, jaxRsContext);
 		}
 		return jaxRsContext;
@@ -122,6 +133,8 @@ public class JaxRsContext {
 		if (rootPath != null) {
 			localBaseURL.append(getRootPath());
 		}
+		// application path is lazy loaded, but we need it now
+		getApplicationPath();
 		if (applicationPath != null) {
 			if (!applicationPath.startsWith("/")) {
 				localBaseURL.append('/');
@@ -136,21 +149,22 @@ public class JaxRsContext {
 	 * value of the @ApplicationPath annotation, or null if not found
 	 *
 	 * @param annotationType the type representing the @ApplicationPath annotation
-	 * @param context        the java code lens context
+	 * @param javaProject        the java project the code lens applies to
 	 * @return the value of the @ApplicationPath annotation, or null if not found
 	 */
-	private static String findApplicationPath(PsiClass annotationType, JavaCodeLensContext context) {
+	private static String findApplicationPath(PsiClass annotationType, Module javaProject) {
 		AtomicReference<String> applicationPathRef = new AtomicReference<String>();
 
-		Query<PsiClass> pattern = AnnotatedElementsSearch.searchElements(annotationType, context.getJavaProject().getModuleWithDependenciesScope(),
+		Query<PsiClass> pattern = AnnotatedElementsSearch.searchElements(annotationType, javaProject.getModuleWithDependenciesScope(),
 				PsiClass.class);
 		pattern.forEach((Consumer<? super PsiClass>) match -> collectApplicationPath(match, applicationPathRef));
 		return applicationPathRef.get();
 	}
 
 	private static void collectApplicationPath(PsiClass type, AtomicReference<String> applicationPathRef) {
-		if (AnnotationUtils.hasAnnotation(type, JAVAX_WS_RS_APPLICATIONPATH_ANNOTATION)) {
-			applicationPathRef.set(getJaxRsApplicationPathValue(type));
+		String applicationPathValue = getJaxRsApplicationPathValue(type);
+		if (applicationPathValue != null) {
+			applicationPathRef.set(applicationPathValue);
 		}
 	}
 }

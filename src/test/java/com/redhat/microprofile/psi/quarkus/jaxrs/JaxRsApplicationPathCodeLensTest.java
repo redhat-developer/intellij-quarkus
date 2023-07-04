@@ -15,11 +15,15 @@ package com.redhat.microprofile.psi.quarkus.jaxrs;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.junit.Assert;
@@ -29,24 +33,23 @@ import java.io.File;
 import java.util.List;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.fixURI;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
  * JAX-RS URL Codelens test for Java file with quarkus.http.root-path
  * and @ApplicationPath annotation.
  *
  */
-public class JaxRsApplicationPathCodeLensTest extends MavenModuleImportingTestCase {
+public class JaxRsApplicationPathCodeLensTest extends QuarkusMavenModuleImportingTestCase {
 
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/microprofile-applicationpath"));
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_applicationpath);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
-
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);
-		String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/ApplicationPathResource.java").toURI());
+		String javaFileUri = getFileUri("src/main/java/org/acme/ApplicationPathResource.java", javaProject);
 
 		params.setUri(javaFileUri);
 		params.setUrlCodeLensEnabled(true);
@@ -54,20 +57,17 @@ public class JaxRsApplicationPathCodeLensTest extends MavenModuleImportingTestCa
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.root-path=/root", javaProject);
 
 		// Default port
-		assertCodeLense(8080, params, utils, "/root/api/path");
+		assertCodeLenses(8080, params, utils, "/root/api/path");
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
 
-		assertCodeLense(8080, params, utils, "/api/path");
+		assertCodeLenses(8080, params, utils, "/api/path");
 	}
 
-	private static void assertCodeLense(int port, MicroProfileJavaCodeLensParams params, IPsiUtils utils,
-			String testPath) {
-		List<? extends CodeLens> lenses = PropertiesManagerForJava.getInstance().codeLens(params, utils);
-
-		CodeLens lenseForEndpoint = lenses.get(0);
-		Assert.assertNotNull(lenseForEndpoint.getCommand());
-		Assert.assertEquals("http://localhost:" + port + testPath, lenseForEndpoint.getCommand().getTitle());
+	private static void assertCodeLenses(int port, MicroProfileJavaCodeLensParams params, IPsiUtils utils,
+										 String testPath) {
+		assertCodeLens(params, utils, //
+				cl("http://localhost:" + port + testPath, "", r(12, 4, 4)));
 	}
 
 }

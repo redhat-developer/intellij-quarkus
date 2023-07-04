@@ -39,7 +39,6 @@ public class QuarkusConfigMappingTest extends MavenModuleImportingTestCase {
 	public void testConfigMapping() throws Exception {
 
 		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.config_mapping));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
 		MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
@@ -159,9 +158,39 @@ public class QuarkusConfigMappingTest extends MavenModuleImportingTestCase {
 				p(null, "server.withparentname.port", "int", null, false, "org.acme.withparentname.ServerHostAndPort",
 						null, "port()I", 0, null),
 				p(null, "server.withparentname.name", "java.lang.String", null, false,
-						"org.acme.withparentname.ServerInfo", null, "name()Ljava/lang/String;", 0, null)
+						"org.acme.withparentname.ServerInfo", null, "name()Ljava/lang/String;", 0, null),
 
-		);
+				// 8) Optionals
+
+				// @ConfigMapping(prefix = "optionals")
+				// public interface Optionals {
+				//	Optional<Server> server();
+				// 	OptionalInt optionalInt();
+
+				p(null, "optionals.optional", "java.lang.String", null, false,
+						"org.acme.optionals.Optionals", null,
+						"optional()Ljava/util/Optional;", 0, null),
+				p(null, "optionals.optional-int", "java.util.OptionalInt", null, false,
+						"org.acme.optionals.Optionals", null,
+						"optionalInt()Ljava/util/OptionalInt;", 0, null),
+
+				// 8) Enum
+
+				// @ConfigMapping(prefix = "my.native")
+				//public interface MyNativeConfig {
+				//
+				//    enum MonitoringOption {
+				//        HEAPDUMP
+				//    }
+				//
+				//    Optional<List<MonitoringOption>> monitoring();
+				//}
+
+				p(null, "my.native.monitoring[*]", "java.util.List", null, false,
+						"org.acme.enums.MyNativeConfig", null,
+						"monitoring()Ljava/util/Optional;", 0, null)
+				);
+
 
 		assertPropertiesDuplicate(infoFromJavaSources);
 	}
