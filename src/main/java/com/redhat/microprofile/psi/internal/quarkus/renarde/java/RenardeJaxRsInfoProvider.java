@@ -56,10 +56,8 @@ public class RenardeJaxRsInfoProvider extends KeyedLazyInstanceEP<IJaxRsInfoProv
 			if (type == null) {
 				return Collections.emptyList();
 			}
-			String typeSegment = JaxRsUtils.getJaxRsPathValue(type);
-			if (typeSegment == null) {
-				typeSegment = type.getName();
-			}
+			String pathSegment = JaxRsUtils.getJaxRsPathValue(type);
+			String typeSegment = type.getName();
 
 			List<JaxRsMethodInfo> methodInfos = new ArrayList<>();
 			for (PsiMethod method : type.getMethods()) {
@@ -80,10 +78,14 @@ public class RenardeJaxRsInfoProvider extends KeyedLazyInstanceEP<IJaxRsInfoProv
 					if (methodSegment == null) {
 						methodSegment = method.getName();
 					}
-					String url = methodSegment.startsWith("/") ? methodSegment
-							: JaxRsUtils.buildURL(typeSegment, methodSegment);
-					url = JaxRsUtils.buildURL(jaxrsContext.getLocalBaseURL(), url);
-
+					String path;
+					if (pathSegment == null) {
+						path = methodSegment.startsWith("/") ? methodSegment : JaxRsUtils.buildURL(typeSegment, methodSegment);
+					} else {
+						path = JaxRsUtils.buildURL(pathSegment, methodSegment);
+					}
+					String url = JaxRsUtils.buildURL(jaxrsContext.getLocalBaseURL(), path);
+					
 					JaxRsMethodInfo methodInfo = createMethodInfo(method, url);
 					if (methodInfo != null) {
 						methodInfos.add(methodInfo);

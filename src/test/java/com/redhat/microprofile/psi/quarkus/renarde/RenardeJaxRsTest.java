@@ -50,6 +50,23 @@ public class RenardeJaxRsTest extends QuarkusMavenModuleImportingTestCase {
 				cl("http://localhost:8080/Application/endpoint", "", r(34, 4, 4)));
 	}
 
+	@Test
+	public void testAbsolutePathCodeLens() throws Exception {
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.quarkus_renarde_todo);
+
+		assertNotNull(javaProject);
+
+		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
+		params.setCheckServerAvailable(false);
+		String javaFileUri = getFileUri("src/main/java/rest/Game.java", javaProject);
+		params.setUri(javaFileUri);
+		params.setUrlCodeLensEnabled(true);
+
+		assertCodeLens(params, PsiUtilsLSImpl.getInstance(myProject), //
+				cl("http://localhost:8080/play/id", "", r(9, 4, 4)),
+				cl("http://localhost:8080/play/start", "", r(13, 4, 4)));
+	}
+
 	/*@Test
 	public void workspaceSymbols() throws Exception {
 		IJavaProject javaProject = loadMavenProject(quarkus_renarde_todo);
@@ -71,7 +88,9 @@ public class RenardeJaxRsTest extends QuarkusMavenModuleImportingTestCase {
 				si("@/Todos/delete: POST", r(35, 16, 22)), //
 				si("@/Todos/done: POST", r(46, 16, 20)), //
 				si("@/Todos/index: GET", r(29, 28, 33)), //
-				si("@/about: GET", r(25, 28, 33)));
+				si("@/about: GET", r(25, 28, 33)), //
+				si("@/play/id: GET", r(9, 18, 26)), //
+				si("@/play/start: GET", r(13, 18, 23)));
 	}*/
 
 }
