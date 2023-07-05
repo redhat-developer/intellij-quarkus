@@ -11,20 +11,14 @@
 *******************************************************************************/
 package com.redhat.microprofile.psi.quarkus.renarde;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
-import static org.junit.Assert.assertNotNull;
-
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.psi.PsiClass;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
 import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.junit.Test;
 
-import java.io.File;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
  * Tests for the CodeLens features introduced by

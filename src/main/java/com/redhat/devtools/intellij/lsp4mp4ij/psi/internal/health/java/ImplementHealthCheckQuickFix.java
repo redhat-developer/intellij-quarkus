@@ -28,7 +28,6 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHe
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 
@@ -82,10 +81,8 @@ public class ImplementHealthCheckQuickFix implements IJavaCodeActionParticipant 
 			ChangeCorrectionProposal proposal = new ImplementInterfaceProposal(context.getCompilationUnit(), parentType,
 					context.getASTRoot(), MicroProfileHealthConstants.HEALTH_CHECK_INTERFACE, 0,
 					context.getSource().getCompilationUnit());
-			WorkspaceEdit workspaceEdit;
 			try {
-				workspaceEdit = context.convertToWorkspaceEdit(proposal);
-				toResolve.setEdit(workspaceEdit);
+				toResolve.setEdit(context.convertToWorkspaceEdit(proposal));
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Unable to create workspace edit to make the class implement @HealthCheck", e);
 			}

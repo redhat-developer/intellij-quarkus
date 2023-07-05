@@ -14,12 +14,13 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaErrorCode;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4mp.commons.*;
+import org.eclipse.lsp4mp.commons.codeaction.CodeActionData;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 import org.junit.Assert;
 
 import java.io.File;
@@ -30,7 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-
+import static org.junit.Assert.assertTrue;
 /**
  * MicroProfile assert for java files for JUnit tests.
  * 
@@ -70,6 +71,11 @@ public class MicroProfileForJavaAssert {
 			// we don't want to compare title, etc
 			ca.setCommand(null);
 			ca.setKind(null);
+
+			if (ca.getEdit() != null && ca.getEdit().getChanges() != null) {
+				assertTrue(ca.getEdit().getChanges().isEmpty());
+				ca.getEdit().setChanges(null);
+			}
 			if (ca.getDiagnostics() != null) {
 				ca.getDiagnostics().forEach(d -> {
 					d.setSeverity(null);
@@ -83,10 +89,11 @@ public class MicroProfileForJavaAssert {
 		for (int i = 0; i < expected.length; i++) {
 			assertEquals("Assert title [" + i + "]", expected[i].getTitle(), actual.get(i).getTitle());
 			assertEquals("Assert edit [" + i + "]", expected[i].getEdit(), actual.get(i).getEdit());
+			assertEquals("Assert id [" + i + "]", ((CodeActionData)(expected[i].getData())).getCodeActionId(), ((CodeActionData)(actual.get(i).getData())).getCodeActionId());
 		}
 	}
 
-	public static CodeAction ca(String uri, String title, Diagnostic d, TextEdit... te) {
+	public static CodeAction ca(String uri, String title, MicroProfileCodeActionId id, Diagnostic d, TextEdit... te) {
 		CodeAction codeAction = new CodeAction();
 		codeAction.setTitle(title);
 		codeAction.setDiagnostics(Arrays.asList(d));
@@ -95,8 +102,8 @@ public class MicroProfileForJavaAssert {
 
 		TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier, Arrays.asList(te));
 		WorkspaceEdit workspaceEdit = new WorkspaceEdit(Arrays.asList(Either.forLeft(textDocumentEdit)));
-		workspaceEdit.setChanges(Collections.emptyMap());
 		codeAction.setEdit(workspaceEdit);
+		codeAction.setData(new CodeActionData(id));
 		return codeAction;
 	}
 

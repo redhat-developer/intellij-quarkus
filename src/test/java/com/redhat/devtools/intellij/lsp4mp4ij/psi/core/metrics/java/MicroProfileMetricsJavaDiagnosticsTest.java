@@ -14,11 +14,6 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.metrics.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -31,9 +26,9 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Arrays;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
@@ -66,7 +61,7 @@ public class MicroProfileMetricsJavaDiagnosticsTest extends LSP4MPMavenModuleImp
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(javaFileUri, d);
 		// check for MicroProfile metrics quick fix code action associated with diagnostic warning
 		assertJavaCodeAction(codeActionParams, utils, //
-			ca(javaFileUri, "Replace current scope with @ApplicationScoped", d, //
+			ca(javaFileUri, "Replace current scope with @ApplicationScoped", MicroProfileCodeActionId.InsertApplicationScopedAnnotation, d, //
 				te(0, 0, 18, 0, "package org.acme;\n\nimport javax.enterprise.context.ApplicationScoped;\nimport javax.ws.rs.Path;\n\nimport org.eclipse.microprofile.metrics.MetricUnits;\nimport org.eclipse.microprofile.metrics.annotation.Gauge;\n\n@ApplicationScoped\n@Path(\"/\")\npublic class IncorrectScope {\n\n    @Gauge(name = \"Return Int\", unit = MetricUnits.NONE, description = \"Test method for Gauge annotation\")\n    public int returnInt() {\n        return 2;\n    }\n\n}\n")));
 	}
 
@@ -97,9 +92,9 @@ public class MicroProfileMetricsJavaDiagnosticsTest extends LSP4MPMavenModuleImp
 		// check for MicroProfile metrics quick fix code action associated with
 		// diagnostic warning
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(javaFileUri, "Replace current scope with @ApplicationScoped", d1, //
+				ca(javaFileUri, "Replace current scope with @ApplicationScoped", MicroProfileCodeActionId.InsertApplicationScopedAnnotation, d1, //
 						te(0, 0, 21, 1, "package com.demo.rest;\n\nimport jakarta.enterprise.context.ApplicationScoped;\nimport jakarta.ws.rs.Path;\nimport org.eclipse.microprofile.metrics.MetricUnits;\nimport org.eclipse.microprofile.metrics.annotation.Gauge;\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\nimport jakarta.inject.Inject;\n\n@ApplicationScoped\n@Path(\"/\")\npublic class IncorrectScopeJakarta {\n\n    @Inject\n    @RestClient\n    public MyService service1;\n\n    @Gauge(name = \"Return Int\", unit = MetricUnits.NONE, description = \"Test method for Gauge annotation\")\n    public int returnInt() {\n        return 2;\n    }\n}")),
-				ca(javaFileUri, "Generate OpenAPI Annotations for 'IncorrectScopeJakarta'", d1, // No @Operation should be added
+				ca(javaFileUri, "Generate OpenAPI Annotations for 'IncorrectScopeJakarta'", MicroProfileCodeActionId.GenerateOpenApiAnnotations, d1, // No @Operation should be added
 						te(0, 0, 21, 1, "package com.demo.rest;\n\nimport jakarta.ws.rs.Path;\nimport org.eclipse.microprofile.metrics.MetricUnits;\nimport org.eclipse.microprofile.metrics.annotation.Gauge;\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\nimport jakarta.inject.Inject;\nimport jakarta.enterprise.context.RequestScoped;\n\n@RequestScoped\n@Path(\"/\")\npublic class IncorrectScopeJakarta {\n\n    @Inject\n    @RestClient\n    public MyService service1;\n\n    @Gauge(name = \"Return Int\", unit = MetricUnits.NONE, description = \"Test method for Gauge annotation\")\n    public int returnInt() {\n        return 2;\n    }\n}")));
 	}
 	
