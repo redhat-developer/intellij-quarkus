@@ -28,6 +28,7 @@ import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionFactory;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsSettings;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 import org.junit.Test;
 
 import java.io.File;
@@ -165,16 +166,16 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
 
 		MicroProfileJavaCodeActionParams codeActionParams1 = createCodeActionParams(javaFileUri, d1, false);
 		assertJavaCodeAction(codeActionParams1, utils, //
-				ca(javaFileUri, "Insert 'defaultValue' attribute", d1, //
+				ca(javaFileUri, "Insert 'defaultValue' attribute", MicroProfileCodeActionId.ConfigPropertyInsertDefaultValue, d1, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\", defaultValue = \"\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\")\n        private String url;\n    }\n}\n")),
-				ca(propertiesFileUri, "Insert 'foo' property in 'META-INF/microprofile-config.properties'", d1, //
+				ca(propertiesFileUri, "Insert 'foo' property in 'META-INF/microprofile-config.properties'", MicroProfileCodeActionId.AssignValueToProperty, d1, //
 						te(0, 0, 0, 0, "foo=" + lineSeparator)));
 
 		MicroProfileJavaCodeActionParams codeActionParams2 = createCodeActionParams(javaFileUri, d2, false);
 		assertJavaCodeAction(codeActionParams2, utils, //
-				ca(javaFileUri, "Insert 'defaultValue' attribute", d2, //
+				ca(javaFileUri, "Insert 'defaultValue' attribute", MicroProfileCodeActionId.ConfigPropertyInsertDefaultValue, d2, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\", defaultValue = \"\")\n        private String url;\n    }\n}\n")),
-				ca(propertiesFileUri, "Insert 'server.url' property in 'META-INF/microprofile-config.properties'", d2, //
+				ca(propertiesFileUri, "Insert 'server.url' property in 'META-INF/microprofile-config.properties'", MicroProfileCodeActionId.AssignValueToProperty, d2, //
 						te(0, 0, 0, 0, "server.url=" + lineSeparator)));
 
 		// Same code actions but with exclude
@@ -193,18 +194,18 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
 		codeActionParams1_1.setCommandConfigurationUpdateSupported(true);
 		assertJavaCodeAction(codeActionParams1_1, utils, //
 				MicroProfileCodeActionFactory.createAddToUnassignedExcludedCodeAction("foo", d1_1),
-				ca(javaFileUri, "Insert 'defaultValue' attribute", d1_1, //
+				ca(javaFileUri, "Insert 'defaultValue' attribute", MicroProfileCodeActionId.ConfigPropertyInsertDefaultValue, d1_1, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\", defaultValue = \"\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\")\n        private String url;\n    }\n}\n")),
-				ca(propertiesFileUri, "Insert 'foo' property in 'META-INF/microprofile-config.properties'", d1_1, //
+				ca(propertiesFileUri, "Insert 'foo' property in 'META-INF/microprofile-config.properties'", MicroProfileCodeActionId.AssignValueToProperty, d1_1, //
 						te(0, 0, 0, 0, "foo=" + lineSeparator)));
 
 		MicroProfileJavaCodeActionParams codeActionParams2_1 = createCodeActionParams(javaFileUri, d2_1);
 		codeActionParams2_1.setCommandConfigurationUpdateSupported(true);
 		assertJavaCodeAction(codeActionParams2_1, utils, //
 				MicroProfileCodeActionFactory.createAddToUnassignedExcludedCodeAction("server.url", d2_1),
-				ca(javaFileUri, "Insert 'defaultValue' attribute", d2_1, //
+				ca(javaFileUri, "Insert 'defaultValue' attribute", MicroProfileCodeActionId.ConfigPropertyInsertDefaultValue, d2_1, //
 						te(0, 0, 18, 0, "package org.acme.config;\n\nimport org.eclipse.microprofile.config.inject.ConfigProperty;\n\nimport io.quarkus.arc.config.ConfigProperties;\n\npublic class UnassignedValue {\n\n    @ConfigProperty(name = \"foo\")\n    private String foo;\n\n    @ConfigProperties(prefix = \"server\")\n    private class Server {\n\n        @ConfigProperty(name = \"url\", defaultValue = \"\")\n        private String url;\n    }\n}\n")),
-				ca(propertiesFileUri, "Insert 'server.url' property in 'META-INF/microprofile-config.properties'", d2_1, //
+				ca(propertiesFileUri, "Insert 'server.url' property in 'META-INF/microprofile-config.properties'", MicroProfileCodeActionId.AssignValueToProperty, d2_1, //
 						te(0, 0, 0, 0, "server.url=" + lineSeparator)));
 
 	}

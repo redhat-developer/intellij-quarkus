@@ -29,7 +29,6 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.MicroProfileM
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 
@@ -100,8 +99,7 @@ public class ApplicationScopedAnnotationMissingQuickFix implements IJavaCodeActi
 				context.getASTRoot(), parentType, 0, addAnnotation, context.getSource().getCompilationUnit(),
 				REMOVE_ANNOTATION_NAMES);
 		try {
-			WorkspaceEdit we = context.convertToWorkspaceEdit(proposal);
-			toResolve.setEdit(we);
+			toResolve.setEdit(context.convertToWorkspaceEdit(proposal));
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Failed to create workspace edit to replace bean scope annotation", e);
 		}

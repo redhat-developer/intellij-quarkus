@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 import org.junit.Test;
 
 import java.io.File;
@@ -88,17 +89,17 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d3);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @RestClient", d3, //
+				ca(uri, "Insert @RestClient", MicroProfileCodeActionId.InsertRestClientAnnotation, d3, //
 						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @RestClient\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
 
 		codeActionParams = createCodeActionParams(uri, d4);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @Inject", d4, //
+				ca(uri, "Insert @Inject", MicroProfileCodeActionId.InsertInjectAnnotation, d4, //
 						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @Inject\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
 
 		codeActionParams = createCodeActionParams(uri, d5);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @Inject, @RestClient", d5, //
+				ca(uri, "Insert @Inject, @RestClient", MicroProfileCodeActionId.InsertInjectAndRestClientAnnotations, d5, //
 						te(0, 0, 22, 10, "package org.acme.restclient;\n\nimport javax.inject.Inject;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\npublic class Fields {\n\n    public Country country;\n\n    @Inject\n    @RestClient\n    public MyService service1, service2;\n\n    @Inject\n    public CountriesService RestClientAnnotationMissing;\n\n    @RestClient\n    public CountriesService InjectAnnotationMissing;\n\n    @RestClient\n    @Inject\n    public CountriesService RestClientAndInjectAnnotationMissing;\n}     \n          ")));
 	}
 
@@ -135,16 +136,16 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d2);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @Inject", d2, //
+				ca(uri, "Insert @Inject", MicroProfileCodeActionId.InsertInjectAnnotation, d2, //
 						te(0, 0, 17, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.inject.Inject;\n\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public MyService NoAnnotationMissing;\n\n    @Inject\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n}")),
-				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", d2, //
+				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", MicroProfileCodeActionId.GenerateOpenApiAnnotations, d2, //
 						te(0, 0, 17, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.inject.Inject;\n\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public MyService NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n}")));
 
 		codeActionParams = createCodeActionParams(uri, d3);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @Inject, @RestClient", d3, //
+				ca(uri, "Insert @Inject, @RestClient", MicroProfileCodeActionId.InsertInjectAndRestClientAnnotations, d3, //
 						te(0, 0, 17, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.inject.Inject;\n\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public MyService NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    @RestClient\n    @Inject\n    public Service RestClientAndInjectAnnotationMissing;\n\n}")),
-				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", d3, //
+				ca(uri, "Generate OpenAPI Annotations for 'injectAnnotation'", MicroProfileCodeActionId.GenerateOpenApiAnnotations, d3, //
 						te(0, 0, 17, 1, "package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RestClient;\n\nimport jakarta.inject.Inject;\n\npublic class injectAnnotation {\n\n    @Inject\n    @RestClient\n    public MyService NoAnnotationMissing;\n\n    @RestClient\n    public Service InjectAnnotationMissing;\n\n    public Service RestClientAndInjectAnnotationMissing;\n\n}")));
 
 	}
@@ -173,7 +174,7 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 		/*String uri = javaFile.getLocation().toFile().toURI().toString();*/
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @RegisterRestClient", d, //
+				ca(uri, "Insert @RegisterRestClient", MicroProfileCodeActionId.InsertRegisterRestClient, d, //
 						te(0, 0, 5, 0,
 								"package org.acme.restclient;\n\nimport org.eclipse.microprofile.rest.client.inject.RegisterRestClient;\n\n@RegisterRestClient\npublic interface MyService {\n\n}\n")));
 	}
@@ -199,10 +200,10 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
 
 		MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
 		assertJavaCodeAction(codeActionParams, utils, //
-				ca(uri, "Insert @RegisterRestClient", d, //
+				ca(uri, "Insert @RegisterRestClient", MicroProfileCodeActionId.InsertRegisterRestClient, d, //
 						te(0, 0, 5, 0,
 								"package com.demo.rest;\n\nimport org.eclipse.microprofile.rest.client.inject.RegisterRestClient;\n\n@RegisterRestClient\npublic interface MyService {\n\n}\n")),
-				ca(uri, "Generate OpenAPI Annotations for 'MyService'", d, //
+				ca(uri, "Generate OpenAPI Annotations for 'MyService'", MicroProfileCodeActionId.GenerateOpenApiAnnotations, d, //
 						te(0, 0, 5, 0,
 								"package com.demo.rest;\n\npublic interface MyService {\n\n}\n")));
 	}

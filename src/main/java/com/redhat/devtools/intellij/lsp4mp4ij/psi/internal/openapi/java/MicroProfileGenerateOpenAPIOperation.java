@@ -28,17 +28,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Generate OpenAPI annotations by the "Source" kind code action.
@@ -124,8 +118,7 @@ public class MicroProfileGenerateOpenAPIOperation implements IJavaCodeActionPart
 				context.getSource().getCompilationUnit());
 
 		try {
-			WorkspaceEdit we = context.convertToWorkspaceEdit(proposal);
-			toResolve.setEdit(we);
+			toResolve.setEdit(context.convertToWorkspaceEdit(proposal));
 		} catch (Exception e) {
 		}
 

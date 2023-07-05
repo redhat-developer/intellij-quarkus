@@ -22,6 +22,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 import org.junit.Test;
 
 import java.io.File;
@@ -54,7 +55,7 @@ public class GenerateOpenAPIAnnotationsTest extends MavenModuleImportingTestCase
 
 		String newText = "package org.acme.openapi;\n\nimport org.eclipse.microprofile.openapi.annotations.Operation;\n\nimport java.util.Properties;\nimport javax.enterprise.context.RequestScoped;\nimport javax.ws.rs.GET;\nimport javax.ws.rs.Path;\nimport javax.ws.rs.core.Response;\n\n@RequestScoped\n@Path(\"/systems\")\npublic class NoOperationAnnotation {\n\n    @Operation(summary = \"\", description = \"\")\n    @GET\n    public Response getMyInformation(String hostname) {\n        return Response.ok(listContents()).build();\n    }\n\n    @Operation(summary = \"\", description = \"\")\n    @GET\n    public Response getPropertiesForMyHost() {\n        return Response.ok().build();\n    }\n\n    private Properties listContents() {\n        Properties info = new Properties();\n        info.setProperty(\"Name\", \"APITest\");\n        info.setProperty(\"Desc\", \"API Test\");\n        return info;\n    }\n\n}";
 		assertJavaCodeAction(codeActionParams, utils,
-				ca(uri, "Generate OpenAPI Annotations for 'NoOperationAnnotation'", d,
+				ca(uri, "Generate OpenAPI Annotations for 'NoOperationAnnotation'", MicroProfileCodeActionId.GenerateOpenApiAnnotations, d,
 						te(0, 0, 29, 1, newText))
 		);
 	}

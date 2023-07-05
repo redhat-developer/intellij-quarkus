@@ -30,7 +30,7 @@ import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.CodeActionFactory;
+import org.eclipse.lsp4mp.ls.commons.CodeActionFactory;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.JavaCodeActionResolveContext;
@@ -52,6 +52,7 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 
 /**
  * QuickFix for fixing
@@ -99,7 +100,7 @@ public class NoValueAssignedToPropertyQuickFix implements IJavaCodeActionPartici
 				// the properties file exists
 				TextDocumentItem document = new TextDocumentItem(uri, "properties", 0, insertText);
 				CodeAction codeAction = CodeActionFactory.insert(
-						getTitle(propertyName, configSource.getConfigFileName()), new Position(0, 0), insertText,
+						getTitle(propertyName, configSource.getConfigFileName()), MicroProfileCodeActionId.AssignValueToProperty, new Position(0, 0), insertText,
 						document, diagnostic);
 				codeActions.add(codeAction);
 			}
@@ -127,8 +128,7 @@ public class NoValueAssignedToPropertyQuickFix implements IJavaCodeActionPartici
 		String insertText = propertyName + "=" + lineSeparator;
 		TextDocumentEdit tde = insertTextEdit(new TextDocumentItem(uri, "properties", 0, insertText), insertText,
 				new Position(0, 0));
-		WorkspaceEdit workspaceEdit = new WorkspaceEdit(Collections.singletonList(Either.forLeft(tde)));
-		unresolved.setEdit(workspaceEdit);
+		unresolved.setEdit(new WorkspaceEdit(Collections.singletonList(Either.forLeft(tde))));
 		return unresolved;
 	}
 
