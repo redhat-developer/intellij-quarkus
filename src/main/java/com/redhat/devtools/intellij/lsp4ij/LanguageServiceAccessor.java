@@ -50,7 +50,7 @@ public class LanguageServiceAccessor {
         this.project = project;
     }
 
-    private Set<LanguageServerWrapper> startedServers = new HashSet<>();
+    private final Set<LanguageServerWrapper> startedServers = new HashSet<>();
     private Map<StreamConnectionProvider, LanguageServersRegistry.LanguageServerDefinition> providersToLSDefinitions = new HashMap<>();
 
     /**
@@ -351,6 +351,8 @@ public class LanguageServiceAccessor {
                     .filter(wrapper -> {
                         try {
                             return wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(document, wrapper.serverDefinition, project);
+                        } catch (ProcessCanceledException cancellation) {
+                            throw cancellation;
                         } catch (Exception e) {
                             LOGGER.warn(e.getLocalizedMessage(), e);
                             return false;
