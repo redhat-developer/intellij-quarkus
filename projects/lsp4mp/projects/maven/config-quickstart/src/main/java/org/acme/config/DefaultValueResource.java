@@ -33,4 +33,6 @@ public class DefaultValueResource {
     @ConfigProperty(name = "greeting9")
     String greeting9;
 
+    @ConfigProperty(name = "greeting10", defaultValue="AB")
+    char greeting10;
 }

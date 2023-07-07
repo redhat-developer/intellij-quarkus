@@ -80,8 +80,47 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
 				MicroProfileConfigErrorCode.NO_VALUE_ASSIGNED_TO_PROPERTY);
 		setDataForUnassigned("greeting9", d4);
 
+		Diagnostic d5 = d(35, 54, 58, "'AB' does not match the expected type of 'char'.", DiagnosticSeverity.Error,
+				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
 		assertJavaDiagnostics(diagnosticsParams, utils, //
-				d1, d2, d3, d4);
+				d1, d2, d3, d4, d5);
+	}
+
+	@Test
+	public void testImproperDefaultValuesList() throws Exception {
+		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+
+		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
+		System.err.println(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/DefaultValueListResource.java"));
+		String javaFileUri = getFileUri("src/main/java/org/acme/config/DefaultValueListResource.java", javaProject);
+		diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
+
+		Diagnostic d1 = d(10, 53, 58, "'foo' does not match the expected type of 'List<Integer>'.", DiagnosticSeverity.Error,
+				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+		Diagnostic d2 = d(19, 53, 65, "'12,13\\,14' does not match the expected type of 'int[]'.", DiagnosticSeverity.Error,
+				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+		Diagnostic d3 = d(31, 53, 60, "'AB,CD' does not match the expected type of 'char[]'.", DiagnosticSeverity.Error,
+				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+		Diagnostic d4 = d(34, 53, 59, "',,,,' does not match the expected type of 'char[]'.", DiagnosticSeverity.Error,
+				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+		Diagnostic d5 = d(37, 54, 56, "'defaultValue=\"\"' will behave as if no default value is set, and will not be treated as an empty 'List<String>'.", DiagnosticSeverity.Warning,
+				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+				MicroProfileConfigErrorCode.EMPTY_LIST_NOT_SUPPORTED);
+
+		assertJavaDiagnostics(diagnosticsParams, utils, //
+				d1, d2, d3, d4, d5);
 	}
 
 	@Test
@@ -107,8 +146,12 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
 				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
 				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
+		Diagnostic d4 = d(35, 54, 58, "'AB' does not match the expected type of 'char'.", DiagnosticSeverity.Error,
+				MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+				MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
 		assertJavaDiagnostics(diagnosticsParams, utils, //
-				d1, d2, d3);
+				d1, d2, d3, d4);
 	}
 
 	@Test

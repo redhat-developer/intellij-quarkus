@@ -41,7 +41,7 @@ public class MicroProfileConfigPropertyTest extends MavenModuleImportingTestCase
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
         assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //
-                        20 /* properties from Java sources with ConfigProperty */ + //
+                        31 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */ + //
                         7 /* static properties from microprofile-context-propagation-api */ +
                         1 /* static property from microprofile config_ordinal */,
@@ -118,7 +118,7 @@ public class MicroProfileConfigPropertyTest extends MavenModuleImportingTestCase
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
         MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
-        assertProperties(infoFromJavaSources, 20 /* properties from Java sources with ConfigProperty */ + //
+        assertProperties(infoFromJavaSources, 31 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */,
 
                 // GreetingResource
