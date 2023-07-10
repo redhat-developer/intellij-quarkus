@@ -10,20 +10,17 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.graphql.properties;
 
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.junit.Test;
 
-import java.io.File;
-
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.assertProperties;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.p;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.*;
 
 /**
  * Test the availability of the MicroProfile GraphQL properties
@@ -31,12 +28,12 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * @author Kathryn Kodama
  *
  */
-public class MicroProfileGraphQLTest extends MavenModuleImportingTestCase {
+public class MicroProfileGraphQLTest extends LSP4MPMavenModuleImportingTestCase {
 
 	@Test
 	public void testMicroprofileGraphQL() throws Exception {
 
-		Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-graphql"));
+		Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_graphql);
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
 
 		assertProperties(infoFromClasspath,

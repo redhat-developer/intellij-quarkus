@@ -242,17 +242,13 @@ public class MicroProfileFaultToleranceASTValidator extends JavaASTValidator {
 		}
 	}
 
-	private double findDurationUnit(PsiAnnotationMemberValue memberUnitExpr,
-									long memberUnitNum) {
+	private double findDurationUnit(PsiAnnotationMemberValue memberUnitExpr, long memberUnitNum) {
 		String memberUnit = null;
-		if (memberUnitExpr != null) {
-			if (memberUnitExpr != null && memberUnitExpr instanceof PsiReferenceExpression) {
-				memberUnit = ((PsiReferenceExpression) memberUnitExpr).getReferenceName();
-			}
+		if (memberUnitExpr instanceof PsiReferenceExpression) {
+			memberUnit = ((PsiReferenceExpression) memberUnitExpr).getReferenceName();
 		}
 		return memberUnit != null
-				? getDurationInNanos(ChronoUnit.valueOf(memberUnit),
-				memberUnitNum)
+				? getDurationInNanos(ChronoUnit.valueOf(memberUnit), memberUnitNum)
 				: getDurationInNanos(ChronoUnit.MILLIS, memberUnitNum);
 	}
 
