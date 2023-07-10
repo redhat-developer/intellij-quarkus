@@ -20,7 +20,8 @@
     <toolWindow id="Language Servers"
                 anchor="bottom"
                 factoryClass="com.redhat.devtools.intellij.lsp4ij.console.LSPConsoleToolWindowFactory"
-                canCloseContents="false" />
+                canCloseContents="false"
+                icon="AllIcons.Webreferences.Server"/>
   </extensions>
 
   <actions resource-bundle="messages.LanguageServerBundle">
