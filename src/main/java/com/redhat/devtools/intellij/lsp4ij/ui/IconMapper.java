@@ -65,6 +65,7 @@ public class IconMapper {
             case Field:
                 return AllIcons.Nodes.Field;
             case Value: //No matching icon
+            case Reference:
             case Variable:
                 return AllIcons.Nodes.Variable;
             case Class:
@@ -84,15 +85,14 @@ public class IconMapper {
             case Folder:
                 return AllIcons.Nodes.Folder;
             case Constant:
+            case Keyword:
                 return AllIcons.Nodes.Constant;
             case TypeParameter:
                 return AllIcons.Nodes.Parameter;
             //No matching icons, no fallback
-            case Keyword:
             case Struct:
             case Event:
             case Operator:
-            case Reference:
             case Color:
             default:
                 return AllIcons.Nodes.EmptyNode;
