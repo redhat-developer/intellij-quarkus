@@ -437,6 +437,8 @@
 
     <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator"/>
     <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceASTValidator"/>
+    <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java.MicroProfileGraphQLASTValidator"/>
+
     <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.CircuitBreaker" source="microprofile-faulttolerance">
       <attribute name="delay" range="0"/>
       <attribute name="requestVolumeThreshold" range="1"/>

@@ -85,4 +85,9 @@ public class WeatherService {
         c.setWeatherText(c.isHasPrecipitation() ? "Overcast" : "Sunny");
         return c;
     }
+
+    @Query
+    public void myMethod() {
+    }
+
 }
