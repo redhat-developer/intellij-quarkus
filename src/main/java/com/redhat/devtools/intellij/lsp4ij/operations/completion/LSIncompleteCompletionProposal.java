@@ -15,6 +15,10 @@ import com.intellij.codeInsight.completion.CompletionInitializationContext;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
+import com.intellij.codeInsight.template.Template;
+import com.intellij.codeInsight.template.TemplateManager;
+import com.intellij.codeInsight.template.impl.ConstantNode;
+import com.intellij.codeInsight.template.impl.TemplateImpl;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -27,6 +31,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,29 +46,47 @@ public class LSIncompleteCompletionProposal extends LookupElement {
 
     // Those variables should be defined in LSP4J and reused here whenever done there
     // See https://github.com/eclipse/lsp4j/issues/149
-    /** The currently selected text or the empty string */
+    /**
+     * The currently selected text or the empty string
+     */
     private static final String TM_SELECTED_TEXT = "TM_SELECTED_TEXT"; //$NON-NLS-1$
-    /** The contents of the current line */
+    /**
+     * The contents of the current line
+     */
     private static final String TM_CURRENT_LINE = "TM_CURRENT_LINE"; //$NON-NLS-1$
-    /** The contents of the word under cursor or the empty string */
+    /**
+     * The contents of the word under cursor or the empty string
+     */
     private static final String TM_CURRENT_WORD = "TM_CURRENT_WORD"; //$NON-NLS-1$
-    /** The zero-index based line number */
+    /**
+     * The zero-index based line number
+     */
     private static final String TM_LINE_INDEX = "TM_LINE_INDEX"; //$NON-NLS-1$
-    /** The one-index based line number */
+    /**
+     * The one-index based line number
+     */
     private static final String TM_LINE_NUMBER = "TM_LINE_NUMBER"; //$NON-NLS-1$
-    /** The filename of the current document */
+    /**
+     * The filename of the current document
+     */
     private static final String TM_FILENAME = "TM_FILENAME"; //$NON-NLS-1$
-    /** The filename of the current document without its extensions */
+    /**
+     * The filename of the current document without its extensions
+     */
     private static final String TM_FILENAME_BASE = "TM_FILENAME_BASE"; //$NON-NLS-1$
-    /** The directory of the current document */
+    /**
+     * The directory of the current document
+     */
     private static final String TM_DIRECTORY = "TM_DIRECTORY"; //$NON-NLS-1$
-    /** The full file path of the current document */
+    /**
+     * The full file path of the current document
+     */
     private static final String TM_FILEPATH = "TM_FILEPATH"; //$NON-NLS-1$
 
     protected final CompletionItem item;
     protected final int initialOffset;
-    protected       int currentOffset;
-    protected       int bestOffset;
+    protected int currentOffset;
+    protected int bestOffset;
     protected final Editor editor;
     private Integer rankCategory;
     private Integer rankScore;
@@ -79,7 +102,25 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         this.currentOffset = offset;
         this.bestOffset = getPrefixCompletionStart(editor.getDocument(), offset);
         //this.bestOffset = offset;
-        putUserData(CodeCompletionHandlerBase.DIRECT_INSERTION, true);
+        if(item.getInsertTextFormat() != InsertTextFormat.Snippet) {
+            putUserData(CodeCompletionHandlerBase.DIRECT_INSERTION, true);
+        }
+    }
+
+    @Override
+    public void handleInsert(@NotNull InsertionContext context) {
+        if (item.getInsertTextFormat() == InsertTextFormat.Snippet){
+            Template myTemplate = SnippetTemplateFactory.createTemplate(getInsertText(), context.getProject(), name -> getVariableValue(name));
+            startTemplate(context, myTemplate);
+        } else {
+            apply(context.getDocument(), context.getCompletionChar(), 0, context.getOffset(CompletionInitializationContext.SELECTION_END_OFFSET));
+        }
+    }
+
+    private static void startTemplate(InsertionContext context, @NotNull Template template) {
+        context.getDocument().deleteString(context.getStartOffset(), context.getTailOffset());
+        context.setAddCompletionChar(false);
+        TemplateManager.getInstance(context.getProject()).startTemplate(context.getEditor(), template);
     }
 
     /**
@@ -123,7 +164,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         String insertText = this.item.getInsertText();
         Either<TextEdit, InsertReplaceEdit> eitherTextEdit = this.item.getTextEdit();
         if (eitherTextEdit != null) {
-            if(eitherTextEdit.isLeft()) {
+            if (eitherTextEdit.isLeft()) {
                 insertText = eitherTextEdit.getLeft().getNewText();
             } else {
                 insertText = eitherTextEdit.getRight().getNewText();
@@ -173,7 +214,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     @NotNull
     @Override
     public String getLookupString() {
-        String lookup = StringUtils.isNotBlank(item.getFilterText())?item.getFilterText():item.getLabel();
+        String lookup = StringUtils.isNotBlank(item.getFilterText()) ? item.getFilterText() : item.getLabel();
         if (lookup.charAt(0) == '@') {
             return lookup.substring(1);
         }
@@ -182,7 +223,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
 
     private boolean isDeprecated() {
         return (item.getTags() != null && item.getTags().contains(CompletionItemTag.Deprecated))
-        || (item.getDeprecated() != null && item.getDeprecated().booleanValue());
+                || (item.getDeprecated() != null && item.getDeprecated().booleanValue());
     }
 
     @Override
@@ -200,7 +241,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         Either<TextEdit, InsertReplaceEdit> eitherTextEdit = item.getTextEdit();
         TextEdit textEdit = null;
         if (eitherTextEdit != null) {
-            if(eitherTextEdit.isLeft()) {
+            if (eitherTextEdit.isLeft()) {
                 textEdit = eitherTextEdit.getLeft();
             } else {
                 // trick to partially support the new InsertReplaceEdit from LSP 3.16. Reuse previously code for TextEdit.
@@ -247,66 +288,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
                 }
                 textEdit.getRange().getEnd().setCharacter(textEdit.getRange().getEnd().getCharacter() + commonSize);
             }
-            insertText = textEdit.getNewText();
-            int insertionOffset = LSPIJUtils.toOffset(textEdit.getRange().getStart(), document);
-            insertionOffset = computeNewOffset(item.getAdditionalTextEdits(), insertionOffset, document);
-            if (item.getInsertTextFormat() == InsertTextFormat.Snippet) {
-                int currentSnippetOffsetInInsertText = 0;
-                while ((currentSnippetOffsetInInsertText = insertText.indexOf('$', currentSnippetOffsetInInsertText)) != -1) {
-                    StringBuilder keyBuilder = new StringBuilder();
-                    boolean isChoice = false;
-                    List<String> snippetProposals = new ArrayList<>();
-                    int offsetInSnippet = 1;
-                    while (currentSnippetOffsetInInsertText + offsetInSnippet < insertText.length() && Character.isDigit(insertText.charAt(currentSnippetOffsetInInsertText + offsetInSnippet))) {
-                        keyBuilder.append(insertText.charAt(currentSnippetOffsetInInsertText + offsetInSnippet));
-                        offsetInSnippet++;
-                    }
-                    if (keyBuilder.length() == 0 && insertText.substring(currentSnippetOffsetInInsertText).startsWith("${")) { //$NON-NLS-1$
-                        offsetInSnippet = 2;
-                        while (currentSnippetOffsetInInsertText + offsetInSnippet < insertText.length() && Character.isDigit(insertText.charAt(currentSnippetOffsetInInsertText + offsetInSnippet))) {
-                            keyBuilder.append(insertText.charAt(currentSnippetOffsetInInsertText + offsetInSnippet));
-                            offsetInSnippet++;
-                        }
-                        if (currentSnippetOffsetInInsertText + offsetInSnippet < insertText.length()) {
-                            char currentChar = insertText.charAt(currentSnippetOffsetInInsertText + offsetInSnippet);
-                            if (currentChar == ':' || currentChar == '|') {
-                                isChoice |= currentChar == '|';
-                                offsetInSnippet++;
-                            }
-                        }
-                        boolean close = false;
-                        StringBuilder valueBuilder = new StringBuilder();
-                        while (currentSnippetOffsetInInsertText + offsetInSnippet < insertText.length() && !close) {
-                            char currentChar = insertText.charAt(currentSnippetOffsetInInsertText + offsetInSnippet);
-                            if (valueBuilder.length() > 0 &&
-                                    ((isChoice && (currentChar == ',' || currentChar == '|') || currentChar == '}'))) {
-                                String value = valueBuilder.toString();
-                                if (value.startsWith("$")) { //$NON-NLS-1$
-                                    String varValue = getVariableValue(value.substring(1));
-                                    if (varValue != null) {
-                                        value = varValue;
-                                    }
-                                }
-                                snippetProposals.add(value);
-                                valueBuilder = new StringBuilder();
-                            } else if (currentChar != '}') {
-                                valueBuilder.append(currentChar);
-                            }
-                            close = currentChar == '}';
-                            offsetInSnippet++;
-                        }
-                    }
-                    String defaultProposal = snippetProposals.isEmpty() ? "" : snippetProposals.get(0); //$NON-NLS-1$
-                    if (keyBuilder.length() > 0) {
-                        String key = keyBuilder.toString();
-                        insertText = insertText.substring(0, currentSnippetOffsetInInsertText) + defaultProposal + insertText.substring(currentSnippetOffsetInInsertText + offsetInSnippet);
-                        currentSnippetOffsetInInsertText += defaultProposal.length();
-                    } else {
-                        currentSnippetOffsetInInsertText++;
-                    }
-                }
-            }
-            textEdit.setNewText(insertText); // insertText now has placeholder removed
+
             List<TextEdit> additionalEdits = item.getAdditionalTextEdits();
             if (additionalEdits != null && !additionalEdits.isEmpty()) {
                 List<TextEdit> allEdits = new ArrayList<>();
@@ -330,30 +312,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         }
     }
 
-    private int computeNewOffset(List<TextEdit> additionalTextEdits, int insertionOffset, Document doc) {
-        if (additionalTextEdits != null && !additionalTextEdits.isEmpty()) {
-            int adjustment = 0;
-            for (TextEdit edit : additionalTextEdits) {
-                try {
-                    Range rng = edit.getRange();
-                    int start = LSPIJUtils.toOffset(rng.getStart(), doc);
-                    if (start <= insertionOffset) {
-                        int end = LSPIJUtils.toOffset(rng.getEnd(), doc);
-                        int orgLen = end - start;
-                        int newLeng = edit.getNewText().length();
-                        int editChange = newLeng - orgLen;
-                        adjustment += editChange;
-                    }
-                } catch (RuntimeException e) {
-                    LOGGER.warn(e.getLocalizedMessage(), e);
-                }
-            }
-            return insertionOffset + adjustment;
-        }
-        return insertionOffset;
-    }
-
-    private String getVariableValue(String variableName) {
+    private @Nullable String getVariableValue(String variableName) {
         Document document = editor.getDocument();
         switch (variableName) {
             case TM_FILENAME_BASE:
@@ -414,11 +373,6 @@ public class LSIncompleteCompletionProposal extends LookupElement {
             return item.getFilterText();
         }
         return item.getLabel();
-    }
-
-    @Override
-    public void handleInsert(@NotNull InsertionContext context) {
-        apply(context.getDocument(), context.getCompletionChar(), 0, context.getOffset(CompletionInitializationContext.SELECTION_END_OFFSET));
     }
 
     public boolean validate(Document document, int offset, DocumentEvent event) {
