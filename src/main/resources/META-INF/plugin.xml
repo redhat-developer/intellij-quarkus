@@ -393,8 +393,7 @@
                                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.java.MicroProfileGenerateOpenAPIOperation"/>
 
     <!-- Microprofile Config Static Property support -->
-    
-    <staticPropertyProvider resource="/static-properties/mp-config-metadata.json"/>
+    <staticPropertyProvider resource="/static-properties/mp-config-metadata.json" type="org.eclipse.microprofile.config.Config"/>
 
     <!--quarkus-ls-->
     <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
