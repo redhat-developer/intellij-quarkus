@@ -90,4 +90,8 @@ public class WeatherService {
     public void myMethod() {
     }
 
+    @Mutation
+    public void myOtherMethod() {
+    }
+
 }

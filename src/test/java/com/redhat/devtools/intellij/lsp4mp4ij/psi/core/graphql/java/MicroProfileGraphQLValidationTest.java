@@ -32,12 +32,12 @@ import java.util.Collections;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
 
 /**
- * Tests for {@link com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.MicroProfileGraphQLASTValidator}.
+ * Tests for {@link com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java.MicroProfileGraphQLASTValidator}.
  */
 public class MicroProfileGraphQLValidationTest extends LSP4MPMavenModuleImportingTestCase {
 
 	@Test
-	public void testVoidQueryMethod() throws Exception {
+	public void testVoidMethods() throws Exception {
 		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_graphql);
 		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
@@ -46,11 +46,17 @@ public class MicroProfileGraphQLValidationTest extends LSP4MPMavenModuleImportin
 		diagnosticsParams.setUris(Collections.singletonList(javaFileUri));
 		diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
-		Diagnostic d = d(89, 11, 15,
+		Diagnostic d1 = d(89, 11, 15,
 				"Methods annotated with microprofile-graphql's `@Query` cannot have 'void' as a return type.",
 				DiagnosticSeverity.Error, MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
 				MicroProfileGraphQLErrorCode.NO_VOID_QUERIES);
+
+		Diagnostic d2 = d(93, 11, 15,
+				"Methods annotated with microprofile-graphql's `@Mutation` cannot have 'void' as a return type.",
+				DiagnosticSeverity.Error, MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
+				MicroProfileGraphQLErrorCode.NO_VOID_MUTATIONS);
+
 		assertJavaDiagnostics(diagnosticsParams, utils, //
-				d);
+				d1, d2);
 	}
 }
