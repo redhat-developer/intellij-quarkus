@@ -78,10 +78,10 @@ public class SupportedFeatures {
 		textDocumentClientCapabilities.setInlayHint(new InlayHintCapabilities());
 		// TODO : support textDocument/colorPresentation
 		// textDocumentClientCapabilities.setColorProvider(new ColorProviderCapabilities());
-		final var completionItemCapabilities = new CompletionItemCapabilities(Boolean.FALSE);
+		final var completionItemCapabilities = new CompletionItemCapabilities(Boolean.TRUE);
 		completionItemCapabilities
 				.setDocumentationFormat(Arrays.asList(MarkupKind.MARKDOWN, MarkupKind.PLAINTEXT));
-		// completionItemCapabilities.setInsertTextModeSupport(new CompletionItemInsertTextModeSupportCapabilities(List.of(InsertTextMode.AsIs, InsertTextMode.AdjustIndentation)));
+		completionItemCapabilities.setInsertTextModeSupport(new CompletionItemInsertTextModeSupportCapabilities(List.of(InsertTextMode.AsIs, InsertTextMode.AdjustIndentation)));
 		// completionItemCapabilities.setResolveSupport(new CompletionItemResolveSupportCapabilities(List.of("documentation", "detail", "additionalTextEdits"))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		textDocumentClientCapabilities.setCompletion(new CompletionCapabilities(completionItemCapabilities));
 		final var definitionCapabilities = new DefinitionCapabilities();

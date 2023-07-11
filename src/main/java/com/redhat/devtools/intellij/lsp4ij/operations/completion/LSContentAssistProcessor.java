@@ -54,18 +54,17 @@ public class LSContentAssistProcessor extends CompletionContributor {
         Project project = parameters.getOriginalFile().getProject();
         int offset = parameters.getOffset();
         CompletableFuture<List<Pair<LanguageServerWrapper, LanguageServer>>> completionLanguageServersFuture = initiateLanguageServers(project, document);
-        CompletionParams param;
         try {
             /*
              process the responses out of the completable loop as it may cause deadlock if user is typing
              more characters as toProposals will require as read lock that this thread already have and
              async processing is occuring on a separate thread.
              */
-            param = LSPIJUtils.toCompletionParams(LSPIJUtils.toUri(document), offset, document);
+            CompletionParams params = LSPIJUtils.toCompletionParams(LSPIJUtils.toUri(document), offset, document);
             BlockingDeque<Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer>> proposals = new LinkedBlockingDeque<>();
             CompletableFuture<Void> future = completionLanguageServersFuture
                     .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
-                            .map(languageServer -> languageServer.getSecond().getTextDocumentService().completion(param)
+                            .map(languageServer -> languageServer.getSecond().getTextDocumentService().completion(params)
                                     .thenAcceptAsync(completion -> proposals.add(new Pair<>(completion, languageServer.getSecond()))))
                             .toArray(CompletableFuture[]::new)));
             while (!future.isDone() || !proposals.isEmpty()) {
@@ -77,7 +76,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
                 }
 
             }
-        } catch (ProcessCanceledException cancellation){
+        } catch (ProcessCanceledException cancellation) {
             throw cancellation;
         } catch (RuntimeException | InterruptedException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
@@ -90,7 +89,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
                                                             int offset, Either<List<CompletionItem>,
             CompletionList> completion, LanguageServer languageServer) {
         if (completion != null) {
-            List<CompletionItem> items = completion.isLeft()?completion.getLeft():completion.getRight().getItems();
+            List<CompletionItem> items = completion.isLeft() ? completion.getLeft() : completion.getRight().getItems();
             boolean isIncomplete = completion.isRight() && completion.getRight().isIncomplete();
             return items.stream().map(item -> createLookupItem(project, editor, offset, item, isIncomplete, languageServer)).
                     filter(item -> item.validate(document, offset, null)).
@@ -103,7 +102,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
     private LSIncompleteCompletionProposal createLookupItem(Project project, Editor editor, int offset,
                                                             CompletionItem item, boolean isIncomplete,
                                                             LanguageServer languageServer) {
-        return isIncomplete?new LSIncompleteCompletionProposal(editor, offset, item, languageServer):
+        return isIncomplete ? new LSIncompleteCompletionProposal(editor, offset, item, languageServer) :
                 new LSCompletionProposal(editor, offset, item, languageServer);
     }
 
