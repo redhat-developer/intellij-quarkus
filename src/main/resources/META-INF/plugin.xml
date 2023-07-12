@@ -297,6 +297,7 @@
     <lang.substitutor language="TEXT" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
     <lang.substitutor language="JSON" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
     <lang.substitutor language="yaml" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+    <typedHandler implementation="com.redhat.devtools.intellij.qute.editor.QuteTypedHandler"/>
   </extensions>
 
   <extensionPoints>
