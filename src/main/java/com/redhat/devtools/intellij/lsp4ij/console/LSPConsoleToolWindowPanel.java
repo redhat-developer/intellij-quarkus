@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.CardLayoutPanel;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.JBScrollPane;
@@ -143,6 +144,7 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
             } else if (key instanceof LanguageServerProcessTreeNode) {
                 consoleView = createConsoleView(((LanguageServerProcessTreeNode)key).getLanguageServer().serverDefinition, project);
                 JComponent consoleComponent = consoleView.getComponent();
+                Disposer.register(LSPConsoleToolWindowPanel.this, consoleView);
                 add(consoleComponent, NAME_VIEW_CONSOLE);
                 configureToolbar(consoleComponent);
                 showConsole();
