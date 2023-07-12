@@ -286,6 +286,7 @@
                                   implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileViewProviderFactory"/>
     <lang.formatter language="Qute_"
                     implementationClass="com.redhat.devtools.intellij.qute.lang.format.QuteHtmlFormattingModelBuilder"/>
+    <braceMatcher filetype="Qute_" implementationClass="com.redhat.devtools.intellij.qute.editor.QuteBraceMatcher"/>
     <lang.parserDefinition language="Qute_" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteParserDefinition"/>
     <fileIndentOptionsProvider implementation="com.redhat.devtools.intellij.qute.lang.format.QuteFileIndentOptionsProvider"/>
     <editorHighlighterProvider filetype="Qute_"
