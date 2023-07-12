@@ -141,7 +141,7 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
             } else {
                 int index = 0;
                 for (InlayHintLabelPart part : label.getRight()) {
-                    InlayPresentation text = createInlayPresentation(editor.getProject(), factory, presentations, p, index, part);
+                    InlayPresentation text = createInlayPresentation(editor.getProject(), factory, p, index, part);
                     if (part.getTooltip() != null && part.getTooltip().isLeft()) {
                         text = factory.withTooltip(part.getTooltip().getLeft(), text);
                     }
@@ -157,15 +157,11 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
     private InlayPresentation createInlayPresentation(
             Project project,
             PresentationFactory factory,
-            List<InlayPresentation> presentations, Pair<Integer,
-            Pair<InlayHint, LanguageServer>> p,
+            Pair<Integer, Pair<InlayHint, LanguageServer>> p,
             int index,
             InlayHintLabelPart part) {
         InlayPresentation text = factory.smallText(part.getValue());
-        if (!hasCommand(part)) {
-            // No command, create a simple text inlay hint
-            presentations.add(text);
-        } else {
+        if (hasCommand(part)) {
             // InlayHintLabelPart defines a Command, create a clickable inlay hint
             int finalIndex = index;
             text = factory.referenceOnHover(text, (event, translated) ->
