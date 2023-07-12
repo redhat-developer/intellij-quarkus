@@ -35,6 +35,9 @@
                              provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.java.MicroProfileJavaConfigurableProvider"/>
     <applicationService id="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"
                         serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"/>
+
+    <implicitUsageProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JavaEEImplicitUsageProvider"/>
+
     <!-- Quarkus -->
     <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
     <externalAnnotator language="Properties"
