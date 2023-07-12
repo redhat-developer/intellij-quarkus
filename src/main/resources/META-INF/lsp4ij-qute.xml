@@ -43,6 +43,7 @@
     <externalAnnotator language="Qute_"
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkAnnotator"/>
     <completion.confidence  language="HTML" order="before htmlText" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.completion.LSPCompletionConfidence" />
+    <implicitUsageProvider implementation="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeImplicitUsageProvider"/>
   </extensions>
 
 </idea-plugin>

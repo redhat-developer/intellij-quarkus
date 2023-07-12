@@ -17,12 +17,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.redhat.devtools.intellij.lsp4ij.LSPIJUtils.getProject;
 
 
 /**
@@ -37,6 +43,23 @@ public class RenardeUtils {
 	 * Returns true if the given class extends Renarde's <code>Controller</code>
 	 * class and false otherwise.
 	 *
+	 * @param psiClass the class to check
+	 * @return true if the given class extends Renarde's <code>Controller</code>
+	 *         class and false otherwise
+	 */
+	public static boolean isControllerClass(@Nullable PsiClass psiClass) {
+		if (psiClass == null) {
+			return false;
+		}
+		Module project = ModuleUtilCore.findModuleForPsiElement(psiClass);
+		return isControllerClass(project, psiClass);
+	}
+
+
+	/**
+	 * Returns true if the given class extends Renarde's <code>Controller</code>
+	 * class and false otherwise.
+	 *
 	 * @param project  the project that the class to check is in
 	 * @param typeRoot the class (compilation unit or class file) to check
 	 * @param monitor  the progress monitor
@@ -44,13 +67,17 @@ public class RenardeUtils {
 	 *         class and false otherwise
 	 */
 	public static boolean isControllerClass(Module project, PsiFile typeRoot, ProgressIndicator monitor) {
+		PsiClass type = PsiTreeUtil.getChildOfType(typeRoot, PsiClass.class);
+		return isControllerClass(project, type);
+	}
+
+	public static boolean isControllerClass(@NotNull Module project, @Nullable PsiClass type) {
+		if (type == null || type.isEnum() || type.isInterface() || type.isAnnotationType() || type.isRecord()) {
+			return false;
+		}
 		PsiClass renardeControllerType = PsiTypeUtils.findType(project, RenardeConstants.CONTROLLER_FQN);
 		if (renardeControllerType == null) {
 			// The project is not a renarde project
-			return false;
-		}
-		PsiClass type = PsiTreeUtil.getChildOfType(typeRoot, PsiClass.class);
-		if (type == null || type.isEnum() || type.isInterface() || type.isAnnotationType() || type.isRecord()) {
 			return false;
 		}
 		// Check if the current type extends "io.quarkiverse.renarde.Controller".
