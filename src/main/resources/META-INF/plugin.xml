@@ -11,6 +11,17 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <h3>1.22.0</h3>
+    <ul>
+      <li>Improved Qute template editing experience (brackets autoclose, syntax highlighting, better HTML integration ...)</li>
+      <li>New completion icons</li>
+      <li>New and improved Snippet completion</li>
+      <li>New validations for Microprofile @Query and @Mutation</li>
+      <li>Show JAX-RS and Renarde endpoints as implicitly used</li>
+      <li>Improved extension selection in Quarkus project wizard</li>
+      <li>Bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/35?closed=1">changelog</a>.
     <h3>1.21.0</h3>
     <ul>
       <li>performance improvement by debouncing classpath changes to refresh Java / properties files validation</li>
