@@ -22,6 +22,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
@@ -51,7 +52,8 @@ public class LSContentAssistProcessor extends CompletionContributor {
     public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet result) {
         Document document = parameters.getEditor().getDocument();
         Editor editor = parameters.getEditor();
-        Project project = parameters.getOriginalFile().getProject();
+        PsiFile file = parameters.getOriginalFile();
+        Project project = file.getProject();
         int offset = parameters.getOffset();
         CompletableFuture<List<Pair<LanguageServerWrapper, LanguageServer>>> completionLanguageServersFuture = initiateLanguageServers(project, document);
         try {
@@ -71,7 +73,7 @@ public class LSContentAssistProcessor extends CompletionContributor {
                 ProgressManager.checkCanceled();
                 Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer> pair = proposals.poll(25, TimeUnit.MILLISECONDS);
                 if (pair != null) {
-                    result.addAllElements(toProposals(project, editor, document, offset, pair.getFirst(),
+                    result.addAllElements(toProposals(file, editor, document, offset, pair.getFirst(),
                             pair.getSecond()));
                 }
 
@@ -85,14 +87,14 @@ public class LSContentAssistProcessor extends CompletionContributor {
         super.fillCompletionVariants(parameters, result);
     }
 
-    private Collection<? extends LookupElement> toProposals(Project project, Editor editor, Document document,
+    private Collection<? extends LookupElement> toProposals(PsiFile file, Editor editor, Document document,
                                                             int offset, Either<List<CompletionItem>,
             CompletionList> completion, LanguageServer languageServer) {
         if (completion != null) {
             List<CompletionItem> items = completion.isLeft() ? completion.getLeft() : completion.getRight().getItems();
             boolean isIncomplete = completion.isRight() && completion.getRight().isIncomplete();
             return items.stream()
-                    .map(item -> createLookupItem(editor, offset, item, isIncomplete, languageServer))
+                    .map(item -> createLookupItem(file, editor, offset, item, isIncomplete, languageServer))
                     .filter(item -> item.validate(document, offset, null))
                     .map(item -> PrioritizedLookupElement.withGrouping(item, item.getItem().getKind().getValue()))
                     .collect(Collectors.toList());
@@ -100,11 +102,11 @@ public class LSContentAssistProcessor extends CompletionContributor {
         return Collections.emptyList();
     }
 
-    private LSIncompleteCompletionProposal createLookupItem(Editor editor, int offset,
+    private LSIncompleteCompletionProposal createLookupItem(PsiFile file, Editor editor, int offset,
                                                             CompletionItem item, boolean isIncomplete,
                                                             LanguageServer languageServer) {
-        return isIncomplete ? new LSIncompleteCompletionProposal(editor, offset, item, languageServer) :
-                new LSCompletionProposal(editor, offset, item, languageServer);
+        return isIncomplete ? new LSIncompleteCompletionProposal(file, editor, offset, item, languageServer) :
+                new LSCompletionProposal(file, editor, offset, item, languageServer);
     }
 
 

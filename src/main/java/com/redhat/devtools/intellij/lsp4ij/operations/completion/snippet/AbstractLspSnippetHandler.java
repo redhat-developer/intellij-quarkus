@@ -25,8 +25,28 @@ public abstract class AbstractLspSnippetHandler implements LspSnippetHandler {
 
     private final Function<String, String> variableResolver;
 
-    public AbstractLspSnippetHandler(Function<String, String> variableResolver) {
+    private final LspSnippetIndentOptions indentOptions;
+
+    /**
+     * Abstract LSP snippet handler constructor.
+     *
+     * @param variableResolver the variable resolver.
+     * @param indentOptions the indent options to use to format text block which contains '\n' and '\t'.
+     */
+    public AbstractLspSnippetHandler(Function<String, String> variableResolver, LspSnippetIndentOptions indentOptions) {
         this.variableResolver = variableResolver;
+        this.indentOptions = indentOptions;
+    }
+
+    /**
+     * Replace '\n' and '\t' declared in the snippets according to the LSP client settings.
+     *
+     * @param text the text to format according to the LSP client settings.
+     *
+     * @return the result of '\n' and '\t' replacement declared in the snippets according to the LSP client settings.
+     */
+    protected String formatText(String text) {
+        return indentOptions != null ? indentOptions.formatText(text) : text;
     }
 
     /**

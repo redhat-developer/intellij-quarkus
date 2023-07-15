@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.lsp4ij.operations.completion;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -22,8 +23,8 @@ import org.slf4j.LoggerFactory;
 public class LSCompletionProposal extends LSIncompleteCompletionProposal {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSCompletionProposal.class);
 
-    public LSCompletionProposal(Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
-        super(editor, offset, item, languageServer);
+    public LSCompletionProposal(PsiFile file, Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
+        super(file, editor, offset, item, languageServer);
     }
 
     @Override

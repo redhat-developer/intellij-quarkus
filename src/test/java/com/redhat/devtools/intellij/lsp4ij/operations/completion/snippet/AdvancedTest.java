@@ -22,18 +22,18 @@ public class AdvancedTest {
 
     @Test
     public void textAndlaceholdersAndTabStop() {
-        LspSnippetNode[] actual = parse("{#for ${1:item} in ${2:items}}\\r\\n\\t{${1:item}.${3:name}}$0\\r\\n{/for}");
+        LspSnippetNode[] actual = parse("{#for ${1:item} in ${2:items}}\n\t{${1:item}.${3:name}}$0\n{/for}");
         assertEquals(actual, text("{#for "), //
                 placeholder(1, "item", 1), // ${1:item}
                 text(" in "), //
                 placeholder(2, "items", 1), // ${2:items}
-                text("}\\r\\n\\t{"), //
+                text("}\n\t{"), //
                 placeholder(1, "item", 1), // ${1:item}
                 text("."), //
                 placeholder(3, "name", 1), // ${3:name}
                 text("}"), //
                 tabstop(0), //
-                text("\\r\\n{/for}"));
+                text("\n{/for}"));
     }
 
 }

@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.handler;
 
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.DefaultLspSnippetHandler;
+import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetIndentOptions;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetVariableConstants;
 
 import java.util.ArrayList;
@@ -23,14 +24,14 @@ public class ExtractSnippetLinkedPositionHandler extends DefaultLspSnippetHandle
 
     private final List<LinkedPosition> linkedPositions;
 
-    public ExtractSnippetLinkedPositionHandler() {
+    public ExtractSnippetLinkedPositionHandler(LspSnippetIndentOptions indentOptions) {
         super(name -> {
             switch (name) {
                 case LspSnippetVariableConstants.TM_FILENAME:
                     return "foo.txt";
             }
             return name;
-        });
+        }, indentOptions);
         this.linkedPositions = new ArrayList<>();
     }
 

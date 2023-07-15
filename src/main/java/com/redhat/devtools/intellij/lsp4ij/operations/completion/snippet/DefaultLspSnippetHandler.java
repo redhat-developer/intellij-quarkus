@@ -30,8 +30,14 @@ public class DefaultLspSnippetHandler extends AbstractLspSnippetHandler {
 
     private final StringBuilder templateContent;
 
-    public DefaultLspSnippetHandler(Function<String, String> variableResolver) {
-        super(variableResolver);
+    /**
+     * Default LSP snippet handler constructor.
+     *
+     * @param variableResolver the variable resolver.
+     * @param indentOptions the indent options to use to format text block which contains '\n' and '\t'.
+     */
+    public DefaultLspSnippetHandler(Function<String, String> variableResolver, LspSnippetIndentOptions indentOptions) {
+        super(variableResolver,  indentOptions);
         this.templateContent = new StringBuilder();
     }
 
@@ -47,7 +53,7 @@ public class DefaultLspSnippetHandler extends AbstractLspSnippetHandler {
 
     @Override
     public void text(String text) {
-        appendContent(text);
+        appendContent(formatText(text));
     }
 
     @Override

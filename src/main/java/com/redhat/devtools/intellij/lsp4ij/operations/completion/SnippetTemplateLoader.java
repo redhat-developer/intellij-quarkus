@@ -17,6 +17,7 @@ import com.intellij.codeInsight.template.Template;
 import com.intellij.codeInsight.template.impl.ConstantNode;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.AbstractLspSnippetHandler;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetHandler;
+import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetIndentOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,9 +40,10 @@ public class SnippetTemplateLoader extends AbstractLspSnippetHandler {
      *
      * @param template         the Intellij template to load.
      * @param variableResolver the variable resolver (ex : resolve value of TM_SELECTED_TEXT when snippet declares ${TM_SELECTED_TEXT})
+     * @param indentOptions the LSP indent options to replace '\t' and '\n' characters according the code style settings of the language.
      */
-    public SnippetTemplateLoader(Template template, Function<String, String> variableResolver) {
-        super(variableResolver);
+    public SnippetTemplateLoader(Template template, Function<String, String> variableResolver, LspSnippetIndentOptions indentOptions) {
+        super(variableResolver, indentOptions);
         this.template = template;
         this.existingVariables = new ArrayList<>();
     }
@@ -58,7 +60,7 @@ public class SnippetTemplateLoader extends AbstractLspSnippetHandler {
 
     @Override
     public void text(String text) {
-        template.addTextSegment(text);
+        template.addTextSegment(formatText(text));
     }
 
     @Override
