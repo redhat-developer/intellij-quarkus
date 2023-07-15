@@ -16,6 +16,7 @@ package com.redhat.devtools.intellij.lsp4ij.operations.completion;
 import com.intellij.codeInsight.template.Template;
 import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.openapi.project.Project;
+import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetIndentOptions;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetParser;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,10 +38,10 @@ public class SnippetTemplateFactory {
      * @param variableResolver the LSP variable resolvers (ex to resolve ${TM_SELECTED_TEXT}).
      * @return an Intellij Template instanced loaded from the given LSP snippet content.
      */
-    public static @NotNull Template createTemplate(@NotNull String snippetContent, @NotNull Project project, @NotNull Function<String, String> variableResolver) {
+    public static @NotNull Template createTemplate(@NotNull String snippetContent, @NotNull Project project, @NotNull Function<String, String> variableResolver, LspSnippetIndentOptions indentOptions) {
         Template template = TemplateManager.getInstance(project).createTemplate("", "");
         template.setInline(true);
-        LspSnippetParser parser = new LspSnippetParser(new SnippetTemplateLoader(template, variableResolver));
+        LspSnippetParser parser = new LspSnippetParser(new SnippetTemplateLoader(template, variableResolver, indentOptions));
         parser.parse(snippetContent);
         return template;
     }

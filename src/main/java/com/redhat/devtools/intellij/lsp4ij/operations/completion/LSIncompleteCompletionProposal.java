@@ -18,14 +18,23 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.template.Template;
 import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.codeInsight.template.impl.TemplateImpl;
+import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.FileViewProvider;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.psi.templateLanguages.TemplateLanguageFileViewProvider;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.command.internal.CommandExecutor;
+import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetIndentOptions;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -47,6 +56,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
 
     protected final CompletionItem item;
     protected final int initialOffset;
+    private final PsiFile file;
     protected int currentOffset;
     protected int bestOffset;
     protected final Editor editor;
@@ -56,7 +66,8 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     private String documentFilterAddition = ""; //$NON-NLS-1$
     protected final LanguageServer languageServer;
 
-    public LSIncompleteCompletionProposal(Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
+    public LSIncompleteCompletionProposal(PsiFile file, Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
+        this.file = file;
         this.item = item;
         this.editor = editor;
         this.languageServer = languageServer;
@@ -72,15 +83,18 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         if (item.getInsertTextFormat() == InsertTextFormat.Snippet) {
             // Insert text has snippet syntax, ex : ${1:name}
             String insertText = getInsertText();
+            // Get the indentation settings
+            LspSnippetIndentOptions indentOptions = createLspIndentOptions(insertText, file);
             // Load the insert text to build:
             // - an IJ Template instance which will take care of replacement of placeholders
             // - the insert text without placeholders
-            template = SnippetTemplateFactory.createTemplate(insertText, context.getProject(), name -> getVariableValue(name));
+            template = SnippetTemplateFactory.createTemplate(insertText, context.getProject(), name -> getVariableValue(name), indentOptions);
             // Update the TextEdit with the content snippet content without placeholders
             // ex : ${1:name} --> name
             updateInsertText(template.getTemplateText());
         }
 
+        // Apply all text edits
         apply(context.getDocument(), context.getCompletionChar(), 0, context.getOffset(CompletionInitializationContext.SELECTION_END_OFFSET));
 
         if (template != null && ((TemplateImpl) template).getVariableCount() > 0) {
@@ -89,6 +103,38 @@ public class LSIncompleteCompletionProposal extends LookupElement {
             EditorModificationUtil.moveCaretRelatively(editor, -template.getTemplateText().length());
             TemplateManager.getInstance(context.getProject()).startTemplate(context.getEditor(), template);
         }
+    }
+
+    private static LspSnippetIndentOptions createLspIndentOptions(String insertText, PsiFile file) {
+        if (LspSnippetIndentOptions.shouldBeFormatted(insertText)) {
+            // Get global line separator settings
+            CodeStyleSettings settings = CodeStyleSettings.getDefaults();
+            String lineSeparator = settings.getLineSeparator();
+            CommonCodeStyleSettings.@NotNull IndentOptions indentOptions = getIndentOptions(file, settings);
+            boolean insertSpaces = !indentOptions.USE_TAB_CHARACTER;
+            int tabSize = indentOptions.TAB_SIZE;
+            return new LspSnippetIndentOptions(tabSize, insertSpaces, lineSeparator);
+        }
+        return null;
+    }
+
+    private static CommonCodeStyleSettings.@NotNull IndentOptions getIndentOptions(PsiFile file, CodeStyleSettings settings) {
+        Project project = file.getProject();
+        FileViewProvider provider = PsiManagerEx.getInstanceEx(project).findViewProvider(file.getVirtualFile());
+        if (provider instanceof TemplateLanguageFileViewProvider) {
+            // get indent options of the language
+            Language language = ((TemplateLanguageFileViewProvider) provider).getTemplateDataLanguage();
+            CommonCodeStyleSettings.IndentOptions indentOptions = settings.getLanguageIndentOptions(language);
+            if (indentOptions != null) {
+                return indentOptions;
+            }
+        }
+        Language language = provider.getBaseLanguage();
+        CommonCodeStyleSettings.IndentOptions indentOptions = settings.getLanguageIndentOptions(language);
+        if (indentOptions != null) {
+            return indentOptions;
+        }
+        return settings.getIndentOptions();
     }
 
     /**

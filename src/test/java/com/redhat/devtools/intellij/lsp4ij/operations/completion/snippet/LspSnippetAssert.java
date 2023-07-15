@@ -34,8 +34,8 @@ public class LspSnippetAssert {
         return handler.getNodes();
     }
 
-    public static LinkedPositionResult parseLinkedPosition(String snippet) {
-        ExtractSnippetLinkedPositionHandler handler = new ExtractSnippetLinkedPositionHandler();
+    public static LinkedPositionResult parseLinkedPosition(String snippet, LspSnippetIndentOptions indentOptions) {
+        ExtractSnippetLinkedPositionHandler handler = new ExtractSnippetLinkedPositionHandler(indentOptions);
         LspSnippetParser parser = new LspSnippetParser(handler);
         parser.parse(snippet);
         return handler.getResult();
