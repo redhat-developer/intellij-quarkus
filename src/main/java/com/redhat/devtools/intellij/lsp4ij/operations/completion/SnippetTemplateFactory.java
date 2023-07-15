@@ -39,6 +39,7 @@ public class SnippetTemplateFactory {
      */
     public static @NotNull Template createTemplate(@NotNull String snippetContent, @NotNull Project project, @NotNull Function<String, String> variableResolver) {
         Template template = TemplateManager.getInstance(project).createTemplate("", "");
+        template.setInline(true);
         LspSnippetParser parser = new LspSnippetParser(new SnippetTemplateLoader(template, variableResolver));
         parser.parse(snippetContent);
         return template;

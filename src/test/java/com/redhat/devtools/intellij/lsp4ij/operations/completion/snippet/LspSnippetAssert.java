@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet;
 
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.handler.*;
+import org.junit.Assert;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,7 +23,6 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertArrayEquals;
 
 public class LspSnippetAssert {
-
     private LspSnippetAssert() {
 
     }
@@ -32,6 +32,13 @@ public class LspSnippetAssert {
         LspSnippetParser parser = new LspSnippetParser(handler);
         parser.parse(snippet);
         return handler.getNodes();
+    }
+
+    public static LinkedPositionResult parseLinkedPosition(String snippet) {
+        ExtractSnippetLinkedPositionHandler handler = new ExtractSnippetLinkedPositionHandler();
+        LspSnippetParser parser = new LspSnippetParser(handler);
+        parser.parse(snippet);
+        return handler.getResult();
     }
 
     public static void assertEquals(LspSnippetNode[] actual, LspSnippetNode... expected) {
@@ -65,5 +72,14 @@ public class LspSnippetAssert {
     private static ChoiceNode choice(Integer index, String name, String... choices) {
         List<String> list = Arrays.stream(choices).collect(Collectors.toList());
         return new ChoiceNode(index, name, list);
+    }
+
+    public static void assertEquals(LinkedPositionResult actual, String templateContent, LinkedPosition... positions) {
+        Assert.assertEquals(templateContent, actual.getTemplateContent());
+        assertArrayEquals(positions, actual.getLinkedPositions());
+    }
+
+    public static LinkedPosition position(String name, int offset, int length) {
+        return new LinkedPosition(name, offset, length);
     }
 }

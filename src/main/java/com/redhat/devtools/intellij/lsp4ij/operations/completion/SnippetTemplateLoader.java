@@ -15,6 +15,7 @@ package com.redhat.devtools.intellij.lsp4ij.operations.completion;
 
 import com.intellij.codeInsight.template.Template;
 import com.intellij.codeInsight.template.impl.ConstantNode;
+import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.AbstractLspSnippetHandler;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetHandler;
 
 import java.util.ArrayList;
@@ -27,11 +28,9 @@ import java.util.function.Function;
  * @author Angelo ZERR
  * @see <a href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#snippet_syntax>https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#snippet_syntax</a>
  */
-public class SnippetTemplateLoader implements LspSnippetHandler {
+public class SnippetTemplateLoader extends AbstractLspSnippetHandler {
 
     private final Template template;
-
-    private final Function<String, String> variableResolver;
 
     private final List<String> existingVariables;
 
@@ -42,8 +41,8 @@ public class SnippetTemplateLoader implements LspSnippetHandler {
      * @param variableResolver the variable resolver (ex : resolve value of TM_SELECTED_TEXT when snippet declares ${TM_SELECTED_TEXT})
      */
     public SnippetTemplateLoader(Template template, Function<String, String> variableResolver) {
+        super(variableResolver);
         this.template = template;
-        this.variableResolver = variableResolver;
         this.existingVariables = new ArrayList<>();
     }
 
@@ -64,7 +63,11 @@ public class SnippetTemplateLoader implements LspSnippetHandler {
 
     @Override
     public void tabstop(int index) {
-        template.addVariable(new ConstantNode(""), true);
+        if (index == 0) {
+            template.addEndVariable();
+        } else {
+            template.addVariable(new ConstantNode(""), true);
+        }
     }
 
     @Override
@@ -90,7 +93,7 @@ public class SnippetTemplateLoader implements LspSnippetHandler {
 
     @Override
     public void variable(String name) {
-        String resolvedValue = variableResolver.apply(name);
+        String resolvedValue = super.resolveVariable(name);
         if (resolvedValue != null) {
             // ex : ${TM_SELECTED_TEXT}
             // the TM_SELECTED_TEXT is resolved, we do a simple replacement
@@ -108,4 +111,5 @@ public class SnippetTemplateLoader implements LspSnippetHandler {
             }
         }
     }
+
 }

@@ -413,21 +413,22 @@ public class LSPIJUtils {
 
     public static void applyEdit(Editor editor, TextEdit textEdit, Document document) {
         RangeMarker marker = document.createRangeMarker(LSPIJUtils.toOffset(textEdit.getRange().getStart(), document), LSPIJUtils.toOffset(textEdit.getRange().getEnd(), document));
+        marker.setGreedyToRight(true);
         int startOffset = marker.getStartOffset();
         int endOffset = marker.getEndOffset();
         String text = textEdit.getNewText();
         if (text != null) {
             text = text.replaceAll("\r", "");
         }
-        if (text == null || "".equals(text)) {
+        if (text == null || text.isEmpty()) {
             document.deleteString(startOffset, endOffset);
         } else if (endOffset - startOffset <= 0) {
             document.insertString(startOffset, text);
         } else {
             document.replaceString(startOffset, endOffset, text);
         }
-        if (text != null && !"".equals(text)) {
-            editor.getCaretModel().moveCaretRelatively(text.length(), 0, false, false, true);
+        if (text != null && !text.isEmpty()) {
+            editor.getCaretModel().moveToOffset(marker.getEndOffset());
         }
         marker.dispose();
     }
