@@ -91,15 +91,16 @@ public class LSContentAssistProcessor extends CompletionContributor {
         if (completion != null) {
             List<CompletionItem> items = completion.isLeft() ? completion.getLeft() : completion.getRight().getItems();
             boolean isIncomplete = completion.isRight() && completion.getRight().isIncomplete();
-            return items.stream().map(item -> createLookupItem(project, editor, offset, item, isIncomplete, languageServer)).
-                    filter(item -> item.validate(document, offset, null)).
-                    map(item -> PrioritizedLookupElement.withGrouping(item, item.getItem().getKind().getValue())).
-                    collect(Collectors.toList());
+            return items.stream()
+                    .map(item -> createLookupItem(editor, offset, item, isIncomplete, languageServer))
+                    .filter(item -> item.validate(document, offset, null))
+                    .map(item -> PrioritizedLookupElement.withGrouping(item, item.getItem().getKind().getValue()))
+                    .collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
 
-    private LSIncompleteCompletionProposal createLookupItem(Project project, Editor editor, int offset,
+    private LSIncompleteCompletionProposal createLookupItem(Editor editor, int offset,
                                                             CompletionItem item, boolean isIncomplete,
                                                             LanguageServer languageServer) {
         return isIncomplete ? new LSIncompleteCompletionProposal(editor, offset, item, languageServer) :

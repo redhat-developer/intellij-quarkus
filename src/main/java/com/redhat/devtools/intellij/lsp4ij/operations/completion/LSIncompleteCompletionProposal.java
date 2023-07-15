@@ -17,10 +17,10 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.template.Template;
 import com.intellij.codeInsight.template.TemplateManager;
-import com.intellij.codeInsight.template.impl.ConstantNode;
 import com.intellij.codeInsight.template.impl.TemplateImpl;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.util.TextRange;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
@@ -39,49 +39,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetVariableConstants.*;
 import static com.redhat.devtools.intellij.lsp4ij.ui.IconMapper.getIcon;
 
 public class LSIncompleteCompletionProposal extends LookupElement {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSIncompleteCompletionProposal.class);
-
-    // Those variables should be defined in LSP4J and reused here whenever done there
-    // See https://github.com/eclipse/lsp4j/issues/149
-    /**
-     * The currently selected text or the empty string
-     */
-    private static final String TM_SELECTED_TEXT = "TM_SELECTED_TEXT"; //$NON-NLS-1$
-    /**
-     * The contents of the current line
-     */
-    private static final String TM_CURRENT_LINE = "TM_CURRENT_LINE"; //$NON-NLS-1$
-    /**
-     * The contents of the word under cursor or the empty string
-     */
-    private static final String TM_CURRENT_WORD = "TM_CURRENT_WORD"; //$NON-NLS-1$
-    /**
-     * The zero-index based line number
-     */
-    private static final String TM_LINE_INDEX = "TM_LINE_INDEX"; //$NON-NLS-1$
-    /**
-     * The one-index based line number
-     */
-    private static final String TM_LINE_NUMBER = "TM_LINE_NUMBER"; //$NON-NLS-1$
-    /**
-     * The filename of the current document
-     */
-    private static final String TM_FILENAME = "TM_FILENAME"; //$NON-NLS-1$
-    /**
-     * The filename of the current document without its extensions
-     */
-    private static final String TM_FILENAME_BASE = "TM_FILENAME_BASE"; //$NON-NLS-1$
-    /**
-     * The directory of the current document
-     */
-    private static final String TM_DIRECTORY = "TM_DIRECTORY"; //$NON-NLS-1$
-    /**
-     * The full file path of the current document
-     */
-    private static final String TM_FILEPATH = "TM_FILEPATH"; //$NON-NLS-1$
 
     protected final CompletionItem item;
     protected final int initialOffset;
@@ -101,26 +63,32 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         this.initialOffset = offset;
         this.currentOffset = offset;
         this.bestOffset = getPrefixCompletionStart(editor.getDocument(), offset);
-        //this.bestOffset = offset;
-        if(item.getInsertTextFormat() != InsertTextFormat.Snippet) {
-            putUserData(CodeCompletionHandlerBase.DIRECT_INSERTION, true);
-        }
+        putUserData(CodeCompletionHandlerBase.DIRECT_INSERTION, true);
     }
 
     @Override
     public void handleInsert(@NotNull InsertionContext context) {
-        if (item.getInsertTextFormat() == InsertTextFormat.Snippet){
-            Template myTemplate = SnippetTemplateFactory.createTemplate(getInsertText(), context.getProject(), name -> getVariableValue(name));
-            startTemplate(context, myTemplate);
-        } else {
-            apply(context.getDocument(), context.getCompletionChar(), 0, context.getOffset(CompletionInitializationContext.SELECTION_END_OFFSET));
+        Template template = null;
+        if (item.getInsertTextFormat() == InsertTextFormat.Snippet) {
+            // Insert text has snippet syntax, ex : ${1:name}
+            String insertText = getInsertText();
+            // Load the insert text to build:
+            // - an IJ Template instance which will take care of replacement of placeholders
+            // - the insert text without placeholders
+            template = SnippetTemplateFactory.createTemplate(insertText, context.getProject(), name -> getVariableValue(name));
+            // Update the TextEdit with the content snippet content without placeholders
+            // ex : ${1:name} --> name
+            updateInsertText(template.getTemplateText());
         }
-    }
 
-    private static void startTemplate(InsertionContext context, @NotNull Template template) {
-        context.getDocument().deleteString(context.getStartOffset(), context.getTailOffset());
-        context.setAddCompletionChar(false);
-        TemplateManager.getInstance(context.getProject()).startTemplate(context.getEditor(), template);
+        apply(context.getDocument(), context.getCompletionChar(), 0, context.getOffset(CompletionInitializationContext.SELECTION_END_OFFSET));
+
+        if (template != null && ((TemplateImpl) template).getVariableCount() > 0) {
+            // LSP completion with snippet syntax, activate the inline template
+            context.setAddCompletionChar(false);
+            EditorModificationUtil.moveCaretRelatively(editor, -template.getTemplateText().length());
+            TemplateManager.getInstance(context.getProject()).startTemplate(context.getEditor(), template);
+        }
     }
 
     /**
@@ -176,6 +144,17 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         return insertText;
     }
 
+    private void updateInsertText(String newText) {
+        Either<TextEdit, InsertReplaceEdit> eitherTextEdit = this.item.getTextEdit();
+        if (eitherTextEdit != null) {
+            if (eitherTextEdit.isLeft()) {
+                eitherTextEdit.getLeft().setNewText(newText);
+            } else {
+                eitherTextEdit.getRight().setNewText(newText);
+            }
+        }
+    }
+
     public int getPrefixCompletionStart(Document document, int completionOffset) {
         Either<TextEdit, InsertReplaceEdit> textEdit = this.item.getTextEdit();
         if (textEdit != null) {
@@ -214,11 +193,7 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     @NotNull
     @Override
     public String getLookupString() {
-        String lookup = StringUtils.isNotBlank(item.getFilterText()) ? item.getFilterText() : item.getLabel();
-        if (lookup.charAt(0) == '@') {
-            return lookup.substring(1);
-        }
-        return lookup;
+        return StringUtils.isNotBlank(item.getFilterText()) ? item.getFilterText() : item.getLabel();
     }
 
     private boolean isDeprecated() {
@@ -312,6 +287,36 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         }
     }
 
+    private Range getTextEditRange() {
+        if (item.getTextEdit().isLeft()) {
+            return item.getTextEdit().getLeft().getRange();
+        } else {
+            // here providing insert range, currently do not know if insert or replace is requested
+            return item.getTextEdit().getRight().getInsert();
+        }
+    }
+
+    public String getFilterString() {
+        if (item.getFilterText() != null && !item.getFilterText().isEmpty()) {
+            return item.getFilterText();
+        }
+        return item.getLabel();
+    }
+
+    public boolean validate(Document document, int offset, DocumentEvent event) {
+        return true;
+    }
+
+    public CompletionItem getItem() {
+        return item;
+    }
+
+    /**
+     * Return the result of the resolved LSP variable and null otherwise.
+     *
+     * @param variableName the variable name to resolve.
+     * @return the result of the resolved LSP variable and null otherwise.
+     */
     private @Nullable String getVariableValue(String variableName) {
         Document document = editor.getDocument();
         switch (variableName) {
@@ -359,27 +364,4 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         }
     }
 
-    private Range getTextEditRange() {
-        if (item.getTextEdit().isLeft()) {
-            return item.getTextEdit().getLeft().getRange();
-        } else {
-            // here providing insert range, currently do not know if insert or replace is requested
-            return item.getTextEdit().getRight().getInsert();
-        }
-    }
-
-    public String getFilterString() {
-        if (item.getFilterText() != null && !item.getFilterText().isEmpty()) {
-            return item.getFilterText();
-        }
-        return item.getLabel();
-    }
-
-    public boolean validate(Document document, int offset, DocumentEvent event) {
-        return true;
-    }
-
-    public CompletionItem getItem() {
-        return item;
-    }
 }
