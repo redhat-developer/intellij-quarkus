@@ -18,19 +18,13 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.template.Template;
 import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.codeInsight.template.impl.TemplateImpl;
-import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import com.intellij.psi.impl.PsiManagerEx;
-import com.intellij.psi.templateLanguages.TemplateLanguageFileViewProvider;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.command.internal.CommandExecutor;
@@ -44,15 +38,17 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import static com.redhat.devtools.intellij.lsp4ij.operations.completion.CompletionProposalTools.createLspIndentOptions;
 import static com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetVariableConstants.*;
 import static com.redhat.devtools.intellij.lsp4ij.ui.IconMapper.getIcon;
 
-public class LSIncompleteCompletionProposal extends LookupElement {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LSIncompleteCompletionProposal.class);
+/**
+ * LSP completion lookup element.
+ */
+public class LSPCompletionProposal extends LookupElement {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LSPCompletionProposal.class);
 
     protected final CompletionItem item;
     protected final int initialOffset;
@@ -60,13 +56,9 @@ public class LSIncompleteCompletionProposal extends LookupElement {
     protected int currentOffset;
     protected int bestOffset;
     protected final Editor editor;
-    private Integer rankCategory;
-    private Integer rankScore;
-    private String documentFilter;
-    private String documentFilterAddition = ""; //$NON-NLS-1$
     protected final LanguageServer languageServer;
 
-    public LSIncompleteCompletionProposal(PsiFile file, Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
+    public LSPCompletionProposal(PsiFile file, Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
         this.file = file;
         this.item = item;
         this.editor = editor;
@@ -82,13 +74,13 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         Template template = null;
         if (item.getInsertTextFormat() == InsertTextFormat.Snippet) {
             // Insert text has snippet syntax, ex : ${1:name}
-            String insertText = getInsertText();
+            String snippetContent = getInsertText();
             // Get the indentation settings
-            LspSnippetIndentOptions indentOptions = createLspIndentOptions(insertText, file);
+            LspSnippetIndentOptions indentOptions = createLspIndentOptions(snippetContent, file);
             // Load the insert text to build:
             // - an IJ Template instance which will take care of replacement of placeholders
             // - the insert text without placeholders
-            template = SnippetTemplateFactory.createTemplate(insertText, context.getProject(), name -> getVariableValue(name), indentOptions);
+            template = SnippetTemplateFactory.createTemplate(snippetContent, context.getProject(), name -> getVariableValue(name), indentOptions);
             // Update the TextEdit with the content snippet content without placeholders
             // ex : ${1:name} --> name
             updateInsertText(template.getTemplateText());
@@ -105,75 +97,11 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         }
     }
 
-    private static LspSnippetIndentOptions createLspIndentOptions(String insertText, PsiFile file) {
-        if (LspSnippetIndentOptions.shouldBeFormatted(insertText)) {
-            // Get global line separator settings
-            CodeStyleSettings settings = CodeStyleSettings.getDefaults();
-            String lineSeparator = settings.getLineSeparator();
-            CommonCodeStyleSettings.@NotNull IndentOptions indentOptions = getIndentOptions(file, settings);
-            boolean insertSpaces = !indentOptions.USE_TAB_CHARACTER;
-            int tabSize = indentOptions.TAB_SIZE;
-            return new LspSnippetIndentOptions(tabSize, insertSpaces, lineSeparator);
-        }
-        return null;
-    }
-
-    private static CommonCodeStyleSettings.@NotNull IndentOptions getIndentOptions(PsiFile file, CodeStyleSettings settings) {
-        Project project = file.getProject();
-        FileViewProvider provider = PsiManagerEx.getInstanceEx(project).findViewProvider(file.getVirtualFile());
-        if (provider instanceof TemplateLanguageFileViewProvider) {
-            // get indent options of the language
-            Language language = ((TemplateLanguageFileViewProvider) provider).getTemplateDataLanguage();
-            CommonCodeStyleSettings.IndentOptions indentOptions = settings.getLanguageIndentOptions(language);
-            if (indentOptions != null) {
-                return indentOptions;
-            }
-        }
-        Language language = provider.getBaseLanguage();
-        CommonCodeStyleSettings.IndentOptions indentOptions = settings.getLanguageIndentOptions(language);
-        if (indentOptions != null) {
-            return indentOptions;
-        }
-        return settings.getIndentOptions();
-    }
-
     /**
-     * See {@link CompletionProposalTools.getFilterFromDocument} for filter
-     * generation logic
+     * Returns the text content to insert coming from the LSP CompletionItem.
      *
-     * @return The document filter for the given offset
+     * @return the text content to insert coming from the LSP CompletionItem.
      */
-    public String getDocumentFilter(int offset) throws StringIndexOutOfBoundsException {
-        if (documentFilter != null) {
-            if (offset != currentOffset) {
-                documentFilterAddition = editor.getDocument().getText(new TextRange(initialOffset, offset));
-                rankScore = null;
-                rankCategory = null;
-                currentOffset = offset;
-            }
-            return documentFilter + documentFilterAddition;
-        }
-        currentOffset = offset;
-        return getDocumentFilter();
-    }
-
-    /**
-     * See {@link CompletionProposalTools.getFilterFromDocument} for filter
-     * generation logic
-     *
-     * @return The document filter for the last given offset
-     */
-    public String getDocumentFilter() {
-        if (documentFilter != null) {
-            return documentFilter + documentFilterAddition;
-        }
-        documentFilter = CompletionProposalTools.getFilterFromDocument(editor.getDocument(), currentOffset,
-                getFilterString(), bestOffset);
-        documentFilterAddition = ""; //$NON-NLS-1$
-        return documentFilter;
-    }
-
-
     protected String getInsertText() {
         String insertText = this.item.getInsertText();
         Either<TextEdit, InsertReplaceEdit> eitherTextEdit = this.item.getTextEdit();
@@ -235,11 +163,18 @@ public class LSIncompleteCompletionProposal extends LookupElement {
         return completionOffset;
     }
 
+    @Override
+    public Set<String> getAllLookupStrings() {
+        if (StringUtils.isBlank(item.getFilterText())) {
+            return super.getAllLookupStrings();
+        }
+        return new HashSet<>(Arrays.asList(item.getFilterText(), item.getLabel()));
+    }
 
     @NotNull
     @Override
     public String getLookupString() {
-        return StringUtils.isNotBlank(item.getFilterText()) ? item.getFilterText() : item.getLabel();
+        return item.getLabel();
     }
 
     private boolean isDeprecated() {
@@ -320,37 +255,39 @@ public class LSIncompleteCompletionProposal extends LookupElement {
                 LSPIJUtils.applyEdits(editor, document, Collections.singletonList(textEdit));
             }
 
-            LanguageServiceAccessor.getInstance(editor.getProject()).resolveServerDefinition(languageServer).map(definition -> definition.id)
-                    .ifPresent(id -> {
-                        Command command = item.getCommand();
-                        if (command == null) {
-                            return;
-                        }
-                        CommandExecutor.executeCommand(editor.getProject(), command, document, id);
-                    });
+            // Execute custom command of the completion item if needed
+            Command command = item.getCommand();
+            if (command != null) {
+                executeCustomCommand(command, document);
+            }
         } catch (RuntimeException ex) {
             LOGGER.warn(ex.getLocalizedMessage(), ex);
         }
     }
 
-    private Range getTextEditRange() {
+    /**
+     * Execute custom command of the completion item.
+     *
+     * @param document
+     */
+    private void executeCustomCommand(@NotNull Command command, Document document) {
+        Project project = editor.getProject();
+        // Execute custom command of the completion item.
+        LanguageServiceAccessor.getInstance(project)
+                .resolveServerDefinition(languageServer).map(definition -> definition.id)
+                .ifPresent(id -> {
+                    CommandExecutor.executeCommand(project, command, document, id);
+                });
+
+    }
+
+    public Range getTextEditRange() {
         if (item.getTextEdit().isLeft()) {
             return item.getTextEdit().getLeft().getRange();
         } else {
             // here providing insert range, currently do not know if insert or replace is requested
             return item.getTextEdit().getRight().getInsert();
         }
-    }
-
-    public String getFilterString() {
-        if (item.getFilterText() != null && !item.getFilterText().isEmpty()) {
-            return item.getFilterText();
-        }
-        return item.getLabel();
-    }
-
-    public boolean validate(Document document, int offset, DocumentEvent event) {
-        return true;
     }
 
     public CompletionItem getItem() {
