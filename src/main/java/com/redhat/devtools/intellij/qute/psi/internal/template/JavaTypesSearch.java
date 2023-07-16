@@ -1,18 +1,23 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
-* All rights reserved. This program and the accompanying materials
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v20.html
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     Red Hat Inc. - initial API and implementation
-*******************************************************************************/
+ * Copyright (c) 2021 Red Hat Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.template;
 
+import com.intellij.codeInsight.completion.AllClassesGetter;
+import com.intellij.codeInsight.completion.PrefixMatcher;
+import com.intellij.codeInsight.completion.impl.BetterPrefixMatcher;
+import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiPackage;
@@ -37,120 +42,109 @@ import java.util.regex.Pattern;
 
 /**
  * Java types search for a given pattern and project Uri.
- * 
- * @author Angelo ZERR
  *
+ * @author Angelo ZERR
  */
 public class JavaTypesSearch {
 
-	private static final Logger LOGGER = Logger.getLogger(JavaTypesSearch.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(JavaTypesSearch.class.getName());
 
-	private final Module javaProject;
+    private final Module javaProject;
 
-	private final String packageName;
+    private final String packageName;
 
-	private final String typeName;
+    private final String typeName;
 
-	private final SearchScope scope;
+    private final GlobalSearchScope scope;
 
-	public JavaTypesSearch(String pattern, Module javaProject) {
-		this.javaProject = javaProject;
+    public JavaTypesSearch(String pattern, Module javaProject) {
+        this.javaProject = javaProject;
+        String typeName = "";
+        String packageName = "";
+        GlobalSearchScope searchScope = javaProject.getModuleScope();
+        if (StringUtils.isNotEmpty(pattern)) {
+            searchScope = javaProject.getModuleWithLibrariesScope();
+            int index = pattern.lastIndexOf('.');
+            if (index != -1) {
+                // ex : pattern = org.acme.qute.It
+                // -> packageName = org.acme.qute
+                // -> typeName = It
+                packageName = pattern.substring(0, index);
+                typeName = pattern.substring(index + 1);
+            } else {
+                packageName = pattern;
+                typeName = pattern;
+            }
+        }
 
-		String typeName = pattern;
-		String packageName = null;
-		SearchScope searchScope = javaProject.getModuleScope();
-		PsiClass innerClass = null;
-		if (StringUtils.isNotEmpty(typeName)) {
-			searchScope = javaProject.getModuleWithLibrariesScope();
-			int index = typeName.lastIndexOf('.');
-			if (index != -1) {
-				// ex : pattern = org.acme.qute.It
-				// -> packageName = org.acme.qute
-				// -> typeName = It
-				packageName = typeName.substring(0, index);
-				typeName = typeName.substring(index + 1, typeName.length());
-				// support for inner class
-				try {
-					innerClass = JavaPsiFacade.getInstance(javaProject.getProject()).findClass(packageName, (GlobalSearchScope) searchScope);
-					if (innerClass != null) {
-						packageName = null;
-						searchScope = searchScope.intersectWith(new LocalSearchScope(innerClass));
-					}
-				} catch (RuntimeException e) {
-					LOGGER.log(Level.WARNING, "Error while getting inner class for '" + packageName + "'.", e);
-				}
-			}
-		}
+        this.typeName = typeName;
+        this.packageName = packageName;
+        this.scope = searchScope;
+    }
 
-		typeName += ".*";
-		this.typeName = typeName;
-		this.packageName = packageName;
-		this.scope = searchScope;
-	}
+    public List<JavaTypeInfo> search(ProgressIndicator monitor) {
+        List<JavaTypeInfo> javaTypes = new ArrayList<>();
+        PsiPackage packageRoot = collectPackages(packageName, javaProject, javaTypes);
+        collectClassesAndInterfaces(packageRoot, javaTypes);
+        return javaTypes;
+    }
 
-	public List<JavaTypeInfo> search(ProgressIndicator monitor) {
-		List<JavaTypeInfo> javaTypes = new ArrayList<>();
-		collectPackages(javaTypes);
-		collectClassesAndInterfaces(monitor, javaTypes);
-		return javaTypes;
-	}
+    // ------------- Packages collector
 
-	private void collectPackages(List<JavaTypeInfo> javaTypes) {
-		if (packageName != null) {
-			Set<String> subPackages = new HashSet<>();
-			try {
-				// Loop for package root
-				PsiPackage pack = JavaPsiFacade.getInstance(javaProject.getProject()).findPackage(packageName);
-					fillWithSubPackages(packageName, pack, subPackages);
-			} catch (RuntimeException e) {
-				LOGGER.log(Level.WARNING, "Error while collecting sub packages for '" + packageName + "'.", e);
-			}
+    private static PsiPackage collectPackages(String packageName, Module javaProject, List<JavaTypeInfo> javaTypes) {
+        PsiPackage packageRoot = JavaPsiFacade.getInstance(javaProject.getProject()).findPackage(packageName);
+        if (packageRoot != null) {
+            fillWithSubPackages(packageRoot, javaTypes);
+        }
+        return packageRoot;
+    }
 
-			for (String subPackageName : subPackages) {
-				JavaTypeInfo packageInfo = new JavaTypeInfo();
-				packageInfo.setJavaTypeKind(JavaTypeKind.Package);
-				packageInfo.setSignature(subPackageName);
-				javaTypes.add(packageInfo);
-			}
-		}
-	}
+    private static void fillWithSubPackages(PsiPackage packageRoot, List<JavaTypeInfo> javaTypes) {
+        PsiPackage[] allPackages = packageRoot.getSubPackages();
+        for (int i = 0; i < allPackages.length; i++) {
+            String subPackageName = allPackages[i].getQualifiedName();
+            JavaTypeInfo packageInfo = new JavaTypeInfo();
+            packageInfo.setJavaTypeKind(JavaTypeKind.Package);
+            packageInfo.setSignature(subPackageName);
+            javaTypes.add(packageInfo);
+        }
+    }
 
-	private void fillWithSubPackages(String packageName, PsiPackage packageFragmentRoot,
-			Set<String> subPackages) {
-		try {
-			PsiPackage[] allPackages = packageFragmentRoot.getSubPackages();
-			for (int i = 0; i < allPackages.length; i++) {
-				String subPackageName = allPackages[i].getQualifiedName();
-				if (subPackageName.startsWith(packageName)) {
-					subPackages.add(subPackageName);
-				}
-			}
-		} catch (RuntimeException e) {
-			LOGGER.log(Level.WARNING, "Error while collecting sub packages for '" + packageName + "' in '"
-					+ packageFragmentRoot.getQualifiedName() + "'.", e);
-		}
-	}
+    // ------------- Classes, Interfaces, etc collector
 
-	private void collectClassesAndInterfaces(ProgressIndicator monitor, List<JavaTypeInfo> javaTypes) {
-		// Collect classes and interfaces according to the type name
-		Query<PsiClass> query = AllClassesSearch.search(scope, javaProject.getProject(), name ->
-			Pattern.compile(typeName).matcher(name).matches()
-		);
-		query.forEach(type -> {
-			String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
-			if (typeSignature != null) {
-				JavaTypeInfo classInfo = new JavaTypeInfo();
-				classInfo.setSignature(typeSignature);
-				javaTypes.add(classInfo);
+    private void collectClassesAndInterfaces(PsiPackage packageRoot, List<JavaTypeInfo> javaTypes) {
+        if (packageRoot != null) {
+            // Search classes from the given proper package root.
+            PsiClass[] classes = packageRoot.getClasses(scope);
+            for (int i = 0; i < classes.length; i++) {
+                collectClass(classes[i], javaTypes);
+            }
+        } else {
+            // Search classes by the name (without the package name)
+            PrefixMatcher matcher = new CamelHumpMatcher(typeName, true, false);
+            matcher = new BetterPrefixMatcher(matcher, Integer.MIN_VALUE);
 
-				try {
-					classInfo.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
-				} catch (RuntimeException e) {
-					LOGGER.log(Level.WARNING, "Error while collecting Java Types for '" + packageName
-							+ " package and Java type '" + typeName + "'.", e);
-				}
-			}
-		});
-	}
+            final List<String> existing = new ArrayList<>();
+            AllClassesGetter.processJavaClasses(matcher, javaProject.getProject(), scope,
+                    psiClass -> {
+                        String qName = psiClass.getQualifiedName();
+                        if (qName != null && existing.add(qName)) {
+                            collectClass(psiClass, javaTypes);
+                        }
+                        return true;
+                    });
+        }
+    }
+
+    private static void collectClass(PsiClass type, List<JavaTypeInfo> javaTypes) {
+        String typeSignature = AbstractTypeResolver.resolveJavaTypeSignature(type);
+        if (typeSignature != null) {
+            JavaTypeInfo classInfo = new JavaTypeInfo();
+            classInfo.setSignature(typeSignature);
+            classInfo.setJavaTypeKind(PsiTypeUtils.getJavaTypeKind(type));
+            javaTypes.add(classInfo);
+        }
+    }
+
 
 }
