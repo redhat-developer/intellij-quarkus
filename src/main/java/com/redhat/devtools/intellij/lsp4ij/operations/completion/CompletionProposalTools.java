@@ -11,188 +11,93 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.operations.completion;
 
+import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.FileViewProvider;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.psi.templateLanguages.TemplateLanguageFileViewProvider;
+import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetIndentOptions;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.util.Ranges;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+/**
+ * Utilities for LSP completion.
+ */
 public final class CompletionProposalTools {
 
-	private CompletionProposalTools() {
-		// to avoid instances, requested by sonar
-	}
+    private CompletionProposalTools() {
+        // to avoid instances, requested by sonar
+    }
 
-	/**
-	 * The portion of the document leading up to the cursor that is being used as a
-	 * filter for requesting completion assist
-	 *
-	 * @param document
-	 * @param cursorOffset
-	 * @param completionItemFilter
-	 * @param completionInsertionOffset
-	 * @return The longest prefix to the current cursor position that is found
-	 *         within the completion's filter regardless of character spacing
-	 */
-	public static String getFilterFromDocument(Document document, int cursorOffset, String completionItemFilter,
-											   int completionInsertionOffset) {
-		if (completionInsertionOffset >= cursorOffset) {
-			return ""; //$NON-NLS-1$
-		}
-		int prefixToCursorLength = cursorOffset - completionInsertionOffset;
-		String prefixToCursor = document.getText(new TextRange(completionInsertionOffset, completionInsertionOffset + prefixToCursorLength));
-		int i;
-		for (i = 0; i < prefixToCursor.length(); i++) {
-			if (!isSubstringFoundOrderedInString(
-					prefixToCursor.substring(prefixToCursorLength - i - 1, prefixToCursorLength),
-					completionItemFilter)) {
-				break;
-			}
-		}
-		return prefixToCursor.substring(prefixToCursor.length() - i);
-	}
+    // ----------------- Prefix utilities
 
-	/**
-	 * If each of the character in the subString are within the given string in
-	 * order
-	 *
-	 * @param subString
-	 * @param string
-	 */
-	public static boolean isSubstringFoundOrderedInString(String subString, String string) {
-		int lastIndex = 0;
-		subString = subString.toLowerCase();
-		string = string.toLowerCase();
-		for (Character c : subString.toCharArray()) {
-			int index = string.indexOf(c, lastIndex);
-			if (index < 0) {
-				return false;
-			} else {
-				lastIndex = index + 1;
-			}
-		}
-		return true;
-	}
+    public static @Nullable String getCompletionPrefix(@NotNull Position completionPos, @NotNull Range textEditRange, @NotNull Document document) {
+        if (Ranges.containsPosition(textEditRange, completionPos)) {
+            // ex : {#ea|ch
+            // here the prefix to return should be {#ea
+            int lineStartOffset = document.getLineStartOffset(completionPos.getLine());
+            int startOffset = lineStartOffset + textEditRange.getStart().getCharacter();
+            int endOffset = lineStartOffset + completionPos.getCharacter();
+            return document.getCharsSequence().subSequence(startOffset, endOffset).toString();
+        } else {
+            return null;
+        }
+    }
 
-	/**
-	 * Uses the document's filter and the completion's filter to decided which
-	 * category the match is.<br>
-	 * Category 1:<br>
-	 * The full completion filter is found within the document filter without a word
-	 * characters as it's prefix or suffix<br>
-	 * Category 2:<br>
-	 * The full completion filter is found within the document filter without a word
-	 * characters as it's prefix<br>
-	 * Category 3:<br>
-	 * The full completion filter is found within the document filter<br>
-	 * Category 4:<br>
-	 * {@link isSubstringFoundOrderedInString}(documentFilter, completionFilter) ==
-	 * true<br>
-	 * Category 5:<br>
-	 * Catch all case, usually when all the document's filter's characters are not
-	 * found within the completion filter
-	 *
-	 * @param documentFilter
-	 * @param completionFilter
-	 * @return the category integer
-	 */
-	public static int getCategoryOfFilterMatch(String documentFilter, String completionFilter) {
-		if (documentFilter.isEmpty()) {
-			return 5;
-		}
-		documentFilter = documentFilter.toLowerCase();
-		completionFilter = completionFilter.toLowerCase();
-		int subIndex = completionFilter.indexOf(documentFilter);
-		int topCategory = 5;
-		if (subIndex == -1) {
-			return isSubstringFoundOrderedInString(documentFilter, completionFilter) ? 4 : 5;
-		}
-		while (subIndex != -1) {
-			if (subIndex > 0 && Character.isLetterOrDigit(completionFilter.charAt(subIndex - 1))) {
-				topCategory = Math.min(topCategory, 3);
-			} else if (subIndex + documentFilter.length() < completionFilter.length() - 1
-					&& Character.isLetterOrDigit(completionFilter.charAt(subIndex + documentFilter.length() + 1))) {
-				topCategory = Math.min(topCategory, 2);
-			} else {
-				topCategory = 1;
-			}
-			if (topCategory == 1) {
-				break;
-			}
-			subIndex = completionFilter.indexOf(documentFilter, subIndex + 1);
-		}
-		return topCategory;
-	}
+    // ----------------- Snippet utilities
 
-	/**
-	 * Uses the document's filter and the completion's filter to decided how
-	 * successful the match is and gives it a score.<br>
-	 * The score is decided by the number of character that prefix each of the
-	 * document's filter's characters locations in the competion's filter excluding
-	 * document filter characters that follow other document filter characters.<br>
-	 * <br>
-	 * ex.<br>
-	 * documentFilter: abc<br>
-	 * completionFilter: xaxxbc<br>
-	 * result: 5<br>
-	 * logic:<br>
-	 * There is 1 character before the 'a' and there is 4 charachters before the
-	 * 'b', because the 'c' is directly after the 'b', it's prefix is ignored,<br>
-	 * 1+4=5
-	 *
-	 * @param documentFilter
-	 * @param completionFilter
-	 * @return score of the match where the lower the number, the better the score
-	 *         and -1 mean there was no match
-	 */
-	public static int getScoreOfFilterMatch(String documentFilter, String completionFilter) {
-		documentFilter = documentFilter.toLowerCase();
-		completionFilter = completionFilter.toLowerCase();
-		return getScoreOfFilterMatchHelper(0, documentFilter, completionFilter);
-	}
+    /**
+     * Returns the indent options to use to format the given snippet text block and null otherwise.
+     *
+     * @param snippetTextBlock the snippet text block (ex : foo\t\nbar).
+     * @param file             the file where thesnippet must be inserted.
+     * @return the indent options to use to format the given snippet text block and null otherwise.
+     */
+    public static @Nullable LspSnippetIndentOptions createLspIndentOptions(String snippetTextBlock, PsiFile file) {
+        if (LspSnippetIndentOptions.shouldBeFormatted(snippetTextBlock)) {
+            // Get global line separator settings
+            CodeStyleSettings settings = CodeStyleSettings.getDefaults();
+            String lineSeparator = settings.getLineSeparator();
+            CommonCodeStyleSettings.@NotNull IndentOptions indentOptions = getIndentOptions(file, settings);
+            boolean insertSpaces = !indentOptions.USE_TAB_CHARACTER;
+            int tabSize = indentOptions.TAB_SIZE;
+            return new LspSnippetIndentOptions(tabSize, insertSpaces, lineSeparator);
+        }
+        return null;
+    }
 
-	private static int getScoreOfFilterMatchHelper(int prefixLength, String documentFilter, String completionFilter) {
-		if (documentFilter == null || documentFilter.isEmpty()) {
-			return 0;
-		}
-		char searchChar = documentFilter.charAt(0);
-		int i = completionFilter.indexOf(searchChar);
-		if (i == -1) {
-			return -1;
-		}
-		if (documentFilter.length() == 1) {
-			return i + prefixLength;
-		}
+    /**
+     * Returns the Intellij indent options for the given file and the global indent options otherwise.
+     *
+     * @param file     the file.
+     * @param settings the global code style settings.
+     * @return indent options for the given file and the global indent options otherwise.
+     */
+    private @NotNull
+    static CommonCodeStyleSettings.@NotNull IndentOptions getIndentOptions(PsiFile file, CodeStyleSettings settings) {
+        Project project = file.getProject();
+        FileViewProvider provider = PsiManagerEx.getInstanceEx(project).findViewProvider(file.getVirtualFile());
+        if (provider instanceof TemplateLanguageFileViewProvider) {
+            // get indent options of the language
+            Language language = ((TemplateLanguageFileViewProvider) provider).getTemplateDataLanguage();
+            CommonCodeStyleSettings.IndentOptions indentOptions = settings.getLanguageIndentOptions(language);
+            if (indentOptions != null) {
+                return indentOptions;
+            }
+        }
+        Language language = provider.getBaseLanguage();
+        CommonCodeStyleSettings.IndentOptions indentOptions = settings.getLanguageIndentOptions(language);
+        if (indentOptions != null) {
+            return indentOptions;
+        }
+        return settings.getIndentOptions();
+    }
 
-		int matchLength = lengthOfPrefixMatch(documentFilter, completionFilter.substring(i));
-		if (matchLength == documentFilter.length()) {
-			return i + prefixLength;
-		}
-		int bestScore = i + getScoreOfFilterMatchHelper(prefixLength + i + matchLength,
-				documentFilter.substring(matchLength),
-				completionFilter.substring(i + matchLength));
-
-		i = completionFilter.indexOf(searchChar, i + 1);
-		while (i != -1) {
-			matchLength = lengthOfPrefixMatch(documentFilter, completionFilter.substring(i));
-			if (matchLength == documentFilter.length()) {
-				return i + prefixLength;
-			}
-			int score = i + getScoreOfFilterMatchHelper(prefixLength + i + matchLength,
-					documentFilter.substring(matchLength),
-					completionFilter.substring(i + matchLength));
-			if (score == i - 1) {
-				break;
-			}
-			bestScore = Math.min(bestScore, score);
-			i = completionFilter.indexOf(searchChar, i + 1);
-		}
-		return prefixLength + bestScore;
-	}
-
-	private static int lengthOfPrefixMatch(String first, String second) {
-		int i;
-		for (i = 0; i < Math.min(first.length(), second.length()); i++) {
-			if (first.charAt(i) != second.charAt(i))
-				break;
-		}
-		return i;
-	}
 }
