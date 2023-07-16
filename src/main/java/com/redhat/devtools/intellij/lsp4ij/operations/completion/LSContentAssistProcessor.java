@@ -20,6 +20,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiFile;
@@ -45,7 +46,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class LSContentAssistProcessor extends CompletionContributor {
+public class LSContentAssistProcessor extends CompletionContributor implements DumbAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSContentAssistProcessor.class);
 
     @Override
