@@ -103,7 +103,9 @@ public class LSPCompletionContributor extends CompletionContributor implements D
             String prefix = completionPrefix.getPrefixFor(lookupItem.getTextEditRange(), item);
             if (prefix != null) {
                 // Add the IJ completion item (lookup item) by using the computed prefix
-                result.withPrefixMatcher(prefix).addElement(groupedLookupItem);
+                result.withPrefixMatcher(prefix)
+                        .caseInsensitive() // set case insentitive to search Java class which starts with upper case
+                        .addElement(groupedLookupItem);
             } else {
                 // Should happens rarely, only when text edit is for multi-lines or if completion is triggered outside the text edit range.
                 // Add the IJ completion item (lookup item) which will use the IJ prefix
