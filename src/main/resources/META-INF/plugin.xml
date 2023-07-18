@@ -11,6 +11,14 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <h3>1.23.0</h3>
+    <ul>
+      <li>Fix completion apply to update correctly the text to replace and move the caret on the proper position</li>
+      <li>Completion snippets apply are reindented following the IDE indentation setting</li>
+      <li>Completion is now available while the indexing process</li>
+      <li>Support for Java class in the Qute template parameter declaration</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/36?closed=1">changelog</a>.
     <h3>1.22.0</h3>
     <ul>
       <li>Improved Qute template editing experience (brackets autoclose, syntax highlighting, better HTML integration ...)</li>
