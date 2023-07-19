@@ -10,9 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij;
 
-import com.intellij.ide.util.importProject.ProgressIndicatorWrapper;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -22,12 +20,9 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +88,7 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
             try {
                 R result;
                 if (inReadAction) {
-                    result = ApplicationManager.getApplication().runReadAction((Computable<R>) () -> function.apply(indicator));
+                    result = ReadAction.compute(() -> function.apply(indicator));
                 } else {
                     result = function.apply(indicator);
                 }
@@ -106,13 +101,15 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
                 done = true;
             } catch (IndexNotReadyException ignored) {
             } catch (Throwable t) {
-                if(t instanceof ProcessCanceledException) {
-                    // Here we throw a standard CancellationException which will be intercept by the language server.
-                    // In this case, the language server will know that the process must be cancelled.
-                    t = new CancellationException();
+                if (!isIgnoreException(t)) {
+                    if (t instanceof ProcessCanceledException) {
+                        // Here we throw a standard CancellationException which will be intercept by the language server.
+                        // In this case, the language server will know that the process must be cancelled.
+                        t = new CancellationException();
+                    }
+                    future.completeExceptionally(t);
+                    done = true;
                 }
-                future.completeExceptionally(t);
-                done = true;
             }
         }
         if (!done) {
@@ -121,14 +118,37 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
     }
 
     /**
+     * Returns true if the exception should be ignored and false otherwise.
+     *
+     * <p>
+     *     When exception is ignored, it retries to execute again the task 10 times. If it fails again after 10 tentatives
+     *     it execute the task in smart mode.
+     * </p>
+     * @param t
+     * @return true if the exception should be ignored and false otherwise.
+     */
+    private boolean isIgnoreException(Throwable t) {
+        // As com.intellij.openapi.application.CannotReadException is available only since 221.5080.210
+        // we need to use ugly String class name.
+
+        // 'com.intellij.openapi.application.ReadAction.CannotReadException' is available only since 221.5080.210 but
+        // the module is targeted for 213.0+. It may lead to compatibility problems with IDEs prior to 221.5080.210.
+        // Note that this type might have had a different fully qualified name in the previous IDEs.
+
+        if ("com.intellij.openapi.application.CannotReadException".equals(t.getClass().getName())) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * This method returns the file path to display in the progress bar.
      *
      * @param fileUri the file uri.
-     *
-     * @return  the file path to display in the progress bar.
+     * @return the file path to display in the progress bar.
      */
     protected String getFilePath(String fileUri) {
-        VirtualFile file =  LSPIJUtils.findResourceFor(fileUri);
+        VirtualFile file = LSPIJUtils.findResourceFor(fileUri);
         if (file != null) {
             Module module = LSPIJUtils.getProject(file);
             if (module != null) {
