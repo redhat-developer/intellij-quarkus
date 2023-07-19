@@ -19,7 +19,6 @@ import java.io.File;
 
 /**
  * Base class to import lsp4mp maven project.
- *
  */
 public abstract class LSP4MPMavenModuleImportingTestCase extends MavenModuleImportingTestCase {
 

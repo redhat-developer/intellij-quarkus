@@ -10,8 +10,9 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.GradleTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
@@ -30,31 +31,31 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUIL
  */
 public class GradlePropertiesManagerTest extends GradleTestCase {
     private static final String CONFIG =
-    "plugins {\n" +
-    "    id 'java'\n" +
-    "}\n" +
+            "plugins {\n" +
+                    "    id 'java'\n" +
+                    "}\n" +
 
-    "repositories {\n" +
-    "    mavenLocal()\n" +
-    "    mavenCentral()\n" +
-    "}\n" +
+                    "repositories {\n" +
+                    "    mavenLocal()\n" +
+                    "    mavenCentral()\n" +
+                    "}\n" +
 
-    "dependencies {\n" +
-    "    implementation 'io.quarkus:quarkus-core-deployment:1.0.1.Final'\n" +
-    "}\n" +
+                    "dependencies {\n" +
+                    "    implementation 'io.quarkus:quarkus-core-deployment:1.0.1.Final'\n" +
+                    "}\n" +
 
-    "group 'org.acme'\n" +
-    "version '1.0.0-SNAPSHOT'\n" +
+                    "group 'org.acme'\n" +
+                    "version '1.0.0-SNAPSHOT'\n" +
 
-    "java {\n" +
-    "    sourceCompatibility = JavaVersion.VERSION_1_8\n" +
-    "    targetCompatibility = JavaVersion.VERSION_1_8\n" +
-    "}";
+                    "java {\n" +
+                    "    sourceCompatibility = JavaVersion.VERSION_1_8\n" +
+                    "    targetCompatibility = JavaVersion.VERSION_1_8\n" +
+                    "}";
 
     @Test
     public void testQuarkusCoreDeploymentProperties() throws IOException {
         importProject(CONFIG);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("project.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("project.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
         File quarkusCoreJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-core-deployment", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-core-deployment.jar", quarkusCoreJARFile);
 

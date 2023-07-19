@@ -10,23 +10,22 @@
  ******************************************************************************/
 package com.redhat.microprofile.psi.quarkus;
 
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.redhat.devtools.intellij.GradleTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.GradleTestCase;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
-import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import java.io.File;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.assertProperties;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.p;
-import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
-import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
-import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_TIME;
+import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.*;
 
 public class GradleQuarkusConfigRootAllQuarkusExtensionsTest extends GradleTestCase {
 
@@ -39,12 +38,12 @@ public class GradleQuarkusConfigRootAllQuarkusExtensionsTest extends GradleTestC
 
     @Test
     public void testAllExtensions() throws Exception {
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("all-quarkus-extensions.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
-        File keycloakJARFile = getDependency(getProjectPath(), "io.quarkus" , "quarkus-keycloak-authorization", "1.0.1.Final");
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("all-quarkus-extensions.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        File keycloakJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-keycloak-authorization", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-keycloak-deployment*.jar", keycloakJARFile);
         File hibernateJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-hibernate-orm-deployment", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-hibernate-orm-deployment*.jar", hibernateJARFile);
-        File vertxHTTPJARFile = getDependency(getProjectPath(), "io.quarkus" ,"quarkus-vertx-http", "1.0.1.Final");
+        File vertxHTTPJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-vertx-http", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-undertow*.jar", vertxHTTPJARFile);
         File mongoJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-mongodb-client", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-mongodb-client*.jar", mongoJARFile);

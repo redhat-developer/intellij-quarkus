@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4ij.console.explorer.actions;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.ui.treeStructure.Tree;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerBundle;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Action to stop the selected language server process from the language explorer.
  */
-public class StopServerAction extends TreeAction {
+public class StopServerAction extends TreeAction implements DumbAware {
 
     public static final String ACTION_ID = "com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.StopServerAction";
 

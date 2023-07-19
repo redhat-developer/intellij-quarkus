@@ -18,10 +18,12 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.vh;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
 import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
@@ -34,18 +36,15 @@ import java.io.File;
 /**
  * Test collection of Quarkus properties from @CacheResult
  */
-public class QuarkusCachePropertiesTest extends MavenModuleImportingTestCase {
+public class QuarkusCachePropertiesTest extends QuarkusMavenModuleImportingTestCase {
 
 	@Test
 	public void testCacheQuickstartFromClasspath() throws Exception {
 
-		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/" + QuarkusMavenProjectName.cache_quickstart));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.cache_quickstart);
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(
 				javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
-				PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown);
-
-
+				PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
 		assertProperties(infoFromClasspath,
 				// WeatherForecastService
