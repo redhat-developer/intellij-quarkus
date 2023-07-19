@@ -14,6 +14,8 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable groupId="language"
                            id="LanguageServers"
+                           bundle="messages.LanguageServerBundle"
+                           key="language.servers"
                            provider="com.redhat.devtools.intellij.lsp4ij.settings.LanguageServerListConfigurableProvider"/>
     <applicationService id="com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings"
                         serviceImplementation="com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings"/>
