@@ -15,6 +15,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -95,7 +96,7 @@ public class QuarkusProjectService implements ClasspathResourceChangedManager.Li
                     try {
                         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module,
                                 MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.TEST, PsiUtilsLSImpl.getInstance(module.getProject()),
-                                DocumentFormat.Markdown);
+                                DocumentFormat.Markdown, new EmptyProgressIndicator());
                         String schema = JSONSchemaUtils.toJSONSchema(info, false);
                         VfsUtil.saveText(schemaFile1, schema);
                     } catch (IOException e) {

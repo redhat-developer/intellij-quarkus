@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.microprofile.psi.quarkus;
 
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.GradleTestCase;
@@ -37,7 +38,7 @@ public class GradleKotlinQuarkusConfigRootTest extends GradleTestCase {
 
     @Test
     public void testAllExtensions() throws Exception {
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kotlin-resteasy.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("kotlin-resteasy.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(info,
 

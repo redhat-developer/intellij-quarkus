@@ -11,7 +11,9 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.config.properties;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
@@ -23,19 +25,18 @@ import org.jetbrains.idea.maven.utils.MavenArtifactUtil;
 
 import java.io.File;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.assertProperties;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.assertPropertiesDuplicate;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.p;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.*;
 import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_AND_RUN_TIME_FIXED;
 import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUILD_TIME;
 
 /**
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/MicroProfileConfigPropertyTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/MicroProfileConfigPropertyTest.java</a>
  */
-public class MicroProfileConfigPropertyTest extends MavenModuleImportingTestCase {
+public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTestCase {
+
     public void testConfigQuickstartFromClasspath() throws Exception {
-        Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
-        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
+        Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar").toFile();
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
@@ -115,8 +116,8 @@ public class MicroProfileConfigPropertyTest extends MavenModuleImportingTestCase
     }
 
     public void testConfigQuickstartFromJavaSources() throws Exception {
-        Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/config-quickstart"));
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
+        Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromJavaSources, 31 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */,

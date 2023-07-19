@@ -1,15 +1,16 @@
 /*******************************************************************************
-* Copyright (c) 2019 Red Hat Inc. and others.
-* All rights reserved. This program and the accompanying materials
-* which accompanies this distribution, and is available at
-* https://www.eclipse.org/legal/epl-v20.html
-*
-* Contributors:
-*     Red Hat Inc. - initial API and implementation
-*******************************************************************************/
+ * Copyright (c) 2019 Red Hat Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * which accompanies this distribution, and is available at
+ * https://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.graphql.properties;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
@@ -26,31 +27,30 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert
  * Test the availability of the MicroProfile GraphQL properties
  *
  * @author Kathryn Kodama
- *
  */
 public class MicroProfileGraphQLTest extends LSP4MPMavenModuleImportingTestCase {
 
-	@Test
-	public void testMicroprofileGraphQL() throws Exception {
+    @Test
+    public void testMicroprofileGraphQL() throws Exception {
 
-		Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_graphql);
-		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
+        Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_graphql);
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
-		assertProperties(infoFromClasspath,
+        assertProperties(infoFromClasspath,
 
-				p("microprofile-graphql-api", "mp.graphql.defaultErrorMessage", "java.lang.String",
-						"Configured default message displayed when an unchecked exception is thrown from the user application. By default this value is set to \"Server Error\".", true,
-						null, null, null, 0, null),
+                p("microprofile-graphql-api", "mp.graphql.defaultErrorMessage", "java.lang.String",
+                        "Configured default message displayed when an unchecked exception is thrown from the user application. By default this value is set to \"Server Error\".", true,
+                        null, null, null, 0, null),
 
-				p("microprofile-graphql-api", "mp.graphql.hideErrorMessage", "java.lang.String",
-						"Hide exception error messages when checked exceptions are thrown from the user application. Separate multiple exceptions with a comma. By default all unchecked exceptions are on the `hideErrorMessage` list.", true,
-						null, null, null, 0, null),
+                p("microprofile-graphql-api", "mp.graphql.hideErrorMessage", "java.lang.String",
+                        "Hide exception error messages when checked exceptions are thrown from the user application. Separate multiple exceptions with a comma. By default all unchecked exceptions are on the `hideErrorMessage` list.", true,
+                        null, null, null, 0, null),
 
-				p("microprofile-graphql-api", "mp.graphql.showErrorMessage", "java.lang.String",
-						"Show exception error messages when unchecked exceptions are thrown from the user application. Separate multiple exceptions with a comma. By default all checked exceptions are on the `showErrorMessage` list.", true,
-						null, null, null, 0, null)
-		);
+                p("microprofile-graphql-api", "mp.graphql.showErrorMessage", "java.lang.String",
+                        "Show exception error messages when unchecked exceptions are thrown from the user application. Separate multiple exceptions with a comma. By default all checked exceptions are on the `showErrorMessage` list.", true,
+                        null, null, null, 0, null)
+        );
 
-		assertPropertiesDuplicate(infoFromClasspath);
-	}
+        assertPropertiesDuplicate(infoFromClasspath);
+    }
 }

@@ -27,5 +27,13 @@ public class MicroProfileMavenProjectName {
     public static final String hibernate_orm_resteasy_yaml = "hibernate-orm-resteasy-yaml";
     public static final String config_quickstart_test = "config-quickstart-test";
     public static final String microprofile_graphql = "microprofile-graphql";
+    public static final String microprofile_context_propagation = "microprofile-context-propagation";
+    public static final String microprofile_health_quickstart = "microprofile-health-quickstart";
+    public static final String microprofile_jwt_quickstart = "microprofile-jwt-quickstart";
+    public static final String microprofile_lra = "microprofile-lra";
+    public static final String microprofile_openapi = "microprofile-openapi";
+    public static final String microprofile_opentracing = "microprofile-opentracing";
+    public static final String microprofile_reactive_messaging = "microprofile-reactive-messaging";
+    public static final String rest_client_quickstart = "rest-client-quickstart";
 }
 

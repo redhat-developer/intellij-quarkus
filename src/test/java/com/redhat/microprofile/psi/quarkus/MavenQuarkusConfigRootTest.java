@@ -11,6 +11,7 @@
 package com.redhat.microprofile.psi.quarkus;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
@@ -38,10 +39,11 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_
 /**
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/QuarkusConfigRootTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/QuarkusConfigRootTest.java</a>
  */
-public class MavenQuarkusConfigRootTest extends MavenModuleImportingTestCase {
+public class MavenQuarkusConfigRootTest extends QuarkusMavenModuleImportingTestCase {
+
     public void testHibernateOrmResteasy() throws Exception {
-        Module module = createMavenModule(new File("projects/quarkus/projects/maven/hibernate-orm-resteasy"));
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
+        Module module = loadMavenProject(QuarkusMavenProjectName.hibernate_orm_resteasy);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
         assertProperties(info,
 
                 // io.quarkus.hibernate.orm.deployment.HibernateOrmConfig
@@ -61,8 +63,8 @@ public class MavenQuarkusConfigRootTest extends MavenModuleImportingTestCase {
     }
 
     public void testAllQuarkusExtensions() throws Exception {
-        Module module = createMavenModule(new File("projects/quarkus/projects/maven/all-quarkus-extensions"));
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText);
+        Module module = loadMavenProject(QuarkusMavenProjectName.all_quarkus_extensions);
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
         assertProperties(info,
 
                 p("quarkus-keycloak-authorization", "quarkus.keycloak.policy-enforcer.paths.{*}.name",

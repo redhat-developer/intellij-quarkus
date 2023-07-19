@@ -14,26 +14,16 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
-import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.File;
-import java.util.List;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.r;
 
 /**
  * JAX-RS URL Codelens test for Java file with @ApplicationPath annotation.
