@@ -26,11 +26,17 @@
     <!-- MicroProfile settings -->
     <applicationConfigurable groupId="language"
                              id="MicroProfile"
+                             bundle="messages.MicroProfileBundle"
+                             key="microprofile"
                              provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileConfigurableProvider"/>
     <applicationConfigurable parentId="MicroProfile"
                              id="MicroProfileProperties"
+                             bundle="messages.MicroProfileBundle"
+                             key="microprofile.properties"
                              provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.properties.MicroProfilePropertiesConfigurableProvider"/>
     <applicationConfigurable parentId="MicroProfile"
+                             bundle="messages.MicroProfileBundle"
+                             key="microprofile.java"
                              id="MicroProfileJava"
                              provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.java.MicroProfileJavaConfigurableProvider"/>
     <applicationService id="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"
