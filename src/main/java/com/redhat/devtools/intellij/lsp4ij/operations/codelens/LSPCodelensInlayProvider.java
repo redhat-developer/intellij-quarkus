@@ -116,8 +116,14 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
                                         .thenAcceptAsync(codeLenses -> {
                                             // textDocument/codeLens may return null
                                             if (codeLenses != null) {
-                                                codeLenses.stream().filter(Objects::nonNull)
-                                                        .forEach(codeLens -> pairs.add(new Pair(codeLens, languageServer.getSecond())));
+                                                codeLenses.stream()
+                                                        .filter(Objects::nonNull)
+                                                        .forEach(codeLens -> {
+                                                            if (getCodeLensContent(codeLens) != null) {
+                                                                // The codelens content is filled, display it
+                                                                pairs.add(new Pair(codeLens, languageServer.getSecond()));
+                                                            }
+                                                        });
                                             }
                                         }))
                                 .toArray(CompletableFuture[]::new)));
@@ -138,7 +144,7 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
         elements.forEach(p -> {
             CodeLens codeLens = p.second.first;
             LanguageServer languageServer = p.second.second;
-            InlayPresentation text = factory.smallText(getCodeLensString(codeLens));
+            InlayPresentation text = factory.smallText(getCodeLensContent(codeLens));
             if (!hasCommand(codeLens)) {
                 // No command, create a simple text inlay hint
                 presentations.add(text);
@@ -171,7 +177,7 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
         return (command != null && command.getCommand() != null && !command.getCommand().isEmpty());
     }
 
-    private static String getCodeLensString(CodeLens codeLens) {
+    private static String getCodeLensContent(CodeLens codeLens) {
         Command command = codeLens.getCommand();
         if (command == null || command.getTitle().isEmpty()) {
             return null;
