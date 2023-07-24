@@ -16,6 +16,7 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -73,8 +74,9 @@ public class QuarkusModuleUtil {
      * Check if the Quarkus library needs to be recomputed and update it if required.
      *
      * @param module the module to check
+     * @param progressIndicator
      */
-    public static void ensureQuarkusLibrary(Module module) {
+    public static void ensureQuarkusLibrary(Module module, ProgressIndicator progressIndicator) {
         LOGGER.info("Ensuring library to " + module.getName());
         long start = System.currentTimeMillis();
         ToolDelegate toolDelegate = ToolDelegate.getDelegate(module);
@@ -96,10 +98,12 @@ public class QuarkusModuleUtil {
                             TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "removeLibrary");
                             library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         }
-                        List<VirtualFile>[] files = toolDelegate.getDeploymentFiles(module);
+                        progressIndicator.checkCanceled();
+                        progressIndicator.setText("Collecting Quarkus deployment dependencies...");
+                        List<VirtualFile>[] files = toolDelegate.getDeploymentFiles(module, progressIndicator);
                         LOGGER.info("Adding library to " + module.getName() + " previousHash=" + previousHash + " newHash=" + actualHash);
                         TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "addLibrary").send();
-                        addLibrary(model, files);
+                        addLibrary(model, files, module);
                     });
                     component.setHash(actualHash);
                     component.setVersion(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION);
@@ -109,7 +113,7 @@ public class QuarkusModuleUtil {
         LOGGER.info("ensureQuarkusLibrary ran in " + (System.currentTimeMillis() - start));
     }
 
-    private static void addLibrary(ModifiableRootModel model, List<VirtualFile>[] files) {
+    private static void addLibrary(ModifiableRootModel model, List<VirtualFile>[] files, Module module) {
         LibraryEx library = (LibraryEx)model.getModuleLibraryTable().createLibrary(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
         LibraryEx.ModifiableModelEx libraryModel = library.getModifiableModel();
 
@@ -124,7 +128,9 @@ public class QuarkusModuleUtil {
         assert entry != null : library;
         entry.setScope(DependencyScope.PROVIDED);
         entry.setExported(false);
-        ApplicationManager.getApplication().invokeAndWait(() -> WriteAction.run(libraryModel::commit));
+        ApplicationManager.getApplication().invokeAndWait(() -> {
+            WriteAction.run(libraryModel::commit);
+        });
     }
 
     private static Integer computeHash(Module module) {

@@ -120,16 +120,6 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
   }
 
   @Override
-  public void modulesUpdated() {
-    // Do nothing
-  }
-
-  @Override
-  public void moduleUpdated(Module module) {
-    // Do nothing
-  }
-
-  @Override
   public CompletableFuture<ProjectInfo> getProjectInfo(QuteProjectParams params) {
     return runAsBackground("getProjectInfo", monitor -> QuteSupportForTemplate.getInstance().getProjectInfo(params, PsiUtilsLSImpl.getInstance(getProject()), monitor));
   }

@@ -56,70 +56,8 @@ class ClasspathResourceChangedListener extends PsiTreeChangeAdapter implements B
 
     private final ClasspathResourceChangedManager manager;
 
-    private final Set<Module> modulesBeingEnsured = new HashSet<>();
-
     ClasspathResourceChangedListener(ClasspathResourceChangedManager manager) {
         this.manager = manager;
-    }
-
-    // Track modules changed
-
-    public CompletableFuture<Void> processModules() {
-        var overriders = manager.getOverriders();
-        if (overriders.isEmpty()) {
-            return CompletableFuture.completedFuture(null);
-        }
-        // Loop for each modules and process the load of libraries by using Classpath overrider.
-        return CompletableFuture.runAsync(() -> {
-            for (var module : ModuleManager.getInstance(manager.getProject()).getModules()) {
-                LOGGER.info("Calling ensure from processModules");
-                checkOverridedLibrary(module, true);
-            }
-        }, manager.getExecutor());
-    }
-
-    private CompletableFuture<Void> processModule(Module module) {
-        return checkOverridedLibrary(module, false);
-    }
-
-    private CompletableFuture<Void> checkOverridedLibrary(Module module, boolean sync) {
-        var overriders = manager.getOverriders();
-        if (modulesBeingEnsured.add(module)) {
-            if (sync) {
-                for (var overrider : overriders) {
-                    overrider.overrideClasspath(module);
-                }
-                modulesBeingEnsured.remove(module);
-                return CompletableFuture.completedFuture(null);
-            } else {
-                return CompletableFuture.runAsync(() -> {
-                    for (var overrider : overriders) {
-                        overrider.overrideClasspath(module);
-                    }
-                    modulesBeingEnsured.remove(module);
-                }, manager.getExecutor());
-            }
-        }
-        return CompletableFuture.completedFuture(null);
-    }
-
-    @Override
-    public void moduleAdded(@NotNull Project project, @NotNull Module module) {
-        moduleChanged(module);
-    }
-
-    @Override
-    public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
-        moduleChanged(module);
-    }
-
-    private void moduleChanged(Module module) {
-        LOGGER.info("Calling ensure from moduleChanged for module " + module.getName());
-        var overriders = manager.getOverriders();
-        if (!overriders.isEmpty()) {
-            // A module has changed, process the load of libraries by using Classpath overrider.
-            checkOverridedLibrary(module, false);
-        }
     }
 
     // Track library changes
@@ -136,27 +74,9 @@ class ClasspathResourceChangedListener extends PsiTreeChangeAdapter implements B
 
     private void handleLibraryUpdate(Library library) {
         LOGGER.info("handleLibraryUpdate called " + library.getName());
-        var project = manager.getProject();
-
         // Notify that a library has changed.
         final var notifier = manager.getResourceChangedNotifier();
         notifier.addLibrary(library);
-
-        // Process classpath overriders.
-        var overriders = manager.getOverriders();
-        if (overriders.isEmpty()) {
-            if (library instanceof LibraryEx && ((LibraryEx) library).getModule() != null) {
-                var module = ((LibraryEx) library).getModule();
-                processModule(module).thenRun(() -> {
-                    project.getMessageBus().syncPublisher(ClasspathResourceChangedManager.TOPIC).moduleUpdated(module);
-                });
-            } else {
-                processModules().thenRun(() -> {
-                    notifier.addLibrary(library);
-                    project.getMessageBus().syncPublisher(ClasspathResourceChangedManager.TOPIC).modulesUpdated();
-                });
-            }
-        }
     }
 
     // Track Psi file changes

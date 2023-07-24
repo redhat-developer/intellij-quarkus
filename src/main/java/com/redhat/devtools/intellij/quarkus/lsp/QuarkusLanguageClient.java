@@ -101,16 +101,6 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
         }
     }
 
-    @Override
-    public void modulesUpdated() {
-        // Do nothing
-    }
-
-    @Override
-    public void moduleUpdated(Module module) {
-        // Do nothing
-    }
-
     private MicroProfilePropertiesScope getScope(VirtualFile file) {
         return isJavaFile(file) ? MicroProfilePropertiesScope.sources : MicroProfilePropertiesScope.configfiles;
     }

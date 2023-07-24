@@ -13,11 +13,13 @@ package com.redhat.devtools.intellij.quarkus;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
+import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import org.jetbrains.annotations.NotNull;
 
 public class QuarkusPostStartupActivity implements StartupActivity, DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
+        ClasspathResourceChangedManager.getInstance(project);
         QuarkusProjectService.getInstance(project);
     }
 }

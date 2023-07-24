@@ -26,6 +26,7 @@ import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleGrouper;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -85,7 +86,7 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
     }
 
     @Override
-    public List<VirtualFile>[] getDeploymentFiles(Module module) {
+    public List<VirtualFile>[] getDeploymentFiles(Module module, ProgressIndicator progressIndicator) {
         List<VirtualFile>[] result = ToolDelegate.initDeploymentFiles();
         ModuleRootManager manager = ModuleRootManager.getInstance(module);
         Set<String> deploymentIds = new HashSet<>();
