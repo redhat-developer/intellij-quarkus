@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij;
 import com.intellij.maven.testFramework.MavenImportingTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -77,7 +78,7 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     for(Module module : modules) {
       setupJdkForModule(module.getName());
     }
-    QuarkusProjectService.getInstance(myTestFixture.getProject()).processModules();
+    QuarkusProjectService.getInstance(myTestFixture.getProject()).processModules(new EmptyProgressIndicator());
     return Arrays.asList(modules).stream().skip(1).collect(Collectors.toList());
   }
   protected Module createMavenModule(File projectDir) throws Exception {

@@ -14,14 +14,23 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.classpath;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Source file change notifier with a debounce mode.
@@ -37,9 +46,11 @@ public class ClasspathResourceChangedNotifier implements Disposable  {
 
     private final Set<Pair<VirtualFile, Module>> sourceFiles;
     private boolean librariesChanged;
+private final List<RunnableProgress> processBeforeLibrariesChanged;
 
-    public ClasspathResourceChangedNotifier(Project project) {
+    public ClasspathResourceChangedNotifier(Project project, List<RunnableProgress> preprocessors) {
         this.project = project;
+        this.processBeforeLibrariesChanged = preprocessors;
         sourceFiles = new HashSet<>();
     }
 
@@ -83,12 +94,43 @@ public class ClasspathResourceChangedNotifier implements Disposable  {
 
     private void notifyChanges() {
         synchronized (sourceFiles) {
+            // Java, config sources files has changed
             project.getMessageBus().syncPublisher(ClasspathResourceChangedManager.TOPIC).sourceFilesChanged(sourceFiles);
             sourceFiles.clear();
         }
         if (librariesChanged) {
-            project.getMessageBus().syncPublisher(ClasspathResourceChangedManager.TOPIC).librariesChanged();
-            librariesChanged = false;
+            // Java Libraries has changed
+            if (processBeforeLibrariesChanged.isEmpty() || ApplicationManager.getApplication().isUnitTestMode()) {
+                // No preprocessor or Test context, send directly the librariesChanged event.
+                for (var runnable : processBeforeLibrariesChanged) {
+                    runnable.run(new EmptyProgressIndicator());
+                }
+                // Send the libraries changed event
+                project.getMessageBus().syncPublisher(ClasspathResourceChangedManager.TOPIC).librariesChanged();
+                librariesChanged = false;
+            } else {
+                // There are some preprocessor (ex : Quarkus deployment preprocessor to load Quarkus deployment dependencies in the classpath).
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    new Task.Backgroundable(project, "Overriding MicroProfile classpath...", true) {
+                        @Override
+                        public void run(@NotNull ProgressIndicator progressIndicator) {
+                            try {
+                                // Execute preprocessor
+                                progressIndicator.setIndeterminate(false);
+                                progressIndicator.checkCanceled();
+                                for (var runnable : processBeforeLibrariesChanged) {
+                                    runnable.run(progressIndicator);
+                                }
+                            }
+                            finally {
+                                // Send the libraries changed event
+                                project.getMessageBus().syncPublisher(ClasspathResourceChangedManager.TOPIC).librariesChanged();
+                                librariesChanged = false;
+                            }
+                        }
+                    }.queue();
+                }, ModalityState.defaultModalityState(), project.getDisposed());
+            }
         }
     }
 

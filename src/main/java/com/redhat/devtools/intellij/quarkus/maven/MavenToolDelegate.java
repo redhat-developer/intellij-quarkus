@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.quarkus.maven;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -54,11 +55,11 @@ public class MavenToolDelegate implements ToolDelegate {
     }
 
     @Override
-    public List<VirtualFile>[] getDeploymentFiles(Module module) {
+    public List<VirtualFile>[] getDeploymentFiles(Module module, ProgressIndicator progressIndicator) {
         MavenProject mavenProject = MavenProjectsManager.getInstance(module.getProject()).findProject(module);
         List<VirtualFile>[] result = ToolDelegate.initDeploymentFiles();
         if (mavenProject != null) {
-            getDeploymentFiles(module, mavenProject, result);
+            getDeploymentFiles(module, mavenProject, result, progressIndicator);
         }
         return result;
     }
@@ -88,10 +89,19 @@ public class MavenToolDelegate implements ToolDelegate {
         }
     }
 
-    private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile>[] result) {
+    private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile>[] result, ProgressIndicator progressIndicator) {
         Set<MavenArtifact> downloaded = new HashSet<>();
         Set<MavenId> toDownload = new HashSet<>();
-        for (MavenArtifact artifact : mavenProject.getDependencies()) {
+
+        List<MavenArtifact>  dependencies = mavenProject.getDependencies();
+        double counter = 80d /100d / 3d;
+        double i = counter / dependencies.size();
+        double p = 0;
+
+        // Step1: searching deployment JAR
+        for (MavenArtifact artifact : dependencies) {
+            progressIndicator.checkCanceled();
+            progressIndicator.setText2("Searching deployment descriptor in '" + artifact.getArtifactId() + "'");
             if (artifact.getFile() != null) {
                 String deploymentIdStr = ToolDelegate.getDeploymentJarId(artifact.getFile());
                 if (deploymentIdStr != null) {
@@ -101,19 +111,35 @@ public class MavenToolDelegate implements ToolDelegate {
                     }
                 }
             }
+            p+=i;
+            progressIndicator.setFraction(p);
         }
+
+        // Step2
         List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, toDownload, null);
+        i = counter / binaryDependencies.size();
         toDownload.clear();
         for (MavenArtifact binaryDependency : binaryDependencies) {
+            progressIndicator.checkCanceled();
+            progressIndicator.setText2("Searching deployment descriptor in '" + binaryDependency.getArtifactId() + "'");
             if (!"test".equals(binaryDependency.getScope())) {
                 if (processDependency(mavenProject, result, downloaded, binaryDependency, BINARY)) {
                     toDownload.add(binaryDependency.getMavenId());
                 }
             }
+            p+=i;
+            progressIndicator.setFraction(p);
         }
+
+        // Step3
         List<MavenArtifact> sourcesDependencies = ensureDownloaded(module, mavenProject, toDownload, "sources");
+        i = counter / sourcesDependencies.size();
         for (MavenArtifact sourceDependency : sourcesDependencies) {
+            progressIndicator.checkCanceled();
+            progressIndicator.setText2("Searching deployment descriptor in '" + sourceDependency.getArtifactId() + "'");
             processDependency(mavenProject, result, downloaded, sourceDependency, SOURCES);
+            p+=i;
+            progressIndicator.setFraction(p);
         }
     }
 

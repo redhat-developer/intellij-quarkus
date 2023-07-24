@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import com.redhat.devtools.intellij.quarkus.gradle.AbstractGradleToolDelegate;
 import org.gradle.tooling.GradleConnector;
@@ -75,7 +76,7 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
 //        for(Module m : ModuleManager.getInstance(myProject).getModules()) {
 //            setupJdkForModule(m.getName());
 //        }
-        QuarkusProjectService.getInstance(myProject).processModules();
+        QuarkusProjectService.getInstance(myProject).processModules(new EmptyProgressIndicator());
     }
 
     @Parameterized.Parameters(name = "{index}: with Gradle-{0}")

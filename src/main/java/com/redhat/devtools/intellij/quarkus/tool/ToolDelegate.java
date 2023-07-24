@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.quarkus.tool;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -94,7 +95,7 @@ public interface ToolDelegate  {
      * @see #BINARY
      * @see #SOURCES
      */
-    List<VirtualFile>[] getDeploymentFiles(Module module);
+    List<VirtualFile>[] getDeploymentFiles(Module module, ProgressIndicator progressIndicator);
 
     /**
      * Returns the displayable string for the delegate.
@@ -145,15 +146,6 @@ public interface ToolDelegate  {
         result[0] = new ArrayList<>();
         result[1] = new ArrayList<>();
         return result;
-    }
-
-    public static List<VirtualFile>[] scanDeploymentFiles(Module module) {
-        for(ToolDelegate delegate : EP_NAME.getExtensions()) {
-            if (delegate.isValid(module)) {
-                return delegate.getDeploymentFiles(module);
-            }
-        }
-        return initDeploymentFiles();
     }
 
     public static ToolDelegate[] getDelegates() {
