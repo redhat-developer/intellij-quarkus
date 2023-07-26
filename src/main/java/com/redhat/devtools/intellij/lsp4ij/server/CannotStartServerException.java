@@ -11,17 +11,14 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4ij.console.explorer;
+package com.redhat.devtools.intellij.lsp4ij.server;
 
 /**
- * Language server status.
+ * Language server exception when language server cannot be done.
  */
-public enum ServerStatus {
+public class CannotStartServerException extends LanguageServerException {
 
-    startingProcess,
-    startedProcess,
-    starting,
-    started,
-    stopping,
-    stopped;
+    public CannotStartServerException(String message, Throwable e) {
+        super(message, e);
+    }
 }

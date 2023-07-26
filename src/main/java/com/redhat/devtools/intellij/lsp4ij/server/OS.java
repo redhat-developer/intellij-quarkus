@@ -4,7 +4,7 @@ import java.util.Locale;
 
 /**
  * Enumerated type for operating systems.
- *
+ * <p>
  * Copied from https://github.com/smallrye/smallrye-common/blob/main/os/src/main/java/io/smallrye/common/os/OS.java
  */
 public enum OS {
@@ -68,7 +68,7 @@ public enum OS {
 
     /**
      * @return {@code true} if <em>this</em> {@code OS} is known to be the
-     *         operating system on which the current JVM is executing
+     * operating system on which the current JVM is executing
      */
     public boolean isCurrent() {
         return this == CURRENT_OS;

@@ -39,12 +39,16 @@ public class LanguageServersRegistry {
 
         private static final int DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT = 5;
 
-        public final @Nonnull String id;
-        public final @Nonnull String label;
+        public final @Nonnull
+        String id;
+        public final @Nonnull
+        String label;
         public final boolean isSingleton;
-        public final @Nonnull Map<Language, String> languageIdMappings;
+        public final @Nonnull
+        Map<Language, String> languageIdMappings;
         public final String description;
         public final int lastDocumentDisconnectedTimeout;
+        private boolean enabled;
 
         public LanguageServerDefinition(@Nonnull String id, @Nonnull String label, String description, boolean isSingleton, Integer lastDocumentDisconnectedTimeout) {
             this.id = id;
@@ -53,6 +57,26 @@ public class LanguageServersRegistry {
             this.isSingleton = isSingleton;
             this.lastDocumentDisconnectedTimeout = lastDocumentDisconnectedTimeout != null && lastDocumentDisconnectedTimeout > 0 ? lastDocumentDisconnectedTimeout : DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT;
             this.languageIdMappings = new ConcurrentHashMap<>();
+            setEnabled(true);
+        }
+
+
+        /**
+         * Returns true if the language server definition is enabled and false otherwise.
+         *
+         * @return true if the language server definition is enabled and false otherwise.
+         */
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Set enabled the language server definition.
+         *
+         * @param enabled enabled the language server definition.
+         */
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
         }
 
         public void registerAssociation(@Nonnull Language language, @Nonnull String languageId) {
@@ -224,9 +248,12 @@ public class LanguageServersRegistry {
      */
     private static class LanguageMapping {
 
-        @Nonnull public final String id;
-        @Nonnull public final Language language;
-        @Nullable public final String languageId;
+        @Nonnull
+        public final String id;
+        @Nonnull
+        public final Language language;
+        @Nullable
+        public final String languageId;
 
         public LanguageMapping(@Nonnull Language language, @Nonnull String id, @Nullable String languageId) {
             this.language = language;

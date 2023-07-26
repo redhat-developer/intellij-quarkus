@@ -55,41 +55,15 @@ public class LanguageServerLifecycleManager {
         this.listeners.remove(listener);
     }
 
-    public void onStartingProcess(LanguageServerWrapper languageServer) {
+    public void onStatusChanged(LanguageServerWrapper languageServer) {
         if (isDisposed()) {
             return;
         }
         for (LanguageServerLifecycleListener listener : this.listeners) {
             try {
-                listener.handleStartingProcess(languageServer);
+                listener.handleStatusChanged(languageServer);
             } catch (Exception e) {
-                LOGGER.error("Error while handling starting process of the language server '" + languageServer.serverDefinition.id + "'", e);
-            }
-        }
-    }
-
-    public void onStartedProcess(LanguageServerWrapper languageServer, Exception exception) {
-        if (isDisposed()) {
-            return;
-        }
-        for (LanguageServerLifecycleListener listener : this.listeners) {
-            try {
-                listener.handleStartedProcess(languageServer, exception);
-            } catch (Exception e) {
-                LOGGER.error("Error while handling started process of the language server '" + languageServer.serverDefinition.id + "'", e);
-            }
-        }
-    }
-
-    public void onStartedLanguageServer(LanguageServerWrapper languageServer, Throwable exception) {
-        if (isDisposed()) {
-            return;
-        }
-        for (LanguageServerLifecycleListener listener : this.listeners) {
-            try {
-                listener.handleStartedLanguageServer(languageServer, exception);
-            } catch (Exception e) {
-                LOGGER.error("Error while handling started the language server '" + languageServer.serverDefinition.id + "'", e);
+                LOGGER.error("Error while status changed of the language server '" + languageServer.serverDefinition.id + "'", e);
             }
         }
     }
@@ -107,33 +81,18 @@ public class LanguageServerLifecycleManager {
         }
     }
 
-    public void onStoppingLanguageServer(LanguageServerWrapper languageServer) {
+    public void onError(LanguageServerWrapper languageServer, Throwable exception) {
         if (isDisposed()) {
             return;
         }
         for (LanguageServerLifecycleListener listener : this.listeners) {
             try {
-                listener.handleStoppingLanguageServer(languageServer);
+                listener.handleError(languageServer, exception);
             } catch (Exception e) {
-                LOGGER.error("Error while handling stopping the language server '" + languageServer.serverDefinition.id + "'", e);
-            }
-        }
-
-    }
-
-    public void onStoppedLanguageServer(LanguageServerWrapper languageServer, Exception exception) {
-        if (isDisposed()) {
-            return;
-        }
-        for (LanguageServerLifecycleListener listener : this.listeners) {
-            try {
-                listener.handleStoppedLanguageServer(languageServer, exception);
-            } catch (Exception e) {
-                LOGGER.error("Error while handling stopped the language server '" + languageServer.serverDefinition.id + "'", e);
+                LOGGER.error("Error while handling error of the language server '" + languageServer.serverDefinition.id + "'", e);
             }
         }
     }
-
     public boolean isDisposed() {
         return disposed;
     }
@@ -143,4 +102,6 @@ public class LanguageServerLifecycleManager {
         listeners.stream().forEach(LanguageServerLifecycleListener::dispose);
         listeners.clear();
     }
+
+
 }

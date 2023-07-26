@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Outputs logs in a format that can be parsed by the LSP Inspector.
  * https://microsoft.github.io/language-server-protocol/inspector/
- *
+ * <p>
  * This class is a copy/paste of https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j.jsonrpc/src/main/java/org/eclipse/lsp4j/jsonrpc/TracingMessageConsumer.java
  * adapted for IJ.
  */
@@ -171,7 +171,7 @@ public class TracingMessageConsumer {
         } else {
             result.append("No result returned.");
         }
-        if(errorJson != null && !"null".equals(errorJson)) {
+        if (errorJson != null && !"null".equals(errorJson)) {
             result.append("\nError: ");
             result.append(errorJson);
         }

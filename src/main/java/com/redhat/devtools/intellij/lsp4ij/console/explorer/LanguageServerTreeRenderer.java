@@ -18,6 +18,7 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.RelativeFont;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
+import com.redhat.devtools.intellij.lsp4ij.ServerStatus;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,12 +66,14 @@ public class LanguageServerTreeRenderer extends ColoredTreeCellRenderer {
             setIcon(languageProcessTreeNode.getIcon());
             append(languageProcessTreeNode.getDisplayName());
 
-            if (languageProcessTreeNode.getServerStatus() != ServerStatus.started && languageProcessTreeNode.getServerStatus() != ServerStatus.stopped) {
+            if (languageProcessTreeNode.getServerStatus() == ServerStatus.starting
+                    || languageProcessTreeNode.getServerStatus() == ServerStatus.stopping) {
                 // Display elapsed time when language server is starting/stopping
                 myDurationText = languageProcessTreeNode.getElapsedTime();
-                if (myDurationText != null) {
+                final var durationText = myDurationText;
+                if (durationText != null) {
                     FontMetrics metrics = getFontMetrics(RelativeFont.SMALL.derive(getFont()));
-                    myDurationWidth = metrics.stringWidth(myDurationText);
+                    myDurationWidth = metrics.stringWidth(durationText);
                     myDurationOffset = metrics.getHeight() / 2; // an empty area before and after the text
                     myDurationColor = selected ? UIUtil.getTreeSelectionForeground(hasFocus) : SimpleTextAttributes.GRAYED_ATTRIBUTES.getFgColor();
                 }

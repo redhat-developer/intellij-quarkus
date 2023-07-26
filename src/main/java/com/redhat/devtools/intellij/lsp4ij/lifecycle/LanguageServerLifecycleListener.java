@@ -37,17 +37,11 @@ import org.eclipse.lsp4j.jsonrpc.messages.Message;
  */
 public interface LanguageServerLifecycleListener {
     
-    void handleStartingProcess(LanguageServerWrapper languageServer);
-
-    void handleStartedProcess(LanguageServerWrapper languageServer, Throwable exception);
-
-    void handleStartedLanguageServer(LanguageServerWrapper languageServer, Throwable exception);
+    void handleStatusChanged(LanguageServerWrapper languageServer);
 
     void handleLSPMessage(Message message, MessageConsumer consumer, LanguageServerWrapper languageServer);
 
-    void handleStoppingLanguageServer(LanguageServerWrapper languageServer);
-
-    void handleStoppedLanguageServer(LanguageServerWrapper languageServer, Throwable exception);
+    void handleError(LanguageServerWrapper languageServer, Throwable exception);
 
     void dispose();
 
