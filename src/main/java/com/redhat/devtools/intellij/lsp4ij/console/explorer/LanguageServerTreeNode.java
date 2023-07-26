@@ -21,7 +21,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 /**
  * Language server node.
  */
-public class LanguageServerTreeNode extends DefaultMutableTreeNode  {
+public class LanguageServerTreeNode extends DefaultMutableTreeNode {
 
     private final LanguageServersRegistry.LanguageServerDefinition serverDefinition;
 
@@ -35,7 +35,7 @@ public class LanguageServerTreeNode extends DefaultMutableTreeNode  {
 
     public LanguageServerProcessTreeNode getActiveProcessTreeNode() {
         for (int i = 0; i < super.getChildCount(); i++) {
-            return  (LanguageServerProcessTreeNode) super.getChildAt(i);
+            return (LanguageServerProcessTreeNode) super.getChildAt(i);
         }
         return null;
     }

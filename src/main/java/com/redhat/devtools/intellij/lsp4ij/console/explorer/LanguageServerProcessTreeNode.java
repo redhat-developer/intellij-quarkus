@@ -17,6 +17,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.AnimatedIcon;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
+import com.redhat.devtools.intellij.lsp4ij.ServerStatus;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -46,37 +47,45 @@ public class LanguageServerProcessTreeNode extends DefaultMutableTreeNode {
 
     public void setServerStatus(ServerStatus serverStatus) {
         this.serverStatus = serverStatus;
-        switch(serverStatus) {
-            case startingProcess:
-                startTime = System.currentTimeMillis();
-                displayName = "starting process...";
-                break;
-            case startedProcess:
-                displayName = "process started";
-                break;
+        displayName = getDisplayName(serverStatus);
+        switch (serverStatus) {
             case starting:
-                displayName = "starting...";
-                break;
-            case started:
-                startTime = -1;
-                Long pid = languageServer.getCurrentProcessId();
-                StringBuilder name = new StringBuilder("started");
-                if (pid != null) {
-                    name.append(" pid:");
-                    name.append(pid);
-                }
-                displayName = name.toString();
-                break;
             case stopping:
                 startTime = System.currentTimeMillis();
-                displayName = "stopping...";
                 break;
             case stopped:
+            case started:
                 startTime = -1;
-                displayName = "stopped";
                 break;
         }
-        treeModel.reload(this);
+        this.setUserObject(displayName);
+        treeModel.nodeChanged(this);
+    }
+
+    private String getDisplayName(ServerStatus serverStatus) {
+        if (!languageServer.isEnabled()) {
+            return "disabled";
+        }
+        Throwable serverError = languageServer.getServerError();
+        StringBuilder name = new StringBuilder();
+        if (serverError == null) {
+            name.append(serverStatus.name());
+        } else {
+            name.append(serverStatus == ServerStatus.stopped ? "crashed" : serverStatus.name());
+            int nbTryRestart = languageServer.getNumberOfRestartAttempts();
+            int nbTryRestartMax = languageServer.getMaxNumberOfRestartAttempts();
+            name.append(" [");
+            name.append(nbTryRestart);
+            name.append("/");
+            name.append(nbTryRestartMax);
+            name.append("]");
+        }
+        Long pid = languageServer.getCurrentProcessId();
+        if (pid != null) {
+            name.append(" pid:");
+            name.append(pid);
+        }
+        return name.toString();
     }
 
     public LanguageServerWrapper getLanguageServer() {
@@ -88,11 +97,21 @@ public class LanguageServerProcessTreeNode extends DefaultMutableTreeNode {
     }
 
     public Icon getIcon() {
-        switch(serverStatus) {
+        if (!languageServer.isEnabled()) {
+            return AllIcons.RunConfigurations.TestFailed;
+        }
+        boolean hasError = languageServer.getServerError() != null;
+        switch (serverStatus) {
             case started:
-                return AllIcons.Debugger.ThreadRunning;
+                if (hasError) {
+                    return AllIcons.RunConfigurations.TestFailed;
+                }
+                return AllIcons.Actions.Commit;
             case stopped:
-                return AllIcons.Debugger.ThreadSuspended;
+                if (hasError) {
+                    return AllIcons.RunConfigurations.TestError;
+                }
+                return AllIcons.Actions.Suspend;
             default:
                 return RUNNING_ICON;
         }

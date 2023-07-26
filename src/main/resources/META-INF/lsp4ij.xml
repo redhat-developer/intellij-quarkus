@@ -33,6 +33,9 @@
     <action id="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.StopServerAction"
             class="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.StopServerAction"
             icon="AllIcons.Actions.Suspend" />
+    <action id="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.CopyStartServerCommandAction"
+            class="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.CopyStartServerCommandAction"
+            icon="AllIcons.Actions.Copy" />
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

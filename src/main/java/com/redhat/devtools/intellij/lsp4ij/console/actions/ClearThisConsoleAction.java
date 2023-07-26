@@ -27,17 +27,17 @@ public class ClearThisConsoleAction extends ClearConsoleAction {
     private final ConsoleView myConsoleView;
 
     public ClearThisConsoleAction(@NotNull ConsoleView consoleView) {
-      myConsoleView = consoleView;
+        myConsoleView = consoleView;
     }
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-      boolean enabled = myConsoleView.getContentSize() > 0;
-      e.getPresentation().setEnabled(enabled);
+        boolean enabled = myConsoleView.getContentSize() > 0;
+        e.getPresentation().setEnabled(enabled);
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      myConsoleView.clear();
+        myConsoleView.clear();
     }
-  }
+}

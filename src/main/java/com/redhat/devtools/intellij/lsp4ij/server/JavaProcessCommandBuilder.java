@@ -13,12 +13,8 @@ package com.redhat.devtools.intellij.lsp4ij.server;
 import com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * A builder to create Java process command.
@@ -78,11 +74,11 @@ public class JavaProcessCommandBuilder {
             String suspend = debugSuspend ? "y" : "n";
             commands.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + suspend + ",address=" + debugPort);
         }
-        if(jar != null) {
+        if (jar != null) {
             commands.add("-jar");
             commands.add(jar);
         }
-        if(cp != null) {
+        if (cp != null) {
             commands.add("-cp");
             commands.add(cp);
         }

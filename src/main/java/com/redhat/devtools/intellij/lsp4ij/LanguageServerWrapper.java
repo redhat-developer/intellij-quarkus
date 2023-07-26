@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
+ ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -22,14 +32,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4ij.internal.SupportedFeatures;
-import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
-import com.redhat.devtools.intellij.lsp4ij.server.StreamConnectionProvider;
-import com.redhat.devtools.intellij.lsp4ij.settings.ServerTrace;
-import com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings;
 import com.redhat.devtools.intellij.lsp4ij.lifecycle.LanguageServerLifecycleManager;
 import com.redhat.devtools.intellij.lsp4ij.lifecycle.NullLanguageServerLifecycleManager;
+import com.redhat.devtools.intellij.lsp4ij.server.*;
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.JsonRpcException;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.MessageConsumer;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -50,9 +56,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
+/**
+ * Language server wrapper.
+ */
 public class LanguageServerWrapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServerWrapper.class);//$NON-NLS-1$
     private static final String CLIENT_NAME = "IntelliJ";
+    private static final int MAX_NUMBER_OF_RESTART_ATTEMPTS = 20; // TODO move this max value in settings
 
     class Listener implements DocumentListener, FileDocumentManagerListener, FileEditorManagerListener {
         @Override
@@ -90,7 +100,6 @@ public class LanguageServerWrapper {
                 }
             }
         }
-
     }
 
     private Listener fileBufferListener = new Listener();
@@ -110,12 +119,22 @@ public class LanguageServerWrapper {
 
     protected StreamConnectionProvider lspStreamProvider;
     private Future<?> launcherFuture;
+
+    private int numberOfRestartAttempts;
     private CompletableFuture<Void> initializeFuture;
     private LanguageServer languageServer;
     private LanguageClientImpl languageClient;
     private ServerCapabilities serverCapabilities;
     private Timer timer;
     private final AtomicBoolean stopping = new AtomicBoolean(false);
+
+    private ServerStatus serverStatus;
+
+    private LanguageServerException serverError;
+
+    private Long currentProcessId;
+
+    private List<String> currentProcessCommandLines;
 
     private final ExecutorService dispatcher;
 
@@ -158,6 +177,7 @@ public class LanguageServerWrapper {
         String listenerThreadNameFormat = "LS-" + serverDefinition.id + projectName + "#listener-%d"; //$NON-NLS-1$ //$NON-NLS-2$
         this.listener = Executors
                 .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(listenerThreadNameFormat).build());
+        udateStatus(ServerStatus.none);
     }
 
     public Project getProject() {
@@ -198,13 +218,40 @@ public class LanguageServerWrapper {
         return folders;
     }
 
+    public synchronized void restart() throws IOException {
+        numberOfRestartAttempts = 0;
+        setEnabled(true);
+        stop();
+        start();
+    }
+
+    private void setEnabled(boolean enabled) {
+        this.serverDefinition.setEnabled(enabled);
+    }
+
+    public boolean isEnabled() {
+        return serverDefinition.isEnabled();
+    }
+
     /**
      * Starts a language server and triggers initialization. If language server is
      * started and active, does nothing. If language server is inactive, restart it.
      *
-     * @throws IOException
+     * @throws LanguageServerException thrown when the language server cannot be started
      */
-    public synchronized void start() throws IOException {
+    public synchronized void start() throws LanguageServerException {
+        if (serverError != null) {
+            // Here the language server has been not possible
+            // we stop it and attempts a new restart if needed
+            stop();
+            if (numberOfRestartAttempts > MAX_NUMBER_OF_RESTART_ATTEMPTS - 1) {
+                // Disable the language server
+                setEnabled(false);
+                return;
+            } else {
+                numberOfRestartAttempts++;
+            }
+        }
         final var filesToReconnect = new HashMap<URI, Document>();
         if (this.languageServer != null) {
             if (isActive()) {
@@ -216,23 +263,33 @@ public class LanguageServerWrapper {
                 stop();
             }
         }
+
         if (this.initializeFuture == null) {
             final URI rootURI = getRootURI();
             this.launcherFuture = new CompletableFuture<>();
             this.initializeFuture = CompletableFuture.supplyAsync(() -> {
                 this.lspStreamProvider = serverDefinition.createConnectionProvider(initialProject.getProject());
                 initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
-                try {
-                    // Starting process...
-                    getLanguageServerLifecycleManager().onStartingProcess(this);
-                    lspStreamProvider.start();
-                    // End process with success
-                    getLanguageServerLifecycleManager().onStartedProcess(this, null);
-                } catch (IOException e) {
-                    // End process with error
-                    getLanguageServerLifecycleManager().onStartedProcess(this, e);
-                    throw new RuntimeException(e);
+
+                // Starting process...
+                udateStatus(ServerStatus.starting);
+                getLanguageServerLifecycleManager().onStatusChanged(this);
+                this.currentProcessId = null;
+                this.currentProcessCommandLines = null;
+                lspStreamProvider.start();
+
+                // As process can be stopped, we loose pid and command lines information
+                // when server is stopped, we store them here.
+                // to display them in the Language server explorer even if process is killed.
+                if (lspStreamProvider instanceof ProcessStreamConnectionProvider) {
+                    ProcessStreamConnectionProvider provider = (ProcessStreamConnectionProvider) lspStreamProvider;
+                    this.currentProcessId = provider.getPid();
+                    this.currentProcessCommandLines = provider.getCommands();
                 }
+
+                // Throws the CannotStartProcessException exception if process is not alive.
+                // This usecase comes for instance when the start process command fails (not a valid start command)
+                lspStreamProvider.ensureIsAlive();
                 return null;
             }).thenRun(() -> {
                 languageClient = serverDefinition.createLanguageClient(initialProject.getProject());
@@ -247,11 +304,10 @@ public class LanguageServerWrapper {
                     logMessage(message, consumer);
                     try {
                         consumer.consume(message);
-                    } catch (JsonRpcException e) {
-                        // When shutdown or exit is called, the pipe can be closed, in this case the exception must be ignored:
-                        if (!isIgnoreException(e)) {
-                            throw e;
-                        }
+                    } catch (Throwable e) {
+                        // Log in the LSP console the error
+                        getLanguageServerLifecycleManager().onError(this, e);
+                        throw e;
                     }
                     final StreamConnectionProvider currentConnectionProvider = this.lspStreamProvider;
                     if (currentConnectionProvider != null && isActive()) {
@@ -273,6 +329,7 @@ public class LanguageServerWrapper {
             })
                     .thenCompose(unused -> initServer(rootURI))
                     .thenAccept(res -> {
+                        serverError = null;
                         serverCapabilities = res.getCapabilities();
                         this.initiallySupportsWorkspaceFolders = supportsWorkspaceFolders(serverCapabilities);
                     }).thenRun(() -> {
@@ -295,26 +352,23 @@ public class LanguageServerWrapper {
                         messageBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
                         messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, fileBufferListener);
                         messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, fileBufferListener);
-                       getLanguageServerLifecycleManager().onStartedLanguageServer(this, null);
+                        udateStatus(ServerStatus.started);
+                        getLanguageServerLifecycleManager().onStatusChanged(this);
                     }).exceptionally(e -> {
-                        LOGGER.error("Error while starting language server '" + serverDefinition.id + "'", e);
-                        initializeFuture.completeExceptionally(e);
-                        getLanguageServerLifecycleManager().onStartedLanguageServer(this, e);
-                        stop();
+                        if (e instanceof CompletionException) {
+                            e = e.getCause();
+                        }
+                        if (e instanceof CannotStartProcessException) {
+                            serverError = (CannotStartProcessException) e;
+                        } else {
+                            serverError = new CannotStartServerException("Error while starting language server '" + serverDefinition.id + "' (pid=" + getCurrentProcessId() + ")", e);
+                        }
+                        initializeFuture.completeExceptionally(serverError);
+                        getLanguageServerLifecycleManager().onError(this, e);
+                        stop(false);
                         return null;
                     });
         }
-    }
-
-    private boolean isIgnoreException(JsonRpcException e) {
-        if (!isStopping()) {
-            // The language server is not stopping, don't ignore the error
-            return false;
-        }
-        if (JsonRpcException.indicatesStreamClosed(e)) {
-            return true;
-        }
-        return e.getCause() != null && "The pipe is being closed".equals(e.getCause().getMessage());
     }
 
     private CompletableFuture<InitializeResult> initServer(final URI rootURI) {
@@ -372,17 +426,25 @@ public class LanguageServerWrapper {
         getLanguageServerLifecycleManager().logLSPMessage(message, consumer, this);
     }
 
-    private void removeStopTimer() {
+    private void removeStopTimer(boolean stopping) {
         if (timer != null) {
             timer.cancel();
             timer = null;
-            getLanguageServerLifecycleManager().onStartedLanguageServer(this, null);
+            if (!stopping) {
+                udateStatus(ServerStatus.started);
+                getLanguageServerLifecycleManager().onStatusChanged(this);
+            }
         }
+    }
+
+    private void udateStatus(ServerStatus serverStatus) {
+        this.serverStatus = serverStatus;
     }
 
     private void startStopTimer() {
         timer = new Timer("Stop Language Server Timer"); //$NON-NLS-1$
-        getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
+        udateStatus(ServerStatus.stopping);
+        getLanguageServerLifecycleManager().onStatusChanged(this);
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -409,72 +471,113 @@ public class LanguageServerWrapper {
 
     public synchronized void stop() {
         final boolean alreadyStopping = this.stopping.getAndSet(true);
-        if (alreadyStopping) {
-            return;
-        }
-        getLanguageServerLifecycleManager().onStoppingLanguageServer(this);
-        removeStopTimer();
-        if (this.languageClient != null) {
-            this.languageClient.dispose();
-        }
-        if (this.initializeFuture != null) {
-            this.initializeFuture.cancel(true);
-            this.initializeFuture = null;
-        }
+        stop(alreadyStopping);
+    }
 
-        this.serverCapabilities = null;
-        this.dynamicRegistrations.clear();
+    public synchronized void stop(boolean alreadyStopping) {
+        try {
+            if (alreadyStopping) {
+                return;
+            }
+            udateStatus(ServerStatus.stopping);
+            getLanguageServerLifecycleManager().onStatusChanged(this);
 
-        final Future<?> serverFuture = this.launcherFuture;
-        final StreamConnectionProvider provider = this.lspStreamProvider;
-        final LanguageServer languageServerInstance = this.languageServer;
-        // ResourcesPlugin.getWorkspace().removeResourceChangeListener(workspaceFolderUpdater);
+            removeStopTimer(true);
+            if (this.languageClient != null) {
+                this.languageClient.dispose();
+            }
 
-        Runnable shutdownKillAndStopFutureAndProvider = () -> {
-            if (languageServerInstance != null) {
-                CompletableFuture<Object> shutdown = languageServerInstance.shutdown();
-                try {
-                    shutdown.get(5, TimeUnit.SECONDS);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                } catch (TimeoutException ex) {
-                    LOGGER.warn("Timeout error while shutdown the language server '" + serverDefinition.id + "'", ex);
-                } catch (Exception ex) {
-                    LOGGER.error("Error while shutdown the language server '" + serverDefinition.id + "'", ex);
+            if (this.initializeFuture != null) {
+                this.initializeFuture.cancel(true);
+                this.initializeFuture = null;
+            }
+
+            this.serverCapabilities = null;
+            this.dynamicRegistrations.clear();
+
+            // We need to shutdown, kill and stop the process in a thread to avoid for instance
+            // stopping the new process created with a new start.
+            final Future<?> serverFuture = this.launcherFuture;
+            final StreamConnectionProvider provider = this.lspStreamProvider;
+            final LanguageServer languageServerInstance = this.languageServer;
+
+            Runnable shutdownKillAndStopFutureAndProvider = () -> {
+                if (languageServerInstance != null && provider != null && provider.isAlive()) {
+                    // The LSP language server instance and the process which starts the language server is alive. Process
+                    // - shutdown
+                    // - exit
+
+                    // shutdown the language server
+                    try {
+                        shutdownLanguageServerInstance(languageServerInstance);
+                    } catch (Exception ex) {
+                        getLanguageServerLifecycleManager().onError(this, ex);
+                    }
+
+                    // exit the language server
+                    // Consume language server exit() before cancelling launcher future (serverFuture.cancel())
+                    // to avoid having error like "The pipe is being closed".
+                    try {
+                        exitLanguageServerInstance(languageServerInstance);
+                    } catch (Exception ex) {
+                        getLanguageServerLifecycleManager().onError(this, ex);
+                    }
                 }
+
+                if (serverFuture != null) {
+                    serverFuture.cancel(true);
+                }
+
+                if (provider != null) {
+                    provider.stop();
+                }
+                this.stopping.set(false);
+                udateStatus(ServerStatus.stopped);
+                getLanguageServerLifecycleManager().onStatusChanged(this);
+            };
+
+            CompletableFuture.runAsync(shutdownKillAndStopFutureAndProvider);
+        } finally {
+            this.launcherFuture = null;
+            this.lspStreamProvider = null;
+
+            while (!this.connectedDocuments.isEmpty()) {
+                disconnect(this.connectedDocuments.keySet().iterator().next(), true);
             }
+            this.languageServer = null;
+            this.languageClient = null;
 
-            // Consume language server exit() before cancelling launcher future (serverFuture.cancel())
-            // to avoid having error like "The pipe is being closed".
-            if (languageServerInstance != null) {
-                languageServerInstance.exit();
+            EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(fileBufferListener);
+            if (messageBusConnection != null) {
+                messageBusConnection.disconnect();
             }
-
-            if (serverFuture != null) {
-                serverFuture.cancel(true);
-            }
-
-            if (provider != null) {
-                provider.stop();
-            }
-            this.stopping.set(false);
-            getLanguageServerLifecycleManager().onStoppedLanguageServer(this, null);
-        };
-
-        CompletableFuture.runAsync(shutdownKillAndStopFutureAndProvider);
-
-        this.launcherFuture = null;
-        this.lspStreamProvider = null;
-
-        while (!this.connectedDocuments.isEmpty()) {
-            disconnect(this.connectedDocuments.keySet().iterator().next(), true);
         }
-        this.languageServer = null;
-        this.languageClient = null;
+    }
 
-        EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(fileBufferListener);
-        if (messageBusConnection != null) {
-            messageBusConnection.disconnect();
+    private void shutdownLanguageServerInstance(LanguageServer languageServerInstance) throws Exception {
+        CompletableFuture<Object> shutdown = languageServerInstance.shutdown();
+        try {
+            shutdown.get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        } catch (TimeoutException ex) {
+            String message = "Timeout error while shutdown the language server '" + serverDefinition.id + "'";
+            LOGGER.warn(message, ex);
+            throw new Exception(message, ex);
+        } catch (Exception ex) {
+            String message = "Error while shutdown the language server '" + serverDefinition.id + "'";
+            LOGGER.warn(message, ex);
+            throw new Exception(message, ex);
+        }
+    }
+
+    private void exitLanguageServerInstance(LanguageServer languageServerInstance) throws Exception {
+        try {
+            languageServerInstance.exit();
+        } catch (Exception ex) {
+            String message = "Error while exit the language server '" + serverDefinition.id + "'";
+            LOGGER.error(message, ex);
+            throw new Exception(message, ex);
         }
     }
 
@@ -619,7 +722,7 @@ public class LanguageServerWrapper {
      * @noreference internal so far
      */
     private CompletableFuture<LanguageServer> connect(@Nonnull URI absolutePath, Document document) throws IOException {
-        removeStopTimer();
+        removeStopTimer(false);
         final URI thePath = absolutePath; // should be useless
 
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
@@ -677,7 +780,7 @@ public class LanguageServerWrapper {
         }
         if (!stopping && this.connectedDocuments.isEmpty()) {
             if (this.serverDefinition.lastDocumentDisconnectedTimeout != 0 && !ApplicationManager.getApplication().isUnitTestMode()) {
-                removeStopTimer();
+                removeStopTimer(true);
                 startStopTimer();
             } else {
                 stop();
@@ -736,8 +839,9 @@ public class LanguageServerWrapper {
     public CompletableFuture<LanguageServer> getInitializedServer() {
         try {
             start();
-        } catch (IOException ex) {
-            LOGGER.warn(ex.getLocalizedMessage(), ex);
+        } catch (LanguageServerException ex) {
+            // The language server cannot be started, return a null language server
+            return CompletableFuture.completedFuture(null);
         }
         if (initializeFuture != null && !this.initializeFuture.isDone()) {
             /*if (ApplicationManager.getApplication().isDispatchThread()) { // UI Thread
@@ -972,12 +1076,41 @@ public class LanguageServerWrapper {
         return (int) ProcessHandle.current().pid();
     }
 
+    // ------------------ Current Process information.
+
     /**
      * Returns the current process id and null otherwise.
      *
      * @return the current process id and null otherwise.
      */
     public Long getCurrentProcessId() {
-        return lspStreamProvider instanceof ProcessStreamConnectionProvider ? ((ProcessStreamConnectionProvider) lspStreamProvider).getPid() : null;
+        return currentProcessId;
+    }
+
+    public List<String> getCurrentProcessCommandLine() {
+        return currentProcessCommandLines;
+    }
+
+    // ------------------ Server status information .
+
+    /**
+     * Returns the server status.
+     *
+     * @return the server status.
+     */
+    public ServerStatus getServerStatus() {
+        return serverStatus;
+    }
+
+    public LanguageServerException getServerError() {
+        return serverError;
+    }
+
+    public int getNumberOfRestartAttempts() {
+        return numberOfRestartAttempts;
+    }
+
+    public int getMaxNumberOfRestartAttempts() {
+        return MAX_NUMBER_OF_RESTART_ATTEMPTS;
     }
 }

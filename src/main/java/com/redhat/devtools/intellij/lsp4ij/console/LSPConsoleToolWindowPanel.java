@@ -37,6 +37,7 @@ import com.redhat.devtools.intellij.lsp4ij.console.explorer.LanguageServerProces
 import com.redhat.devtools.intellij.lsp4ij.console.explorer.LanguageServerTreeNode;
 import com.redhat.devtools.intellij.lsp4ij.settings.ServerTrace;
 import com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -69,6 +70,7 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         super.setContent(splitPane);
         super.revalidate();
         super.repaint();
+        explorer.load();
     }
 
     public Project getProject() {
@@ -142,7 +144,7 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
                 add(createDetailPanel((LanguageServerTreeNode) key), NAME_VIEW_DETAIL);
                 showDetail();
             } else if (key instanceof LanguageServerProcessTreeNode) {
-                consoleView = createConsoleView(((LanguageServerProcessTreeNode)key).getLanguageServer().serverDefinition, project);
+                consoleView = createConsoleView(((LanguageServerProcessTreeNode) key).getLanguageServer().serverDefinition, project);
                 JComponent consoleComponent = consoleView.getComponent();
                 Disposer.register(LSPConsoleToolWindowPanel.this, consoleView);
                 add(consoleComponent, NAME_VIEW_CONSOLE);
@@ -214,10 +216,15 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
             consoleView.print(message, ConsoleViewContentType.SYSTEM_OUTPUT);
         }
 
+        public void showError(Throwable exception) {
+            String stacktrace = ExceptionUtils.getStackTrace(exception);
+            consoleView.print(stacktrace, ConsoleViewContentType.ERROR_OUTPUT);
+        }
+
         @Override
         public void dispose() {
             super.dispose();
-            if(consoleView != null) {
+            if (consoleView != null) {
                 consoleView.dispose();
             }
         }
@@ -236,6 +243,16 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         var consoleOrErrorPanel = consoles.getValue(processTreeNode, true);
         if (consoleOrErrorPanel != null) {
             consoleOrErrorPanel.showMessage(message);
+        }
+    }
+
+    public void showError(LanguageServerProcessTreeNode processTreeNode, Throwable exception) {
+        if (isDisposed()) {
+            return;
+        }
+        var consoleOrErrorPanel = consoles.getValue(processTreeNode, true);
+        if (consoleOrErrorPanel != null) {
+            consoleOrErrorPanel.showError(exception);
         }
     }
 

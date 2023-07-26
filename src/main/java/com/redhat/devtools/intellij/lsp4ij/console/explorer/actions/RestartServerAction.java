@@ -42,7 +42,7 @@ public class RestartServerAction extends TreeAction implements DumbAware {
         LanguageServerWrapper languageServer = getSelectedLanguageServer(tree);
         if (languageServer != null) {
             try {
-                languageServer.start();
+                languageServer.restart();
             } catch (IOException ex) {
                 LOGGER.error("Failed restarting server", ex);
             }

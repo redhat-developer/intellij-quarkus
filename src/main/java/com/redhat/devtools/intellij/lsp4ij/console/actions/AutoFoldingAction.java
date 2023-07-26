@@ -49,13 +49,12 @@ public class AutoFoldingAction extends ToggleAction implements DumbAware {
      * Returns true if LSP traces from the console editor should be expanded and false otherwise.
      *
      * @param editor the console editor.
-     *
      * @return true if LSP traces from the console editor should be expanded and false otherwise.
      */
     public static boolean shouldLSPTracesBeExpanded(Editor editor) {
         // Takes the last fold region and returns the expanded state
         FoldRegion[] allRegions = editor.getFoldingModel().getAllFoldRegions();
-        FoldRegion lastRegion =  allRegions.length > 0 ? allRegions[allRegions.length - 1] : null;
+        FoldRegion lastRegion = allRegions.length > 0 ? allRegions[allRegions.length - 1] : null;
         return lastRegion != null ? lastRegion.isExpanded() : false;
     }
 

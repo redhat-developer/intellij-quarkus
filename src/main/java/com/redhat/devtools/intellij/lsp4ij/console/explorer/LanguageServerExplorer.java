@@ -21,7 +21,9 @@ import com.intellij.ui.AnimatedIcon;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServersRegistry;
+import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.console.LSPConsoleToolWindowPanel;
+import com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.CopyStartServerCommandAction;
 import com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.RestartServerAction;
 import com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.StopServerAction;
 import com.redhat.devtools.intellij.lsp4ij.lifecycle.LanguageServerLifecycleManager;
@@ -102,6 +104,7 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
                 .sorted(Comparator.comparing(LanguageServersRegistry.LanguageServerDefinition::getDisplayName))
                 .map(LanguageServerTreeNode::new)
                 .forEach(top::add);
+
         tree.setCellRenderer(new LanguageServerTreeRenderer());
 
         tree.addTreeSelectionListener(treeSelectionListener);
@@ -119,12 +122,14 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
                     if (node instanceof LanguageServerProcessTreeNode) {
                         LanguageServerProcessTreeNode processTreeNode = (LanguageServerProcessTreeNode) node;
                         switch (processTreeNode.getServerStatus()) {
+                            case starting:
                             case started:
                                 // Stop language server action
                                 group = new DefaultActionGroup();
                                 AnAction stopServerAction = ActionManager.getInstance().getAction(StopServerAction.ACTION_ID);
                                 group.add(stopServerAction);
                                 break;
+                            case stopping:
                             case stopped:
                                 // Restart language server action
                                 group = new DefaultActionGroup();
@@ -132,6 +137,11 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
                                 group.add(restartServerAction);
                                 break;
                         }
+                        if (group == null) {
+                            group = new DefaultActionGroup();
+                        }
+                        AnAction testStartServerAction = ActionManager.getInstance().getAction(CopyStartServerCommandAction.ACTION_ID);
+                        group.add(testStartServerAction);
                     }
 
                     if (group != null) {
@@ -167,6 +177,10 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
         panel.showMessage(processTreeNode, message);
     }
 
+    public void showError(LanguageServerProcessTreeNode processTreeNode, Throwable exception) {
+        panel.showError(processTreeNode, exception);
+    }
+
     public DefaultTreeModel getTreeModel() {
         return (DefaultTreeModel) tree.getModel();
     }
@@ -181,5 +195,19 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
 
     public Project getProject() {
         return panel.getProject();
+    }
+
+    /**
+     * Initialize language server process with the started language servers.
+     */
+    public void load() {
+        LanguageServiceAccessor.getInstance(getProject()).getStartedServers()
+                .forEach(ls -> {
+                    Throwable serverError = ls.getServerError();
+                    listener.handleStatusChanged(ls);
+                    if (serverError != null) {
+                        listener.handleError(ls, serverError);
+                    }
+                });
     }
 }
