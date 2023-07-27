@@ -109,7 +109,7 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		StringBuilder signature = new StringBuilder(field.getName());
 		signature.append(" : ");
 		try {
-			signature.append(field.getType().getCanonicalText(true));
+			signature.append(PsiTypeUtils.resolveSignature(field.getType(), false));
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.WARNING, "Error while resolving field type '" + field.getName() + "'", e);
 		}
