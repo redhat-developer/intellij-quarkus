@@ -50,13 +50,13 @@ import static com.redhat.devtools.intellij.lsp4ij.ui.IconMapper.getIcon;
 public class LSPCompletionProposal extends LookupElement {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPCompletionProposal.class);
 
-    protected final CompletionItem item;
-    protected final int initialOffset;
+    private final CompletionItem item;
+    private final int initialOffset;
     private final PsiFile file;
-    protected int currentOffset;
-    protected int bestOffset;
-    protected final Editor editor;
-    protected final LanguageServer languageServer;
+    private int currentOffset;
+    private int bestOffset;
+    private final Editor editor;
+    private final LanguageServer languageServer;
 
     public LSPCompletionProposal(PsiFile file, Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
         this.file = file;

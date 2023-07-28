@@ -89,14 +89,22 @@ public class LSPCompletionContributor extends CompletionContributor implements D
 
     private void addCompletionItems(PsiFile file, Editor editor, CompletionPrefix completionPrefix, Either<List<CompletionItem>,
             CompletionList> completion, LanguageServer languageServer, @NotNull CompletionResultSet result) {
-        List<CompletionItem> items = completion.isLeft() ? completion.getLeft() : completion.getRight().getItems();
+        CompletionItemDefaults itemDefaults = null;
+        List<CompletionItem> items = null;
+        if (completion.isLeft()) {
+            items = completion.getLeft();
+        } else {
+            CompletionList completionList = completion.getRight();
+            itemDefaults = completionList.getItemDefaults();
+            items = completionList.getItems();
+        }
         for (var item : items) {
             if (StringUtils.isBlank(item.getLabel())) {
                 // Invalid completion Item, ignore it
                 continue;
             }
             // Create lookup item
-            var lookupItem = createLookupItem(file, editor, completionPrefix.getCompletionOffset(), item, languageServer);
+            var lookupItem = createLookupItem(file, editor, completionPrefix.getCompletionOffset(), item, itemDefaults, languageServer);
             // Group it by using completion item kind
             var groupedLookupItem = PrioritizedLookupElement.withGrouping(lookupItem, item.getKind().getValue());
             // Compute the prefix
@@ -104,7 +112,7 @@ public class LSPCompletionContributor extends CompletionContributor implements D
             if (prefix != null) {
                 // Add the IJ completion item (lookup item) by using the computed prefix
                 result.withPrefixMatcher(prefix)
-                        .caseInsensitive() // set case insentitive to search Java class which starts with upper case
+                        .caseInsensitive() // set case insensitive to search Java class which starts with upper case
                         .addElement(groupedLookupItem);
             } else {
                 // Should happens rarely, only when text edit is for multi-lines or if completion is triggered outside the text edit range.
@@ -116,8 +124,30 @@ public class LSPCompletionContributor extends CompletionContributor implements D
 
     private static LSPCompletionProposal createLookupItem(PsiFile file, Editor editor, int offset,
                                                           CompletionItem item,
-                                                          LanguageServer languageServer) {
+                                                          CompletionItemDefaults itemDefaults, LanguageServer languageServer) {
+        // Update text edit range with item defaults if needed
+        updateWithItemDefaults(item, itemDefaults);
         return new LSPCompletionProposal(file, editor, offset, item, languageServer);
+    }
+
+    private static void updateWithItemDefaults(CompletionItem item, CompletionItemDefaults itemDefaults) {
+        if (itemDefaults == null) {
+            return;
+        }
+        String itemText = item.getTextEditText();
+        if (itemDefaults.getEditRange() != null && itemText != null) {
+            if (itemDefaults.getEditRange().isLeft()) {
+                Range defaultRange = itemDefaults.getEditRange().getLeft();
+                if (defaultRange != null) {
+                    item.setTextEdit(Either.forLeft(new TextEdit(defaultRange, itemText)));
+                }
+            } else {
+                InsertReplaceRange defaultInsertReplaceRange = itemDefaults.getEditRange().getRight();
+                if (defaultInsertReplaceRange != null) {
+                    item.setTextEdit(Either.forRight(new InsertReplaceEdit(itemText, defaultInsertReplaceRange.getInsert(), defaultInsertReplaceRange.getReplace())));
+                }
+            }
+        }
     }
 
 
