@@ -423,16 +423,18 @@ public class QuteSupportForTemplate {
 		// 2) Check the methods for the member
 		PsiMethod[] methods = type.getMethods();
 		for (PsiMethod method : methods) {
-			try {
-				if (signature.equals(typeResolver.resolveMethodSignature(method))) {
-					String javadoc = utils.getJavadoc(method, documentFormat);
-					if (javadoc != null) {
-						return javadoc;
+			if (!method.isConstructor()) {
+				try {
+					if (signature.equals(typeResolver.resolveMethodSignature(method))) {
+						String javadoc = utils.getJavadoc(method, documentFormat);
+						if (javadoc != null) {
+							return javadoc;
+						}
 					}
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE, "Error while getting method signature of '" + method.getName() + "'.",
+							e);
 				}
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error while getting method signature of '" + method.getName() + "'.",
-						e);
 			}
 		}
 
