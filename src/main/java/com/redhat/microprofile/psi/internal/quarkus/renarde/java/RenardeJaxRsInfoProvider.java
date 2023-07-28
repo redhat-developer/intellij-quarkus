@@ -62,7 +62,7 @@ public class RenardeJaxRsInfoProvider extends KeyedLazyInstanceEP<IJaxRsInfoProv
 			List<JaxRsMethodInfo> methodInfos = new ArrayList<>();
 			for (PsiMethod method : type.getMethods()) {
 
-				if (utils.isHiddenGeneratedElement(method)) {
+				if (method.isConstructor() || utils.isHiddenGeneratedElement(method)) {
 					continue;
 				}
 				// ignore element if method range overlaps the type range,

@@ -91,7 +91,8 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 				}
 				continue;
 			} else if (element instanceof PsiMethod) {
-				if (utils.isHiddenGeneratedElement(element)) {
+				PsiMethod method = (PsiMethod) element;
+				if (method.isConstructor() || utils.isHiddenGeneratedElement(element)) {
 					continue;
 				}
 				// ignore element if method range overlaps the type range,
