@@ -1,5 +1,5 @@
 # Check version to clone from https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html#intellij-platform-based-products-of-recent-ide-versions
-IDEA_VERSION=221 #2022.1
+IDEA_VERSION=222 #2022.2
 rm -rf intellij-community-tmp 2>/dev/null
 git clone --single-branch --depth 1 --branch $IDEA_VERSION https://github.com/JetBrains/intellij-community intellij-community-tmp
 rm -rf intellij-community 2>/dev/null
