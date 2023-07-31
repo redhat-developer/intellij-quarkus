@@ -8,7 +8,7 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.module;
+package com.redhat.devtools.intellij.quarkus.projectWizard;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +22,8 @@ import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.RequestBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
@@ -31,26 +33,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_ARTIFACT_ID_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_CLASSNAME_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_EXTENSIONS_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_GROUP_ID_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_NO_EXAMPLES_DEFAULT;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_NO_EXAMPLES_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_PATH_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_STREAM_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_TOOL_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.CODE_VERSION_PARAMETER_NAME;
-import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.PLATFORM_ONLY_PARAMETER;
+import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.*;
 
+/**
+ * Quarkus model registry fetching and caching data for Quarkus stream versions and extensions.
+ */
 public class QuarkusModelRegistry {
-    private static final String EXTENSIONS_SUFFIX = "/api/extensions/stream/";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModelRegistry.class);
+    /**
+     * Default request timeout in seconds
+     */
+    public static final int DEFAULT_TIMEOUT_IN_SEC = 10;
+    public static final int DEFAULT_TIMEOUT_IN_MS = DEFAULT_TIMEOUT_IN_SEC*1000;
+    private static final String EXTENSIONS_SUFFIX = "/api/extensions/stream/";
     private static final String STREAMS_SUFFIX = "/api/streams";
 
     public static final QuarkusModelRegistry INSTANCE = new QuarkusModelRegistry();
@@ -72,33 +71,42 @@ public class QuarkusModelRegistry {
     }
 
     public QuarkusModel load(String endPointURL, ProgressIndicator indicator) throws IOException {
+        try {
+            return ApplicationManager.getApplication().executeOnPooledThread(() -> loadStreams(endPointURL, indicator)).get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+        } catch (InterruptedException|ExecutionException|TimeoutException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public QuarkusModel loadStreams(String endPointURL, ProgressIndicator indicator) throws IOException {
+        long start = System.currentTimeMillis();
         String normalizedEndPointURL = normalizeURL(endPointURL);
-        indicator.setText("Looking up Quarkus model from endpoint " + endPointURL);
-        QuarkusModel model = models.get(endPointURL);
-        if (model == null) {
-            indicator.setText("Loading Quarkus model from endpoint " + endPointURL);
-            try {
-                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(normalizedEndPointURL + STREAMS_SUFFIX).userAgent(USER_AGENT).tuner(request -> {
+        indicator.setText("Looking up Quarkus streams from endpoint " + endPointURL);
+        QuarkusModel streamModel = models.get(endPointURL);
+        if (streamModel != null) {
+            return streamModel;
+        }
+        indicator.setText("Loading Quarkus streams from endpoint " + endPointURL);
+        streamModel = HttpRequests.request(normalizedEndPointURL + STREAMS_SUFFIX)
+                .connectTimeout(DEFAULT_TIMEOUT_IN_MS)
+                .readTimeout(DEFAULT_TIMEOUT_IN_MS)
+                .userAgent(USER_AGENT)
+                .tuner(request -> {
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
                     request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
-                }).connect(request -> {
-                        try (Reader reader = request.getReader(indicator)) {
-                            List<QuarkusStream> streams = mapper.readValue(reader, new TypeReference<List<QuarkusStream>>() {
-                            });
-                            QuarkusModel newModel = new QuarkusModel(normalizedEndPointURL, streams);
-                            return newModel;
-                        } catch (IOException e) {
-                            throw new ProcessCanceledException(e);
-                        }
-                })).get();
-            } catch (InterruptedException|ExecutionException e) {
-                throw new IOException(e);
-            }
-        }
-        if (model == null) {
-            throw new IOException();
-        }
-        return model;
+                })
+                .connect(request -> {
+                    try (Reader reader = request.getReader(indicator)) {
+                        List<QuarkusStream> streams = mapper.readValue(reader, new TypeReference<List<QuarkusStream>>() {
+                        });
+                        QuarkusModel model = new QuarkusModel(normalizedEndPointURL, streams);
+                        long elapsed = System.currentTimeMillis() - start;
+                        LOGGER.info("Loaded Quarkus streams in {} ms", elapsed);
+                        return model;
+                    }
+                });
+        models.put(endPointURL, streamModel);
+        return streamModel;
     }
 
     private static String normalizeURL(String endPointURL) {
@@ -110,30 +118,25 @@ public class QuarkusModelRegistry {
     }
 
     public static QuarkusExtensionsModel loadExtensionsModel(String endPointURL, String key, ProgressIndicator indicator) throws IOException {
+        long start = System.currentTimeMillis();
         String normalizedEndPointURL = normalizeURL(endPointURL);
         indicator.setText("Looking up Quarkus extensions from endpoint " + endPointURL + " and key " + key);
-        QuarkusExtensionsModel model = null;
-            try {
-                model = ApplicationManager.getApplication().executeOnPooledThread(() -> HttpRequests.request(normalizedEndPointURL + EXTENSIONS_SUFFIX + key + "?" + PLATFORM_ONLY_PARAMETER + "=false").userAgent(USER_AGENT).tuner(request -> {
-                    request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
-                    request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
-                }).connect(request -> {
-                    try (Reader reader = request.getReader(indicator)) {
-                        List<QuarkusExtension> extensions = mapper.readValue(reader, new TypeReference<List<QuarkusExtension>>() {
-                        });
-                        QuarkusExtensionsModel newModel = new QuarkusExtensionsModel(key, extensions);
-                        return newModel;
-                    } catch (IOException e) {
-                        throw new ProcessCanceledException(e);
-                    }
-                })).get();
-            } catch (InterruptedException|ExecutionException e) {
-                throw new IOException(e);
-            }
-        if (model == null) {
-            throw new IOException();
-        }
-        return model;
+        String query = normalizedEndPointURL + EXTENSIONS_SUFFIX + key + "?" + PLATFORM_ONLY_PARAMETER + "=false";
+        return HttpRequests.request(query).userAgent(USER_AGENT).tuner(request -> {
+                request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
+                request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
+            }).connect(request -> {
+                try (Reader reader = request.getReader(indicator)) {
+                    List<QuarkusExtension> extensions = mapper.readValue(reader, new TypeReference<List<QuarkusExtension>>() {
+                    });
+                    QuarkusExtensionsModel newModel = new QuarkusExtensionsModel(key, extensions);
+                    long elapsed = System.currentTimeMillis() - start;
+                    LOGGER.info("Loaded Quarkus extensions in {} ms", elapsed);
+                    return newModel;
+                } catch (IOException e) {
+                    throw new ProcessCanceledException(e);
+                }
+        });
     }
 
     public static void zip(String endpoint, String tool, String groupId, String artifactId, String version,
@@ -183,9 +186,7 @@ public class QuarkusModelRegistry {
         return json.toString();
     }
 
-    public static void zip(String endpoint, String tool, String groupId, String artifactId, String version,
-                           String className, String path, QuarkusExtensionsModel model, File output) throws IOException {
-        zip(endpoint, tool, groupId, artifactId, version, className, path, model, output, true);
+    public void reset() {
+        models.clear();
     }
-
-    }
+}

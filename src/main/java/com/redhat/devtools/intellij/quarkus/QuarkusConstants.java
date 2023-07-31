@@ -11,7 +11,8 @@
 package com.redhat.devtools.intellij.quarkus;
 
 import com.intellij.openapi.util.Key;
-import com.redhat.devtools.intellij.quarkus.module.QuarkusExtensionsModel;
+import com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusExtensionsModel;
+import com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModel;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 
 public class QuarkusConstants {
@@ -24,6 +25,7 @@ public class QuarkusConstants {
     public final static Key<String> WIZARD_PATH_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".path");
     public final static Key<QuarkusExtensionsModel> WIZARD_EXTENSIONS_MODEL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".model");
     public final static Key<String> WIZARD_ENDPOINT_URL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".endpointURL");
+    public final static Key<QuarkusModel> WIZARD_QUARKUS_STREAMS = Key.create(QuarkusConstants.class.getPackage().getName() + ".streams");
 
     public static final String CONFIG_ROOT_ANNOTATION = "io.quarkus.runtime.annotations.ConfigRoot";
     public static final String CONFIG_GROUP_ANNOTATION = "io.quarkus.runtime.annotations.ConfigGroup";

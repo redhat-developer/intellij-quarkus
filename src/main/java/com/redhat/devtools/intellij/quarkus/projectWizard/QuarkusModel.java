@@ -8,16 +8,19 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.module;
+package com.redhat.devtools.intellij.quarkus.projectWizard;
 
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
-public class QuarkusModel {
+public class QuarkusModel implements Disposable {
     private String baseURL;
 
     private List<QuarkusStream> streams;
@@ -32,12 +35,26 @@ public class QuarkusModel {
         return streams;
     }
 
+    //Used in Unit test
     public QuarkusExtensionsModel getExtensionsModel(String key, ProgressIndicator indicator) throws IOException {
+        try {
+            return ApplicationManager.getApplication().executeOnPooledThread(() -> loadExtensionsModel(key, indicator)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public QuarkusExtensionsModel loadExtensionsModel(String key, ProgressIndicator indicator) throws IOException {
         QuarkusExtensionsModel extensionsModel = extensionsModelMap.get(key);
         if (extensionsModel == null) {
             extensionsModel = QuarkusModelRegistry.loadExtensionsModel(baseURL, key, indicator);
             extensionsModelMap.put(key, extensionsModel);
         }
         return extensionsModel;
+    }
+
+    @Override
+    public void dispose() {
+        extensionsModelMap.clear();
     }
 }

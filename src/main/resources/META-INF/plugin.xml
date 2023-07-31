@@ -321,7 +321,7 @@
     <!-- Add your extensions here -->
     <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
     <framework.detector implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkDetector"/>
-    <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.module.QuarkusModuleBuilder"/>
+    <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModuleBuilder"/>
     <iconProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusIconProvider"/>
     <completion.contributor
             language="Properties"

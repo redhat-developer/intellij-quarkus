@@ -8,7 +8,7 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.module;
+package com.redhat.devtools.intellij.quarkus.projectWizard;
 
 import java.util.ArrayList;
 import java.util.Collections;
