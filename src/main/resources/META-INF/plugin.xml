@@ -307,6 +307,9 @@
                     implementationClass="com.redhat.devtools.intellij.qute.lang.format.QuteHtmlFormattingModelBuilder"/>
     <braceMatcher filetype="Qute_" implementationClass="com.redhat.devtools.intellij.qute.editor.QuteBraceMatcher"/>
     <lang.parserDefinition language="Qute_" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteParserDefinition"/>
+    <!-- Disabled as it causes https://github.com/redhat-developer/intellij-quarkus/issues/944
+    <pom.declarationSearcher implementation="com.redhat.devtools.intellij.qute.lang.QuteDeclarationSearcher"/>
+    -->
     <fileIndentOptionsProvider implementation="com.redhat.devtools.intellij.qute.lang.format.QuteFileIndentOptionsProvider"/>
     <editorHighlighterProvider filetype="Qute_"
                                implementationClass="com.redhat.devtools.intellij.qute.lang.highlighter.QuteEditorHighlighterProvider" />
