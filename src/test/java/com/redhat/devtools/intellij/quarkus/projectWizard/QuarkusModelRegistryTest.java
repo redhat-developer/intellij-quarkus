@@ -8,7 +8,7 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.module;
+package com.redhat.devtools.intellij.quarkus.projectWizard;
 
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
@@ -18,14 +18,14 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_CODE_URL;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_CODE_URL_PROPERTY_NAME;
@@ -33,11 +33,13 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_CODE
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class QuarkusModelRegistryTest  {
     private final QuarkusModelRegistry registry = QuarkusModelRegistry.INSTANCE;
     private static CodeInsightTestFixture myFixture;
 
+    private static final String JAXRS_EXTENSION = "RESTEasy Classic";
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -58,6 +60,12 @@ public class QuarkusModelRegistryTest  {
         PsiMicroProfileProjectManager.getInstance(myFixture.getProject()).dispose();
         ClasspathResourceChangedManager.getInstance(myFixture.getProject()).dispose();
         myFixture.tearDown();
+    }
+
+    @Before
+    @After
+    public void resetRegistry() {
+        registry.reset();
     }
 
     @Test
@@ -81,9 +89,12 @@ public class QuarkusModelRegistryTest  {
     }
 
     private void enableExtension(QuarkusExtensionsModel model, String name) {
-        model.getCategories().stream().
-                forEach(category -> category.getExtensions().stream().filter(extension -> extension.getName().equals(name)).
-                        forEach(extension -> extension.setSelected(true)));
+        Stream<QuarkusExtension> extStream = model.getCategories().stream().flatMap(cat -> cat.getExtensions().stream()).filter(extension -> extension.getName().equals(name));
+        List<QuarkusExtension> extensions = extStream.collect(Collectors.toList());
+        if (extensions.isEmpty()) {
+           fail("Could not find any "+name+" extension in "+model.getKey());
+        }
+        extensions.forEach(extension -> extension.setSelected(true));
     }
 
     private QuarkusExtensionsModel getRecommendedModel(QuarkusModel model) throws IOException {
@@ -95,7 +106,7 @@ public class QuarkusModelRegistryTest  {
         File folder = temporaryFolder.newFolder();
         QuarkusModel model = registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator());
         QuarkusExtensionsModel extensionsModel = getRecommendedModel(model);
-        enableExtension(extensionsModel, "RESTEasy JAX-RS");
+        enableExtension(extensionsModel, JAXRS_EXTENSION);
         QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "MAVEN", "org.acme", "code-with-quarkus",
                 "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example",
                 extensionsModel, folder, examples);
@@ -136,7 +147,7 @@ public class QuarkusModelRegistryTest  {
         File folder = temporaryFolder.newFolder();
         QuarkusModel model = registry.load(QUARKUS_CODE_URL, new EmptyProgressIndicator());
         QuarkusExtensionsModel extensionsModel = getRecommendedModel(model);
-        enableExtension(extensionsModel, "RESTEasy JAX-RS");
+        enableExtension(extensionsModel, JAXRS_EXTENSION);
         QuarkusModelRegistry.zip(QUARKUS_CODE_URL, "GRADLE", "org.acme", "code-with-quarkus",
                 "0.0.1-SNAPSHOT", "org.acme.ExampleResource", "/example",
                 extensionsModel, folder, examples);
