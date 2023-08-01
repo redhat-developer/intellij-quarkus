@@ -12,7 +12,9 @@
 package com.redhat.devtools.intellij.qute.psi.utils;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -21,6 +23,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.resolver.AbstractTypeResol
 import com.redhat.qute.commons.JavaTypeKind;
 
 import java.util.Arrays;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -174,10 +177,6 @@ public class PsiTypeUtils {
         return resolveSignature(methodParameter.getType(), varargs);
     }
 
-    public static String resolveSignature(PsiParameter methodParameter, PsiClass type) {
-        return resolveSignature(methodParameter, type, false);
-    }
-
     public static String getFullQualifiedName(String name, Module javaProject, ProgressIndicator monitor) {
         if (name.indexOf('.') != -1) {
             return name;
@@ -200,6 +199,8 @@ public class PsiTypeUtils {
                 // ex : if className = String we should find type of java.lang.String
                 return JavaPsiFacade.getInstance(javaProject.getProject()).findClass("java.lang." + className, javaProject.getModuleWithDependenciesAndLibrariesScope(true));
             }
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Error while finding type for '" + className + "'.", e);
         }

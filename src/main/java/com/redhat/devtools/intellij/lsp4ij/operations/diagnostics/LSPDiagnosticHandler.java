@@ -15,11 +15,13 @@ package com.redhat.devtools.intellij.lsp4ij.operations.diagnostics;
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileWrapper;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
@@ -43,7 +45,16 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
 
     @Override
     public void accept(PublishDiagnosticsParams params) {
-        ApplicationManager.getApplication().runReadAction(() -> {
+        if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+            updateDiagnostics(params);
+        } else {
+            ReadAction.nonBlocking(() -> updateDiagnostics(params))
+                    .submit(AppExecutorUtil.getAppExecutorService());
+
+        }
+    }
+
+    public void updateDiagnostics(PublishDiagnosticsParams params) {        //ApplicationManager.getApplication().runReadAction(() -> {
             VirtualFile file = LSPIJUtils.findResourceFor(params.getUri());
             if (file == null) {
                 return;
@@ -69,6 +80,5 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             // {@link LSPDiagnosticAnnotator}.
             // which translates LSP Diagnostics into Intellij Annotation
             DaemonCodeAnalyzer.getInstance(module.getProject()).restart(psiFile);
-        });
     }
 }

@@ -11,7 +11,9 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.template.datamodel;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -29,6 +31,7 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -112,6 +115,8 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 					collectResolversForTemplateGlobal(method, templateGlobal, resolvers, typeResolver, monitor);
 				}
 			}
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
 		}
@@ -130,6 +135,8 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			try {
 				resolver.setNamed(
 					AnnotationUtils.getAnnotationMemberValue(templateGlobal, TEMPLATE_GLOBAL_ANNOTATION_NAME));
+			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while getting annotation member value of 'name'.", e);
 			}
@@ -177,6 +184,8 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 				}
 			}
 			return false;
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting method information of '" + member.getName() + "'.", e);
 			return false;

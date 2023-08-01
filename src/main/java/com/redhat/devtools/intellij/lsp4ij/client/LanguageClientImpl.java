@@ -1,8 +1,12 @@
-package com.redhat.devtools.intellij.lsp4ij;
+package com.redhat.devtools.intellij.lsp4ij.client;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
+import com.redhat.devtools.intellij.lsp4ij.ServerMessageHandler;
 import com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticHandler;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -13,7 +17,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class LanguageClientImpl implements LanguageClient {
+public class LanguageClientImpl implements LanguageClient, Disposable {
     private final Project project;
     private Consumer<PublishDiagnosticsParams> diagnosticHandler;
 
@@ -89,19 +93,20 @@ public class LanguageClientImpl implements LanguageClient {
 
     @Override
     public CompletableFuture<List<WorkspaceFolder>> workspaceFolders() {
-        List<WorkspaceFolder> res = new ArrayList<>(wrapper.allWatchedProjects.size());
-        for (final Module project : wrapper.allWatchedProjects) {
+        List<WorkspaceFolder> res = new ArrayList<>(wrapper.getAllWatchedProjects().size());
+        for (final Module project : wrapper.getAllWatchedProjects()) {
             res.add(LSPIJUtils.toWorkspaceFolder(project));
         }
         return CompletableFuture.completedFuture(res);
     }
 
+    @Override
     public void dispose() {
         this.disposed = true;
     }
 
     public boolean isDisposed() {
-        return disposed;
+        return disposed || getProject().isDisposed();
     }
 
     protected Object createSettings() {

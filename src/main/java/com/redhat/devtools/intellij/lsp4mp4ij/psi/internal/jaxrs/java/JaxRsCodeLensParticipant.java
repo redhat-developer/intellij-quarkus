@@ -14,7 +14,9 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant;
@@ -30,6 +32,7 @@ import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -95,6 +98,8 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 				.map(methodInfo -> {
 					try {
 						return createCodeLens(methodInfo, params.getOpenURICommand(), utils);
+					} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+						throw e;
 					} catch (Exception e) {
 						LOGGER.log(Level.WARNING, "failed to create codelens for jax-rs method", e);
 						return null;

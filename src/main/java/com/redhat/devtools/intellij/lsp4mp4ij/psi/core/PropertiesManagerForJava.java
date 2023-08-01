@@ -279,14 +279,13 @@ public class PropertiesManagerForJava {
 
     private void collectDiagnostics(String uri, IPsiUtils utils, DocumentFormat documentFormat,
                                     MicroProfileJavaDiagnosticsSettings settings, List<Diagnostic> diagnostics) {
-        PsiFile typeRoot = ApplicationManager.getApplication().runReadAction((Computable<PsiFile>) () -> resolveTypeRoot(uri, utils));
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
         if (typeRoot == null) {
             return;
         }
 
         try {
-            Module module = ApplicationManager.getApplication().runReadAction((ThrowableComputable<Module, IOException>) () -> utils.getModule(uri));
-            DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
+            Module module = utils.getModule(uri);
                 // Collect all adapted diagnostics participant
                 JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, module, documentFormat, settings);
                 List<IJavaDiagnosticsParticipant> definitions = IJavaDiagnosticsParticipant.EP_NAME.extensions()
@@ -305,7 +304,6 @@ public class PropertiesManagerForJava {
                     }
                 });
                 definitions.forEach(definition -> definition.endDiagnostics(context));
-            });
         } catch (IOException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }

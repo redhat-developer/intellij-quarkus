@@ -132,7 +132,6 @@ public class LanguageServerExplorerLifecycleListener implements LanguageServerLi
             serverNode.add(processTreeNode);
         }
         boolean serverStatusChanged = serverStatus != null && serverStatus != processTreeNode.getServerStatus();
-        processTreeNode.setServerStatus(serverStatus != null ? serverStatus : languageServer.getServerStatus());
         boolean updateUI = serverStatusChanged || selectProcess;
         if (updateUI) {
             final var node = processTreeNode;

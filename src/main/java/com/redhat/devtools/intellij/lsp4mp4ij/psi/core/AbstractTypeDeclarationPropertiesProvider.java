@@ -10,10 +10,14 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifierListOwner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CancellationException;
 
 /**
  * Abstract class for properties provider based on type declaration (class,
@@ -50,6 +54,8 @@ public abstract class AbstractTypeDeclarationPropertiesProvider extends Abstract
 						// Collect properties from the class name and stop the loop.
 						processClass(type, className, context);
 						break;
+					} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+						throw e;
 					} catch (Exception e) {
 						LOGGER.error("Cannot compute MicroProfile properties for the Java class '" + className + "'.",
 								e);

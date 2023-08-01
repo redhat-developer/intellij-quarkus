@@ -3,7 +3,7 @@
   <!-- LSP extension points -->
   <extensionPoints>
     <extensionPoint name="server" beanClass="com.redhat.devtools.intellij.lsp4ij.ServerExtensionPointBean">
-      <with attribute="clientClass" implements="com.redhat.devtools.intellij.lsp4ij.LanguageClientImpl"/>
+      <with attribute="clientClass" implements="com.redhat.devtools.intellij.lsp4ij.client.LanguageClientImpl"/>
       <with attribute="serverClass" implements="org.eclipse.lsp4j.services.LanguageServer"/>
     </extensionPoint>
     <extensionPoint name="languageMapping" beanClass="com.redhat.devtools.intellij.lsp4ij.LanguageMappingExtensionPointBean"/>

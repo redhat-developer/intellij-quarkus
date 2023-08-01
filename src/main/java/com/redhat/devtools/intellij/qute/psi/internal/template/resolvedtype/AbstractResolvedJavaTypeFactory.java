@@ -17,11 +17,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.intellij.extapi.psi.StubBasedPsiElementBase;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
 
 
@@ -90,6 +93,8 @@ public abstract class AbstractResolvedJavaTypeFactory implements IResolvedJavaTy
 						JavaMethodInfo info = createMethod(method, typeResolver);
 						methodsInfo.add(info);
 					}
+				} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+					throw e;
 				} catch (Exception e) {
 					LOGGER.log(Level.SEVERE,
 							"Error while getting method signature of '" + method.getName() + "'.", e);
@@ -127,7 +132,8 @@ public abstract class AbstractResolvedJavaTypeFactory implements IResolvedJavaTy
 			if (!type.isInterface() && !method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC)) {
 				return false;
 			}
-
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while checking if '" + method.getName() + "' is valid.", e);
 			return false;

@@ -10,7 +10,6 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.qute.lsp;
 
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -18,8 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
-import com.redhat.devtools.intellij.lsp4ij.IndexAwareLanguageClient;
+import com.redhat.devtools.intellij.lsp4ij.client.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
@@ -127,8 +125,8 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
   @Override
   public CompletableFuture<DataModelProject<DataModelTemplate<DataModelParameter>>> getDataModelProject(
           QuteDataModelProjectParams params) {
-    return runAsBackground("getDataModel", monitor -> ReadAction.compute(() -> QuteSupportForTemplate.getInstance().getDataModelProject(params, PsiUtilsLSImpl.getInstance(getProject()),
-            monitor)));
+    return runAsBackground("getDataModel", monitor -> QuteSupportForTemplate.getInstance().getDataModelProject(params, PsiUtilsLSImpl.getInstance(getProject()),
+            monitor));
   }
 
   @Override
@@ -139,26 +137,26 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
 
   @Override
   public CompletableFuture<ResolvedJavaTypeInfo> getResolvedJavaType(QuteResolvedJavaTypeParams params) {
-    return runAsBackground("getResolvedJavaType", monitor -> ReadAction.compute(() -> QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(getProject()),
-            monitor)));
+    return runAsBackground("getResolvedJavaType", monitor -> QuteSupportForTemplate.getInstance().getResolvedJavaType(params, PsiUtilsLSImpl.getInstance(getProject()),
+            monitor));
   }
 
   @Override
   public CompletableFuture<Location> getJavaDefinition(QuteJavaDefinitionParams params) {
-    return runAsBackground("getJavaDefinition", monitor -> ReadAction.compute(() -> QuteSupportForTemplate.getInstance().getJavaDefinition(params, PsiUtilsLSImpl.getInstance(getProject()),
-            monitor)));
+    return runAsBackground("getJavaDefinition", monitor -> QuteSupportForTemplate.getInstance().getJavaDefinition(params, PsiUtilsLSImpl.getInstance(getProject()),
+            monitor));
   }
 
   @Override
   public CompletableFuture<List<? extends CodeLens>> getJavaCodelens(QuteJavaCodeLensParams javaParams) {
-    return runAsBackground("getJavaCodelens", monitor -> ReadAction.compute(() -> QuteSupportForJava.getInstance().codeLens(javaParams, PsiUtilsLSImpl.getInstance(getProject()),
-            monitor)));
+    return runAsBackground("getJavaCodelens", monitor -> QuteSupportForJava.getInstance().codeLens(javaParams, PsiUtilsLSImpl.getInstance(getProject()),
+            monitor));
   }
 
   @Override
   public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(QuteJavaDiagnosticsParams javaParams) {
-    return runAsBackground("getJavaDiagnostics", monitor -> ReadAction.compute(() -> QuteSupportForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject()),
-            monitor)));
+    return runAsBackground("getJavaDiagnostics", monitor -> QuteSupportForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject()),
+            monitor));
   }
 
   @Override
@@ -175,8 +173,8 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
 
   @Override
   public CompletableFuture<WorkspaceEdit> generateMissingJavaMember(GenerateMissingJavaMemberParams params) {
-    return runAsBackground("generateMissingJavaMember", monitor -> ReadAction.compute(() -> QuteSupportForTemplate.getInstance()
-            .generateMissingJavaMember(params, PsiUtilsLSImpl.getInstance(getProject()), monitor)));
+    return runAsBackground("generateMissingJavaMember", monitor -> QuteSupportForTemplate.getInstance()
+            .generateMissingJavaMember(params, PsiUtilsLSImpl.getInstance(getProject()), monitor));
   }
 
   @Override

@@ -11,12 +11,7 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.resolver;
 
-import com.intellij.openapi.module.Module;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiVariable;
+import com.intellij.psi.*;
 
 import java.util.List;
 

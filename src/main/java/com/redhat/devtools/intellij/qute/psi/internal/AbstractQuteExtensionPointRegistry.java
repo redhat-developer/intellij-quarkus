@@ -14,10 +14,13 @@
 package com.redhat.devtools.intellij.qute.psi.internal;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.util.KeyedLazyInstanceEP;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,6 +42,9 @@ public abstract class AbstractQuteExtensionPointRegistry<T,K extends KeyedLazyIn
 		super();
 		this.extensionProvidersLoaded = false;
 		this.providers = new ArrayList<>();
+		// Force the load of providers, to avoid loading it when getProviders() is called
+		// because a ProcessCanceledException could be thrown while creating a provider.
+		loadExtensionProviders();
 	}
 
 	/**
@@ -82,7 +88,10 @@ public abstract class AbstractQuteExtensionPointRegistry<T,K extends KeyedLazyIn
 					providers.add(provider);
 				}
 				LOGGER.log(Level.INFO, "  Loaded " + getProviderExtensionId() + ": " + provider.getClass().getName());
-			} catch (Throwable t) {
+			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException t) {
+				extensionProvidersLoaded = false;
+				throw t;
+			} catch (Exception t) {
 				LOGGER.log(Level.WARNING, "  Loaded while loading " + getProviderExtensionId(), t);
 			}
 		}

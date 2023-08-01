@@ -17,15 +17,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.util.KeyedLazyInstanceEP;
@@ -43,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Registry to handle instances of {@link IDataModelProvider}
@@ -168,12 +172,16 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 
 			SearchContext context = new SearchContext(javaProject, project, utils, scopes);
 			Query<?> pattern = createSearchPattern(context);
-			SearchScope scope = createSearchScope(javaProject, scopes, excludeTestCode, subMonitor);
-
-			// Execute the search
-			beginSearch(context, subMonitor);
-			pattern.forEach((Consumer<Object>) psiMember -> collectDataModel(psiMember, context, mainMonitor));
-			endSearch(context, subMonitor);
+			if (pattern != null) {
+				SearchScope scope = createSearchScope(javaProject, scopes, excludeTestCode, subMonitor);
+				// Execute the search
+				try {
+					beginSearch(context, subMonitor);
+					pattern.forEach((Consumer<Object>) psiMember -> collectDataModel(psiMember, context, mainMonitor));
+				} finally {
+					endSearch(context, subMonitor);
+				}
+			}
 		} finally {
 			mainMonitor.setText(text);
 		}
@@ -191,7 +199,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 		}
 	}
 
-	private Query<? extends Object> createSearchPattern(SearchContext context) {
+	private @Nullable Query<? extends Object> createSearchPattern(SearchContext context) {
 		Query<? extends Object> leftPattern = null;
 		for (IDataModelProvider provider : getProviders()) {
 			if (leftPattern == null) {
@@ -210,6 +218,8 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 		for (IDataModelProvider provider : getProviders()) {
 			try {
 				provider.collectDataModel(match, context, monitor);
+			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING,
 						"Error while collecting data model with the provider '" + provider.getClass().getName() + "'.",

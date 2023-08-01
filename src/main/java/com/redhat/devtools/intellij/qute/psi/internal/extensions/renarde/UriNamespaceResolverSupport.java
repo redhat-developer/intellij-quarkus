@@ -13,11 +13,14 @@ package com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -56,6 +59,8 @@ public class UriNamespaceResolverSupport extends AbstractDataModelProvider {
             try {
                 // Find all classes which extends 'io.quarkiverse.renarde.Controller'
                 collectRenardeController(type, context, monitor);
+            } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+                throw e;
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Error while collecting Renarde Controller.", e);
             }
