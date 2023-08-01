@@ -15,7 +15,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
-import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.ProjectLabelManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
@@ -24,7 +23,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
-import com.redhat.devtools.intellij.lsp4ij.IndexAwareLanguageClient;
+import com.redhat.devtools.intellij.lsp4ij.client.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4mp.commons.*;
@@ -32,8 +31,6 @@ import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.utils.JSONUtility;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageClientAPI;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -128,7 +125,7 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(MicroProfileJavaDiagnosticsParams javaParams) {
-        return runAsBackground("Computing MicroProfile Java diagnostics", monitor -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject())), false);
+        return runAsBackground("Computing MicroProfile Java diagnostics", monitor -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
     }
 
     @Override

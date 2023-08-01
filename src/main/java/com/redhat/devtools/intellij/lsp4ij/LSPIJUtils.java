@@ -150,7 +150,12 @@ public class LSPIJUtils {
             return null;
         }
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            Module module = ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file, false));
+            Module module = null;
+            if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+                module = ProjectFileIndex.getInstance(project).getModuleForFile(file, false);
+            } else {
+                module = ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file, false));
+            }
             if (module != null) {
                 return module;
             }

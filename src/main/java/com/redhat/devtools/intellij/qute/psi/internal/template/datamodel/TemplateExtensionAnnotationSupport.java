@@ -16,11 +16,14 @@ import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.T
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE;
 
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiClass;
@@ -101,7 +104,9 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 				// class
 				addDummyResolverForTemplateExtensionsClass(type, resolvers);
 			}
-		} catch (RuntimeException e) {
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
+		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getName() + "'.", e);
 		}
 	}
@@ -126,7 +131,9 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 		try {
 			return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
 					&& !PsiTypeUtils.isVoidReturnType(method);
-		} catch (RuntimeException e) {
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
+		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting method information of '" + method.getName() + "'.", e);
 			return false;
 		}
@@ -158,6 +165,8 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 			if (StringUtils.isNotEmpty(matchName)) {
 				resolver.setMatchName(matchName);
 			}
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.WARNING,
 					"Error while getting annotation member value of '" + method.getName() + "'.", e);

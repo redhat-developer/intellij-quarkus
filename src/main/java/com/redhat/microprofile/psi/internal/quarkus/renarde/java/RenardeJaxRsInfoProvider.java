@@ -13,6 +13,7 @@ package com.redhat.microprofile.psi.internal.quarkus.renarde.java;
 
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.*;
 import com.intellij.util.KeyedLazyInstanceEP;
@@ -93,8 +94,10 @@ public class RenardeJaxRsInfoProvider extends KeyedLazyInstanceEP<IJaxRsInfoProv
 				}
 			}
 			return methodInfos;
+		} catch (ProcessCanceledException e) {
+			throw e;
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "error while collecting JAX-RS methods for Renarde", e);
+			LOGGER.log(Level.SEVERE, "Error while collecting JAX-RS methods for Renarde", e);
 			return Collections.emptyList();
 		}
 	}

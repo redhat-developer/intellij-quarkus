@@ -12,7 +12,6 @@
 package com.redhat.devtools.intellij.qute.psi.internal.template.datamodel;
 
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.*;
-import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.resolveSignature;
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.getTemplatePath;
 
 import java.util.ArrayList;

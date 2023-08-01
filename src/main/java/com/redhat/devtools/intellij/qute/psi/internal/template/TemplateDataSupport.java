@@ -1,10 +1,13 @@
 package com.redhat.devtools.intellij.qute.psi.internal.template;
 
+import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
@@ -49,7 +52,9 @@ public class TemplateDataSupport {
                                                                  DataModelBaseTemplate<DataModelParameter> template, ProgressIndicator monitor) {
         try {
             search(fieldOrMethod, new TemplateDataCollector(template, monitor), monitor);
-        } catch (RuntimeException e) {
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
+        } catch (Exception e) {
             LOGGER.log(Level.WARNING,
                     "Error while getting collecting template parameters for '" + fieldOrMethod.getName() + "'.",
                     e);
@@ -98,7 +103,9 @@ public class TemplateDataSupport {
             TemplateDataLocation dataLocation = new TemplateDataLocation(parameterName, utils);
             search(fieldOrMethod, dataLocation, monitor);
             return dataLocation.getLocation();
-        } catch (RuntimeException e) {
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
+        } catch (Exception e) {
             LOGGER.log(Level.WARNING,
                     "Error while getting location template.data for '" + fieldOrMethod.getName() + "'.", e);
             return null;

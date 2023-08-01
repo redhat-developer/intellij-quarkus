@@ -40,6 +40,7 @@ import org.eclipse.lsp4mp.commons.MicroProfileProjectInfoParams;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertyDefinitionParams;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,12 +109,16 @@ public class PropertiesManager {
         if (module != null) {
             SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
             SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat);
-            DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
-                Query<PsiModifierListOwner> query = createSearchQuery(context);
-                beginSearch(context, monitor);
-                query.forEach((Consumer<? super PsiModifierListOwner>) psiMember -> collectProperties(psiMember, context, monitor));
-                endSearch(context, monitor);
-            });
+            Query<PsiModifierListOwner> query = createSearchQuery(context);
+            if (query != null) {
+                try {
+                    beginSearch(context, monitor);
+                    query.forEach((Consumer<? super PsiModifierListOwner>) psiMember -> collectProperties(psiMember, context, monitor));
+                }
+                finally {
+                    endSearch(context, monitor);
+                }
+            }
         }
         LOGGER.info("End computing MicroProfile properties for '" + info.getProjectURI() + "' in "
                 + (System.currentTimeMillis() - startTime) + "ms.");
@@ -168,7 +173,7 @@ public class PropertiesManager {
         return searchScope;
     }
 
-    private Query<PsiModifierListOwner> createSearchQuery(SearchContext context) {
+    private @Nullable Query<PsiModifierListOwner> createSearchQuery(SearchContext context) {
         Query<PsiModifierListOwner> query = null;
 
         for (IPropertiesProvider provider : getPropertiesProviders()) {

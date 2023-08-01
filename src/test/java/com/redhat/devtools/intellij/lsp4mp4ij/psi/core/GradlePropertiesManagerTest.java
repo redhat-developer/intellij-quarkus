@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.GradleTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
@@ -55,7 +56,7 @@ public class GradlePropertiesManagerTest extends GradleTestCase {
     @Test
     public void testQuarkusCoreDeploymentProperties() throws IOException {
         importProject(CONFIG);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("project.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo info = ReadAction.compute(() -> PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("project.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator()));
         File quarkusCoreJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-core-deployment", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-core-deployment.jar", quarkusCoreJARFile);
 

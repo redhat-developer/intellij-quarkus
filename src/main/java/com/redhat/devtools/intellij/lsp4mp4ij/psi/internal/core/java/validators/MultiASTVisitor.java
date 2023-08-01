@@ -13,6 +13,8 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.validators;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
@@ -20,6 +22,7 @@ import com.intellij.psi.PsiMethod;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator;
 
 import java.util.Collection;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +46,8 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 		for (JavaRecursiveElementVisitor visitor : visitors) {
 			try {
 				visitor.visitAnnotation(node);
+			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
 			}
@@ -54,6 +59,8 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 		for (JavaRecursiveElementVisitor visitor : visitors) {
 			try {
 				visitor.visitClass(node);
+			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
 			}
@@ -65,6 +72,8 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 		for (JavaRecursiveElementVisitor visitor : visitors) {
 			try {
 				visitor.visitMethod(node);
+			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
 			}

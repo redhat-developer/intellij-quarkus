@@ -15,10 +15,13 @@ package com.redhat.devtools.intellij.qute.psi.template.datamodel;
 
 import static com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils.isMatchAnnotation;
 
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiClass;
@@ -68,6 +71,8 @@ public abstract class AbstractAnnotationTypeReferenceDataModelProvider extends A
 				javaElement = (PsiElement) element;
 				processAnnotation(javaElement, context, monitor);
 			}
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			if (LOGGER.isLoggable(Level.WARNING)) {
 				LOGGER.log(Level.WARNING,

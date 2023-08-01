@@ -31,6 +31,7 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
+import com.redhat.devtools.intellij.lsp4ij.client.LanguageClientImpl;
 import com.redhat.devtools.intellij.lsp4ij.internal.SupportedFeatures;
 import com.redhat.devtools.intellij.lsp4ij.lifecycle.LanguageServerLifecycleManager;
 import com.redhat.devtools.intellij.lsp4ij.lifecycle.NullLanguageServerLifecycleManager;
@@ -180,6 +181,11 @@ public class LanguageServerWrapper {
         udateStatus(ServerStatus.none);
     }
 
+    @Nonnull
+    public Set<Module> getAllWatchedProjects() {
+        return allWatchedProjects;
+    }
+
     public Project getProject() {
         return initialProject.getProject();
     }
@@ -303,7 +309,10 @@ public class LanguageServerWrapper {
                 UnaryOperator<MessageConsumer> wrapper = consumer -> (message -> {
                     logMessage(message, consumer);
                     try {
-                        consumer.consume(message);
+                        // To avoid having some lock problem when message is written in the stream output
+                        // (when there are a lot of messages to write it)
+                        // we consume the message in async mode
+                        CompletableFuture.runAsync(() -> consumer.consume(message));
                     } catch (Throwable e) {
                         // Log in the LSP console the error
                         getLanguageServerLifecycleManager().onError(this, e);
@@ -915,7 +924,7 @@ public class LanguageServerWrapper {
         return null;
     }
 
-    void registerCapability(RegistrationParams params) {
+    public void registerCapability(RegistrationParams params) {
         initializeFuture.thenRun(() -> {
             params.getRegistrations().forEach(reg -> {
                 if ("workspace/didChangeWorkspaceFolders".equals(reg.getMethod())) { //$NON-NLS-1$
@@ -1010,7 +1019,7 @@ public class LanguageServerWrapper {
         }
     }
 
-    void unregisterCapability(UnregistrationParams params) {
+    public void unregisterCapability(UnregistrationParams params) {
         params.getUnregisterations().forEach(reg -> {
             String id = reg.getId();
             Runnable unregistrator;
