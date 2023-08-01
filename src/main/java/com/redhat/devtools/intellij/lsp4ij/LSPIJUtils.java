@@ -20,7 +20,6 @@ import com.intellij.openapi.vfs.*;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.impl.light.LightRecordField;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.*;
@@ -46,7 +45,11 @@ public class LSPIJUtils {
 
     private static final String JAR_PROTOCOL = "jar";
 
+    private static final String JRT_PROTOCOL = "jrt";
+
     private static final String JAR_SCHEME = JAR_PROTOCOL + ":";
+
+    private static final String JRT_SCHEME = JRT_PROTOCOL + ":";
 
     public static void openInEditor(Location location, Project project) {
         if (location == null) {
@@ -123,7 +126,7 @@ public class LSPIJUtils {
 
     public static String toUriAsString(VirtualFile file) {
         String protocol = file.getFileSystem() != null ? file.getFileSystem().getProtocol() : null;
-        if (JAR_PROTOCOL.equals(protocol)) {
+        if (JAR_PROTOCOL.equals(protocol) || JRT_PROTOCOL.equals(protocol)) {
             return VfsUtilCore.convertToURL(file.getUrl()).toExternalForm();
         }
         return toUri(VfsUtilCore.virtualToIoFile(file)).toASCIIString();
@@ -205,6 +208,7 @@ public class LSPIJUtils {
 
     public static Location toLocation(PsiElement psiMember) {
         PsiElement sourceElement = getNavigationElement(psiMember);
+
         if (sourceElement != null) {
             PsiFile file = sourceElement.getContainingFile();
             Document document = PsiDocumentManager.getInstance(psiMember.getProject()).getDocument(file);
@@ -220,9 +224,7 @@ public class LSPIJUtils {
         if (psiMember instanceof LightRecordField) {
             psiMember = ((LightRecordField) psiMember).getRecordComponent();
         }
-        return psiMember instanceof PsiNameIdentifierOwner ?
-                ((PsiNameIdentifierOwner) psiMember).getNameIdentifier().getNavigationElement() :
-                psiMember.getNavigationElement();
+        return psiMember.getNavigationElement();
     }
 
     public static Location toLocation(PsiFile file, Range range) {
@@ -362,7 +364,7 @@ public class LSPIJUtils {
     }
 
     public static VirtualFile findResourceFor(String uri) {
-        if (uri.startsWith(JAR_SCHEME)) {
+        if (uri.startsWith(JAR_SCHEME) || uri.startsWith(JRT_SCHEME)) {
             // ex : jar:file:///C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/3.0.1.Final/quarkus-core-3.0.1.Final.jar!/io/quarkus/runtime/ApplicationConfig.class
             try {
                 return VfsUtil.findFileByURL(new URL(uri));
