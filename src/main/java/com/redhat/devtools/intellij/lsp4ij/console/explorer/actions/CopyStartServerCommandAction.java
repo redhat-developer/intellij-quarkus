@@ -33,11 +33,7 @@ import java.util.stream.Collectors;
  */
 public class CopyStartServerCommandAction extends TreeAction implements DumbAware {
 
-    public static final String ACTION_ID = "com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.CopyStartServerCommandAction";
-
-    public CopyStartServerCommandAction() {
-        super(LanguageServerBundle.message("lsp.console.explorer.actions.copy.command"));
-    }
+    public static final String ACTION_ID = "lsp.console.explorer.copy.command";
 
     @Override
     protected void actionPerformed(@NotNull Tree tree, @NotNull AnActionEvent e) {

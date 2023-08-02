@@ -21,17 +21,16 @@ import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Action to stop the selected language server process and disable it from the language explorer.
+ * Action to stop the selected language server process from the language explorer.
  */
-public class StopServerAction extends TreeAction implements DumbAware {
+public class PauseServerAction extends TreeAction implements DumbAware {
 
-    public static final String ACTION_ID = "lsp.console.explorer.stop";
-
+    public static final String ACTION_ID = "lsp.console.explorer.pause";
     @Override
     protected void actionPerformed(@NotNull Tree tree, @NotNull AnActionEvent e) {
         LanguageServerWrapper languageServer = getSelectedLanguageServer(tree);
         if (languageServer != null) {
-            languageServer.stopAndDisable();
+            languageServer.stop();
         }
     }
 
