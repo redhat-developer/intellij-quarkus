@@ -98,7 +98,7 @@ public class LanguageServerProcessTreeNode extends DefaultMutableTreeNode {
 
     public Icon getIcon() {
         if (!languageServer.isEnabled()) {
-            return AllIcons.RunConfigurations.TestFailed;
+            return AllIcons.Actions.Cancel;
         }
         boolean hasError = languageServer.getServerError() != null;
         switch (serverStatus) {

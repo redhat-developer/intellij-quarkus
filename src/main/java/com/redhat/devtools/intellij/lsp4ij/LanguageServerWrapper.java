@@ -235,7 +235,12 @@ public class LanguageServerWrapper implements Disposable {
         return folders;
     }
 
-    public synchronized void restart() throws IOException {
+    public synchronized void stopAndDisable() {
+        setEnabled(false);
+        stop();
+    }
+
+    public synchronized void restart() {
         numberOfRestartAttempts = 0;
         setEnabled(true);
         stop();

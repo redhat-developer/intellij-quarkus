@@ -30,11 +30,6 @@ import java.awt.*;
  * Base class for Actions processed from the Language Server tree.
  */
 public abstract class TreeAction extends AnAction {
-
-    protected TreeAction(@Nullable @NlsActions.ActionText String text) {
-        super(text);
-    }
-
     public final void actionPerformed(@NotNull AnActionEvent e) {
         Tree tree = getTree(e);
         if (tree == null) {

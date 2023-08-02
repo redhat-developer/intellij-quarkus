@@ -27,13 +27,16 @@
   </extensions>
 
   <actions resource-bundle="messages.LanguageServerBundle">
-    <action id="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.RestartServerAction"
+    <action id="lsp.console.explorer.restart"
           class="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.RestartServerAction"
           icon="AllIcons.Actions.Restart" />
-    <action id="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.StopServerAction"
+    <action id="lsp.console.explorer.stop"
             class="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.StopServerAction"
             icon="AllIcons.Actions.Suspend" />
-    <action id="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.CopyStartServerCommandAction"
+    <action id="lsp.console.explorer.pause"
+            class="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.PauseServerAction"
+            icon="AllIcons.Actions.Pause" />
+    <action id="lsp.console.explorer.copy.command"
             class="com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.CopyStartServerCommandAction"
             icon="AllIcons.Actions.Copy" />
   </actions>

@@ -29,23 +29,13 @@ import java.io.IOException;
  */
 public class RestartServerAction extends TreeAction implements DumbAware {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RestartServerAction.class);//$NON-NLS-1$
-
-    public static final String ACTION_ID = "com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.RestartServerAction";
-
-    public RestartServerAction() {
-        super(LanguageServerBundle.message("lsp.console.explorer.actions.restart"));
-    }
+    public static final String ACTION_ID = "lsp.console.explorer.restart";
 
     @Override
     protected void actionPerformed(@NotNull Tree tree, @NotNull AnActionEvent e) {
         LanguageServerWrapper languageServer = getSelectedLanguageServer(tree);
         if (languageServer != null) {
-            try {
-                languageServer.restart();
-            } catch (IOException ex) {
-                LOGGER.error("Failed restarting server", ex);
-            }
+            languageServer.restart();
         }
     }
 }

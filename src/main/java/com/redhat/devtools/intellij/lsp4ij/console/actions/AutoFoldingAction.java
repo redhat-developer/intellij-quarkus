@@ -34,7 +34,7 @@ public class AutoFoldingAction extends ToggleAction implements DumbAware {
     public AutoFoldingAction(@NotNull final Editor editor) {
         super();
         myEditor = editor;
-        final String message = LanguageServerBundle.message("lsp.console.actions.folding");
+        final String message = LanguageServerBundle.message("action.lsp.console.folding.text");
         getTemplatePresentation().setDescription(message);
         getTemplatePresentation().setText(message);
         getTemplatePresentation().setIcon(AllIcons.Actions.Expandall);

@@ -25,6 +25,7 @@ import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.console.LSPConsoleToolWindowPanel;
 import com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.CopyStartServerCommandAction;
 import com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.RestartServerAction;
+import com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.PauseServerAction;
 import com.redhat.devtools.intellij.lsp4ij.console.explorer.actions.StopServerAction;
 import com.redhat.devtools.intellij.lsp4ij.lifecycle.LanguageServerLifecycleManager;
 
@@ -124,10 +125,15 @@ public class LanguageServerExplorer extends SimpleToolWindowPanel implements Dis
                         switch (processTreeNode.getServerStatus()) {
                             case starting:
                             case started:
-                                // Stop language server action
+                                // Stop and disable the language server action
                                 group = new DefaultActionGroup();
                                 AnAction stopServerAction = ActionManager.getInstance().getAction(StopServerAction.ACTION_ID);
                                 group.add(stopServerAction);
+                                if (Boolean.getBoolean("idea.is.internal")) {
+                                    // In dev mode, enable the "Pause" action
+                                    AnAction pauseServerAction = ActionManager.getInstance().getAction(PauseServerAction.ACTION_ID);
+                                    group.add(pauseServerAction);
+                                }
                                 break;
                             case stopping:
                             case stopped:
