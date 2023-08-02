@@ -33,7 +33,7 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectM
     @Override
     public void projectClosing(@NotNull Project project) {
         LanguageServerLifecycleManager.getInstance(project).dispose();
-        LanguageServiceAccessor.getInstance(project).shutdownAllDispatchers();
+        LanguageServiceAccessor.getInstance(project).projectClosing(project);
     }
 
     @Override

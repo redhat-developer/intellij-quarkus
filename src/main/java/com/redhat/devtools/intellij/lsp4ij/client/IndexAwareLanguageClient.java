@@ -11,10 +11,9 @@
 package com.redhat.devtools.intellij.lsp4ij.client;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.*;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
@@ -29,7 +28,6 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
 
     public IndexAwareLanguageClient(Project project) {
         super(project);
-        Disposer.register(project, this);
     }
 
     /**

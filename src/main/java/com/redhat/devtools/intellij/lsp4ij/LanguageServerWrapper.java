@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import com.intellij.AppTopics;
 import com.intellij.ProjectTopics;
 import com.intellij.lang.Language;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -29,6 +30,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4ij.client.LanguageClientImpl;
@@ -60,12 +62,14 @@ import java.util.function.UnaryOperator;
 /**
  * Language server wrapper.
  */
-public class LanguageServerWrapper {
+public class LanguageServerWrapper implements Disposable {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServerWrapper.class);//$NON-NLS-1$
     private static final String CLIENT_NAME = "IntelliJ";
     private static final int MAX_NUMBER_OF_RESTART_ATTEMPTS = 20; // TODO move this max value in settings
 
     class Listener implements DocumentListener, FileDocumentManagerListener, FileEditorManagerListener {
+
         @Override
         public void documentChanged(@NotNull DocumentEvent event) {
             URI uri = LSPIJUtils.toUri(event.getDocument());
@@ -86,7 +90,6 @@ public class LanguageServerWrapper {
             }*/
         }
 
-
         @Override
         public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
             URI uri = LSPIJUtils.toUri(file);
@@ -95,7 +98,7 @@ public class LanguageServerWrapper {
                     // Remove the cached file wrapper if needed
                     LSPVirtualFileWrapper.dispose(file);
                     // Disconnect the given file from all language servers
-                    disconnect(uri);
+                    disconnect(uri, isDisposed());
                 } catch (Exception e) {
                     LOGGER.warn("Error while disconnecting the file '" + uri + "' from all language servers", e);
                 }
@@ -130,6 +133,8 @@ public class LanguageServerWrapper {
     private final AtomicBoolean stopping = new AtomicBoolean(false);
 
     private ServerStatus serverStatus;
+
+    private boolean disposed;
 
     private LanguageServerException serverError;
 
@@ -179,6 +184,12 @@ public class LanguageServerWrapper {
         this.listener = Executors
                 .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(listenerThreadNameFormat).build());
         udateStatus(ServerStatus.none);
+        if (project != null) {
+            // When project is disposed, we dispose the language server
+            // But the language server should be disposed before because when project is closing
+            // We do that to be sure that language server is disposed.
+            Disposer.register(project, this);
+        }
     }
 
     @Nonnull
@@ -469,6 +480,17 @@ public class LanguageServerWrapper {
         return this.launcherFuture != null && !this.launcherFuture.isDone() && !this.launcherFuture.isCancelled();
     }
 
+    @Override
+    public void dispose() {
+        this.disposed= true;
+        stop();
+        stopDispatcher();
+    }
+
+    public boolean isDisposed() {
+        return disposed;
+    }
+
     /**
      * Returns true if the language server is stopping and false otherwise.
      *
@@ -504,48 +526,24 @@ public class LanguageServerWrapper {
             this.serverCapabilities = null;
             this.dynamicRegistrations.clear();
 
-            // We need to shutdown, kill and stop the process in a thread to avoid for instance
-            // stopping the new process created with a new start.
-            final Future<?> serverFuture = this.launcherFuture;
-            final StreamConnectionProvider provider = this.lspStreamProvider;
-            final LanguageServer languageServerInstance = this.languageServer;
+            if (isDisposed()) {
+                // When project is closing we shutdown everything in synch mode
+                shutdownAll(languageServer, lspStreamProvider, launcherFuture);
+            } else {
+                // We need to shutdown, kill and stop the process in a thread to avoid for instance
+                // stopping the new process created with a new start.
+                final Future<?> serverFuture = this.launcherFuture;
+                final StreamConnectionProvider provider = this.lspStreamProvider;
+                final LanguageServer languageServerInstance = this.languageServer;
 
-            Runnable shutdownKillAndStopFutureAndProvider = () -> {
-                if (languageServerInstance != null && provider != null && provider.isAlive()) {
-                    // The LSP language server instance and the process which starts the language server is alive. Process
-                    // - shutdown
-                    // - exit
-
-                    // shutdown the language server
-                    try {
-                        shutdownLanguageServerInstance(languageServerInstance);
-                    } catch (Exception ex) {
-                        getLanguageServerLifecycleManager().onError(this, ex);
-                    }
-
-                    // exit the language server
-                    // Consume language server exit() before cancelling launcher future (serverFuture.cancel())
-                    // to avoid having error like "The pipe is being closed".
-                    try {
-                        exitLanguageServerInstance(languageServerInstance);
-                    } catch (Exception ex) {
-                        getLanguageServerLifecycleManager().onError(this, ex);
-                    }
-                }
-
-                if (serverFuture != null) {
-                    serverFuture.cancel(true);
-                }
-
-                if (provider != null) {
-                    provider.stop();
-                }
-                this.stopping.set(false);
-                udateStatus(ServerStatus.stopped);
-                getLanguageServerLifecycleManager().onStatusChanged(this);
-            };
-
-            CompletableFuture.runAsync(shutdownKillAndStopFutureAndProvider);
+                Runnable shutdownKillAndStopFutureAndProvider = () -> {
+                    shutdownAll(languageServerInstance, provider, serverFuture);
+                    this.stopping.set(false);
+                    udateStatus(ServerStatus.stopped);
+                    getLanguageServerLifecycleManager().onStatusChanged(this);
+                };
+                CompletableFuture.runAsync(shutdownKillAndStopFutureAndProvider);
+            }
         } finally {
             this.launcherFuture = null;
             this.lspStreamProvider = null;
@@ -560,6 +558,38 @@ public class LanguageServerWrapper {
             if (messageBusConnection != null) {
                 messageBusConnection.disconnect();
             }
+        }
+    }
+
+    private void shutdownAll(LanguageServer languageServerInstance, StreamConnectionProvider provider, Future<?> serverFuture) {
+        if (languageServerInstance != null && provider != null && provider.isAlive()) {
+            // The LSP language server instance and the process which starts the language server is alive. Process
+            // - shutdown
+            // - exit
+
+            // shutdown the language server
+            try {
+                shutdownLanguageServerInstance(languageServerInstance);
+            } catch (Exception ex) {
+                getLanguageServerLifecycleManager().onError(this, ex);
+            }
+
+            // exit the language server
+            // Consume language server exit() before cancelling launcher future (serverFuture.cancel())
+            // to avoid having error like "The pipe is being closed".
+            try {
+                exitLanguageServerInstance(languageServerInstance);
+            } catch (Exception ex) {
+                getLanguageServerLifecycleManager().onError(this, ex);
+            }
+        }
+
+        if (serverFuture != null) {
+            serverFuture.cancel(true);
+        }
+
+        if (provider != null) {
+            provider.stop();
         }
     }
 
