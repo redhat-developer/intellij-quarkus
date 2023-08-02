@@ -79,6 +79,15 @@ public class LanguageServiceAccessor {
         startedServers.forEach(LanguageServerWrapper::stopDispatcher);
     }
 
+    public void projectClosing(Project project) {
+        // On project closing, we dispose all language servers
+        startedServers.forEach(ls -> {
+            if (project.equals(ls.getProject())) {
+                ls.dispose();
+            }
+        });
+    }
+
     /**
      * A bean storing association of a Document/File with a language server.
      */

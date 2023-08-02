@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.lsp4ij.ServerMessageHandler;
@@ -30,6 +31,7 @@ public class LanguageClientImpl implements LanguageClient, Disposable {
 
     public LanguageClientImpl(Project project) {
         this.project = project;
+        Disposer.register(project, this);
     }
 
     public Project getProject() {

@@ -14,6 +14,9 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij;
 
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticsForServer;
@@ -35,7 +38,7 @@ import java.util.stream.Collectors;
  *
  * @author Angelo ZERR
  */
-public class LSPVirtualFileWrapper {
+public class LSPVirtualFileWrapper implements Disposable {
 
     private static final Key<LSPVirtualFileWrapper> KEY = new Key<>(LSPVirtualFileWrapper.class.getName());
 
@@ -46,6 +49,10 @@ public class LSPVirtualFileWrapper {
     LSPVirtualFileWrapper(VirtualFile file) {
         this.file = file;
         this.dataPerServer = new HashMap<>();
+        Module project = LSPIJUtils.getProject(file);
+        if (project != null) {
+            Disposer.register(project, this);
+        }
     }
 
     public VirtualFile getFile() {
@@ -129,7 +136,9 @@ public class LSPVirtualFileWrapper {
 
     // ------------------------ Static accessor
 
+    @Override
     public void dispose() {
+        file.putUserData(KEY, null);
         this.dataPerServer.clear();
     }
 
@@ -165,7 +174,6 @@ public class LSPVirtualFileWrapper {
         LSPVirtualFileWrapper wrapper = file.getUserData(KEY);
         if (wrapper != null) {
             wrapper.dispose();
-            file.putUserData(KEY, null);
         }
     }
 }
