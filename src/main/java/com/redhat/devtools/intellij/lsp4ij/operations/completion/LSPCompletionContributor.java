@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * LSP completion contributor.
  */
-public class LSPCompletionContributor extends CompletionContributor implements DumbAware {
+public class LSPCompletionContributor extends CompletionContributor {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPCompletionContributor.class);
 
     @Override
