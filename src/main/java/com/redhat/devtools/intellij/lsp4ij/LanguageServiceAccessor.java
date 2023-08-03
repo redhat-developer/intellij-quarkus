@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
  */
 public class LanguageServiceAccessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServiceAccessor.class);
+
     private final Project project;
 
     public static LanguageServiceAccessor getInstance(Project project) {

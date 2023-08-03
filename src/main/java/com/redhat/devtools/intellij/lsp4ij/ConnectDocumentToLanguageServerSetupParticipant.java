@@ -14,6 +14,8 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,10 +42,25 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectM
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
         Document document = FileDocumentManager.getInstance().getDocument(file);
         if (document != null) {
-            // Force the start of all languages servers mapped with the given file
-            LanguageServiceAccessor.getInstance(source.getProject())
-                    .getLanguageServers(document, capabilities -> true);
+            Project project = source.getProject();
+            if (DumbService.isDumb(project)) {
+                // Force the start of all languages servers mapped with the given file when indexation is finished
+                DumbService.getInstance(project).runWhenSmart(() -> {
+                    startLanguageServer(source, document);
+                });
+            } else {
+                // Force the start of all languages servers mapped with the given file immediately
+                startLanguageServer(source, document);
+            }
         }
+    }
+
+    private static void startLanguageServer(@NotNull FileEditorManager source, Document document) {
+        // Force the start of all languages servers mapped with the given file
+        // Server capabilities filter is set to null to avoid waiting
+        // for the start of the server when server capabilities are checked
+        LanguageServiceAccessor.getInstance(source.getProject())
+                .getLanguageServers(document, null);
     }
 
 }
