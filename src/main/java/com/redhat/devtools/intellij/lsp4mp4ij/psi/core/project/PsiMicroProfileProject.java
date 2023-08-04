@@ -118,8 +118,7 @@ public class PsiMicroProfileProject {
 			return defaultValue;
 		}
 		try {
-			int intValue = Integer.parseInt(value);
-			return intValue;
+            return Integer.parseInt(value);
 		} catch (NumberFormatException nfe) {
 			return defaultValue;
 		}

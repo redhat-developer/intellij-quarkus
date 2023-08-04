@@ -25,10 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -36,27 +33,49 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPL
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_EXTENSION_PROPERTIES;
 
 public interface ToolDelegate  {
+
+    Map<String, String> DEPLOYMENTS = new HashMap<>();
+    String NO_DEPLOYMENTS = "NO_DEPLOYMENT";
+
     static String getDeploymentJarId(File file) {
-        String result = null;
+        long start = System.currentTimeMillis();
+        String extensionId = null;
         if (file.isDirectory()) {
             File quarkusFile = new File(file, QUARKUS_EXTENSION_PROPERTIES);
             if (quarkusFile.exists()) {
                 try (Reader r = new FileReader(quarkusFile)) {
-                    result = getQuarkusExtension(r);
+                    extensionId = getQuarkusExtension(r);
                 } catch (IOException e) {}
             }
         } else {
-            try {
-                JarFile jarFile = new JarFile(file);
+            String path = file.getAbsolutePath();
+            String cachedValue = DEPLOYMENTS.get(path);
+            if (NO_DEPLOYMENTS.equals(cachedValue)) {
+                return null;
+            }
+            if (cachedValue != null) {
+                return cachedValue;
+            }
+            //Not cached yet, look into the jar
+            try (JarFile jarFile = new JarFile(file)){
                 JarEntry entry = jarFile.getJarEntry(QUARKUS_EXTENSION_PROPERTIES);
                 if (entry != null) {
                     try (Reader r = new InputStreamReader(jarFile.getInputStream(entry),"UTF-8")) {
-                        result = getQuarkusExtension(r);
+                        extensionId = getQuarkusExtension(r);
                     }
                 }
-            } catch (IOException e) {}
+            } catch (IOException ignored) {}
+
+            DEPLOYMENTS.put(path, (extensionId == null)?NO_DEPLOYMENTS:extensionId);
+
         }
-        return result;
+        long elapsed = System.currentTimeMillis() - start;
+        //System.out.println("getDeploymentJarId for "+file.getName()+" took "+ elapsed +" ms");
+        return extensionId;
+    }
+
+    static boolean hasExtensionProperties(File file) {
+        return getDeploymentJarId(file) != null;
     }
 
     static String getQuarkusExtension(Reader r) throws IOException {

@@ -57,17 +57,14 @@ public class QuarkusModuleUtil {
     public static final Pattern APPLICATION_YAML = Pattern.compile("application(-.+)?\\.ya?ml");
 
     public static boolean isQuarkusExtensionWithDeploymentArtifact(Library library) {
-        boolean result = false;
         if (library != null) {
-            VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
-
-            for(int i=0; !result && i < files.length;++i) {
-                if (files[i].isDirectory()) {
-                    result = ToolDelegate.getDeploymentJarId(VfsUtilCore.virtualToIoFile(files[i])) != null;
+            for(VirtualFile vFile : library.getFiles(OrderRootType.CLASSES)) {
+                if (vFile.isDirectory() && ToolDelegate.hasExtensionProperties(VfsUtilCore.virtualToIoFile(vFile))) {
+                    return true;
                 }
             }
         }
-        return result;
+        return false;
     }
 
     /**
@@ -81,7 +78,7 @@ public class QuarkusModuleUtil {
         long start = System.currentTimeMillis();
         ToolDelegate toolDelegate = ToolDelegate.getDelegate(module);
         if (toolDelegate != null) {
-            LOGGER.info("Tool delegate found for " + module.getName());
+            LOGGER.info(toolDelegate.getDisplay() + " tool delegate found for " + module.getName());
             if (isQuarkusModule(module)) {
                 LOGGER.info("isQuarkus module " + module.getName());
                 QuarkusModuleComponent component = module.getComponent(QuarkusModuleComponent.class);
@@ -126,7 +123,7 @@ public class QuarkusModuleUtil {
 
         LibraryOrderEntry entry = model.findLibraryOrderEntry(library);
         assert entry != null : library;
-        entry.setScope(DependencyScope.PROVIDED);
+        entry.setScope(DependencyScope.RUNTIME);
         entry.setExported(false);
         ApplicationManager.getApplication().invokeAndWait(() -> {
             WriteAction.run(libraryModel::commit);
@@ -134,6 +131,7 @@ public class QuarkusModuleUtil {
     }
 
     private static Integer computeHash(Module module) {
+        long start = System.currentTimeMillis();
         ModuleRootManager manager = ModuleRootManager.getInstance(module);
         Set<String> files = manager.processOrder(new RootPolicy<Set<String>>() {
             @Override
@@ -146,6 +144,8 @@ public class QuarkusModuleUtil {
                 return value;
             }
         }, new HashSet<>());
+        long elapsed = System.currentTimeMillis() - start;
+        System.out.println("computeHash for "+module.getName()+" took "+elapsed+"ms");
         return files.isEmpty()?null:files.hashCode();
     }
 
@@ -162,20 +162,18 @@ public class QuarkusModuleUtil {
         return libraries.process(new RootPolicy<Boolean>() {
             @Override
             public Boolean visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Boolean value) {
-                return value | isQuarkusLibrary(libraryOrderEntry);
+                return value || isQuarkusLibrary(libraryOrderEntry);
             }
         }, false);
     }
 
     public static boolean isQuarkusLibrary(@NotNull LibraryOrderEntry libraryOrderEntry) {
-        return libraryOrderEntry != null &&
-                libraryOrderEntry.getLibraryName() != null &&
+        return libraryOrderEntry.getLibraryName() != null &&
                 libraryOrderEntry.getLibraryName().contains("io.quarkus:quarkus-core:");
     }
 
     public static boolean isQuarkusDeploymentLibrary(@NotNull LibraryOrderEntry libraryOrderEntry) {
-        return libraryOrderEntry != null &&
-                libraryOrderEntry.getLibraryName() != null &&
+        return libraryOrderEntry.getLibraryName() != null &&
                 libraryOrderEntry.getLibraryName().equalsIgnoreCase(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
     }
 

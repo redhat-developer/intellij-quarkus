@@ -104,7 +104,6 @@ public class PropertiesManager {
                 .collect(Collectors.joining("+")) //
                 + "'");
         long startTime = System.currentTimeMillis();
-        boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
         PropertiesCollector collector = new PropertiesCollector(info, scopes);
         if (module != null) {
             SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
@@ -153,17 +152,17 @@ public class PropertiesManager {
         return info;
     }
 
-    private SearchScope createSearchScope(Module module, List<MicroProfilePropertiesScope> scopes,
+    private SearchScope createSearchScope(@NotNull Module module, List<MicroProfilePropertiesScope> scopes,
                                           boolean excludeTestCode) {
-        SearchScope searchScope = GlobalSearchScope.EMPTY_SCOPE;
+        SearchScope searchScope = GlobalSearchScope.moduleRuntimeScope(module, !excludeTestCode);
 
         for (MicroProfilePropertiesScope scope : scopes) {
             switch (scope) {
                 case sources:
-                    searchScope = module != null ? searchScope.union(module.getModuleScope(!excludeTestCode)) : searchScope;
+                    searchScope = searchScope.union(module.getModuleScope(!excludeTestCode));
                     break;
                 case dependencies:
-                    searchScope = module != null ? searchScope.union(module.getModuleWithLibrariesScope()) : searchScope;
+                    searchScope = searchScope.union(module.getModuleWithLibrariesScope());
                     break;
                 /*added missing default case */
                 default:

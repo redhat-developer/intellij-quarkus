@@ -62,17 +62,6 @@ public class QuarkusProjectService implements ClasspathResourceChangedManager.Li
 		connection = project.getMessageBus().connect();
 		connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
 		connection.subscribe(ProjectTopics.MODULES, this);
-		// Add the Quarkus deployment preprocessor
-		ClasspathResourceChangedManager.getInstance(project)
-				.addPreprocessor(
-						(progressIndicator) -> {
-							processModules(progressIndicator);
-						});
-	}
-
-	@Override
-	public void moduleAdded(@NotNull Project project, @NotNull Module module) {
-		QuarkusModuleUtil.ensureQuarkusLibrary(module, new EmptyProgressIndicator());
 	}
 
 	public VirtualFile getSchema(Module module) {
@@ -138,10 +127,10 @@ public class QuarkusProjectService implements ClasspathResourceChangedManager.Li
 	}
 
 	public void processModules(com.intellij.openapi.progress.ProgressIndicator progressIndicator) {
-		for (var module : ModuleManager.getInstance(project).getModules()) {
-			LOGGER.info("Calling ensure from processModules");
-			QuarkusModuleUtil.ensureQuarkusLibrary(module, progressIndicator);
-		}
+//		for (var module : ModuleManager.getInstance(project).getModules()) {
+//			LOGGER.info("Calling ensure from processModules");
+//			QuarkusModuleUtil.ensureQuarkusLibrary(module, progressIndicator);
+//		}
 	}
 
 
