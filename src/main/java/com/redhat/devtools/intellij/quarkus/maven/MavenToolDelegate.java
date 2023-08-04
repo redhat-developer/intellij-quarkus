@@ -162,17 +162,22 @@ public class MavenToolDelegate implements ToolDelegate {
         long start = System.currentTimeMillis();
         try {
             MavenEmbedderWrapper serverWrapper = createEmbedderWrapper(module.getProject(), mavenProject.getDirectory());
+            if (serverWrapper == null) {
+                return Collections.emptyList();
+            }
             if (classifier != null) {
                 for(MavenId id : deploymentIds) {
                     result.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));
                 }
             } else {
                 List<MavenArtifactInfo> infos = deploymentIds.stream().map(id -> new MavenArtifactInfo(id, "jar", classifier)).collect(Collectors.toList());
-                result = serverWrapper.resolveTransitively(infos, mavenProject.getRemoteRepositories());
+                result = serverWrapper.resolveArtifactTransitively(infos, mavenProject.getRemoteRepositories()).mavenResolvedArtifacts;
             }
         } catch (MavenProcessCanceledException | RuntimeException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
+        long elapsed = System.currentTimeMillis() - start;
+        System.out.println("ensureDownloaded took "+elapsed+ "ms");
         return result;
     }
 
