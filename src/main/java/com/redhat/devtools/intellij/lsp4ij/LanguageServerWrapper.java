@@ -76,7 +76,7 @@ public class LanguageServerWrapper implements Disposable {
             if (uri != null) {
                 DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
                 if (documentListener != null && documentListener.getModificationStamp() < event.getOldTimeStamp()) {
-                    documentListener.documentSaved(event.getOldTimeStamp());
+                    documentListener.documentSaved(event);
                 }
             }
         }
@@ -280,7 +280,10 @@ public class LanguageServerWrapper implements Disposable {
                 return;
             } else {
                 for (Map.Entry<URI, DocumentContentSynchronizer> entry : this.connectedDocuments.entrySet()) {
-                    filesToReconnect.put(entry.getKey(), entry.getValue().getDocument());
+                    // Get the Document from the VirtualFile to use the proper Document Instance
+                    // (not an old instanceof the synchronizer which could be out of dated).
+                    Document document = getDocument(entry.getKey(), entry.getValue());
+                    filesToReconnect.put(entry.getKey(), document);
                 }
                 stop();
             }
@@ -290,68 +293,68 @@ public class LanguageServerWrapper implements Disposable {
             final URI rootURI = getRootURI();
             this.launcherFuture = new CompletableFuture<>();
             this.initializeFuture = CompletableFuture.supplyAsync(() -> {
-                this.lspStreamProvider = serverDefinition.createConnectionProvider(initialProject.getProject());
-                initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
+                        this.lspStreamProvider = serverDefinition.createConnectionProvider(initialProject.getProject());
+                        initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
 
-                // Starting process...
-                udateStatus(ServerStatus.starting);
-                getLanguageServerLifecycleManager().onStatusChanged(this);
-                this.currentProcessId = null;
-                this.currentProcessCommandLines = null;
-                lspStreamProvider.start();
+                        // Starting process...
+                        udateStatus(ServerStatus.starting);
+                        getLanguageServerLifecycleManager().onStatusChanged(this);
+                        this.currentProcessId = null;
+                        this.currentProcessCommandLines = null;
+                        lspStreamProvider.start();
 
-                // As process can be stopped, we loose pid and command lines information
-                // when server is stopped, we store them here.
-                // to display them in the Language server explorer even if process is killed.
-                if (lspStreamProvider instanceof ProcessStreamConnectionProvider) {
-                    ProcessStreamConnectionProvider provider = (ProcessStreamConnectionProvider) lspStreamProvider;
-                    this.currentProcessId = provider.getPid();
-                    this.currentProcessCommandLines = provider.getCommands();
-                }
+                        // As process can be stopped, we loose pid and command lines information
+                        // when server is stopped, we store them here.
+                        // to display them in the Language server explorer even if process is killed.
+                        if (lspStreamProvider instanceof ProcessStreamConnectionProvider) {
+                            ProcessStreamConnectionProvider provider = (ProcessStreamConnectionProvider) lspStreamProvider;
+                            this.currentProcessId = provider.getPid();
+                            this.currentProcessCommandLines = provider.getCommands();
+                        }
 
-                // Throws the CannotStartProcessException exception if process is not alive.
-                // This usecase comes for instance when the start process command fails (not a valid start command)
-                lspStreamProvider.ensureIsAlive();
-                return null;
-            }).thenRun(() -> {
-                languageClient = serverDefinition.createLanguageClient(initialProject.getProject());
-                initParams.setProcessId(getParentProcessId());
+                        // Throws the CannotStartProcessException exception if process is not alive.
+                        // This usecase comes for instance when the start process command fails (not a valid start command)
+                        lspStreamProvider.ensureIsAlive();
+                        return null;
+                    }).thenRun(() -> {
+                        languageClient = serverDefinition.createLanguageClient(initialProject.getProject());
+                        initParams.setProcessId(getParentProcessId());
 
-                if (rootURI != null) {
-                    initParams.setRootUri(rootURI.toString());
-                    initParams.setRootPath(rootURI.getPath());
-                }
+                        if (rootURI != null) {
+                            initParams.setRootUri(rootURI.toString());
+                            initParams.setRootPath(rootURI.getPath());
+                        }
 
-                UnaryOperator<MessageConsumer> wrapper = consumer -> (message -> {
-                    logMessage(message, consumer);
-                    try {
-                        // To avoid having some lock problem when message is written in the stream output
-                        // (when there are a lot of messages to write it)
-                        // we consume the message in async mode
-                        CompletableFuture.runAsync(() -> consumer.consume(message));
-                    } catch (Throwable e) {
-                        // Log in the LSP console the error
-                        getLanguageServerLifecycleManager().onError(this, e);
-                        throw e;
-                    }
-                    final StreamConnectionProvider currentConnectionProvider = this.lspStreamProvider;
-                    if (currentConnectionProvider != null && isActive()) {
-                        currentConnectionProvider.handleMessage(message, this.languageServer, rootURI);
-                    }
-                });
-                // initParams.setWorkspaceFolders(getRelevantWorkspaceFolders());
-                Launcher<LanguageServer> launcher = serverDefinition.createLauncherBuilder() //
-                        .setLocalService(languageClient)//
-                        .setRemoteInterface(serverDefinition.getServerInterface())//
-                        .setInput(lspStreamProvider.getInputStream())//
-                        .setOutput(lspStreamProvider.getOutputStream())//
-                        .setExecutorService(listener)//
-                        .wrapMessages(wrapper)//
-                        .create();
-                this.languageServer = launcher.getRemoteProxy();
-                languageClient.connect(languageServer, this);
-                this.launcherFuture = launcher.startListening();
-            })
+                        UnaryOperator<MessageConsumer> wrapper = consumer -> (message -> {
+                            logMessage(message, consumer);
+                            try {
+                                // To avoid having some lock problem when message is written in the stream output
+                                // (when there are a lot of messages to write it)
+                                // we consume the message in async mode
+                                CompletableFuture.runAsync(() -> consumer.consume(message));
+                            } catch (Throwable e) {
+                                // Log in the LSP console the error
+                                getLanguageServerLifecycleManager().onError(this, e);
+                                throw e;
+                            }
+                            final StreamConnectionProvider currentConnectionProvider = this.lspStreamProvider;
+                            if (currentConnectionProvider != null && isActive()) {
+                                currentConnectionProvider.handleMessage(message, this.languageServer, rootURI);
+                            }
+                        });
+                        // initParams.setWorkspaceFolders(getRelevantWorkspaceFolders());
+                        Launcher<LanguageServer> launcher = serverDefinition.createLauncherBuilder() //
+                                .setLocalService(languageClient)//
+                                .setRemoteInterface(serverDefinition.getServerInterface())//
+                                .setInput(lspStreamProvider.getInputStream())//
+                                .setOutput(lspStreamProvider.getOutputStream())//
+                                .setExecutorService(listener)//
+                                .wrapMessages(wrapper)//
+                                .create();
+                        this.languageServer = launcher.getRemoteProxy();
+                        languageClient.connect(languageServer, this);
+                        this.launcherFuture = launcher.startListening();
+                    })
                     .thenCompose(unused -> initServer(rootURI))
                     .thenAccept(res -> {
                         serverError = null;
@@ -394,6 +397,25 @@ public class LanguageServerWrapper implements Disposable {
                         return null;
                     });
         }
+    }
+
+    /**
+     * Returns the document instance from the virtual file which matches the given uri and the document from teh synchronizer otherwise.
+     *
+     * @param uri          the document Uri
+     * @param synchronizer the document synchronizer.
+     * @return the document instance from the virtual file which matches the given uri and the document from teh synchronizer otherwise.
+     */
+    private static Document getDocument(URI uri, DocumentContentSynchronizer synchronizer) {
+        Document document = synchronizer.getDocument();
+        VirtualFile file = LSPIJUtils.findResourceFor(uri);
+        if (file != null) {
+            Document documentFromFile = LSPIJUtils.getDocument(file);
+            if (documentFromFile != null) {
+                document = documentFromFile;
+            }
+        }
+        return document;
     }
 
     private CompletableFuture<InitializeResult> initServer(final URI rootURI) {
@@ -487,7 +509,7 @@ public class LanguageServerWrapper implements Disposable {
 
     @Override
     public void dispose() {
-        this.disposed= true;
+        this.disposed = true;
         stop();
         stopDispatcher();
     }
@@ -819,7 +841,13 @@ public class LanguageServerWrapper implements Disposable {
     private void disconnect(URI path, boolean stopping) {
         DocumentContentSynchronizer documentListener = this.connectedDocuments.remove(path);
         if (documentListener != null) {
+            // Remove teh listener from the old document stored in synchronizer
             documentListener.getDocument().removeDocumentListener(documentListener);
+            Document document = getDocument(path, documentListener);
+            if (document != documentListener.getDocument()) {
+                // It should never occur, but to be sure we remove the document listener from the document of the VirtualFile
+                document.removeDocumentListener(documentListener);
+            }
             documentListener.documentClosed();
         }
         if (!stopping && this.connectedDocuments.isEmpty()) {

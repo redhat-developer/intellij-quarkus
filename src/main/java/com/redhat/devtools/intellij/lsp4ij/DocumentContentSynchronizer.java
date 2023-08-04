@@ -33,12 +33,9 @@ import java.util.concurrent.CompletableFuture;
 public class DocumentContentSynchronizer implements DocumentListener {
     private final static Logger LOGGER = LoggerFactory.getLogger(DocumentContentSynchronizer.class);
 
-    private final @Nonnull
-    LanguageServerWrapper languageServerWrapper;
-    private final @Nonnull
-    Document document;
-    private final @Nonnull
-    URI fileUri;
+    private final @Nonnull LanguageServerWrapper languageServerWrapper;
+    private final @Nonnull Document document;
+    private final @Nonnull URI fileUri;
     private final TextDocumentSyncKind syncKind;
 
     private int version = 0;
@@ -61,7 +58,7 @@ public class DocumentContentSynchronizer implements DocumentListener {
         textDocument.setUri(fileUri.toString());
         textDocument.setText(document.getText());
 
-        Language contentTypes = LSPIJUtils.getDocumentLanguage(this.document, languageServerWrapper.getProject());
+        Language contentTypes = LSPIJUtils.getDocumentLanguage(document, languageServerWrapper.getProject());
 
         String languageId = languageServerWrapper.getLanguageId(contentTypes);
 
@@ -88,7 +85,6 @@ public class DocumentContentSynchronizer implements DocumentListener {
         if (syncKind == TextDocumentSyncKind.None) {
             return;
         }
-        checkEvent(event);
         if (syncKind == TextDocumentSyncKind.Full) {
             synchronized (changeEvents) {
                 changeEvents.clear();
@@ -118,7 +114,6 @@ public class DocumentContentSynchronizer implements DocumentListener {
 
     @Override
     public void beforeDocumentChange(DocumentEvent event) {
-        checkEvent(event);
         if (syncKind == TextDocumentSyncKind.Incremental) {
             // this really needs to happen before event gets actually
             // applied, to properly compute positions
@@ -129,6 +124,7 @@ public class DocumentContentSynchronizer implements DocumentListener {
     }
 
     private TextDocumentContentChangeEvent createChangeEvent(DocumentEvent event) {
+        Document document = event.getDocument();
         TextDocumentSyncKind syncKind = getTextDocumentSyncKind();
         switch (syncKind) {
             case None:
@@ -161,7 +157,9 @@ public class DocumentContentSynchronizer implements DocumentListener {
         return null;
     }
 
-    public void documentSaved(long timestamp) {
+    public void documentSaved(DocumentEvent event) {
+        long timestamp = event.getOldTimeStamp();
+        Document document = event.getDocument();
         this.modificationStamp = timestamp;
         ServerCapabilities serverCapabilities = languageServerWrapper.getServerCapabilities();
         if (serverCapabilities != null) {
@@ -210,14 +208,6 @@ public class DocumentContentSynchronizer implements DocumentListener {
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
         if (file != null) {
             LOGGER.warn(header + " file=" + file);
-        }
-    }
-
-    private void checkEvent(DocumentEvent event) {
-        if (this.document != event.getDocument()) {
-            logDocument("Listener document", this.document);
-            logDocument("Event document", event.getDocument());
-            throw new IllegalStateException("Synchronizer should apply to only a single document, which is the one it was instantiated for"); //$NON-NLS-1$
         }
     }
 
