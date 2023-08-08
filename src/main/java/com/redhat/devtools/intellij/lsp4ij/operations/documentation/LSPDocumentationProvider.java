@@ -99,10 +99,8 @@ public class LSPDocumentationProvider extends DocumentationProviderEx implements
             // (LSP textDocument/completion request)
             return ((LSPPsiElementForLookupItem) element).getDocumentation();
         }
-        if (originalElement == null || !Objects.equals(element.getContainingFile(), originalElement.getContainingFile())) {
-            return null;
-        }
-        Editor editor = LSPIJUtils.editorForElement(element);
+
+        Editor editor = LSPIJUtils.editorForElement(originalElement);
         if (editor == null) {
             return null;
         }
@@ -111,7 +109,7 @@ public class LSPDocumentationProvider extends DocumentationProviderEx implements
         VirtualFile file = originalElement.getContainingFile().getVirtualFile();
         if (LSPVirtualFileWrapper.hasWrapper(file)) {
             int targetOffset = getTargetOffset(originalElement);
-            return LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file).getHoverContent(element, targetOffset, editor);
+            return LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file).getHoverContent(originalElement, targetOffset, editor);
         }
         return null;
     }

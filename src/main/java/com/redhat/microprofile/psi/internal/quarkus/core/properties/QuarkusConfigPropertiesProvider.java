@@ -98,7 +98,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 		public String getDefaultNamingStrategy() {
 			if (defaultNamingStrategy == null) {
 				defaultNamingStrategy = PsiMicroProfileProjectManager.getInstance(javaProject.getProject())
-						.getJDTMicroProfileProject(javaProject)
+						.getMicroProfileProject(javaProject)
 						.getProperty(QuarkusConstants.QUARKUS_ARC_CONFIG_PROPERTIES_DEFAULT_NAMING_STRATEGY, null);
 				if (defaultNamingStrategy != null) {
 					defaultNamingStrategy = QuarkusConstants.NAMING_STRATEGY_PREFIX
