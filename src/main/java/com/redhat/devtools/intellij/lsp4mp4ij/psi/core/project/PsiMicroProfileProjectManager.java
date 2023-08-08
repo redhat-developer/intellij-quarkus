@@ -61,9 +61,9 @@ public final class PsiMicroProfileProjectManager implements Disposable {
 				if (isConfigSource(file)) {
 					// A microprofile config file properties file source has been updated, evict the cache of the properties
 					Module javaProject = pair.getSecond();
-					PsiMicroProfileProject mpProject = getJDTMicroProfileProject(javaProject);
+					PsiMicroProfileProject mpProject = getMicroProfileProject(javaProject);
 					if (mpProject != null) {
-						mpProject.evictConfigSourcesCache();
+						mpProject.evictConfigSourcesCache(file);
 					}
 				}
 			}
@@ -90,11 +90,11 @@ public final class PsiMicroProfileProjectManager implements Disposable {
 		connection.subscribe(ProjectTopics.MODULES, microprofileProjectListener);
 	}
 
-	public PsiMicroProfileProject getJDTMicroProfileProject(Module project) {
-		return getJDTMicroProfileProject(project, true);
+	public PsiMicroProfileProject getMicroProfileProject(Module project) {
+		return getMicroProfileProject(project, true);
 	}
 
-	private PsiMicroProfileProject getJDTMicroProfileProject(Module javaProject, boolean create) {
+	private PsiMicroProfileProject getMicroProfileProject(Module javaProject, boolean create) {
 		PsiMicroProfileProject mpProject = javaProject.getUserData(KEY);
 		if (mpProject == null) {
 			if (!create) {

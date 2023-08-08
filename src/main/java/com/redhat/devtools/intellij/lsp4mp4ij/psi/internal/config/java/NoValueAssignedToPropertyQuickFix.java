@@ -92,7 +92,7 @@ public class NoValueAssignedToPropertyQuickFix implements IJavaCodeActionPartici
 		String insertText = propertyName + "=" + lineSeparator;
 
 		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject()).
-				getJDTMicroProfileProject(javaProject);
+                getMicroProfileProject(javaProject);
 		List<IConfigSource> configSources = mpProject.getConfigSources();
 		for (IConfigSource configSource : configSources) {
 			String uri = configSource.getSourceConfigFileURI();

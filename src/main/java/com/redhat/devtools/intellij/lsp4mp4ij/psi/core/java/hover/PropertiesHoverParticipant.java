@@ -181,7 +181,7 @@ public class PropertiesHoverParticipant implements IJavaHoverParticipant {
 			propertyKey = propertyReplacer.apply(propertyKey);
 		}
 		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject())
-				.getJDTMicroProfileProject(javaProject);
+				.getMicroProfileProject(javaProject);
 		List<MicroProfileConfigPropertyInformation> propertyInformation = getConfigPropertyInformation(propertyKey,
 				annotation, defaultValueAnnotationMemberName, typeRoot, mpProject, utils);
 		return new Hover(getDocumentation(propertyInformation, context.getDocumentFormat(),

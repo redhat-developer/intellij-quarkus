@@ -43,7 +43,7 @@ public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant
 		// "quarkus.http.port"
 		Module javaProject = context.getJavaProject();
 		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject())
-				.getJDTMicroProfileProject(javaProject);
+				.getMicroProfileProject(javaProject);
 		int serverPort = mpProject.getPropertyAsInteger(QUARKUS_HTTP_PORT, JaxRsContext.DEFAULT_PORT);
 		int devServerPort = mpProject.getPropertyAsInteger(QUARKUS_DEV_HTTP_PORT, serverPort);
 		JaxRsContext.getJaxRsContext(context).setServerPort(devServerPort);

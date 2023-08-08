@@ -291,7 +291,7 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
 	private static boolean doesPropertyHaveValue(String property, JavaDiagnosticsContext context) {
 		Module javaProject = context.getJavaProject();
 		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject())
-				.getJDTMicroProfileProject(javaProject);
+				.getMicroProfileProject(javaProject);
 		return mpProject.hasProperty(property);
 	}
 

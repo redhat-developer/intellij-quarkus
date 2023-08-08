@@ -57,7 +57,7 @@ public class PropertiesDefinitionParticipant extends AbstractAnnotationDefinitio
 		// Collect all properties files (properties, yaml files) where the given
 		// property key is configured
 		List<MicroProfileConfigPropertyInformation> infos = PsiMicroProfileProjectManager.getInstance(context.getJavaProject().getProject())
-				.getJDTMicroProfileProject(javaProject).getPropertyInformations(propertyKey);
+				.getMicroProfileProject(javaProject).getPropertyInformations(propertyKey);
 		if (!infos.isEmpty()) {
 			return infos.stream().map(info -> {
 				MicroProfileDefinition definition = new MicroProfileDefinition();

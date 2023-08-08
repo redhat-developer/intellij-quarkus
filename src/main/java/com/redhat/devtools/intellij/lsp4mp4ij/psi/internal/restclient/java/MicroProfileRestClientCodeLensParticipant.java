@@ -73,7 +73,7 @@ public class MicroProfileRestClientCodeLensParticipant implements IJavaCodeLensP
 		MicroProfileJavaCodeLensParams params = context.getParams();
 		List<CodeLens> lenses = new ArrayList<>();
 		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(context.getJavaProject().getProject())
-				.getJDTMicroProfileProject(context.getJavaProject());
+				.getMicroProfileProject(context.getJavaProject());
 		collectURLCodeLenses(elements, null, null, mpProject, lenses, params, utils);
 		return lenses;
 	}

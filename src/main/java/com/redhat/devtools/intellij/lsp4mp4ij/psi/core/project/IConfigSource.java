@@ -10,6 +10,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,8 @@ public interface IConfigSource {
 	 */
 	String getSourceConfigFileURI();
 
+	boolean isSourceConfigFile(VirtualFile file);
+
 	/**
 	 * Returns a list of all values for properties and different profiles that are
 	 * defined in this config source.
@@ -100,4 +103,5 @@ public interface IConfigSource {
 	 */
 	Set<String> getAllKeys();
 
+	void reload(PsiFile file);
 }

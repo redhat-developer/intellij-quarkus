@@ -26,7 +26,7 @@ public class QuarkusRunContext {
     private final PsiMicroProfileProject project;
 
     public QuarkusRunContext(Module module) {
-        this.project = PsiMicroProfileProjectManager.getInstance(module.getProject()).getJDTMicroProfileProject(module);
+        this.project = PsiMicroProfileProjectManager.getInstance(module.getProject()).getMicroProfileProject(module);
     }
 
     protected static QuarkusRunContext getContext(AnActionEvent e) {
