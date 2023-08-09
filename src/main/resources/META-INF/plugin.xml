@@ -11,11 +11,20 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <h3>1.24.0</h3>
+    <ul>
+      <li>Fixed many cases when the Language Servers would freeze IDEA</li>
+      <li>Several performance improvements</li>
+      <li>Uses LSP4MP 0.9.0 and Quarkus LS 0.16.0</li>
+      <li>Now requires IDEA 2022.2 minimum</li>
+      <li>Bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/37?closed=1">changelog</a>.
     <h3>1.23.0</h3>
     <ul>
       <li>Fix completion apply to update correctly the text to replace and move the caret on the proper position</li>
       <li>Completion snippets apply are reindented following the IDE indentation setting</li>
-      <li>Completion is now available while the indexing process</li>
+      <li>Completion is now available during indexing</li>
       <li>Support for Java class in the Qute template parameter declaration</li>
     </ul>
     Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/36?closed=1">changelog</a>.
