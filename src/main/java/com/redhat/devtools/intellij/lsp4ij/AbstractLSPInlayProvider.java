@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
 import java.awt.Component;
+import java.util.Map;
 
 public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoSettings> {
     public static final DataKey<Command> LSP_COMMAND = DataKey.create("com.redhat.devtools.intellij.quarkus.lsp4ij.command");
@@ -91,7 +92,7 @@ public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoS
         if (command != null) {
             AnAction action = ActionManager.getInstance().getAction(command.getCommand());
             if (action != null) {
-                DataContext context = SimpleDataContext.getSimpleContext(LSP_COMMAND.getName(), command, DataManager.getInstance().getDataContext(source));
+               DataContext context = SimpleDataContext.getSimpleContext(DataKey.create(LSP_COMMAND.getName()), command, DataManager.getInstance().getDataContext(source));
                 action.actionPerformed(new AnActionEvent(null, context,
                         ActionPlaces.UNKNOWN, new Presentation(),
                         ActionManager.getInstance(), 0));
