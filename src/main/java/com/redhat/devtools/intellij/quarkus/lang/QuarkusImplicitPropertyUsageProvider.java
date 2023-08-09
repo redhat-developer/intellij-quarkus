@@ -10,11 +10,11 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lang;
 
-import com.intellij.codeInspection.unused.ImplicitPropertyUsageProvider;
+import com.intellij.lang.properties.codeInspection.unused.ImplicitPropertyUsageProvider;
 import com.intellij.lang.properties.psi.Property;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 
-public class QuarkusImplicitPropertyUsageProvider extends ImplicitPropertyUsageProvider {
+public class QuarkusImplicitPropertyUsageProvider implements ImplicitPropertyUsageProvider {
     @Override
     public boolean isUsed(Property property) {
         return QuarkusModuleUtil.isQuarkusPropertiesFile(property.getContainingFile().getVirtualFile(), property.getProject());
