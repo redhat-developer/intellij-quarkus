@@ -138,10 +138,12 @@ public class QuarkusProjectService implements ClasspathResourceChangedManager.Li
 	}
 
 	public void processModules(com.intellij.openapi.progress.ProgressIndicator progressIndicator) {
-		for (var module : ModuleManager.getInstance(project).getModules()) {
-			LOGGER.info("Calling ensure from processModules");
-			QuarkusModuleUtil.ensureQuarkusLibrary(module, progressIndicator);
-		}
+        if (!project.isDisposed()) {
+            for (var module : ModuleManager.getInstance(project).getModules()) {
+				LOGGER.info("Calling ensure from processModules");
+				QuarkusModuleUtil.ensureQuarkusLibrary(module, progressIndicator);
+            }
+        }
 	}
 
 

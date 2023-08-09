@@ -77,6 +77,8 @@ public class QuarkusModuleUtil {
      * @param progressIndicator
      */
     public static void ensureQuarkusLibrary(Module module, ProgressIndicator progressIndicator) {
+        if (module.isDisposed())
+            return;
         LOGGER.info("Ensuring library to " + module.getName());
         long start = System.currentTimeMillis();
         ToolDelegate toolDelegate = ToolDelegate.getDelegate(module);
