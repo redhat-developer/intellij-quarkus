@@ -19,6 +19,7 @@ import com.intellij.codeInsight.hints.presentation.PresentationFactory;
 import com.intellij.codeInsight.hints.presentation.SequencePresentation;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -27,6 +28,7 @@ import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.AbstractLSPInlayProvider;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
+import com.redhat.devtools.intellij.lsp4ij.internal.CancellationSupport;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
@@ -64,29 +66,36 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
         return new FactoryInlayHintsCollector(editor) {
             @Override
             public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
+                Project project = psiElement.getProject();
+                if (project.isDisposed()) {
+                    // The project has been closed, don't collect code lenses.
+                    return false;
+                }
+                Document document = editor.getDocument();
+                final CancellationSupport cancellationSupport = new CancellationSupport();
                 try {
-                    Document document = editor.getDocument();
-                    Project project = psiElement.getProject();
-                    if (project.isDisposed()) {
-                        // The project has been closed, don't collect code lenses.
-                        return false;
-                    }
                     URI docURI = LSPIJUtils.toUri(document);
                     if (docURI != null) {
                         CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
                         BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
-                        CompletableFuture<Void> future = collect(document, project, param, pairs);
-                        List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future);
-                        Map<Integer, List<Pair<Integer, Pair<CodeLens, LanguageServer>>>> elements = codeLenses.stream().collect(Collectors.groupingBy(p -> p.first));
-                        elements.forEach((offset, list) ->
-                                inlayHintsSink.addBlockElement(
-                                        offset,
-                                        true,
-                                        true,
-                                        0,
-                                        toPresentation(editor, offset, list, getFactory()))
-                        );
+
+                        CompletableFuture<Void> future = collect(document, project, param, pairs, cancellationSupport);
+                        List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future, cancellationSupport);
+                        codeLenses.stream()
+                                .collect(Collectors.groupingBy(p -> p.first))
+                                .forEach((offset, list) ->
+                                        inlayHintsSink.addBlockElement(
+                                                offset,
+                                                true,
+                                                true,
+                                                0,
+                                                toPresentation(editor, offset, list, getFactory()))
+                                );
                     }
+                } catch (ProcessCanceledException e) {
+                    // Cancel all LSP requests
+                    cancellationSupport.cancel();
+                    throw e;
                 } catch (InterruptedException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);
                     Thread.currentThread().interrupt();
@@ -95,38 +104,45 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
             }
 
             @NotNull
-            private List<Pair<Integer, Pair<CodeLens, LanguageServer>>> createCodeLenses(Document document, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CompletableFuture<Void> future) throws InterruptedException {
+            private List<Pair<Integer, Pair<CodeLens, LanguageServer>>> createCodeLenses(Document document, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CompletableFuture<Void> future, CancellationSupport cancellationSupport) throws InterruptedException {
                 List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
                 while (!future.isDone() || !pairs.isEmpty()) {
-                    ProgressManager.checkCanceled();
-                    Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
-                    if (pair != null) {
-                        int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), document);
-                        codelenses.add(Pair.create(offset, pair));
+                    try {
+                        ProgressManager.checkCanceled();
+                        Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
+                        if (pair != null) {
+                            int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), document);
+                            codelenses.add(Pair.create(offset, pair));
+                        }
+                    } catch (ProcessCanceledException e) {
+                        cancellationSupport.cancel();
+                        throw e;
                     }
                 }
                 return codelenses;
             }
 
-            private CompletableFuture<Void> collect(Document document, Project project, CodeLensParams param, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs) {
+            private CompletableFuture<Void> collect(Document document, Project project, CodeLensParams param, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CancellationSupport cancellationSupport) {
                 return LanguageServiceAccessor.getInstance(project)
                         .getLanguageServers(document, capabilities -> capabilities.getCodeLensProvider() != null)
-                        .thenComposeAsync(languageServers -> CompletableFuture.allOf(languageServers.stream()
-                                .map(languageServer -> languageServer.getSecond().getTextDocumentService().codeLens(param)
-                                        .thenAcceptAsync(codeLenses -> {
-                                            // textDocument/codeLens may return null
-                                            if (codeLenses != null) {
-                                                codeLenses.stream()
-                                                        .filter(Objects::nonNull)
-                                                        .forEach(codeLens -> {
-                                                            if (getCodeLensContent(codeLens) != null) {
-                                                                // The codelens content is filled, display it
-                                                                pairs.add(new Pair(codeLens, languageServer.getSecond()));
+                        .thenComposeAsync(languageServers ->
+                                cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
+                                        .map(languageServer ->
+                                                cancellationSupport.execute(languageServer.getServer().getTextDocumentService().codeLens(param))
+                                                        .thenAcceptAsync(codeLenses -> {
+                                                            // textDocument/codeLens may return null
+                                                            if (codeLenses != null) {
+                                                                codeLenses.stream()
+                                                                        .filter(Objects::nonNull)
+                                                                        .forEach(codeLens -> {
+                                                                            if (getCodeLensContent(codeLens) != null) {
+                                                                                // The codelens content is filled, display it
+                                                                                pairs.add(new Pair(codeLens, languageServer.getServer()));
+                                                                            }
+                                                                        });
                                                             }
-                                                        });
-                                            }
-                                        }))
-                                .toArray(CompletableFuture[]::new)));
+                                                        }))
+                                        .toArray(CompletableFuture[]::new))));
             }
         };
     }
@@ -151,7 +167,7 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
             } else {
                 // Codelens defines a Command, create a clickable inlay hint
                 InlayPresentation clickableText = factory.referenceOnHover(text, (event, translated) ->
-                    executeClientCommand(p.second.second, p.second.first, (Component) event.getSource(), editor.getProject())
+                        executeClientCommand(p.second.second, p.second.first, (Component) event.getSource(), editor.getProject())
                 );
                 presentations.add(clickableText);
             }
@@ -162,10 +178,10 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
 
     private void executeClientCommand(LanguageServer languageServer, CodeLens codeLens, Component source, Project project) {
         if (LanguageServiceAccessor.getInstance(project).checkCapability(languageServer, capabilities ->
-                        Boolean.TRUE.equals(capabilities.getCodeLensProvider().getResolveProvider()))
+                Boolean.TRUE.equals(capabilities.getCodeLensProvider().getResolveProvider()))
         ) {
             languageServer.getTextDocumentService().resolveCodeLens(codeLens).thenAcceptAsync(resolvedCodeLens ->
-                executeClientCommand(source, resolvedCodeLens.getCommand())
+                    executeClientCommand(source, resolvedCodeLens.getCommand())
             );
         } else {
             executeClientCommand(source, codeLens.getCommand());

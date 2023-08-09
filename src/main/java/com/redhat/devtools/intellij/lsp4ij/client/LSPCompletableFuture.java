@@ -144,7 +144,9 @@ public class LSPCompletableFuture<R> extends CompletableFuture<R> {
     public boolean cancel(boolean mayInterruptIfRunning) {
         if (nonBlockingReadActionPromise != null) {
             // cancel the current promise
-            nonBlockingReadActionPromise.cancel(mayInterruptIfRunning);
+            if (!nonBlockingReadActionPromise.isDone()) {
+                nonBlockingReadActionPromise.cancel(mayInterruptIfRunning);
+            }
         }
         return super.cancel(mayInterruptIfRunning);
     }

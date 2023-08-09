@@ -21,6 +21,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
+import com.redhat.devtools.intellij.lsp4ij.internal.CancellationSupport;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import org.eclipse.lsp4j.Hover;
@@ -54,6 +55,7 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
     private PsiElement lastElement;
     private int lastOffset = -1;
     private CompletableFuture<List<Hover>> lspRequest;
+    private CancellationSupport cancellationSupport;
 
     public LSPTextHover() {
         LOGGER.info("LSPTextHover");
@@ -132,6 +134,8 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
         } catch (InterruptedException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
             Thread.currentThread().interrupt();
+        } finally {
+            this.cancellationSupport = null;
         }
         return null;
     }
@@ -181,29 +185,27 @@ public class LSPTextHover extends DocumentationProviderEx implements ExternalDoc
      * @param offset  the target offset.
      */
     private void initiateHoverRequest(PsiElement element, int offset) {
+        if (this.cancellationSupport != null) {
+            this.cancellationSupport.cancel();
+            this.cancellationSupport = null;
+        }
         PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
         final Document document = manager.getDocument(element.getContainingFile());
         if (offset != -1 && (this.lspRequest == null || !element.equals(this.lastElement) || offset != this.lastOffset)) {
             this.lastElement = element;
             this.lastOffset = offset;
+            this.cancellationSupport = new CancellationSupport();
             this.lspRequest = LanguageServiceAccessor.getInstance(element.getProject())
                     .getLanguageServers(document, capabilities -> isHoverCapable(capabilities))
                     .thenApplyAsync(languageServers -> // Async is very important here, otherwise the LS Client thread is in
                             // deadlock and doesn't read bytes from LS
                             languageServers.stream()
-                                    .map(languageServer -> {
-                                        try {
-                                            return languageServer.getSecond().getTextDocumentService()
-                                                    .hover(LSPIJUtils.toHoverParams(offset, document)).get();
-                                        } catch (ExecutionException e) {
-                                            LOGGER.warn(e.getLocalizedMessage(), e);
-                                            return null;
-                                        } catch (InterruptedException e) {
-                                            LOGGER.warn(e.getLocalizedMessage(), e);
-                                            Thread.currentThread().interrupt();
-                                            return null;
-                                        }
-                                    }).filter(Objects::nonNull).collect(Collectors.toList()));
+                                    .map(languageServer ->
+                                            cancellationSupport.execute(
+                                                            languageServer.getServer().getTextDocumentService()
+                                                                    .hover(LSPIJUtils.toHoverParams(offset, document)))
+                                                    .join()
+                                    ).filter(Objects::nonNull).collect(Collectors.toList()));
         }
     }
 
