@@ -23,6 +23,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
+import com.redhat.devtools.intellij.lsp4ij.internal.CancellationSupport;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Location;
@@ -56,11 +57,20 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
             if (uri != null) {
                 DefinitionParams params = new DefinitionParams(LSPIJUtils.toTextDocumentIdentifier(uri), LSPIJUtils.toPosition(offset, editor.getDocument()));
                 Set<PsiElement> targets = new HashSet<>();
+                final CancellationSupport cancellationSupport = new CancellationSupport();
                 try {
-                    LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(editor.getDocument(), capabilities -> LSPIJUtils.hasCapability(capabilities.getDefinitionProvider())).thenComposeAsync(servers ->
-
-                        CompletableFuture.allOf(servers.stream().map(server -> server.getSecond().getTextDocumentService().definition(params).thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
-                        .toArray(CompletableFuture[]::new))).get(1_000, TimeUnit.MILLISECONDS);
+                    LanguageServiceAccessor.getInstance(editor.getProject())
+                            .getLanguageServers(editor.getDocument(), capabilities -> LSPIJUtils.hasCapability(capabilities.getDefinitionProvider()))
+                            .thenComposeAsync(languageServers ->
+                                    cancellationSupport.execute(
+                                            CompletableFuture.allOf(
+                                                    languageServers
+                                                            .stream()
+                                                            .map(server ->
+                                                                    cancellationSupport.execute(server.getServer().getTextDocumentService().definition(params))
+                                                                            .thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
+                                                            .toArray(CompletableFuture[]::new))))
+                            .get(1_000, TimeUnit.MILLISECONDS);
                 } catch (ExecutionException | TimeoutException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);
                 }
@@ -74,7 +84,7 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
     }
 
     private List<PsiElement> toElements(Project project, Either<List<? extends Location>, List<? extends LocationLink>> definitions) {
-        List<? extends Location> locations = definitions!=null?toLocation(definitions): Collections.emptyList();
+        List<? extends Location> locations = definitions != null ? toLocation(definitions) : Collections.emptyList();
         return locations.stream().map(location -> toElement(project, location)).filter(Objects::nonNull).collect(Collectors.toList());
     }
 

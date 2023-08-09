@@ -24,12 +24,8 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
-import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileWrapper;
-import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
-import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
-import com.redhat.devtools.intellij.lsp4ij.operations.highlight.LSPHighlightPsiElement;
-import org.eclipse.lsp4j.DocumentHighlight;
+import com.redhat.devtools.intellij.lsp4ij.*;
+import com.redhat.devtools.intellij.lsp4ij.internal.CancellationSupport;
 import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.DocumentLinkParams;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.logging.Level;
 
 /**
  * Intellij {@link ExternalAnnotator} implementation which collect LSP document links and display them with underline style.
@@ -56,6 +51,7 @@ public class LSPDocumentLinkAnnotator extends ExternalAnnotator<LSPVirtualFileWr
         if (uri == null) {
             return null;
         }
+        final CancellationSupport cancellationSupport = new CancellationSupport();
         try {
             ProgressManager.checkCanceled();
             DocumentLinkParams params = new DocumentLinkParams(LSPIJUtils.toTextDocumentIdentifier(uri));
@@ -63,15 +59,17 @@ public class LSPDocumentLinkAnnotator extends ExternalAnnotator<LSPVirtualFileWr
 
             BlockingDeque<Pair<List<DocumentLink>, LanguageServerWrapper>> documentLinks = new LinkedBlockingDeque<>();
             CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(document,
-                    capabilities -> capabilities.getDocumentLinkProvider() != null)
+                            capabilities -> capabilities.getDocumentLinkProvider() != null)
                     .thenAcceptAsync(languageServers ->
-                            CompletableFuture.allOf(languageServers.stream()
-                                    .map(languageServer -> Pair.pair(languageServer.getSecond().getTextDocumentService().documentLink(params), languageServer.getFirst()))
+                            cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
+                                    .map(languageServer -> Pair.pair(
+                                            cancellationSupport.execute(languageServer.getServer().getTextDocumentService().documentLink(params))
+                                            , languageServer.getServerWrapper()))
                                     .map(request -> request.getFirst().thenAcceptAsync(result -> {
                                         if (result != null) {
                                             documentLinks.add(Pair.pair(result, request.getSecond()));
                                         }
-                                    })).toArray(CompletableFuture[]::new)));
+                                    })).toArray(CompletableFuture[]::new))));
             while (!future.isDone() || !documentLinks.isEmpty()) {
                 ProgressManager.checkCanceled();
                 Pair<List<DocumentLink>, LanguageServerWrapper> links = documentLinks.poll(25, TimeUnit.MILLISECONDS);
@@ -80,8 +78,8 @@ public class LSPDocumentLinkAnnotator extends ExternalAnnotator<LSPVirtualFileWr
                             .updateDocumentLink(links.getFirst(), links.getSecond());
                 }
             }
-
         } catch (ProcessCanceledException cancellation) {
+            cancellationSupport.cancel();
             throw cancellation;
         } catch (InterruptedException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
