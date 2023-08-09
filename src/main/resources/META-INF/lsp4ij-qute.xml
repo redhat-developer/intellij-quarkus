@@ -6,7 +6,8 @@
             label="Qute support"
             class="com.redhat.devtools.intellij.qute.lsp.QuteServer"
             clientImpl="com.redhat.devtools.intellij.qute.lsp.QuteLanguageClient"
-            serverInterface="com.redhat.qute.ls.api.QuteLanguageServerAPI">
+            serverInterface="com.redhat.qute.ls.api.QuteLanguageServerAPI"
+            scope="project">
       <description><![CDATA[
         The <a href="https://github.com/redhat-developer/quarkus-ls">Qute language server</a> provides <a href="https://quarkus.io/guides/qute-reference">Qute</a> support in:
         <ul>

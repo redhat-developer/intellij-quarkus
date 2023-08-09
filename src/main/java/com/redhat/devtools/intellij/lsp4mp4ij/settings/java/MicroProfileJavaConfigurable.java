@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.settings.java;
 
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.NlsContexts;
 import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
@@ -27,17 +28,16 @@ import javax.swing.*;
  */
 public class MicroProfileJavaConfigurable extends NamedConfigurable<UserDefinedMicroProfileSettings> {
 
-    private final UserDefinedMicroProfileSettings myMicroProfileSettings;
+    private final Project project;
     private MicroProfileJavaView myView;
-    private String myDisplayName;
 
-    public MicroProfileJavaConfigurable(UserDefinedMicroProfileSettings microProfileSettings) {
-        this.myMicroProfileSettings = microProfileSettings;
+    public MicroProfileJavaConfigurable(Project project) {
+        this.project = project;
     }
 
     @Override
     public UserDefinedMicroProfileSettings getEditableObject() {
-        return myMicroProfileSettings;
+        return UserDefinedMicroProfileSettings.getInstance(project);
     }
 
     @Override
@@ -55,7 +55,6 @@ public class MicroProfileJavaConfigurable extends NamedConfigurable<UserDefinedM
 
     @Override
     public void setDisplayName(String name) {
-        myDisplayName = name;
     }
 
     @Override
@@ -66,24 +65,21 @@ public class MicroProfileJavaConfigurable extends NamedConfigurable<UserDefinedM
     @Override
     public void reset() {
         if (myView == null) return;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance();
+        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
         myView.setUrlCodeLensEnabled(settings.isUrlCodeLensEnabled());
     }
 
     @Override
     public boolean isModified() {
         if (myView == null) return false;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance();
-        if (settings == null) {
-            return true;
-        }
+        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
         return !(myView.isUrlCodeLensEnabled()== settings.isUrlCodeLensEnabled());
     }
 
     @Override
     public void apply() throws ConfigurationException {
         if (myView == null) return;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance();
+        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
         settings.setUrlCodeLensEnabled(myView.isUrlCodeLensEnabled());
         settings.fireStateChanged();
     }

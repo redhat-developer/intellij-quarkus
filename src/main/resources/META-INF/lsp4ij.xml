@@ -12,12 +12,13 @@
 
   <!-- LSP consoles -->
   <extensions defaultExtensionNs="com.intellij">
-    <applicationConfigurable groupId="language"
+    <projectConfigurable groupId="language"
                            id="LanguageServers"
                            bundle="messages.LanguageServerBundle"
+                           nonDefaultProject="true"
                            key="language.servers"
-                           provider="com.redhat.devtools.intellij.lsp4ij.settings.LanguageServerListConfigurableProvider"/>
-    <applicationService id="com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings"
+                           instance="com.redhat.devtools.intellij.lsp4ij.settings.LanguageServerListConfigurable"/>
+    <projectService id="com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings"
                         serviceImplementation="com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings"/>
     <toolWindow id="Language Servers"
                 anchor="bottom"

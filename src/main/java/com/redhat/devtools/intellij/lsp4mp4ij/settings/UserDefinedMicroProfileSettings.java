@@ -17,6 +17,7 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.jetbrains.jsonSchema.JsonSchemaCatalogProjectConfiguration;
@@ -45,8 +46,8 @@ public class UserDefinedMicroProfileSettings implements PersistentStateComponent
 
     private final List<Runnable> myChangeHandlers = ContainerUtil.createConcurrentList();
 
-    public static UserDefinedMicroProfileSettings getInstance() {
-        return ServiceManager.getService(UserDefinedMicroProfileSettings.class);
+    public static @NotNull UserDefinedMicroProfileSettings getInstance(@NotNull Project project) {
+        return project.getService(UserDefinedMicroProfileSettings.class);
     }
 
     public void addChangeHandler(Runnable runnable) {

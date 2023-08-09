@@ -13,12 +13,12 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.settings;
 
-import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.*;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
+import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,14 +36,14 @@ import java.util.TreeMap;
  */
 @State(
         name = "LanguageServerSettingsState",
-        storages = {@Storage("LanguageServersSettings.xml")}
+        storages = @Storage("LanguageServersSettings.xml")
 )
 public class UserDefinedLanguageServerSettings implements PersistentStateComponent<UserDefinedLanguageServerSettings.MyState> {
 
-    public volatile MyState myState = new MyState();
+    private volatile MyState myState = new MyState();
 
-    public static UserDefinedLanguageServerSettings getInstance() {
-        return ServiceManager.getService(UserDefinedLanguageServerSettings.class);
+    public static UserDefinedLanguageServerSettings getInstance(@NotNull Project project) {
+        return project.getService(UserDefinedLanguageServerSettings.class);
     }
 
     @Nullable
@@ -98,7 +98,7 @@ public class UserDefinedLanguageServerSettings implements PersistentStateCompone
         }
     }
 
-    static class MyState {
+    public static class MyState {
         @Tag("state")
         @XCollection
         public Map<String, LanguageServerDefinitionSettings> myState = new TreeMap<>();

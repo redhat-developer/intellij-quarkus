@@ -6,7 +6,8 @@
             label="Tools for MicroProfile"
             class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer"
             clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient"
-            serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI">
+            serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"
+            scope="project">
       <description><![CDATA[
         The <a href="https://github.com/eclipse/lsp4mp">MicroProfile language server</a> provides <a href="https://microprofile.io/">MicroProfile</a> support in:
         <ul>
@@ -24,22 +25,23 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- MicroProfile settings -->
-    <applicationConfigurable groupId="language"
+    <projectConfigurable groupId="language"
                              id="MicroProfile"
                              bundle="messages.MicroProfileBundle"
                              key="microprofile"
-                             provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileConfigurableProvider"/>
-    <applicationConfigurable parentId="MicroProfile"
+                             instance="com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileConfigurable"/>
+    <projectConfigurable parentId="MicroProfile"
                              id="MicroProfileProperties"
                              bundle="messages.MicroProfileBundle"
                              key="microprofile.properties"
-                             provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.properties.MicroProfilePropertiesConfigurableProvider"/>
-    <applicationConfigurable parentId="MicroProfile"
+                             instance="com.redhat.devtools.intellij.lsp4mp4ij.settings.properties.MicroProfilePropertiesConfigurable"/>
+    <projectConfigurable parentId="MicroProfile"
                              bundle="messages.MicroProfileBundle"
                              key="microprofile.java"
                              id="MicroProfileJava"
-                             provider="com.redhat.devtools.intellij.lsp4mp4ij.settings.java.MicroProfileJavaConfigurableProvider"/>
-    <applicationService id="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"
+                             instance="com.redhat.devtools.intellij.lsp4mp4ij.settings.java.MicroProfileJavaConfigurable"/>
+
+    <projectService id="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"
                         serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"/>
 
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JavaEEImplicitUsageProvider"/>

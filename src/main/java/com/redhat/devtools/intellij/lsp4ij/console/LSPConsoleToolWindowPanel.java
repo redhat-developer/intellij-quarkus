@@ -170,19 +170,20 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
 
         private JComponent createDetailPanel(LanguageServerTreeNode key) {
             LanguageServersRegistry.LanguageServerDefinition serverDefinition = key.getServerDefinition();
+            Project project = LSPConsoleToolWindowPanel.this.project;
             ComboBox<ServerTrace> serverTraceComboBox = new ComboBox<>(new DefaultComboBoxModel<>(ServerTrace.values()));
-            UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings initialSettings = UserDefinedLanguageServerSettings.getInstance().getLanguageServerSettings(serverDefinition.id);
+            UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings initialSettings = UserDefinedLanguageServerSettings.getInstance(project).getLanguageServerSettings(serverDefinition.id);
             if (initialSettings != null && initialSettings.getServerTrace() != null) {
                 serverTraceComboBox.setSelectedItem(initialSettings.getServerTrace());
             }
             serverTraceComboBox.addItemListener(event -> {
                 ServerTrace serverTrace = (ServerTrace) event.getItem();
-                UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance().getLanguageServerSettings(serverDefinition.id);
+                UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance(project).getLanguageServerSettings(serverDefinition.id);
                 if (settings == null) {
                     settings = new UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings();
                 }
                 settings.setServerTrace(serverTrace);
-                UserDefinedLanguageServerSettings.getInstance().setLanguageServerSettings(serverDefinition.id, settings);
+                UserDefinedLanguageServerSettings.getInstance(project).setLanguageServerSettings(serverDefinition.id, settings);
             });
             return FormBuilder.createFormBuilder()
                     .setFormLeftIndent(10)
