@@ -31,6 +31,14 @@ public class ServerExtensionPointBean extends BaseKeyedLazyInstance<StreamConnec
     public String serverInterface;
     private Class serverClass;
 
+    /**
+     *  Valid values are <code>project</code> and <code>application</code><br/>
+     *  When <code>project</code> scope is selected, the implementation of {@link StreamConnectionProvider} requires a
+     *  constructor with a single {@link com.intellij.openapi.project.Project} parameter
+     */
+    @Attribute("scope")
+    public String scope;
+
     @Attribute("singleton")
     public boolean singleton;
 

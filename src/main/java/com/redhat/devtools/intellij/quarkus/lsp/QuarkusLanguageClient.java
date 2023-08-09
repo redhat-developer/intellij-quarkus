@@ -48,19 +48,19 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
         connection = project.getMessageBus().connect(project);
         connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
         // Track MicroProfile settings changed to push them to the language server with LSP didChangeConfiguration.
-        UserDefinedMicroProfileSettings.getInstance().addChangeHandler(getDidChangeConfigurationListener());
+        UserDefinedMicroProfileSettings.getInstance(project).addChangeHandler(getDidChangeConfigurationListener());
     }
 
     @Override
     public void dispose() {
         super.dispose();
         connection.disconnect();
-        UserDefinedMicroProfileSettings.getInstance().removeChangeHandler(getDidChangeConfigurationListener());
+        UserDefinedMicroProfileSettings.getInstance(getProject()).removeChangeHandler(getDidChangeConfigurationListener());
     }
 
     @Override
     protected Object createSettings() {
-        return UserDefinedMicroProfileSettings.getInstance().toSettingsForMicroProfileLS();
+        return UserDefinedMicroProfileSettings.getInstance(getProject()).toSettingsForMicroProfileLS();
     }
 
     private void sendPropertiesChangeEvent(List<MicroProfilePropertiesScope> scope, Set<String> uris) {

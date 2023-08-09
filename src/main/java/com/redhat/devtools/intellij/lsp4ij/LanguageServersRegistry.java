@@ -38,6 +38,9 @@ public class LanguageServersRegistry {
 
     public abstract static class LanguageServerDefinition {
 
+        enum Scope {
+            project, application
+        }
         private static final int DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT = 5;
 
         public final @Nonnull
@@ -51,13 +54,16 @@ public class LanguageServersRegistry {
         public final int lastDocumentDisconnectedTimeout;
         private boolean enabled;
 
-        public LanguageServerDefinition(@Nonnull String id, @Nonnull String label, String description, boolean isSingleton, Integer lastDocumentDisconnectedTimeout) {
+        final @Nonnull Scope scope;
+
+        public LanguageServerDefinition(@Nonnull String id, @Nonnull String label, String description, boolean isSingleton, Integer lastDocumentDisconnectedTimeout, String scope) {
             this.id = id;
             this.label = label;
             this.description = description;
             this.isSingleton = isSingleton;
             this.lastDocumentDisconnectedTimeout = lastDocumentDisconnectedTimeout != null && lastDocumentDisconnectedTimeout > 0 ? lastDocumentDisconnectedTimeout : DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT;
             this.languageIdMappings = new ConcurrentHashMap<>();
+            this.scope = scope == null || scope.isBlank()? Scope.application : Scope.valueOf(scope);
             setEnabled(true);
         }
 
@@ -108,7 +114,7 @@ public class LanguageServersRegistry {
         private final ServerExtensionPointBean extension;
 
         public ExtensionLanguageServerDefinition(ServerExtensionPointBean element) {
-            super(element.id, element.label, element.description, element.singleton, element.lastDocumentDisconnectedTimeout);
+            super(element.id, element.label, element.description, element.singleton, element.lastDocumentDisconnectedTimeout, element.scope);
             this.extension = element;
         }
 
@@ -120,8 +126,11 @@ public class LanguageServersRegistry {
                         "Exception occurred while creating an instance of the stream connection provider, you have to define server/@class attribute in the extension point."); //$NON-NLS-1$
             }
             try {
-                return (StreamConnectionProvider) project.instantiateClass(extension.getServerImpl(),
-                        extension.getPluginDescriptor().getPluginId());
+                if (Scope.project == scope) {
+                    return (StreamConnectionProvider) project.instantiateClassWithConstructorInjection(extension.getServerImpl(), project,
+                            extension.getPluginDescriptor().getPluginId());
+                }
+                return (StreamConnectionProvider) project.instantiateClass(extension.getServerImpl(), extension.getPluginDescriptor().getPluginId());
             } catch (Exception e) {
                 throw new RuntimeException(
                         "Exception occurred while creating an instance of the stream connection provider", e); //$NON-NLS-1$

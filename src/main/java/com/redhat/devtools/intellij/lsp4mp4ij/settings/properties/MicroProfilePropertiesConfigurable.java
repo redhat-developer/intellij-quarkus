@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.settings.properties;
 
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.NlsContexts;
 import com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings;
@@ -27,17 +28,17 @@ import javax.swing.*;
  */
 public class MicroProfilePropertiesConfigurable extends NamedConfigurable<UserDefinedMicroProfileSettings> {
 
-    private final UserDefinedMicroProfileSettings myMicroProfileSettings;
+    private final Project project;
     private MicroProfilePropertiesView myView;
     private String myDisplayName;
 
-    public MicroProfilePropertiesConfigurable(UserDefinedMicroProfileSettings microProfileSettings) {
-        this.myMicroProfileSettings = microProfileSettings;
+    public MicroProfilePropertiesConfigurable(Project project) {
+        this.project = project;
     }
 
     @Override
     public UserDefinedMicroProfileSettings getEditableObject() {
-        return myMicroProfileSettings;
+        return UserDefinedMicroProfileSettings.getInstance(project);
     }
 
     @Override
@@ -66,14 +67,14 @@ public class MicroProfilePropertiesConfigurable extends NamedConfigurable<UserDe
     @Override
     public void reset() {
         if (myView == null) return;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance();
+        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
         myView.setInlayHintEnabled(settings.isInlayHintEnabled());
     }
 
     @Override
     public boolean isModified() {
         if (myView == null) return false;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance();
+        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
         if (settings == null) {
             return true;
         }
@@ -83,7 +84,7 @@ public class MicroProfilePropertiesConfigurable extends NamedConfigurable<UserDe
     @Override
     public void apply() throws ConfigurationException {
         if (myView == null) return;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance();
+        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
         settings.setInlayHintEnabled(myView.isInlayHintEnabled());
         settings.fireStateChanged();
     }

@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4ij.settings;
 
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.ui.TreeUIHelper;
@@ -41,12 +42,14 @@ public class LanguageServerListConfigurable extends MasterDetailsComponent imple
     @NonNls
     private static final String ID = "LanguageServers";
 
+    private final Project project;
     private final Set<LanguageServersRegistry.LanguageServerDefinition> languageServeDefinitions;
 
     private boolean isTreeInitialized;
 
-    public LanguageServerListConfigurable(Set<LanguageServersRegistry.LanguageServerDefinition> languageServeDefinitions) {
-        this.languageServeDefinitions = languageServeDefinitions;
+    public LanguageServerListConfigurable(Project project) {
+        this.project = project;
+        this.languageServeDefinitions = LanguageServersRegistry.getInstance().getAllDefinitions();
     }
 
     @Override
@@ -83,7 +86,7 @@ public class LanguageServerListConfigurable extends MasterDetailsComponent imple
     }
 
     private MyNode addLanguageServerDefinitionNode(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) {
-        MyNode node = new MyNode(new LanguageServerConfigurable(languageServerDefinition, TREE_UPDATER));
+        MyNode node = new MyNode(new LanguageServerConfigurable(languageServerDefinition, TREE_UPDATER, project));
         addNode(node, myRoot);
         return node;
     }

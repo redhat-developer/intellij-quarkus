@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4ij.console.explorer;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.redhat.devtools.intellij.lsp4ij.ServerStatus;
 import com.redhat.devtools.intellij.lsp4ij.settings.ServerTrace;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
@@ -56,7 +57,7 @@ public class LanguageServerExplorerLifecycleListener implements LanguageServerLi
             return;
         }
         LanguageServerProcessTreeNode processTreeNode = updateServerStatus(languageServer, null, false);
-        ServerTrace serverTrace = getServerTrace(languageServer.serverDefinition.id);
+        ServerTrace serverTrace = getServerTrace(explorer.getProject(), languageServer.serverDefinition.id);
         if (serverTrace == ServerTrace.off) {
             return;
         }
@@ -93,9 +94,9 @@ public class LanguageServerExplorerLifecycleListener implements LanguageServerLi
     }
 
 
-    private static ServerTrace getServerTrace(String languageServerId) {
+    private static ServerTrace getServerTrace(Project project, String languageServerId) {
         ServerTrace serverTrace = null;
-        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance().getLanguageServerSettings(languageServerId);
+        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance(project).getLanguageServerSettings(languageServerId);
         if (settings != null) {
             serverTrace = settings.getServerTrace();
         }

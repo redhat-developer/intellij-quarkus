@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.quarkus.lsp;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.project.Project;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
@@ -30,12 +31,15 @@ import java.util.Map;
  */
 public class QuarkusServer extends ProcessStreamConnectionProvider {
 
-    public QuarkusServer() {
+    private final Project project;
+
+    public QuarkusServer(Project project) {
+        this.project = project;
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
         File lsp4mpServerPath = new File(descriptor.getPath(), "lib/server/org.eclipse.lsp4mp.ls-uber.jar");
         File quarkusServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls.jar");
 
-        List<String> commands = new JavaProcessCommandBuilder("quarkus")
+        List<String> commands = new JavaProcessCommandBuilder(project,"quarkus")
                 .setJar(lsp4mpServerPath.getAbsolutePath())
                 .setCp(quarkusServerPath.getAbsolutePath())
                 .create();
@@ -49,7 +53,7 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
     public Object getInitializationOptions(URI rootUri) {
 
         Map<String, Object> root = new HashMap<>();
-        Map<String, Object> settings = UserDefinedMicroProfileSettings.getInstance().toSettingsForMicroProfileLS();
+        Map<String, Object> settings = UserDefinedMicroProfileSettings.getInstance(project).toSettingsForMicroProfileLS();
         root.put("settings", settings);
 
         Map<String, Object> extendedClientCapabilities = new HashMap<>();

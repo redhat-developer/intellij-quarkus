@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.settings;
 
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.NlsContexts;
 import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
@@ -27,7 +28,7 @@ public class MicroProfileConfigurable extends NamedConfigurable<UserDefinedMicro
 
     private MicroProfileView myView;
 
-    public MicroProfileConfigurable() {
+    public MicroProfileConfigurable(Project project) {
     }
 
     @Override

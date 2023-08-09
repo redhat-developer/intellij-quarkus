@@ -14,6 +14,7 @@
 package com.redhat.devtools.intellij.lsp4ij.settings;
 
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NlsContexts;
@@ -33,12 +34,14 @@ import javax.swing.*;
 public class LanguageServerConfigurable extends NamedConfigurable<LanguageServersRegistry.LanguageServerDefinition> {
 
     private final LanguageServersRegistry.LanguageServerDefinition languageServerDefinition;
+    private final Project project;
 
     private LanguageServerView myView;
 
-    public LanguageServerConfigurable(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition, Runnable updater) {
+    public LanguageServerConfigurable(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition, Runnable updater, Project project) {
         super(false, updater);
         this.languageServerDefinition = languageServerDefinition;
+        this.project = project;
     }
 
     @Override
@@ -77,7 +80,7 @@ public class LanguageServerConfigurable extends NamedConfigurable<LanguageServer
 
     @Override
     public boolean isModified() {
-        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance()
+        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance(project)
                 .getLanguageServerSettings(languageServerDefinition.id);
         if (settings == null) {
             return true;
@@ -93,13 +96,13 @@ public class LanguageServerConfigurable extends NamedConfigurable<LanguageServer
         settings.setDebugPort(myView.getDebugPort());
         settings.setDebugSuspend(myView.isDebugSuspend());
         settings.setServerTrace(myView.getServerTrace());
-        UserDefinedLanguageServerSettings.getInstance().setLanguageServerSettings(languageServerDefinition.id, settings);
+        UserDefinedLanguageServerSettings.getInstance(project).setLanguageServerSettings(languageServerDefinition.id, settings);
     }
 
     @Override
     public void reset() {
         ServerTrace serverTrace = ServerTrace.off;
-        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance()
+        UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance(project)
                 .getLanguageServerSettings(languageServerDefinition.id);
         if (settings != null) {
             myView.setDebugPort(settings.getDebugPort());

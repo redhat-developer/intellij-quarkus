@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.qute.lsp;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.project.Project;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
@@ -29,11 +30,11 @@ import java.util.Map;
  */
 public class QuteServer extends ProcessStreamConnectionProvider {
 
-    public QuteServer() {
+    public QuteServer(Project project) {
         IdeaPluginDescriptor descriptor = PluginManager.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
         File quteServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.qute.ls-uber.jar");
 
-        List<String> commands = new JavaProcessCommandBuilder("qute")
+        List<String> commands = new JavaProcessCommandBuilder(project, "qute")
                 .setJar(quteServerPath.getAbsolutePath())
                 .create();
         commands.add("-DrunAsync=true");
