@@ -141,7 +141,7 @@ public class LSPCompletableFuture<R> extends CompletableFuture<R> {
             action = action.inSmartMode(project);
         }
         if (key != null) {
-           // action = action.coalesceBy(key);
+           action = action.coalesceBy(key);
         }
         return action
                 .submit(AppExecutorUtil.getAppExecutorService());
