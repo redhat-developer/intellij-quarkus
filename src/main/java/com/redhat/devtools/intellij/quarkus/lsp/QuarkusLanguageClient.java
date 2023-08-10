@@ -15,6 +15,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
+import com.redhat.devtools.intellij.lsp4ij.client.CoalesceByKey;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.ProjectLabelManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManagerForJava;
@@ -112,65 +113,81 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     public CompletableFuture<MicroProfileProjectInfo> getProjectInfo(MicroProfileProjectInfoParams params) {
+        var coalesceBy = new CoalesceByKey("microprofile/projectInfo", params.getUri(), params.getScopes());
         String filePath = getFilePath(params.getUri());
         return runAsBackground("Computing MicroProfile properties for '" + filePath + "'.", monitor ->
                 PropertiesManager.getInstance().getMicroProfileProjectInfo(params, PsiUtilsLSImpl.getInstance(getProject()), monitor)
-        );
+        , coalesceBy);
     }
 
     @Override
     public CompletableFuture<Hover> getJavaHover(MicroProfileJavaHoverParams javaParams) {
-        return runAsBackground("Computing MicroProfile Java hover", monitor -> PropertiesManagerForJava.getInstance().hover(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+        var coalesceBy = new CoalesceByKey("microprofile/java/hover", javaParams.getUri(), javaParams.getPosition());
+        return runAsBackground("Computing MicroProfile Java hover", monitor -> PropertiesManagerForJava.getInstance().hover(javaParams, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override
     public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(MicroProfileJavaDiagnosticsParams javaParams) {
-        return runAsBackground("Computing MicroProfile Java diagnostics", monitor -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+        // When project is indexing and user types a lot of characters in the Java editor, the MicroProfile language server
+        // validates the Java document and consumes a 'microprofile/java/diagnostics' for each typed character.
+        // The response of 'microprofile/java/diagnostics' are blocked (or takes some times) and we have
+        // "Too many non-blocking read actions submitted at once in". To avoid having this error, we create a coalesceBy key
+        // managed by IJ ReadAction.nonBlocking() to cancel the previous request.
+        var coalesceBy = new CoalesceByKey("microprofile/java/diagnostics", javaParams.getUris());
+        return runAsBackground("Computing MicroProfile Java diagnostics", monitor -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override
     public CompletableFuture<Location> getPropertyDefinition(MicroProfilePropertyDefinitionParams params) {
-        return runAsBackground("Computing property definition", monitor -> PropertiesManager.getInstance().findPropertyLocation(params, PsiUtilsLSImpl.getInstance(getProject())));
+        var coalesceBy = new CoalesceByKey("microprofile/propertyDefinition", params.getUri(), params.getSourceType(), params.getSourceField(), params.getSourceMethod());
+        return runAsBackground("Computing property definition", monitor -> PropertiesManager.getInstance().findPropertyLocation(params, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override
     public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectLabels(MicroProfileJavaProjectLabelsParams javaParams) {
-        return runAsBackground("Computing Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+        var coalesceBy = new CoalesceByKey("microprofile/java/projectLabels", javaParams.getUri(), javaParams.getTypes());
+        return runAsBackground("Computing Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override
     public CompletableFuture<List<ProjectLabelInfoEntry>> getAllJavaProjectLabels() {
-        return runAsBackground("Computing All Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(getProject())));
+        var coalesceBy = new CoalesceByKey("microprofile/java/workspaceLabels");
+        return runAsBackground("Computing All Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(getProject())),coalesceBy);
     }
 
     @Override
     public CompletableFuture<JavaFileInfo> getJavaFileInfo(MicroProfileJavaFileInfoParams javaParams) {
-        return runAsBackground("Computing Java file info", monitor -> PropertiesManagerForJava.getInstance().fileInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+        var coalesceBy = new CoalesceByKey("microprofile/java/fileInfo", javaParams.getUri());
+        return runAsBackground("Computing Java file info", monitor -> PropertiesManagerForJava.getInstance().fileInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override
     public CompletableFuture<List<MicroProfileDefinition>> getJavaDefinition(MicroProfileJavaDefinitionParams javaParams) {
-        return runAsBackground("Computing Java definitions", monitor -> PropertiesManagerForJava.getInstance().definition(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+        var coalesceBy = new CoalesceByKey("microprofile/java/definition", javaParams.getUri(),javaParams.getPosition());
+        return runAsBackground("Computing Java definitions", monitor -> PropertiesManagerForJava.getInstance().definition(javaParams, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override
     public CompletableFuture<MicroProfileJavaCompletionResult> getJavaCompletion(MicroProfileJavaCompletionParams javaParams) {
+        var coalesceBy = new CoalesceByKey("microprofile/java/completion", javaParams.getUri(),javaParams.getPosition());
         return runAsBackground("Computing Java completion", monitor -> {
             IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
             CompletionList completionList = PropertiesManagerForJava.getInstance().completion(javaParams, utils);
             JavaCursorContextResult cursorContext = PropertiesManagerForJava.getInstance().javaCursorContext(javaParams, utils);
             return new MicroProfileJavaCompletionResult(completionList, cursorContext);
-        });
+        }, coalesceBy);
     }
 
     @Override
     public CompletableFuture<List<? extends CodeLens>> getJavaCodelens(MicroProfileJavaCodeLensParams javaParams) {
-        return runAsBackground("Computing Java codelens", monitor -> PropertiesManagerForJava.getInstance().codeLens(javaParams, PsiUtilsLSImpl.getInstance(getProject()), monitor));
+        var coalesceBy = new CoalesceByKey("microprofile/java/codeLens", javaParams.getUri());
+        return runAsBackground("Computing Java codelens", monitor -> PropertiesManagerForJava.getInstance().codeLens(javaParams, PsiUtilsLSImpl.getInstance(getProject()), monitor), coalesceBy);
     }
 
     @Override
     public CompletableFuture<List<CodeAction>> getJavaCodeAction(MicroProfileJavaCodeActionParams javaParams) {
-        return runAsBackground("Computing Java code actions", monitor -> (List<CodeAction>) PropertiesManagerForJava.getInstance().codeAction(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+        var coalesceBy = new CoalesceByKey("microprofile/java/codeAction", javaParams.getUri());
+        return runAsBackground("Computing Java code actions", monitor -> (List<CodeAction>) PropertiesManagerForJava.getInstance().codeAction(javaParams, PsiUtilsLSImpl.getInstance(getProject())),coalesceBy);
     }
 
     @Override
@@ -184,7 +201,8 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     public CompletableFuture<JavaCursorContextResult> getJavaCursorContext(MicroProfileJavaCompletionParams params) {
-        return runAsBackground("Computing Java Cursor context", monitor -> PropertiesManagerForJava.getInstance().javaCursorContext(params, PsiUtilsLSImpl.getInstance(getProject())));
+        var coalesceBy = new CoalesceByKey("microprofile/java/javaCursorContext", params.getUri(), params.getPosition());
+        return runAsBackground("Computing Java Cursor context", monitor -> PropertiesManagerForJava.getInstance().javaCursorContext(params, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override

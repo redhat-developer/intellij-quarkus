@@ -54,12 +54,15 @@ public class LSPCompletableFuture<R> extends CompletableFuture<R> {
     private final IndexAwareLanguageClient languageClient;
     private final String progressTitle;
     private final AtomicInteger nbAttempt;
+
+    private final Object coalesceBy;
     private CancellablePromise<ResultOrError<R>> nonBlockingReadActionPromise;
 
-    public LSPCompletableFuture(Function<ProgressIndicator, R> code, String progressTitle, IndexAwareLanguageClient languageClient) {
+    public LSPCompletableFuture(Function<ProgressIndicator, R> code, String progressTitle, IndexAwareLanguageClient languageClient, Object coalesceBy) {
         this.code = code;
         this.progressTitle = progressTitle;
         this.languageClient = languageClient;
+        this.coalesceBy = coalesceBy;
         this.nbAttempt = new AtomicInteger(0);
         // if indexation is processing, we need to execute the promise in smart mode
         var executeInSmartMode = DumbService.getInstance(languageClient.getProject()).isDumb();
@@ -135,6 +138,9 @@ public class LSPCompletableFuture<R> extends CompletableFuture<R> {
                 .expireWith(languageClient); // promise is canceled when language client is stopped
         if (executeInSmartMode) {
             action = action.inSmartMode(project);
+        }
+        if (coalesceBy != null) {
+            action = action.coalesceBy(coalesceBy);
         }
         return action
                 .submit(AppExecutorUtil.getAppExecutorService());
