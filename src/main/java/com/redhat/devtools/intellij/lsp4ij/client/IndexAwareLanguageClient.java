@@ -39,7 +39,19 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
      * @return the output of the function code
      */
     protected <R> CompletableFuture<R> runAsBackground(String progressTitle, Function<ProgressIndicator, R> code) {
-        return new LSPCompletableFuture<>(code, progressTitle, IndexAwareLanguageClient.this);
+        return runAsBackground(progressTitle, code, null);
+    }
+
+    /**
+     * Run the given function as a background task, wrapped in a read action
+     *
+     * @param progressTitle the progress title of the action being run
+     * @param code  the function code to execute in the background
+     * @param <R>   the return type
+     * @return the output of the function code
+     */
+    protected <R> CompletableFuture<R> runAsBackground(String progressTitle, Function<ProgressIndicator, R> code, Object coalesceBy) {
+        return new LSPCompletableFuture<>(code, progressTitle, IndexAwareLanguageClient.this, coalesceBy);
     }
 
     /**

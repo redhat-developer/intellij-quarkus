@@ -17,6 +17,7 @@ import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -25,6 +26,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileWrapper;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
+import com.redhat.devtools.intellij.lsp4ij.client.CoalesceByKey;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 
 import java.util.function.Consumer;
@@ -45,12 +47,23 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
 
     @Override
     public void accept(PublishDiagnosticsParams params) {
+        Project project = languageServerWrapper.getProject();
+        if(project.isDisposed()) {
+            return;
+        }
         if (ApplicationManager.getApplication().isReadAccessAllowed()) {
             updateDiagnostics(params);
         } else {
-            ReadAction.nonBlocking(() -> updateDiagnostics(params))
-                    .submit(AppExecutorUtil.getAppExecutorService());
-
+            // Cancel if needed the previous "textDocument/publishDiagnostics" for a given uri.
+            var coalesceBy = new CoalesceByKey("textDocument/publishDiagnostics", params.getUri());
+            var executeInSmartMode = DumbService.getInstance(languageServerWrapper.getProject()).isDumb();
+            var action = ReadAction.nonBlocking(() -> updateDiagnostics(params))
+                    .expireWith(languageServerWrapper)
+                    .coalesceBy(coalesceBy);
+            if (executeInSmartMode) {
+                action.inSmartMode(project);
+            }
+            action.submit(AppExecutorUtil.getAppExecutorService());
         }
     }
 

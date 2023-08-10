@@ -14,7 +14,9 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
@@ -28,6 +30,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,6 +67,8 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 		List<JaxRsMethodInfo> methodInfos = new ArrayList<>();
 		try {
 			collectJaxRsMethodInfo(typeRoot.getChildren(), null, methodInfos, jaxrsContext, utils, monitor);
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "while collecting JAX-RS method info using the default method", e);
 		}

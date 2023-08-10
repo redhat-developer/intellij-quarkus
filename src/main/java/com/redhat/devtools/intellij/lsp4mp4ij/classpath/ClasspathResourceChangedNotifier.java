@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 /**
  * Source file change notifier with a debounce mode.
  */
-public class ClasspathResourceChangedNotifier implements Disposable  {
+public class ClasspathResourceChangedNotifier implements Disposable {
 
     private static final long DEBOUNCE_DELAY = 1000;
 
@@ -46,7 +46,8 @@ public class ClasspathResourceChangedNotifier implements Disposable  {
 
     private final Set<Pair<VirtualFile, Module>> sourceFiles;
     private boolean librariesChanged;
-private final List<RunnableProgress> processBeforeLibrariesChanged;
+    private final List<RunnableProgress> processBeforeLibrariesChanged;
+    private boolean disposed;
 
     public ClasspathResourceChangedNotifier(Project project, List<RunnableProgress> preprocessors) {
         this.project = project;
@@ -74,6 +75,9 @@ private final List<RunnableProgress> processBeforeLibrariesChanged;
     }
 
     private void asyncNotifyChanges() {
+        if (isDisposed()) {
+            return;
+        }
         if (ApplicationManager.getApplication().isUnitTestMode()) {
             notifyChanges();
         } else {
@@ -93,6 +97,9 @@ private final List<RunnableProgress> processBeforeLibrariesChanged;
     }
 
     private void notifyChanges() {
+        if (isDisposed()) {
+            return;
+        }
         synchronized (sourceFiles) {
             // Java, config sources files has changed
             project.getMessageBus().syncPublisher(ClasspathResourceChangedManager.TOPIC).sourceFilesChanged(sourceFiles);
@@ -121,8 +128,7 @@ private final List<RunnableProgress> processBeforeLibrariesChanged;
                                 for (var runnable : processBeforeLibrariesChanged) {
                                     runnable.run(progressIndicator);
                                 }
-                            }
-                            finally {
+                            } finally {
                                 // Send the libraries changed event
                                 project.getMessageBus().syncPublisher(ClasspathResourceChangedManager.TOPIC).librariesChanged();
                                 librariesChanged = false;
@@ -134,13 +140,23 @@ private final List<RunnableProgress> processBeforeLibrariesChanged;
         }
     }
 
+    public boolean isDisposed() {
+        return disposed;
+    }
+
     @Override
     public void dispose() {
+        if (isDisposed()) {
+            return;
+        }
+        this.disposed = true;
         if (debounceTask != null) {
             debounceTask.cancel();
+            debounceTask =null;
         }
-        if(debounceTimer != null) {
+        if (debounceTimer != null) {
             debounceTimer.cancel();
+            debounceTimer = null;
         }
     }
 }
