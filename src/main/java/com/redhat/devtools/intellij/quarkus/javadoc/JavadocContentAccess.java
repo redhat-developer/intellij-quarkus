@@ -11,7 +11,6 @@
 package com.redhat.devtools.intellij.quarkus.javadoc;
 
 import com.intellij.psi.PsiDocCommentOwner;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.javadoc.PsiDocComment;
 
@@ -20,10 +19,14 @@ import java.io.Reader;
 
 public class JavadocContentAccess {
     private static Reader getHTMLContentReader(PsiMember member, boolean allowInherited, boolean useAttachedJavadoc) {
-        PsiDocComment doc = ((PsiDocCommentOwner) member).getDocComment();
-        PsiElement sourceMember = member.getNavigationElement();
-        if (sourceMember instanceof PsiDocCommentOwner) {
-            doc = ((PsiDocCommentOwner) sourceMember).getDocComment();
+        PsiDocComment doc = null;
+        // Check the Javadoc of the current member
+        if (member instanceof PsiDocCommentOwner) {
+            doc = ((PsiDocCommentOwner) member).getDocComment();
+        }
+        // Check the Javadoc of the member it's inherited from
+        if (doc == null && allowInherited && member.getNavigationElement() instanceof PsiDocCommentOwner) {
+            doc = ((PsiDocCommentOwner) member.getNavigationElement()).getDocComment();
         }
         return doc == null ? null : new JavaDocCommentReader(doc.getText());
     }
