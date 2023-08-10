@@ -125,7 +125,7 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     public CompletableFuture<List<PublishDiagnosticsParams>> getJavaDiagnostics(MicroProfileJavaDiagnosticsParams javaParams) {
-        return runAsBackground("Computing MicroProfile Java diagnostics", monitor -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject())));
+        return runAsBackground("Computing MicroProfile Java diagnostics", monitor -> PropertiesManagerForJava.getInstance().diagnostics(javaParams, PsiUtilsLSImpl.getInstance(getProject())), javaParams);
     }
 
     @Override

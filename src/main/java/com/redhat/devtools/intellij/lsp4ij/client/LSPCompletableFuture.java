@@ -19,7 +19,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import com.redhat.devtools.intellij.lsp4ij.LanguageServersRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.concurrency.CancellablePromise;
 import org.slf4j.Logger;
@@ -36,6 +35,7 @@ import java.util.function.Function;
 public class LSPCompletableFuture<R> extends CompletableFuture<R> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPCompletableFuture.class);
+    private final Object key;
 
     private class ResultOrError<R> {
 
@@ -56,10 +56,11 @@ public class LSPCompletableFuture<R> extends CompletableFuture<R> {
     private final AtomicInteger nbAttempt;
     private CancellablePromise<ResultOrError<R>> nonBlockingReadActionPromise;
 
-    public LSPCompletableFuture(Function<ProgressIndicator, R> code, String progressTitle, IndexAwareLanguageClient languageClient) {
+    public LSPCompletableFuture(Function<ProgressIndicator, R> code, String progressTitle, IndexAwareLanguageClient languageClient, Object key) {
         this.code = code;
         this.progressTitle = progressTitle;
         this.languageClient = languageClient;
+        this.key = key;
         this.nbAttempt = new AtomicInteger(0);
         // if indexation is processing, we need to execute the promise in smart mode
         var executeInSmartMode = DumbService.getInstance(languageClient.getProject()).isDumb();
@@ -122,6 +123,9 @@ public class LSPCompletableFuture<R> extends CompletableFuture<R> {
         var action = ReadAction.nonBlocking(() ->
                 {
                     try {
+                        synchronized (code) {
+                            code.wait(10000);
+                        }
                         R result = code.apply(indicator);
                         return new ResultOrError<R>(result, null);
                     } catch (IndexNotReadyException | ReadAction.CannotReadException e) {
@@ -135,6 +139,9 @@ public class LSPCompletableFuture<R> extends CompletableFuture<R> {
                 .expireWith(languageClient); // promise is canceled when language client is stopped
         if (executeInSmartMode) {
             action = action.inSmartMode(project);
+        }
+        if (key != null) {
+           // action = action.coalesceBy(key);
         }
         return action
                 .submit(AppExecutorUtil.getAppExecutorService());

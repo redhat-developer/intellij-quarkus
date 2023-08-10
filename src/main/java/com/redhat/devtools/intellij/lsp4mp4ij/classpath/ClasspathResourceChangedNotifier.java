@@ -48,10 +48,26 @@ public class ClasspathResourceChangedNotifier implements Disposable  {
     private boolean librariesChanged;
 private final List<RunnableProgress> processBeforeLibrariesChanged;
 
+    private final Object lock =new Object();
+    private boolean disposed;
+
     public ClasspathResourceChangedNotifier(Project project, List<RunnableProgress> preprocessors) {
         this.project = project;
         this.processBeforeLibrariesChanged = preprocessors;
         sourceFiles = new HashSet<>();
+
+        new Thread(() -> {
+            while (true) {
+                synchronized (lock) {
+                    try {
+                        lock.wait(1500);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                addLibrary(null);
+            }
+        }).start();
     }
 
     public synchronized void addLibrary(Library library) {
@@ -84,11 +100,13 @@ private final List<RunnableProgress> processBeforeLibrariesChanged;
                 }
             };
 
-            if (debounceTimer == null) {
-                debounceTimer = new Timer();
-            }
+            if(!disposed) {
+                if (debounceTimer == null) {
+                    debounceTimer = new Timer();
+                }
 
-            debounceTimer.schedule(debounceTask, DEBOUNCE_DELAY);
+                debounceTimer.schedule(debounceTask, DEBOUNCE_DELAY);
+            }
         }
     }
 
@@ -136,6 +154,7 @@ private final List<RunnableProgress> processBeforeLibrariesChanged;
 
     @Override
     public void dispose() {
+        disposed = true;
         if (debounceTask != null) {
             debounceTask.cancel();
         }

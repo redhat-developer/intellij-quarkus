@@ -266,6 +266,13 @@ public class PropertiesManagerForJava {
         if (uris == null) {
             return Collections.emptyList();
         }
+        synchronized (uris) {
+            try {
+                uris.wait(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
         DocumentFormat documentFormat = params.getDocumentFormat();
         List<PublishDiagnosticsParams> publishDiagnostics = new ArrayList<PublishDiagnosticsParams>();
         for (String uri : uris) {

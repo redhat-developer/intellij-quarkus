@@ -30,6 +30,9 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
         super(project);
     }
 
+    protected <R> CompletableFuture<R> runAsBackground(String progressTitle, Function<ProgressIndicator, R> code) {
+        return runAsBackground(progressTitle, code, null);
+    }
     /**
      * Run the given function as a background task, wrapped in a read action
      *
@@ -38,8 +41,8 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
      * @param <R>   the return type
      * @return the output of the function code
      */
-    protected <R> CompletableFuture<R> runAsBackground(String progressTitle, Function<ProgressIndicator, R> code) {
-        return new LSPCompletableFuture<>(code, progressTitle, IndexAwareLanguageClient.this);
+    protected <R> CompletableFuture<R> runAsBackground(String progressTitle, Function<ProgressIndicator, R> code, Object key) {
+        return new LSPCompletableFuture<>(code, progressTitle, IndexAwareLanguageClient.this, key);
     }
 
     /**
