@@ -16,12 +16,15 @@ package com.redhat.devtools.intellij.lsp4ij.settings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
+import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -41,6 +44,8 @@ import java.util.TreeMap;
 public class UserDefinedLanguageServerSettings implements PersistentStateComponent<UserDefinedLanguageServerSettings.MyState> {
 
     private volatile MyState myState = new MyState();
+
+    private final List<Runnable> myChangeHandlers = ContainerUtil.createConcurrentList();
 
     public static UserDefinedLanguageServerSettings getInstance(@NotNull Project project) {
         return project.getService(UserDefinedLanguageServerSettings.class);
@@ -63,6 +68,7 @@ public class UserDefinedLanguageServerSettings implements PersistentStateCompone
 
     public void setLanguageServerSettings(String languageSeverId, LanguageServerDefinitionSettings settings) {
         myState.myState.put(languageSeverId, settings);
+        fireStateChanged();
     }
 
     public static class LanguageServerDefinitionSettings {
@@ -106,6 +112,31 @@ public class UserDefinedLanguageServerSettings implements PersistentStateCompone
         MyState() {
         }
 
+    }
+
+    /**
+     * Adds the given changeHandler to the list of registered change handlers
+     * @param changeHandler the changeHandler to remove
+     */
+    public void addChangeHandler(@NotNull Runnable changeHandler) {
+        myChangeHandlers.add(changeHandler);
+    }
+
+    /**
+     * Removes the given changeHandler from the list of registered change handlers
+     * @param changeHandler the changeHandler to remove
+     */
+    public void removeChangeHandler(@NotNull Runnable changeHandler) {
+        myChangeHandlers.remove(changeHandler);
+    }
+
+    /**
+     * Notifies all registered change handlers when the state changed
+     */
+    public void fireStateChanged() {
+        for (Runnable handler : myChangeHandlers) {
+            handler.run();
+        }
     }
 
 }

@@ -43,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * LSP consoles
@@ -139,6 +141,8 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
 
         private ConsoleView consoleView;
 
+        private final Set<Runnable> settingsChangeListeners = new HashSet<>();
+
         public ConsoleContentPanel(DefaultMutableTreeNode key) {
             if (key instanceof LanguageServerTreeNode) {
                 add(createDetailPanel((LanguageServerTreeNode) key), NAME_VIEW_DETAIL);
@@ -185,12 +189,36 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
                 settings.setServerTrace(serverTrace);
                 UserDefinedLanguageServerSettings.getInstance(project).setLanguageServerSettings(serverDefinition.id, settings);
             });
+
+            // Add a settings listener to keep serverTraceComboBox in sync with changes coming from the LSP settings page
+            // See https://github.com/redhat-developer/intellij-quarkus/issues/1062
+            Runnable settingsChangeListener = createSettingsChangeListener(serverDefinition.id, serverTraceComboBox);
+            UserDefinedLanguageServerSettings.getInstance(getProject()).addChangeHandler(settingsChangeListener);
+            settingsChangeListeners.add(settingsChangeListener);
+
             return FormBuilder.createFormBuilder()
                     .setFormLeftIndent(10)
                     .addComponent(createTitleComponent(serverDefinition), 1)
                     .addLabeledComponent(LanguageServerBundle.message("language.server.trace"), serverTraceComboBox, 1)
                     .addComponentFillVertically(new JPanel(), 0)
                     .getPanel();
+        }
+
+
+        private Runnable createSettingsChangeListener(String id, ComboBox<ServerTrace> serverTraceComboBox) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    if (isDisposed()) {
+                        return;
+                    }
+                    UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance(project).getLanguageServerSettings(id);
+                    ServerTrace newServerTrace = settings.getServerTrace();
+                    if (newServerTrace != null && !newServerTrace.equals(serverTraceComboBox.getSelectedItem())) {
+                            serverTraceComboBox.setSelectedItem(newServerTrace);
+                    }
+                }
+            };
         }
 
         private JComponent createTitleComponent(LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) {
@@ -224,6 +252,10 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
 
         @Override
         public void dispose() {
+            for (Runnable settingsChangeListener : settingsChangeListeners) {
+                UserDefinedLanguageServerSettings.getInstance(getProject()).removeChangeHandler(settingsChangeListener);
+            }
+            settingsChangeListeners.clear();
             super.dispose();
             if (consoleView != null) {
                 consoleView.dispose();
