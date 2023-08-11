@@ -213,6 +213,9 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
                         return;
                     }
                     UserDefinedLanguageServerSettings.LanguageServerDefinitionSettings settings = UserDefinedLanguageServerSettings.getInstance(project).getLanguageServerSettings(id);
+                    if (settings == null) { //No settings have been set yet for this particular LS
+                        return;
+                    }
                     ServerTrace newServerTrace = settings.getServerTrace();
                     if (newServerTrace != null && !newServerTrace.equals(serverTraceComboBox.getSelectedItem())) {
                             serverTraceComboBox.setSelectedItem(newServerTrace);
