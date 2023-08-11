@@ -204,7 +204,7 @@ public class LSPIJUtils {
     public static @Nullable TextRange toTextRange(Range range, Document document) {
         final int start = LSPIJUtils.toOffset(range.getStart(), document);
         final int end = LSPIJUtils.toOffset(range.getEnd(), document);
-        if (start >= end) {
+        if (start >= end || end > document.getTextLength()) {
             // Language server reports invalid diagnostic, ignore it.
             return null;
         }
