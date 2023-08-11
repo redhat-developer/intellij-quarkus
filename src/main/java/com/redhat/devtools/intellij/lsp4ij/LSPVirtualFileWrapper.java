@@ -15,12 +15,15 @@
 package com.redhat.devtools.intellij.lsp4ij;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticsForServer;
 import com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkForServer;
+import com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHoverForFile;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DocumentLink;
 
@@ -45,10 +48,12 @@ public class LSPVirtualFileWrapper implements Disposable {
     private final VirtualFile file;
 
     private final Map<LanguageServerWrapper, LSPVirtualFileData /* current LSP data (diagnostics, documentLink, etc) */> dataPerServer;
+    private final LSPTextHoverForFile hover;
 
     LSPVirtualFileWrapper(VirtualFile file) {
         this.file = file;
         this.dataPerServer = new HashMap<>();
+        this.hover = new LSPTextHoverForFile();
         Module project = LSPIJUtils.getProject(file);
         if (project != null) {
             Disposer.register(project, this);
@@ -101,6 +106,11 @@ public class LSPVirtualFileWrapper implements Disposable {
      */
     public Collection<LSPDocumentLinkForServer> getAllDocumentLink() {
         return getData(LSPVirtualFileData::getDocumentLinkForServer);
+    }
+
+
+    public String getHoverContent(PsiElement element, int targetOffset, Editor editor) {
+        return hover.getHoverContent(element, targetOffset, editor);
     }
 
     // ------------------------ Other methods
@@ -176,4 +186,5 @@ public class LSPVirtualFileWrapper implements Disposable {
             wrapper.dispose();
         }
     }
+
 }
