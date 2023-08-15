@@ -214,7 +214,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 					PsiQuarkusUtils.updateConverterKinds(metadata, method, enclosedType);
 				} else {
 					// Other type (App, etc)
-					populateConfigObject(returnType, propertyName, extensionName, new HashSet<>(),
+					populateConfigObject(returnType, propertyName, extensionName, typesAlreadyProcessed,
 							configMappingAnnotation, collector);
 				}
 			}
