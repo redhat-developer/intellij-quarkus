@@ -11,6 +11,14 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <h3>1.25.0</h3>
+    <ul>
+      <li>Added LSP cancellation support</li>
+      <li>LSP settings are now scoped at the project level</li>
+      <li>More performance improvements</li>
+      <li>Bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/38?closed=1">changelog</a>.
     <h3>1.24.0</h3>
     <ul>
       <li>Fixed many cases when the Language Servers would freeze IDEA</li>
