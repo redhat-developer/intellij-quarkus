@@ -1,0 +1,21 @@
+<html>
+<body>
+Reports invalid expressions in values of MicroProfile <code>.properties</code> files.
+<p><b>Example:</b></p>
+<pre><code>
+my.property=${invalid.property}
+</code></pre>
+
+<div style="border-left: 6px solid #e7af18; display: block; padding:5px">
+    <p style="margin:5px">
+        &#9888; This inspection is used to configure the <b>Tools for MicroProfile</b> server in <a href="settings://LanguageServers"> Settings | Languages &amp; Frameworks | Language Servers</a>.<br/><br/>
+        Consequently, some limitations apply:
+    </p>
+    <ul>
+        <li><i>Scope</i>: values are ignored</li>
+        <li><i>Severity</i>: only <b>Error</b> and <b>(Weak) Warning</b> are respected. Other values mean no errors will be reported</li>
+        <li><i>Highlighting in Editor</i>: values are ignored</li>
+    </ul>
+</div>
+</body>
+</html>

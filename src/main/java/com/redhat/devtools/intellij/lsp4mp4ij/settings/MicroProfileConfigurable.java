@@ -28,7 +28,7 @@ public class MicroProfileConfigurable extends NamedConfigurable<UserDefinedMicro
 
     private MicroProfileView myView;
 
-    public MicroProfileConfigurable(Project project) {
+    public MicroProfileConfigurable(Project ignoredProject) {
     }
 
     @Override
@@ -58,10 +58,8 @@ public class MicroProfileConfigurable extends NamedConfigurable<UserDefinedMicro
         return MicroProfileBundle.message("microprofile");
     }
 
-
     @Override
     public boolean isModified() {
-        if (myView == null) return false;
         return false;
     }
 

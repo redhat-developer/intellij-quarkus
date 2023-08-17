@@ -31,8 +31,7 @@ public class MicroProfileView implements Disposable {
     private final JPanel myMainPanel;
 
     public MicroProfileView() {
-        JComponent descriptionPanel = createDescription(MicroProfileBundle.message("microprofile.description"));
-        JPanel settingsPanel = createSettings(descriptionPanel);
+        JPanel settingsPanel = createSettings();
         TitledBorder title = IdeBorderFactory.createTitledBorder(MicroProfileBundle.message("microprofile.title"));
         settingsPanel.setBorder(title);
         this.myMainPanel = JBUI.Panels.simplePanel(10,10)
@@ -40,7 +39,7 @@ public class MicroProfileView implements Disposable {
                 .addToCenter(settingsPanel);
     }
 
-    private JPanel createSettings(JComponent description) {
+    private JPanel createSettings() {
         return FormBuilder.createFormBuilder()
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
