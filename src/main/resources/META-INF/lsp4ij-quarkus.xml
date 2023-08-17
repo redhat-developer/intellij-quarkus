@@ -58,6 +58,61 @@
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkAnnotator"/>
     <codeInsight.inlayProvider language="Properties"
                                implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
+
+    <localInspection
+            language="Properties"
+            bundle="messages.MicroProfileBundle"
+            key="microprofile.properties.validation.syntax"
+            groupPathKey="microprofile.inspection.group.name"
+            groupKey="microprofile.properties.inspection.group.name"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesSyntaxInspection"/>
+    <localInspection
+            language="Properties"
+            bundle="messages.MicroProfileBundle"
+            key="microprofile.properties.validation.unknown"
+            groupPathKey="microprofile.inspection.group.name"
+            groupKey="microprofile.properties.inspection.group.name"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnknownInspection"/>
+    <localInspection
+            language="Properties"
+            bundle="messages.MicroProfileBundle"
+            key="microprofile.properties.validation.duplicate"
+            groupPathKey="microprofile.inspection.group.name"
+            groupKey="microprofile.properties.inspection.group.name"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesDuplicatesInspection"/>
+    <localInspection
+            language="Properties"
+            bundle="messages.MicroProfileBundle"
+            key="microprofile.properties.validation.value"
+            groupPathKey="microprofile.inspection.group.name"
+            groupKey="microprofile.properties.inspection.group.name"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesValueInspection"/>
+    <localInspection
+            language="Properties"
+            bundle="messages.MicroProfileBundle"
+            key="microprofile.properties.validation.required"
+            groupPathKey="microprofile.inspection.group.name"
+            groupKey="microprofile.properties.inspection.group.name"
+            enabledByDefault="false"
+            level="INFORMATION"
+            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesRequiredInspection"/>
+    <localInspection
+            language="Properties"
+            bundle="messages.MicroProfileBundle"
+            key="microprofile.properties.validation.expression"
+            groupPathKey="microprofile.inspection.group.name"
+            groupKey="microprofile.properties.inspection.group.name"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesExpressionsInspection"/>
   </extensions>
 
 </idea-plugin>

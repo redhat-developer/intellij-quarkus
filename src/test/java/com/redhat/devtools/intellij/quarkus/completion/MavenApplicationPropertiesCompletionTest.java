@@ -36,7 +36,7 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_START_NEW_LINE);
 		insertLine("quarkus.arc.auto-inject-fields=");
-		LookupElement[] elements = codeInsightTestFixture.complete(CompletionType.BASIC);
+		LookupElement[] elements = codeInsightTestFixture.completeBasic();
 		assertNotNull(elements);
 		assertEquals(2, elements.length);
 	}
@@ -44,7 +44,7 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 	private void insertLine(String s) throws InterruptedException {
 		for (int i = 0; i < s.length(); ++i) {
 			codeInsightTestFixture.type(s.charAt(i));
-			Thread.sleep(1000);
 		}
+		Thread.sleep(1000);
 	}
 }

@@ -14,16 +14,15 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.settings;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.annotations.Tag;
-import com.jetbrains.jsonSchema.JsonSchemaCatalogProjectConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import java.util.Map;
  * User defined MicroProfile settings for:
  *
  * <ul>
+ *     <li>validation</li>
  *     <li>properties files managed with the MicroProfile language server</li>
  *     <li>Java files managed with the MicroProfile language server</li>
  * </ul>
@@ -42,7 +42,7 @@ import java.util.Map;
 )
 public class UserDefinedMicroProfileSettings implements PersistentStateComponent<UserDefinedMicroProfileSettings.MyState> {
 
-    public volatile MyState myState = new MyState();
+    private volatile MyState myState = new MyState();
 
     private final List<Runnable> myChangeHandlers = ContainerUtil.createConcurrentList();
 
@@ -103,7 +103,8 @@ public class UserDefinedMicroProfileSettings implements PersistentStateComponent
      *
      * @return the proper settings expected by the MicroProfile language server.
      */
-    public Map<String, Object> toSettingsForMicroProfileLS() {
+    public Map<String, Object> toSettingsForMicroProfileLS(MicroProfileInspectionsInfo inspectionsInfo) {
+
         Map<String, Object> settings = new HashMap<>();
         Map<String, Object> microprofile = new HashMap<>();
         settings.put("microprofile", microprofile);
@@ -122,10 +123,24 @@ public class UserDefinedMicroProfileSettings implements PersistentStateComponent
         codeLens.put("urlCodeLensEnabled", isUrlCodeLensEnabled());
         tools.put("codeLens", codeLens);
 
+        Map<String, Object> validation = new HashMap<>();
+        tools.put("validation", validation);
+        validation.put("enabled", inspectionsInfo.enabled());
+        validation.put("syntax", getSeverityNode(inspectionsInfo.syntaxSeverity()));
+        validation.put("unknown", getSeverityNode(inspectionsInfo.unknownSeverity()));
+        validation.put("duplicate", getSeverityNode(inspectionsInfo.duplicateSeverity()));
+        validation.put("value", getSeverityNode(inspectionsInfo.valueSeverity()));
+        validation.put("required", getSeverityNode(inspectionsInfo.requiredSeverity()));
+        validation.put("expression", getSeverityNode(inspectionsInfo.expressionSeverity()));
         return settings;
     }
 
-    static class MyState {
+    private Map<String, String> getSeverityNode(ProblemSeverity severity) {
+        return Collections.singletonMap("severity", severity.name());
+    }
+
+
+    public static class MyState {
         @Tag("inlayHintEnabled")
         public boolean myInlayHintEnabled = true;
 

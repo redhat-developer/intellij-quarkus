@@ -14,6 +14,7 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
+import com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileInspectionsInfo;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
@@ -51,9 +52,9 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
 
     @Override
     public Object getInitializationOptions(URI rootUri) {
-
         Map<String, Object> root = new HashMap<>();
-        Map<String, Object> settings = UserDefinedMicroProfileSettings.getInstance(project).toSettingsForMicroProfileLS();
+        MicroProfileInspectionsInfo inspectionsInfo = MicroProfileInspectionsInfo.getMicroProfileInspectionInfo(project);
+        Map<String, Object> settings = UserDefinedMicroProfileSettings.getInstance(project).toSettingsForMicroProfileLS(inspectionsInfo);
         root.put("settings", settings);
 
         Map<String, Object> extendedClientCapabilities = new HashMap<>();

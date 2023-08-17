@@ -119,19 +119,21 @@ public class LanguageClientImpl implements LanguageClient, Disposable {
         if (didChangeConfigurationListener != null) {
             return didChangeConfigurationListener;
         }
-        didChangeConfigurationListener = () -> {
-            LanguageServer languageServer = getLanguageServer();
-            if (languageServer == null) {
-                return;
-            }
-            Object settings = createSettings();
-            if(settings == null) {
-                return;
-            }
-            DidChangeConfigurationParams params = new DidChangeConfigurationParams(settings);
-            languageServer.getWorkspaceService().didChangeConfiguration(params);
-        };
+        didChangeConfigurationListener = this::triggerChangeConfiguration;
         return didChangeConfigurationListener;
+    }
+
+    protected void triggerChangeConfiguration() {
+        LanguageServer languageServer = getLanguageServer();
+        if (languageServer == null) {
+            return;
+        }
+        Object settings = createSettings();
+        if(settings == null) {
+            return;
+        }
+        DidChangeConfigurationParams params = new DidChangeConfigurationParams(settings);
+        languageServer.getWorkspaceService().didChangeConfiguration(params);
     }
 
 }

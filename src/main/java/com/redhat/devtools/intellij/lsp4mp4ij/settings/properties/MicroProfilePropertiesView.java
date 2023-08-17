@@ -31,7 +31,7 @@ public class MicroProfilePropertiesView implements Disposable {
 
     private final JPanel myMainPanel;
 
-    private JBCheckBox inlayHintCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.properties.inlayHint.enabled"));
+    private final JBCheckBox inlayHintCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.properties.inlayHint.enabled"));
 
     public MicroProfilePropertiesView() {
         JComponent descriptionPanel = createDescription(null);
