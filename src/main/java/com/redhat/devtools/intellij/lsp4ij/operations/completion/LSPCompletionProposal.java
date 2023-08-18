@@ -21,24 +21,27 @@ import com.intellij.codeInsight.template.impl.TemplateImpl;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorModificationUtil;
-import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.intellij.lsp4ij.LanguageServerItem;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.command.internal.CommandExecutor;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetIndentOptions;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.redhat.devtools.intellij.lsp4ij.operations.completion.CompletionProposalTools.createLspIndentOptions;
 import static com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetVariableConstants.*;
@@ -53,12 +56,14 @@ public class LSPCompletionProposal extends LookupElement {
     private final CompletionItem item;
     private final int initialOffset;
     private final PsiFile file;
+    private final Boolean supportResolveCompletion;
     private int currentOffset;
     private int bestOffset;
     private final Editor editor;
-    private final LanguageServer languageServer;
+    private final LanguageServerItem languageServer;
+    private String documentation;
 
-    public LSPCompletionProposal(PsiFile file, Editor editor, int offset, CompletionItem item, LanguageServer languageServer) {
+    public LSPCompletionProposal(PsiFile file, Editor editor, int offset, CompletionItem item, LanguageServerItem languageServer) {
         this.file = file;
         this.item = item;
         this.editor = editor;
@@ -66,6 +71,8 @@ public class LSPCompletionProposal extends LookupElement {
         this.initialOffset = offset;
         this.currentOffset = offset;
         this.bestOffset = getPrefixCompletionStart(editor.getDocument(), offset);
+        ServerCapabilities serverCapabilities = languageServer.getServerWrapper().getServerCapabilities();
+        this.supportResolveCompletion = serverCapabilities != null && serverCapabilities.getCompletionProvider() != null && serverCapabilities.getCompletionProvider().getResolveProvider();
         putUserData(CodeCompletionHandlerBase.DIRECT_INSERTION, true);
     }
 
@@ -274,7 +281,7 @@ public class LSPCompletionProposal extends LookupElement {
         Project project = editor.getProject();
         // Execute custom command of the completion item.
         LanguageServiceAccessor.getInstance(project)
-                .resolveServerDefinition(languageServer).map(definition -> definition.id)
+                .resolveServerDefinition(languageServer.getServer()).map(definition -> definition.id)
                 .ifPresent(id -> {
                     CommandExecutor.executeCommand(project, command, document, id);
                 });
@@ -347,4 +354,38 @@ public class LSPCompletionProposal extends LookupElement {
         }
     }
 
+    public MarkupContent getDocumentation() {
+        if (item.getDocumentation() == null && supportResolveCompletion) {
+            try {
+                CompletionItem resolved = languageServer.getServer()
+                        .getTextDocumentService()
+                        .resolveCompletionItem(item)
+                        .get(1000, TimeUnit.MILLISECONDS);
+                if (resolved != null) {
+                    item.setDocumentation(resolved.getDocumentation());
+                }
+            } catch (ExecutionException e) {
+                if (!(e.getCause() instanceof CancellationException)) {
+                    LOGGER.warn(e.getLocalizedMessage(), e);
+                }
+            } catch (TimeoutException e) {
+                LOGGER.warn(e.getLocalizedMessage(), e);
+            } catch (InterruptedException e) {
+                LOGGER.warn(e.getLocalizedMessage(), e);
+                Thread.currentThread().interrupt();
+            }
+        }
+        return getDocumentation(item.getDocumentation());
+    }
+
+    private static MarkupContent getDocumentation(Either<String, MarkupContent> documentation) {
+        if (documentation == null) {
+            return null;
+        }
+        if (documentation.isLeft()) {
+            String content = documentation.getLeft();
+            return new MarkupContent(content, MarkupKind.PLAINTEXT);
+        }
+        return documentation.getRight();
+    }
 }
