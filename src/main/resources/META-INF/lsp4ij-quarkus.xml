@@ -47,10 +47,10 @@
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JavaEEImplicitUsageProvider"/>
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.QuarkusBuildImplicitUsageProvider"/>
     <!-- Quarkus -->
-    <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
     <externalAnnotator language="Properties"
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>
-    <lang.documentationProvider id="LSPTextHoverJAVA" language="JAVA" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.hover.LSPTextHover" order="first"/>
+    <lang.documentationProvider id="LSPTextHoverJAVA" language="JAVA" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
     <codeInsight.inlayProvider language="JAVA" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
     <externalAnnotator language="JAVA"
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticAnnotator"/>

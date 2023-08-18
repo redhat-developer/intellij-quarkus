@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class LSPHighlightUsagesHandler extends HighlightUsagesHandlerBase<LSPHighlightPsiElement> {
-    private static final Logger LOGGER = Logger.getLogger(LSPHighlightUsagesHandler.class.getName());
     private final List<LSPHighlightPsiElement> targets;
 
     public LSPHighlightUsagesHandler(Editor editor, PsiFile file, List<LSPHighlightPsiElement> targets) {

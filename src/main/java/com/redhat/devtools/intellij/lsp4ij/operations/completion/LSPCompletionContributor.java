@@ -69,20 +69,20 @@ public class LSPCompletionContributor extends CompletionContributor {
              async processing is occuring on a separate thread.
              */
             CompletionParams params = LSPIJUtils.toCompletionParams(LSPIJUtils.toUri(document), offset, document);
-            BlockingDeque<Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer>> proposals = new LinkedBlockingDeque<>();
+            BlockingDeque<Pair<Either<List<CompletionItem>, CompletionList>, LanguageServerItem>> proposals = new LinkedBlockingDeque<>();
 
             CompletableFuture<Void> future = completionLanguageServersFuture
                     .thenComposeAsync(languageServers -> cancellationSupport.execute(
                             CompletableFuture.allOf(languageServers.stream()
                                     .map(languageServer ->
                                             cancellationSupport.execute(languageServer.getServer().getTextDocumentService().completion(params))
-                                                    .thenAcceptAsync(completion -> proposals.add(new Pair<>(completion, languageServer.getServer()))))
+                                                    .thenAcceptAsync(completion -> proposals.add(new Pair<>(completion, languageServer))))
                                     .toArray(CompletableFuture[]::new))));
 
             ProgressManager.checkCanceled();
             while (!future.isDone() || !proposals.isEmpty()) {
                 ProgressManager.checkCanceled();
-                Pair<Either<List<CompletionItem>, CompletionList>, LanguageServer> pair = proposals.poll(25, TimeUnit.MILLISECONDS);
+                Pair<Either<List<CompletionItem>, CompletionList>, LanguageServerItem> pair = proposals.poll(25, TimeUnit.MILLISECONDS);
                 if (pair != null) {
                     Either<List<CompletionItem>, CompletionList> completion = pair.getFirst();
                     if (completion != null) {
@@ -101,7 +101,7 @@ public class LSPCompletionContributor extends CompletionContributor {
     }
 
     private void addCompletionItems(PsiFile file, Editor editor, CompletionPrefix completionPrefix, Either<List<CompletionItem>,
-            CompletionList> completion, LanguageServer languageServer, @NotNull CompletionResultSet result, CancellationSupport cancellationSupport) {
+            CompletionList> completion, LanguageServerItem languageServer, @NotNull CompletionResultSet result, CancellationSupport cancellationSupport) {
         CompletionItemDefaults itemDefaults = null;
         List<CompletionItem> items = null;
         if (completion.isLeft()) {
@@ -138,7 +138,7 @@ public class LSPCompletionContributor extends CompletionContributor {
 
     private static LSPCompletionProposal createLookupItem(PsiFile file, Editor editor, int offset,
                                                           CompletionItem item,
-                                                          CompletionItemDefaults itemDefaults, LanguageServer languageServer) {
+                                                          CompletionItemDefaults itemDefaults, LanguageServerItem languageServer) {
         // Update text edit range with item defaults if needed
         updateWithItemDefaults(item, itemDefaults);
         return new LSPCompletionProposal(file, editor, offset, item, languageServer);
