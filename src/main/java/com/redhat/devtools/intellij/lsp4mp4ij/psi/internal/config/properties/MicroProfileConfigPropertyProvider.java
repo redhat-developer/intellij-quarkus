@@ -11,16 +11,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties;
 
 import com.intellij.lang.jvm.JvmMember;
 import com.intellij.openapi.module.Module;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifierListOwner;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiVariable;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.AbstractAnnotationTypeReferencePropertiesProvider;
@@ -123,7 +114,7 @@ public class MicroProfileConfigPropertyProvider extends AbstractAnnotationTypeRe
 
 		String extensionName = null;
 
-		if (javaElement instanceof PsiField) {
+		if (javaElement instanceof PsiField || javaElement instanceof PsiRecordComponent) {
 			sourceField = getSourceField((PsiMember) javaElement);
 		} else if (javaElement instanceof PsiVariable) {
 			PsiVariable localVariable = (PsiVariable) javaElement;
