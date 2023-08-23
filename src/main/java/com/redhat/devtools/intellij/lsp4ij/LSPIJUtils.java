@@ -163,7 +163,7 @@ public class LSPIJUtils {
         return null;
     }
 
-    public static int toOffset(Position start, Document document) {
+    public static int toOffset(Position start, Document document) throws IndexOutOfBoundsException {
         int lineStartOffset = document.getLineStartOffset(start.getLine());
         return lineStartOffset + start.getCharacter();
     }
@@ -202,13 +202,19 @@ public class LSPIJUtils {
      * @return the IJ {@link TextRange} from the given LSP range and null otherwise.
      */
     public static @Nullable TextRange toTextRange(Range range, Document document) {
-        final int start = LSPIJUtils.toOffset(range.getStart(), document);
-        final int end = LSPIJUtils.toOffset(range.getEnd(), document);
-        if (start >= end || end > document.getTextLength()) {
+        try {
+            final int start = LSPIJUtils.toOffset(range.getStart(), document);
+            final int end = LSPIJUtils.toOffset(range.getEnd(), document);
+            if (start >= end || end > document.getTextLength()) {
+                // Language server reports invalid diagnostic, ignore it.
+                return null;
+            }
+            return new TextRange(start, end);
+        } catch (IndexOutOfBoundsException e) {
             // Language server reports invalid diagnostic, ignore it.
+            LOGGER.warn("Invalid LSP text range", e);
             return null;
         }
-        return new TextRange(start, end);
     }
 
     public static Location toLocation(PsiElement psiMember) {
