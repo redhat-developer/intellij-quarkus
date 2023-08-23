@@ -141,7 +141,9 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
                     } else {
                         this.append(stream.getPlatformVersion(), SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
                     }
-                    this.append(" ").append(stream.getStatus());
+                    if (stream.getStatus() != null) {
+                        this.append(" ").append(stream.getStatus());
+                    }
                 }
             });
             formBuilder.addLabeledComponent("Quarkus stream:", streamComboBox);
