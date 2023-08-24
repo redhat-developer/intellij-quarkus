@@ -10,11 +10,12 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.internal;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 /**
@@ -32,12 +33,17 @@ public class CancellationSupport implements CancelChecker {
 	private boolean cancelled;
 
 	public CancellationSupport() {
-		this.futuresToCancel = new ArrayList<CompletableFuture<?>>();
+		this.futuresToCancel = new CopyOnWriteArrayList<>();
 		this.cancelled = false;
 	}
 
 	public <T> CompletableFuture<T> execute(CompletableFuture<T> future) {
-		this.futuresToCancel.add(future);
+		if (cancelled) {
+			future.cancel(true);
+			throw new ProcessCanceledException();
+		} else {
+			this.futuresToCancel.add(future);
+		}
 		return future;
 	}
 
@@ -45,7 +51,7 @@ public class CancellationSupport implements CancelChecker {
 	 * Cancel all LSP requests.
 	 */
 	public void cancel() {
-		if (cancelled == true) {
+		if (cancelled) {
 			return;
 		}
 		this.cancelled = true;
