@@ -73,7 +73,7 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
                                     .map(languageServer -> cancellationSupport.execute(languageServer.getServer().getTextDocumentService().documentHighlight(params)))
                                     .map(request -> request.thenAcceptAsync(result -> {
                                         if (result != null) {
-                                            result.forEach(hightlight -> highlights.add(hightlight));
+                                            highlights.addAll(result);
                                         }
                                     })).toArray(CompletableFuture[]::new))));
             while (!future.isDone() || !highlights.isEmpty()) {
