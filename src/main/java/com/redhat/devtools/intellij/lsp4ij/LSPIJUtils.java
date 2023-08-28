@@ -158,7 +158,7 @@ public class LSPIJUtils {
         return getDocument(documentFile);
     }
 
-    public static @Nullable Module getProject(@Nullable VirtualFile file) {
+    public static @Nullable Module getModule(@Nullable VirtualFile file) {
         if (file == null) {
             return null;
         }
@@ -174,6 +174,11 @@ public class LSPIJUtils {
             }
         }
         return null;
+    }
+
+    public static @Nullable Project getProject(@Nullable VirtualFile file) {
+        Module module = getModule(file);
+        return module != null ? module.getProject() : null;
     }
 
     public static int toOffset(Position start, Document document) throws IndexOutOfBoundsException {
@@ -199,6 +204,11 @@ public class LSPIJUtils {
 
     public static URI toUri(Module project) {
         File file = new File(project.getModuleFilePath()).getParentFile();
+        return file.toURI();
+    }
+
+    public static URI toUri(Project project) {
+        File file = new File(project.getProjectFilePath()).getParentFile();
         return file.toURI();
     }
 
@@ -409,8 +419,8 @@ public class LSPIJUtils {
     }
 
     public static Editor[] editorsForFile(VirtualFile file, Document document) {
-        Module module = LSPIJUtils.getProject(file);
-        return module != null ? EditorFactory.getInstance().getEditors(document, module.getProject()) : new Editor[0];
+        Project project = LSPIJUtils.getProject(file);
+        return project != null ? EditorFactory.getInstance().getEditors(document, project) : new Editor[0];
     }
 
     public static Editor editorForFile(VirtualFile file) {

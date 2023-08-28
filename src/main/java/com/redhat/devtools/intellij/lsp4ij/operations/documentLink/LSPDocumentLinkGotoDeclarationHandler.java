@@ -27,7 +27,6 @@ import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileWrapper;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerBundle;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4j.DocumentLink;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +45,7 @@ public class LSPDocumentLinkGotoDeclarationHandler implements GotoDeclarationHan
         if (!LSPVirtualFileWrapper.hasWrapper(file)) {
             return PsiElement.EMPTY_ARRAY;
         }
-        Module module = LSPIJUtils.getProject(file);
+        Module module = LSPIJUtils.getModule(file);
         Project project = module != null ? module.getProject() : null;
         if (project == null || project.isDisposed()) {
             return PsiElement.EMPTY_ARRAY;
