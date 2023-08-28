@@ -45,6 +45,34 @@
                        implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkAnnotator"/>
     <completion.confidence  language="HTML" order="before htmlText" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.completion.LSPCompletionConfidence" />
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeImplicitUsageProvider"/>
+    <projectService id="com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings"
+                    serviceImplementation="com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings"/>
+
+    <projectConfigurable groupId="language"
+                         id="QuteSupport"
+                         bundle="messages.QuteBundle"
+                         key="qute.settings.title"
+                         instance="com.redhat.devtools.intellij.qute.settings.QuteConfigurable"/>
+    <localInspection
+            unfair="true"
+            language="Qute_"
+            bundle="messages.QuteBundle"
+            key="qute.templates.validation.undefinedObject"
+            groupPathKey="qute.inspection.group.name"
+            groupKey="qute.templates.inspection.group.name"
+            enabledByDefault="true"
+
+            level="WARNING"
+            implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedObjectInspection"/>
+    <localInspection
+            language="Qute_"
+            bundle="messages.QuteBundle"
+            key="qute.templates.validation.undefinedNamespace"
+            groupPathKey="qute.inspection.group.name"
+            groupKey="qute.templates.inspection.group.name"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedNamespaceInspection"/>
   </extensions>
 
 </idea-plugin>

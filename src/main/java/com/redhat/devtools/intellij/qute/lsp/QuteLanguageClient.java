@@ -10,19 +10,28 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.qute.lsp;
 
+import com.intellij.codeInspection.InspectionProfile;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.profile.ProfileChangeAdapter;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4ij.client.CoalesceByKey;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4ij.client.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
+import com.redhat.devtools.intellij.qute.settings.QuteInspectionsInfo;
+import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
 import com.redhat.qute.commons.GenerateMissingJavaMemberParams;
 import com.redhat.qute.commons.JavaTypeInfo;
 import com.redhat.qute.commons.ProjectInfo;
@@ -49,11 +58,13 @@ import org.eclipse.lsp4j.DocumentLink;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.WorkspaceEdit;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -61,19 +72,25 @@ import java.util.stream.Collectors;
 /**
  * Qute language client.
  */
-public class QuteLanguageClient extends IndexAwareLanguageClient implements QuteLanguageClientAPI, ClasspathResourceChangedManager.Listener {
+public class QuteLanguageClient extends IndexAwareLanguageClient implements QuteLanguageClientAPI, ClasspathResourceChangedManager.Listener, ProfileChangeAdapter {
     private final MessageBusConnection connection;
+
+    private QuteInspectionsInfo inspectionsInfo;
 
     public QuteLanguageClient(Project project) {
         super(project);
         connection = project.getMessageBus().connect(project);
         connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
+        inspectionsInfo = QuteInspectionsInfo.getQuteInspectionsInfo(project);
+        connection.subscribe(ProfileChangeAdapter.TOPIC, this);
+        UserDefinedQuteSettings.getInstance(project).addChangeHandler(getDidChangeConfigurationListener());
     }
 
     @Override
     public void dispose() {
         super.dispose();
         connection.disconnect();
+        UserDefinedQuteSettings.getInstance(getProject()).removeChangeHandler(getDidChangeConfigurationListener());
     }
 
     /**
@@ -91,6 +108,28 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
         }
     }
 
+    @Override
+    protected Object createSettings() {
+        return UserDefinedQuteSettings.getInstance(getProject()).toSettingsForQuteLS();
+    }
+
+    @Override
+    public void profileChanged(@NotNull InspectionProfile profile) {
+        // Track Qute inspections settings (declared in Editor/Inspection/Qute UI settings) changed,
+        // convert them to matching Qute configuration and push them via 'workspace/didChangeConfiguration'.
+        QuteInspectionsInfo newInspectionState = QuteInspectionsInfo.getQuteInspectionsInfo(getProject());
+        if (!Objects.equals(newInspectionState, inspectionsInfo)) {
+            inspectionsInfo = newInspectionState;
+            ApplicationManager.getApplication().invokeLater(() -> {
+                new Task.Backgroundable(getProject(), "Updating Qute LS configuration...", true) {
+                    @Override
+                    public void run(@NotNull ProgressIndicator progressIndicator) {
+                        triggerChangeConfiguration();
+                    }
+                }.queue();
+            }, ModalityState.defaultModalityState(), getProject().getDisposed());
+        }
+    }
     @Override
     public void librariesChanged() {
         if (isDisposed()) {

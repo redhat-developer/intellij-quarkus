@@ -74,7 +74,7 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     protected Object createSettings() {
-        return UserDefinedMicroProfileSettings.getInstance(getProject()).toSettingsForMicroProfileLS(inspectionsInfo);
+        return UserDefinedMicroProfileSettings.getInstance(getProject()).toSettingsForMicroProfileLS();
     }
 
     private void sendPropertiesChangeEvent(List<MicroProfilePropertiesScope> scope, Set<String> uris) {

@@ -11,31 +11,31 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.settings;
+package com.redhat.devtools.intellij.qute.settings;
 
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.NlsContexts;
-import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
+import com.redhat.devtools.intellij.qute.QuteBundle;
 
 import javax.swing.*;
 
 /**
- * MicroProfile configuration.
+ * Qute configuration.
  */
-public class MicroProfileConfigurable extends NamedConfigurable<UserDefinedMicroProfileSettings> {
+public class QuteConfigurable extends NamedConfigurable<UserDefinedQuteSettings> {
 
     private final Project project;
-    private MicroProfileView myView;
+    private QuteView myView;
 
-    public MicroProfileConfigurable(Project project) {
+    public QuteConfigurable(Project project) {
         this.project = project;
     }
 
     @Override
-    public UserDefinedMicroProfileSettings getEditableObject() {
-        return null;
+    public UserDefinedQuteSettings getEditableObject() {
+        return UserDefinedQuteSettings.getInstance(project);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class MicroProfileConfigurable extends NamedConfigurable<UserDefinedMicro
     @Override
     public JComponent createOptionsPanel() {
         if (myView == null) {
-            myView = new MicroProfileView();
+            myView = new QuteView();
         }
         return myView.getComponent();
     }
@@ -57,29 +57,32 @@ public class MicroProfileConfigurable extends NamedConfigurable<UserDefinedMicro
 
     @Override
     public @NlsContexts.ConfigurableName String getDisplayName() {
-        return MicroProfileBundle.message("microprofile");
+        return QuteBundle.message("qute.settings.title");
     }
 
 
     @Override
     public void reset() {
         if (myView == null) return;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
+        UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
         myView.setValidationEnabled(settings.isValidationEnabled());
+        myView.setNativeModeSupportEnabled(settings.isNativeModeSupportEnabled());
     }
 
     @Override
     public boolean isModified() {
         if (myView == null) return false;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
-        return !(myView.isValidationEnabled()== settings.isValidationEnabled());
+        UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
+        return myView.isValidationEnabled() != settings.isValidationEnabled() ||
+                myView.isNativeModeSupportEnabled() != settings.isNativeModeSupportEnabled();
     }
 
     @Override
     public void apply() throws ConfigurationException {
         if (myView == null) return;
-        UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
+        UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
         settings.setValidationEnabled(myView.isValidationEnabled());
+        settings.setNativeModeSupportEnabled(myView.isNativeModeSupportEnabled());
         settings.fireStateChanged();
     }
 }

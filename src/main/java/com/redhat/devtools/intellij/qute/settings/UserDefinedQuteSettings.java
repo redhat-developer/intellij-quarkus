@@ -11,7 +11,7 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.settings;
+package com.redhat.devtools.intellij.qute.settings;
 
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -30,32 +30,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * User defined MicroProfile settings for:
+ * User defined Qute settings
  *
  * <ul>
  *     <li>validation</li>
- *     <li>properties files managed with the MicroProfile language server</li>
- *     <li>Java files managed with the MicroProfile language server</li>
  * </ul>
  */
 @State(
-        name = "MicroProfileSettingsState",
-        storages = {@Storage("microProfileSettings.xml")}
+        name = "QuteSettingsState",
+        storages = {@Storage("quteSettings.xml")}
 )
-public class UserDefinedMicroProfileSettings implements PersistentStateComponent<UserDefinedMicroProfileSettings.MyState> {
+public class UserDefinedQuteSettings implements PersistentStateComponent<UserDefinedQuteSettings.MyState> {
 
     private volatile MyState myState = new MyState();
 
     private final Project project;
 
-    public UserDefinedMicroProfileSettings(Project project) {
+    public UserDefinedQuteSettings(Project project) {
         this.project = project;
     }
 
     private final List<Runnable> myChangeHandlers = ContainerUtil.createConcurrentList();
 
-    public static @NotNull UserDefinedMicroProfileSettings getInstance(@NotNull Project project) {
-        return project.getService(UserDefinedMicroProfileSettings.class);
+    public static @NotNull UserDefinedQuteSettings getInstance(@NotNull Project project) {
+        return project.getService(UserDefinedQuteSettings.class);
     }
 
     public void addChangeHandler(Runnable runnable) {
@@ -71,32 +69,13 @@ public class UserDefinedMicroProfileSettings implements PersistentStateComponent
             handler.run();
         }
     }
+
     public boolean isValidationEnabled() {
         return myState.myValidationEnabled;
     }
 
     public void setValidationEnabled(boolean validationEnabled) {
         myState.myValidationEnabled = validationEnabled;
-    }
-
-    // ---------- Properties
-
-    public boolean isInlayHintEnabled() {
-        return myState.myInlayHintEnabled;
-    }
-
-    public void setInlayHintEnabled(boolean inlayHintEnabled) {
-        myState.myInlayHintEnabled = inlayHintEnabled;
-    }
-
-    // ---------- Java
-
-    public boolean isUrlCodeLensEnabled() {
-        return myState.myUrlCodeLensEnabled;
-    }
-
-    public void setUrlCodeLensEnabled(boolean urlCodeLensEnabled) {
-        myState.myUrlCodeLensEnabled = urlCodeLensEnabled;
     }
 
     @Nullable
@@ -114,39 +93,68 @@ public class UserDefinedMicroProfileSettings implements PersistentStateComponent
     }
 
     /**
-     * Returns the proper settings expected by the MicroProfile language server.
+     * Returns the proper settings expected by the Qute language server.
      *
-     * @return the proper settings expected by the MicroProfile language server.
+     * @return the proper settings expected by the Qute language server.
      */
-    public Map<String, Object> toSettingsForMicroProfileLS() {
-        MicroProfileInspectionsInfo inspectionsInfo = MicroProfileInspectionsInfo.getMicroProfileInspectionInfo(project);
+    public Map<String, Object> toSettingsForQuteLS() {
+        /*
+        "settings": {
+        "qute": {
+            "server": {
+                "vmargs": "-Xmx100M -XX:+UseG1GC -XX:+UseStringDeduplication -Xlog:disable"
+            },
+            "templates": {
+                "languageMismatch": "force"
+            },
+            "trace": {
+                "server": "verbose"
+            },
+            "codeLens": {
+                "enabled": true
+            },
+            "inlayHint": {
+                "enabled": true,
+                "showSectionParameterType": true,
+                "showSectionParameterDefaultValue": true
+            },
+            "native": {
+                "enabled": false
+            },
+            "validation": {
+                "enabled": true,
+                "excluded": [],
+                "undefinedObject": {
+                    "severity": "warning"
+                },
+                "undefinedNamespace": {
+                    "severity": "warning"
+                }
+            }
+        }
+        */
+        QuteInspectionsInfo inspectionsInfo = QuteInspectionsInfo.getQuteInspectionsInfo(project);
         Map<String, Object> settings = new HashMap<>();
-        Map<String, Object> microprofile = new HashMap<>();
-        settings.put("microprofile", microprofile);
-        Map<String, Object> tools = new HashMap<>();
-        microprofile.put("tools", tools);
 
-        // Properties settings
+        Map<String, Object> qute = new HashMap<>();
+        settings.put("qute", qute);
+        qute.put("workspaceFolders", new HashMap<String, Object>());
+
         // Inlay hint
-        Map<String, Object> inlayHint = new HashMap<>();
-        inlayHint.put("enabled", isInlayHintEnabled());
-        tools.put("inlayHint", inlayHint);
+        qute.put("inlayHint", Collections.singletonMap("enabled", true));
 
-        // Java settings
-        // URL code lens
-        Map<String, Object> codeLens = new HashMap<>();
-        codeLens.put("urlCodeLensEnabled", isUrlCodeLensEnabled());
-        tools.put("codeLens", codeLens);
+        //Code lens
+        qute.put("codelens", Collections.singletonMap("enabled", true));
 
+        //Native mode support
+        qute.put("native", Collections.singletonMap("enabled", isNativeModeSupportEnabled()));
+
+        // Validation
         Map<String, Object> validation = new HashMap<>();
-        tools.put("validation", validation);
+        qute.put("validation", validation);
         validation.put("enabled", isValidationEnabled());
-        validation.put("syntax", getSeverityNode(inspectionsInfo.syntaxSeverity()));
-        validation.put("unknown", getSeverityNode(inspectionsInfo.unknownSeverity()));
-        validation.put("duplicate", getSeverityNode(inspectionsInfo.duplicateSeverity()));
-        validation.put("value", getSeverityNode(inspectionsInfo.valueSeverity()));
-        validation.put("required", getSeverityNode(inspectionsInfo.requiredSeverity()));
-        validation.put("expression", getSeverityNode(inspectionsInfo.expressionSeverity()));
+        validation.put("undefinedObject", getSeverityNode(inspectionsInfo.undefinedObjectSeverity()));
+        validation.put("undefinedNamespace", getSeverityNode(inspectionsInfo.undefinedNamespaceSeverity()));
         return settings;
     }
 
@@ -154,17 +162,21 @@ public class UserDefinedMicroProfileSettings implements PersistentStateComponent
         return Collections.singletonMap("severity", SeverityMapping.toString(severity));
     }
 
+    public boolean isNativeModeSupportEnabled() {
+        return myState.myNativeModeSupportEnabled;
+    }
+
+    public void setNativeModeSupportEnabled(boolean nativeModeSupportEnabled) {
+        myState.myNativeModeSupportEnabled = nativeModeSupportEnabled;
+    }
 
     public static class MyState {
 
         @Tag("validationEnabled")
         public boolean myValidationEnabled = true;
 
-        @Tag("inlayHintEnabled")
-        public boolean myInlayHintEnabled = true;
-
-        @Tag("urlCodeLensEnabled")
-        public boolean myUrlCodeLensEnabled = true;
+        @Tag("nativeModeSupportEnabled")
+        public boolean myNativeModeSupportEnabled;
 
         MyState() {
         }

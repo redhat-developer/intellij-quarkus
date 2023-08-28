@@ -53,8 +53,7 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
     @Override
     public Object getInitializationOptions(URI rootUri) {
         Map<String, Object> root = new HashMap<>();
-        MicroProfileInspectionsInfo inspectionsInfo = MicroProfileInspectionsInfo.getMicroProfileInspectionInfo(project);
-        Map<String, Object> settings = UserDefinedMicroProfileSettings.getInstance(project).toSettingsForMicroProfileLS(inspectionsInfo);
+        Map<String, Object> settings = UserDefinedMicroProfileSettings.getInstance(project).toSettingsForMicroProfileLS();
         root.put("settings", settings);
 
         Map<String, Object> extendedClientCapabilities = new HashMap<>();
