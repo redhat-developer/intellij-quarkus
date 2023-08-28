@@ -34,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+import static com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.SeverityMapping.toHighlightSeverity;
+
 /**
  * Intellij {@link ExternalAnnotator} implementation which get the current LSP diagnostics for a given file and translate
  * them into Intellij {@link com.intellij.lang.annotation.Annotation}.
@@ -93,18 +95,6 @@ public class LSPDiagnosticAnnotator extends ExternalAnnotator<LSPVirtualFileWrap
 			builder.withFix(fix);
 		}
 		builder.create();
-	}
-
-	private static HighlightSeverity toHighlightSeverity(DiagnosticSeverity severity) {
-		switch (severity) {
-			case Warning:
-				return HighlightSeverity.WEAK_WARNING;
-			case Hint:
-			case Information:
-				return HighlightSeverity.INFORMATION;
-			default:
-				return HighlightSeverity.ERROR;
-		}
 	}
 
 }

@@ -11,39 +11,36 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.settings;
+package com.redhat.devtools.intellij.qute.settings;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UI;
-import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
+import com.redhat.devtools.intellij.qute.QuteBundle;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 
 /**
- * MicroProfile view.
+ * Qute support view.
  */
-public class MicroProfileView implements Disposable {
+public class QuteView implements Disposable {
 
     private final JPanel myMainPanel;
 
-    private JBCheckBox validationEnabledCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.validation.enabled"));
+    private JBCheckBox validationEnabledCheckBox = new JBCheckBox(QuteBundle.message("qute.setting.validation.enabled"));
+    private JBCheckBox nativeModeSupportEnabledCheckBox = new JBCheckBox(QuteBundle.message("qute.setting.validation.native.enabled"));
 
-    public MicroProfileView() {
-        JPanel settingsPanel = createSettings();
+    public QuteView() {
         this.myMainPanel = JBUI.Panels.simplePanel(10,10)
-                .addToLeft(JBUI.Panels.simplePanel())
-                .addToCenter(settingsPanel);
+                .addToCenter(createSettings());
     }
 
     private JPanel createSettings() {
         return FormBuilder.createFormBuilder()
                 .addComponent(validationEnabledCheckBox)
+                .addComponent(nativeModeSupportEnabledCheckBox)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
@@ -61,8 +58,15 @@ public class MicroProfileView implements Disposable {
         return validationEnabledCheckBox.isSelected();
     }
 
-    public void setValidationEnabled(boolean enable) {
-        validationEnabledCheckBox.setSelected(enable);
+    public void setValidationEnabled(boolean enabled) {
+        validationEnabledCheckBox.setSelected(enabled);
     }
 
+    public boolean isNativeModeSupportEnabled() {
+        return nativeModeSupportEnabledCheckBox.isSelected();
+    }
+
+    public void setNativeModeSupportEnabled(boolean enabled) {
+        nativeModeSupportEnabledCheckBox.setSelected(enabled);
+    }
 }
