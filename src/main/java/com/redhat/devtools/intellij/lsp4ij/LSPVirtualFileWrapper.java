@@ -55,7 +55,7 @@ public class LSPVirtualFileWrapper implements Disposable {
         this.file = file;
         this.dataPerServer = new HashMap<>();
         this.hover = new LSPTextHoverForFile();
-        Module project = LSPIJUtils.getProject(file);
+        Module project = LSPIJUtils.getModule(file);
         if (project != null) {
             Disposer.register(project, this);
         }

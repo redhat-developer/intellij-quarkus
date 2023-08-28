@@ -15,7 +15,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -79,7 +78,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public Module getModule(VirtualFile file) {
-        return LSPIJUtils.getProject(file);
+        return LSPIJUtils.getModule(file);
     }
 
     @Override

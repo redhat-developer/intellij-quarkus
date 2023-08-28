@@ -72,12 +72,8 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             if (file == null) {
                 return;
             }
-            Module module = LSPIJUtils.getProject(file);
-            if (module == null) {
-                return;
-            }
-            Project project = module.getProject();
-            if (project.isDisposed()) {
+            Project project = LSPIJUtils.getProject(file);
+            if (project == null || project.isDisposed()) {
                 return;
             }
             final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
@@ -92,6 +88,6 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             // Trigger Intellij validation to execute
             // {@link LSPDiagnosticAnnotator}.
             // which translates LSP Diagnostics into Intellij Annotation
-            DaemonCodeAnalyzer.getInstance(module.getProject()).restart(psiFile);
+            DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
     }
 }

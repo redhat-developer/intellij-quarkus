@@ -14,7 +14,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.AppTopics;
-import com.intellij.ProjectTopics;
 import com.intellij.lang.Language;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -23,12 +22,10 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -112,7 +109,7 @@ public class LanguageServerWrapper implements Disposable {
     @Nonnull
     public final LanguageServersRegistry.LanguageServerDefinition serverDefinition;
     @Nullable
-    protected final Module initialProject;
+    protected final Project initialProject;
     @Nonnull
     protected final Set<Module> allWatchedProjects;
     @Nonnull
@@ -154,7 +151,7 @@ public class LanguageServerWrapper implements Disposable {
     private boolean initiallySupportsWorkspaceFolders = false;
 
     /* Backwards compatible constructor */
-    public LanguageServerWrapper(@Nonnull Module project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition) {
+    public LanguageServerWrapper(@Nonnull Project project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition) {
         this(project, serverDefinition, null);
     }
 
@@ -165,7 +162,7 @@ public class LanguageServerWrapper implements Disposable {
     /**
      * Unified private constructor to set sensible defaults in all cases
      */
-    private LanguageServerWrapper(@Nullable Module project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition,
+    private LanguageServerWrapper(@Nullable Project project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition,
                                   @Nullable URI initialPath) {
         this.initialProject = project;
         this.initialPath = initialPath;
@@ -198,7 +195,7 @@ public class LanguageServerWrapper implements Disposable {
     }
 
     public Project getProject() {
-        return initialProject.getProject();
+        return initialProject;
     }
 
     void stopDispatcher() {
@@ -210,29 +207,6 @@ public class LanguageServerWrapper implements Disposable {
         // If we don't do this then a full test run will generate a lot of threads because we create new
         // instances of this class for each test
         this.listener.shutdownNow();
-    }
-
-    /**
-     * @return the workspace folder to be announced to the language server
-     */
-    private List<WorkspaceFolder> getRelevantWorkspaceFolders() {
-        final var languageClient = this.languageClient;
-        List<WorkspaceFolder> folders = null;
-        if (languageClient != null) {
-            try {
-                folders = languageClient.workspaceFolders().get(5, TimeUnit.SECONDS);
-            } catch (final ExecutionException | TimeoutException ex) {
-                LOGGER.error("Error while getting workspace folders with language server '" + serverDefinition.id + "'", ex);
-            } catch (final InterruptedException ex) {
-                LOGGER.error("Error while getting workspace folders with language server '" + serverDefinition.id + "'", ex);
-                Thread.currentThread().interrupt();
-            }
-        }
-        if (folders == null) {
-            // FIXME
-            // folders = LSPIJUtils.getWorkspaceFolders();
-        }
-        return folders;
     }
 
     public synchronized void stopAndDisable() {
@@ -293,7 +267,7 @@ public class LanguageServerWrapper implements Disposable {
             final URI rootURI = getRootURI();
             this.launcherFuture = new CompletableFuture<>();
             this.initializeFuture = CompletableFuture.supplyAsync(() -> {
-                        this.lspStreamProvider = serverDefinition.createConnectionProvider(initialProject.getProject());
+                        this.lspStreamProvider = serverDefinition.createConnectionProvider(initialProject);
                         initParams.setInitializationOptions(this.lspStreamProvider.getInitializationOptions(rootURI));
 
                         // Starting process...
@@ -317,7 +291,7 @@ public class LanguageServerWrapper implements Disposable {
                         lspStreamProvider.ensureIsAlive();
                         return null;
                     }).thenRun(() -> {
-                        languageClient = serverDefinition.createLanguageClient(initialProject.getProject());
+                        languageClient = serverDefinition.createLanguageClient(initialProject);
                         initParams.setProcessId(getParentProcessId());
 
                         if (rootURI != null) {
@@ -365,9 +339,6 @@ public class LanguageServerWrapper implements Disposable {
                     }).thenRun(() -> {
                         final Map<URI, Document> toReconnect = filesToReconnect;
                         initializeFuture.thenRunAsync(() -> {
-                            if (this.initialProject != null) {
-                                watchProject(this.initialProject, true);
-                            }
                             for (Map.Entry<URI, Document> fileToReconnect : toReconnect.entrySet()) {
                                 try {
                                     connect(fileToReconnect.getKey(), fileToReconnect.getValue());
@@ -447,7 +418,7 @@ public class LanguageServerWrapper implements Disposable {
 
     @Nullable
     private URI getRootURI() {
-        final Module project = this.initialProject;
+        final Project project = this.initialProject;
         if (project != null && !project.isDisposed()) {
             return LSPIJUtils.toUri(project);
         }
@@ -678,75 +649,6 @@ public class LanguageServerWrapper implements Disposable {
         return null;
     }
 
-    protected synchronized void watchProject(Module project, boolean isInitializationRootProject) {
-        if (this.allWatchedProjects.contains(project)) {
-            return;
-        }
-        if (isInitializationRootProject && !this.allWatchedProjects.isEmpty()) {
-            return; // there can be only one root project
-        }
-        if (!isInitializationRootProject && !supportsWorkspaceFolderCapability()) {
-            // multi project and WorkspaceFolder notifications not supported by this server
-            // instance
-            return;
-        }
-        this.allWatchedProjects.add(project);
-        project.getProject().getMessageBus().connect(project.getProject()).subscribe(ProjectTopics.MODULES, new ModuleListener() {
-            @Override
-            public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
-                unwatchProject(module);
-            }
-            //TODO: should we handle module rename
-        });
-        /*project.getWorkspace().addResourceChangeListener(event -> {
-            if (project.equals(event.getResource()) && (event.getDelta().getKind() == IResourceDelta.MOVED_FROM
-                    || event.getDelta().getKind() == IResourceDelta.REMOVED)) {
-                unwatchProject(project);
-            }
-        }, IResourceChangeEvent.POST_CHANGE);*/
-        if (supportsWorkspaceFolderCapability()) {
-            WorkspaceFoldersChangeEvent event = new WorkspaceFoldersChangeEvent();
-            event.getAdded().add(LSPIJUtils.toWorkspaceFolder(project));
-            DidChangeWorkspaceFoldersParams params = new DidChangeWorkspaceFoldersParams();
-            params.setEvent(event);
-            this.languageServer.getWorkspaceService().didChangeWorkspaceFolders(params);
-        }
-    }
-
-    private synchronized void unwatchProject(@Nonnull Module project) {
-        this.allWatchedProjects.remove(project);
-        // TODO? disconnect resources?
-        if (supportsWorkspaceFolderCapability()) {
-            WorkspaceFoldersChangeEvent event = new WorkspaceFoldersChangeEvent();
-            event.getRemoved().add(LSPIJUtils.toWorkspaceFolder(project));
-            DidChangeWorkspaceFoldersParams params = new DidChangeWorkspaceFoldersParams();
-            params.setEvent(event);
-            this.languageServer.getWorkspaceService().didChangeWorkspaceFolders(params);
-        }
-    }
-
-/*    private void watchProjects() {
-        if (!supportsWorkspaceFolderCapability()) {
-            return;
-        }
-        final LanguageServer currentLS = this.languageServer;
-        /*new WorkspaceJob("Setting watch projects on server " + serverDefinition.label) { //$NON-NLS-1$
-            @Override
-            public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
-                WorkspaceFoldersChangeEvent wsFolderEvent = new WorkspaceFoldersChangeEvent();
-                wsFolderEvent.getAdded().addAll(getRelevantWorkspaceFolders());
-                if (currentLS != null && currentLS == LanguageServerWrapper.this.languageServer) {
-                    currentLS.getWorkspaceService()
-                            .didChangeWorkspaceFolders(new DidChangeWorkspaceFoldersParams(wsFolderEvent));
-                }
-                ResourcesPlugin.getWorkspace().addResourceChangeListener(workspaceFolderUpdater,
-                        IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE);
-                return Status.OK_STATUS;
-            }
-        }.schedule();*/
-    /*    }
-     */
-
     /**
      * Check whether this LS is suitable for provided project. Starts the LS if not
      * already started.
@@ -754,31 +656,12 @@ public class LanguageServerWrapper implements Disposable {
      * @return whether this language server can operate on the given project
      * @since 0.5
      */
-    public boolean canOperate(Module project) {
+    public boolean canOperate(Project project) {
         if (project != null && (project.equals(this.initialProject) || this.allWatchedProjects.contains(project))) {
             return true;
         }
 
-        return serverDefinition.isSingleton || supportsWorkspaceFolderCapability();
-    }
-
-    /**
-     * @return true, if the server supports multi-root workspaces via workspace
-     * folders
-     * @since 0.6
-     */
-    private boolean supportsWorkspaceFolderCapability() {
-        if (this.initializeFuture != null) {
-            try {
-                this.initializeFuture.get(1, TimeUnit.SECONDS);
-            } catch (ExecutionException | TimeoutException e) {
-                LOGGER.warn(e.getLocalizedMessage(), e);
-            } catch (InterruptedException e) {
-                LOGGER.warn(e.getLocalizedMessage(), e);
-                Thread.currentThread().interrupt();
-            }
-        }
-        return initiallySupportsWorkspaceFolders || supportsWorkspaceFolders(serverCapabilities);
+        return serverDefinition.isSingleton;
     }
 
     /**
@@ -790,11 +673,6 @@ public class LanguageServerWrapper implements Disposable {
     private CompletableFuture<LanguageServer> connect(@Nonnull URI absolutePath, Document document) throws IOException {
         removeStopTimer(false);
         final URI thePath = absolutePath; // should be useless
-
-        VirtualFile file = FileDocumentManager.getInstance().getFile(document);
-        if (file != null && file.exists()) {
-            watchProject(LSPIJUtils.getProject(file), false);
-        }
 
         if (this.connectedDocuments.containsKey(thePath)) {
             return CompletableFuture.completedFuture(languageServer);
@@ -857,22 +735,6 @@ public class LanguageServerWrapper implements Disposable {
             } else {
                 stop();
             }
-        }
-    }
-
-    public void disconnectContentType(@Nonnull Language language) {
-        List<URI> pathsToDisconnect = new ArrayList<>();
-        for (URI path : connectedDocuments.keySet()) {
-            VirtualFile foundFiles = LSPIJUtils.findResourceFor(path);
-            if (foundFiles != null) {
-                Language fileLanguage = LSPIJUtils.getFileLanguage(foundFiles, initialProject.getProject());
-                if (fileLanguage.isKindOf(language)) {
-                    pathsToDisconnect.add(path);
-                }
-            }
-        }
-        for (URI path : pathsToDisconnect) {
-            disconnect(path);
         }
     }
 
@@ -1128,12 +990,12 @@ public class LanguageServerWrapper implements Disposable {
         if (file != null && file.exists() && canOperate(LSPIJUtils.getProject(file))) {
             return true;
         }
-        return serverDefinition.isSingleton || supportsWorkspaceFolderCapability();
+        return serverDefinition.isSingleton;
     }
 
     private LanguageServerLifecycleManager getLanguageServerLifecycleManager() {
-        Project project = initialProject.getProject();
-        if (project.isDisposed()) {
+        Project project = initialProject;
+        if (project == null || project.isDisposed()) {
             return NullLanguageServerLifecycleManager.INSTANCE;
         }
         return LanguageServerLifecycleManager.getInstance(project);

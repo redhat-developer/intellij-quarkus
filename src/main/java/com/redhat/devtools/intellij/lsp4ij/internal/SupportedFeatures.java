@@ -127,7 +127,7 @@ public class SupportedFeatures {
 		workspaceClientCapabilities.setExecuteCommand(new ExecuteCommandCapabilities(Boolean.TRUE));
 		// TODO
 		// workspaceClientCapabilities.setSymbol(new SymbolCapabilities(Boolean.TRUE));
-		workspaceClientCapabilities.setWorkspaceFolders(Boolean.TRUE);
+		workspaceClientCapabilities.setWorkspaceFolders(Boolean.FALSE);
 		WorkspaceEditCapabilities editCapabilities = new WorkspaceEditCapabilities();
 		editCapabilities.setDocumentChanges(Boolean.TRUE);
 		// TODO

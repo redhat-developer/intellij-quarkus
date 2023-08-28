@@ -14,10 +14,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.classpath;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ModuleListener;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.impl.libraries.LibraryEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Pair;
@@ -36,10 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Classpath resource changed listener used to track update of:
@@ -163,7 +157,7 @@ class ClasspathResourceChangedListener extends PsiTreeChangeAdapter implements B
             return;
         }
         // The file is a Java file or microprofile-config.properties
-        Module module = LSPIJUtils.getProject(file);
+        Module module = LSPIJUtils.getModule(file);
         if (module == null || module.isDisposed()) {
             return;
         }

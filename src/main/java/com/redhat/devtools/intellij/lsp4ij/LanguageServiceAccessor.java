@@ -196,7 +196,7 @@ public class LanguageServiceAccessor {
                         // we already checked a compatible LS with this definition
                         continue;
                     }
-                    final Module fileProject = file != null ? LSPIJUtils.getProject(file) : null;
+                    final Project fileProject = file != null ? LSPIJUtils.getProject(file) : null;
                     if (fileProject != null) {
                         LanguageServerWrapper wrapper = new LanguageServerWrapper(fileProject, serverDefinition);
                         startedServers.add(wrapper);
@@ -232,14 +232,6 @@ public class LanguageServiceAccessor {
             startedServers.add(wrapper);
         }
         return wrapper;
-    }
-
-    private @Nonnull
-    List<LanguageServerWrapper> getStartedLSWrappers(
-            @Nonnull Module project) {
-        return startedServers.stream().filter(wrapper -> wrapper.canOperate(project))
-                .collect(Collectors.toList());
-        // TODO multi-root: also return servers which support multi-root?
     }
 
     private List<LanguageServerWrapper> getStartedLSWrappers(
@@ -286,7 +278,7 @@ public class LanguageServiceAccessor {
      * @return list of Language Servers
      */
     @Nonnull
-    public List<LanguageServer> getLanguageServers(@Nullable Module project,
+    public List<LanguageServer> getLanguageServers(@Nullable Project project,
                                                    Predicate<ServerCapabilities> request, boolean onlyActiveLS) {
         List<LanguageServer> serverInfos = new ArrayList<>();
         for (LanguageServerWrapper wrapper : startedServers) {

@@ -40,7 +40,7 @@ public class QuteFileIndentOptionsProvider extends FileIndentOptionsProvider {
   public CommonCodeStyleSettings.@Nullable IndentOptions getIndentOptions(@NotNull CodeStyleSettings settings, @NotNull PsiFile file) {
     if (file.getFileType().equals(QuteFileType.QUTE)) {
       VirtualFile virtualFile = file.getVirtualFile();
-      Project project = LSPIJUtils.getProject(virtualFile).getProject();
+      Project project = LSPIJUtils.getModule(virtualFile).getProject();
       FileViewProvider provider = PsiManagerEx.getInstanceEx(project).findViewProvider(virtualFile);
       if (provider instanceof TemplateLanguageFileViewProvider) {
         Language language = ((TemplateLanguageFileViewProvider)provider).getTemplateDataLanguage();
