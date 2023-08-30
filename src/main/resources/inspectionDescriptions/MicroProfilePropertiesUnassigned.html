@@ -1,0 +1,20 @@
+<html>
+<body>
+Reports properties in <code>.java</code> files unassigned from properties file.
+<p><b>Example:</b></p>
+<pre><code>
+@ConfigProperty(name="missing.from.properties")
+private String myConfig;
+</code></pre>
+<div style="border-left: 6px solid #e7af18; display: block; padding:5px">
+    <p style="margin:5px">
+        &#9888; This inspection is used to configure the <b>Tools for MicroProfile</b> server in <a href="settings://LanguageServers"> Settings | Languages &amp; Frameworks | Language Servers</a>.<br/><br/>
+        Consequently, some limitations apply:
+    </p>
+    <ul>
+        <li><i>Scope, Severity and Highlighting</i> are ignored</li>
+        <li><i>Excluded properties</i> are respected</li>
+    </ul>
+</div>
+</body>
+</html>

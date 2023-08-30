@@ -113,6 +113,15 @@
             enabledByDefault="true"
             level="ERROR"
             implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesExpressionsInspection"/>
+    <localInspection
+            language="JAVA"
+            bundle="messages.MicroProfileBundle"
+            key="microprofile.properties.validation.unassigned"
+            groupPathKey="microprofile.inspection.group.name"
+            groupKey="microprofile.java.inspection.group.name"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnassignedInspection"/>
   </extensions>
 
 </idea-plugin>

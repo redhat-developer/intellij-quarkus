@@ -13,9 +13,16 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
+import java.util.Arrays;
+
 /**
  * Dummy inspection for unknown properties in Microprofile properties files
  */
-public class MicroProfilePropertiesUnknownInspection extends AbstractDelegateInspection {
+public class MicroProfilePropertiesUnknownInspection extends AbstractDelegateInspectionWithExcludedProperties {
     public static final String ID = getShortName(MicroProfilePropertiesUnknownInspection.class.getSimpleName());
+
+    public MicroProfilePropertiesUnknownInspection() {
+        super();
+        excludeList.addAll(Arrays.asList("*/mp-rest/providers/*/priority", "mp.openapi.schema.*", "kafka-streams.*", "camel.*"));
+    }
 }
