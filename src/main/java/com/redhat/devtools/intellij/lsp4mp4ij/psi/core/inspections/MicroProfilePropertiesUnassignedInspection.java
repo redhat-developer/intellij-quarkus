@@ -14,8 +14,8 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
 /**
- * Dummy inspection for expression values in Microprofile properties files
+ * Dummy inspection for unknown properties in Microprofile properties files
  */
-public class MicroProfilePropertiesExpressionsInspection extends AbstractDelegateInspectionWithExcludedProperties {
-    public static final String ID = getShortName(MicroProfilePropertiesExpressionsInspection.class.getSimpleName());
+public class MicroProfilePropertiesUnassignedInspection extends AbstractDelegateInspectionWithExcludedProperties {
+    public static final String ID = getShortName(MicroProfilePropertiesUnassignedInspection.class.getSimpleName());
 }

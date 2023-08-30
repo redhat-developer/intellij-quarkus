@@ -142,18 +142,29 @@ public class UserDefinedMicroProfileSettings implements PersistentStateComponent
         tools.put("validation", validation);
         validation.put("enabled", isValidationEnabled());
         validation.put("syntax", getSeverityNode(inspectionsInfo.syntaxSeverity()));
-        validation.put("unknown", getSeverityNode(inspectionsInfo.unknownSeverity()));
         validation.put("duplicate", getSeverityNode(inspectionsInfo.duplicateSeverity()));
         validation.put("value", getSeverityNode(inspectionsInfo.valueSeverity()));
         validation.put("required", getSeverityNode(inspectionsInfo.requiredSeverity()));
         validation.put("expression", getSeverityNode(inspectionsInfo.expressionSeverity()));
+
+        validation.put("unknown", getSeverityAndExclusions(inspectionsInfo.unknownSeverity(), inspectionsInfo.getExcludedUnknownProperties()));
+        validation.put("unassigned", getSeverityAndExclusions(inspectionsInfo.unassignedSeverity(), inspectionsInfo.getExcludedUnassignedProperties()));
+
         return settings;
+    }
+
+    private Map<String, Object> getSeverityAndExclusions(DiagnosticSeverity severity, List<String> exclusions) {
+        Map<String, Object> inspection = new HashMap<>();
+        inspection.put("severity", SeverityMapping.toString(severity));
+        if (exclusions != null && !exclusions.isEmpty()) {
+            inspection.put("excluded", exclusions);
+        }
+        return inspection;
     }
 
     private Map<String, String> getSeverityNode(DiagnosticSeverity severity) {
         return Collections.singletonMap("severity", SeverityMapping.toString(severity));
     }
-
 
     public static class MyState {
 

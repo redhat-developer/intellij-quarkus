@@ -13,17 +13,16 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.settings;
 
-import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInspection.InspectionProfile;
-import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.SeverityMapping;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.*;
 import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -39,6 +38,9 @@ public class MicroProfileInspectionsInfo {
     private DiagnosticSeverity valueSeverity = DiagnosticSeverity.Error;
     private DiagnosticSeverity requiredSeverity = null;
     private DiagnosticSeverity expressionSeverity = DiagnosticSeverity.Error;
+    private DiagnosticSeverity unassignedSeverity = DiagnosticSeverity.Warning;
+    private List<String> excludedUnknownProperties;
+    private List<String> excludedUnassignedProperties;
 
     private MicroProfileInspectionsInfo() {
     }
@@ -52,7 +54,22 @@ public class MicroProfileInspectionsInfo {
         wrapper.valueSeverity = SeverityMapping.getSeverity(MicroProfilePropertiesValueInspection.ID, profile);
         wrapper.requiredSeverity = SeverityMapping.getSeverity(MicroProfilePropertiesRequiredInspection.ID, profile);
         wrapper.expressionSeverity = SeverityMapping.getSeverity(MicroProfilePropertiesExpressionsInspection.ID, profile);
+        wrapper.unassignedSeverity = SeverityMapping.getSeverity(MicroProfilePropertiesUnassignedInspection.ID, profile);
+
+        wrapper.excludedUnknownProperties = getExclusions(profile, MicroProfilePropertiesUnknownInspection.ID, project);
+        wrapper.excludedUnassignedProperties = getExclusions(profile, MicroProfilePropertiesUnassignedInspection.ID, project);
+
         return wrapper;
+    }
+
+    private static List<String> getExclusions(InspectionProfile profile, String inspectionId, Project project) {
+        List<String> exclusions = new ArrayList<>();
+        InspectionToolWrapper<?, ?> toolWrapper = profile.getInspectionTool(inspectionId, project);
+        if (toolWrapper != null && toolWrapper.getTool() instanceof AbstractDelegateInspectionWithExcludedProperties) {
+            AbstractDelegateInspectionWithExcludedProperties inspection = (AbstractDelegateInspectionWithExcludedProperties) toolWrapper.getTool();
+            exclusions.addAll(inspection.excludeList);
+        }
+        return exclusions;
     }
 
     public DiagnosticSeverity unknownSeverity() {
@@ -79,19 +96,28 @@ public class MicroProfileInspectionsInfo {
         return requiredSeverity;
     }
 
+    public DiagnosticSeverity unassignedSeverity() {
+        return unassignedSeverity;
+    }
+
+    public List<String> getExcludedUnknownProperties() {
+        return excludedUnknownProperties;
+    }
+
+    public List<String> getExcludedUnassignedProperties() {
+        return excludedUnassignedProperties;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MicroProfileInspectionsInfo that = (MicroProfileInspectionsInfo) o;
-        return  syntaxSeverity == that.syntaxSeverity && unknownSeverity == that.unknownSeverity
-                && duplicateSeverity == that.duplicateSeverity && valueSeverity == that.valueSeverity
-                && requiredSeverity == that.requiredSeverity && expressionSeverity == that.expressionSeverity;
+        return syntaxSeverity == that.syntaxSeverity && unknownSeverity == that.unknownSeverity && duplicateSeverity == that.duplicateSeverity && valueSeverity == that.valueSeverity && requiredSeverity == that.requiredSeverity && expressionSeverity == that.expressionSeverity && unassignedSeverity == that.unassignedSeverity && Objects.equals(excludedUnknownProperties, that.excludedUnknownProperties) && Objects.equals(excludedUnassignedProperties, that.excludedUnassignedProperties);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(syntaxSeverity, unknownSeverity, duplicateSeverity, valueSeverity, requiredSeverity,
-                expressionSeverity);
+        return Objects.hash(syntaxSeverity, unknownSeverity, duplicateSeverity, valueSeverity, requiredSeverity, expressionSeverity, unassignedSeverity, excludedUnknownProperties, excludedUnassignedProperties);
     }
 }
