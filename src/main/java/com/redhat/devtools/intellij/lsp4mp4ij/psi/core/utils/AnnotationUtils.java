@@ -21,6 +21,8 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.util.Ranges;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -97,6 +99,28 @@ public class AnnotationUtils {
 		return null;
 	}
 
+	public static List<PsiAnnotation> getAllAnnotations(PsiElement annotatable, String... annotationNames) {
+		List<PsiAnnotation> all = new ArrayList<>();
+		if (annotatable instanceof PsiAnnotationOwner) {
+			collectAnnotations(((PsiAnnotationOwner) annotatable).getAnnotations(), all, annotationNames);
+		} else if (annotatable instanceof PsiModifierListOwner) {
+			collectAnnotations(((PsiModifierListOwner) annotatable).getAnnotations(), all, annotationNames);
+		}
+		return all;
+	}
+
+	private static void collectAnnotations(PsiAnnotation[] annotations, List<PsiAnnotation> all, String...annotationNames) {
+		if (annotations == null || annotations.length == 0 || annotationNames == null || annotationNames.length == 0) {
+			return;
+		}
+		for (PsiAnnotation annotation : annotations) {
+			for (String annotationName: annotationNames) {
+				if (isMatchAnnotation(annotation, annotationName)) {
+					all.add(annotation);
+				}
+			}
+		}
+	}
 	/**
 	 * Returns the annotation from the given <code>annotatable</code> element with
 	 * the given name <code>annotationName</code> and null otherwise.
@@ -149,7 +173,7 @@ public class AnnotationUtils {
 	 * @return the value of the given member name of the given annotation.
 	 */
 	public static String getAnnotationMemberValue(PsiAnnotation annotation, String memberName) {
-		PsiAnnotationMemberValue member = annotation.findDeclaredAttributeValue(memberName);
+		PsiAnnotationMemberValue member = getAnnotationMemberValueExpression(annotation, memberName);
 		String value = member != null && member.getText() != null ? member.getText() : null;
 		if (value != null && value.length() > 1 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
 			value = value.substring(1, value.length() - 1);
