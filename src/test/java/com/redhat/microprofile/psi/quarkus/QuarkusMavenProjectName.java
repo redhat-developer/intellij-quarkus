@@ -29,4 +29,6 @@ public class QuarkusMavenProjectName {
     public static final String microprofile_applicationpath = "microprofile-applicationpath";
     public static final String config_properties = "config-properties";
 	public static final String all_quarkus_extensions = "all-quarkus-extensions";
+
+	public static final String quarkus_route = "quarkus-route";
 }

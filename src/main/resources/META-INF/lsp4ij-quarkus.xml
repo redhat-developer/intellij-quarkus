@@ -46,6 +46,8 @@
 
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JavaEEImplicitUsageProvider"/>
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.QuarkusBuildImplicitUsageProvider"/>
+    <implicitUsageProvider implementation="com.redhat.microprofile.psi.internal.quarkus.route.java.ReactiveRouteImplicitUsageProvider"/>
+
     <!-- Quarkus -->
     <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.intellij.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
     <externalAnnotator language="Properties"

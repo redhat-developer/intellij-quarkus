@@ -51,8 +51,8 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 
 	@Override
 	public boolean canProvideJaxRsMethodInfoForClass(PsiFile typeRoot, Module javaProject, ProgressIndicator monitor) {
-		return PsiTypeUtils.findType(javaProject, JAVAX_WS_RS_PATH_ANNOTATION) == null
-				|| PsiTypeUtils.findType(javaProject, JAKARTA_WS_RS_PATH_ANNOTATION) == null;
+		return PsiTypeUtils.findType(javaProject, JAVAX_WS_RS_PATH_ANNOTATION) != null
+				|| PsiTypeUtils.findType(javaProject, JAKARTA_WS_RS_PATH_ANNOTATION) != null;
 	}
 
 	@Override

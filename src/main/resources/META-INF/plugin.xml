@@ -449,6 +449,8 @@
     <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
     <jaxRsInfoProvider
             implementation="com.redhat.microprofile.psi.internal.quarkus.renarde.java.RenardeJaxRsInfoProvider" />
+    <jaxRsInfoProvider
+            implementation="com.redhat.microprofile.psi.internal.quarkus.route.java.ReactiveRouteJaxRsInfoProvider" />
 
     <!-- Quarkus Core support -->
     <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusCoreProvider"/>
