@@ -17,7 +17,9 @@ import com.intellij.psi.PsiElement;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.internal.CancellationSupport;
+import com.redhat.devtools.intellij.lsp4ij.internal.CancellationUtil;
 import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -52,15 +54,16 @@ public class LSPTextHoverForFile {
             // The LSP hover request are finished, don't need to cancel the previous LSP requests.
             previousCancellationSupport = null;
             return result;
-        } catch (ExecutionException e) {
-            if (!(e.getCause() instanceof CancellationException)) {
+        } catch (ResponseErrorException | ExecutionException | CancellationException e) {
+            // do not report error if the server has cancelled the request
+            if (!CancellationUtil.isRequestCancelledException(e)) {
                 LOGGER.warn(e.getLocalizedMessage(), e);
             }
         } catch (TimeoutException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         } catch (InterruptedException e) {
-            LOGGER.warn(e.getLocalizedMessage(), e);
             Thread.currentThread().interrupt();
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return null;
     }
