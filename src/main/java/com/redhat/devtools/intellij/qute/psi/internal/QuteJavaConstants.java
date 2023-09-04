@@ -91,4 +91,10 @@ public class QuteJavaConstants {
     public static final String REGISTER_FOR_REFLECTION_ANNOTATION_METHODS = "methods";
 
     public static final String REGISTER_FOR_REFLECTION_ANNOTATION_TARGETS = "targets";
+
+    // @Message
+    public static final String MESSAGE_BUNDLE_ANNOTATION = "io.quarkus.qute.i18n.MessageBundle";
+    public static final String MESSAGE_BUNDLE_ANNOTATION_LOCALE = "locale";
+    public static final String MESSAGE_ANNOTATION = "io.quarkus.qute.i18n.Message";
+    public static final String MESSAGE_ANNOTATION_KEY = "key";
 }

@@ -520,6 +520,7 @@
     <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateDataAnnotationSupport"/>
     <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateEnumAnnotationSupport"/>
     <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateGlobalAnnotationSupport"/>
+    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TypeSafeMessageBundlesSupport"/>
 
     <qute.dataModelProvider namespaces="inject,cdi"
                             description="A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces."
