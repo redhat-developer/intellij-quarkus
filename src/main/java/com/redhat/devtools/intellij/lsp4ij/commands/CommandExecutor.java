@@ -9,18 +9,15 @@
  * Red Hat, Inc. - initial API and implementation
  * Fraunhofer FOKUS
  ******************************************************************************/
-package com.redhat.devtools.intellij.lsp4ij.command.internal;
-
+package com.redhat.devtools.intellij.lsp4ij.commands;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -36,7 +33,6 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,14 +51,14 @@ import java.util.concurrent.CompletableFuture;
 public class CommandExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandExecutor.class);
 
-    private static final String LSP_COMMAND_CATEGORY_ID = "org.eclipse.lsp4e.commandCategory"; //$NON-NLS-1$
-    private static final String LSP_COMMAND_PARAMETER_TYPE_ID = "org.eclipse.lsp4e.commandParameterType"; //$NON-NLS-1$
-    private static final String LSP_PATH_PARAMETER_TYPE_ID = "org.eclipse.lsp4e.pathParameterType"; //$NON-NLS-1$
+    public static final DataKey<Command> LSP_COMMAND = DataKey.create("com.redhat.devtools.intellij.quarkus.lsp4ij.command");
+
+    public static final DataKey<URI> LSP_COMMAND_DOCUMENT_URI = DataKey.create("com.redhat.devtools.intellij.quarkus.lsp4ij.command.documentUri");
 
     /**
      * Will execute the given {@code command} either on a language server,
-     * supporting the command, or on the client, if an {@link IHandler} is
-     * registered for the ID of the command (see {@link LSPCommandHandler}). If
+     * supporting the command, or on the client, if an {@link AnAction} is
+     * registered for the ID of the command. If
      * {@code command} is {@code null}, then this method will do nothing. If neither
      * the server, nor the client are able to handle the command explicitly, a
      * heuristic method will try to interpret the command locally.
@@ -70,33 +66,36 @@ public class CommandExecutor {
      * @param command
      *            the LSP Command to be executed. If {@code null} this method will
      *            do nothing.
-     * @param document
-     *            the document for which the command was created
+     * @param documentUri
+     *            the URI of the document for which the command was created
      * @param languageServerId
      *            the ID of the language server for which the {@code command} is
      *            applicable. If {@code null}, the command will not be executed on
      *            the language server.
      */
-    public static void executeCommand(Project project, Command command, Document document,
+    public static void executeCommand(Project project, Command command, URI documentUri,
                                       String languageServerId) {
         if (command == null) {
             return;
         }
-        if (executeCommandServerSide(project, command, languageServerId, document)) {
+        if (executeCommandServerSide(project, command, documentUri, languageServerId)) {
             return;
         }
-        if (executeCommandClientSide(command, document)) {
+        if (executeCommandClientSide(project, command, documentUri)) {
             return;
         }
         // tentative fallback
-        if (command.getArguments() != null) {
-            WorkspaceEdit edit = createWorkspaceEdit(command.getArguments(), document);
-            LSPIJUtils.applyWorkspaceEdit(edit);
+        if (documentUri != null && command.getArguments() != null) {
+            Document document = LSPIJUtils.getDocument(documentUri);
+            if (document != null) {
+                WorkspaceEdit edit = createWorkspaceEdit(command.getArguments(), document);
+                LSPIJUtils.applyWorkspaceEdit(edit);
+            }
         }
     }
 
-    private static boolean executeCommandServerSide(Project project, Command command, String languageServerId,
-                                                    Document document) {
+    private static boolean executeCommandServerSide(Project project, Command command,
+                                                    URI documentUri, String languageServerId) {
         if (languageServerId == null) {
             return false;
         }
@@ -107,7 +106,7 @@ public class CommandExecutor {
         }
 
         try {
-            CompletableFuture<LanguageServer> languageServerFuture = getLanguageServerForCommand(project, command, document,
+            CompletableFuture<LanguageServer> languageServerFuture = getLanguageServerForCommand(project, command, documentUri,
                     languageServerDefinition);
             if (languageServerFuture == null) {
                 return false;
@@ -130,33 +129,34 @@ public class CommandExecutor {
 
     private static CompletableFuture<LanguageServer> getLanguageServerForCommand(Project project,
                                                                                  Command command,
-                                                                                 Document document, LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) throws IOException {
-        CompletableFuture<LanguageServer> languageServerFuture = LanguageServiceAccessor.getInstance(project)
+                                                                                 URI documentUri, LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) throws IOException {
+        Document document = LSPIJUtils.getDocument(documentUri);
+        if (document == null) {
+            return null;
+        }
+        return LanguageServiceAccessor.getInstance(project)
+                //TODO pass documentUri instead of document, but looks like that implies non-trivial refactoring
                 .getInitializedLanguageServer(document, languageServerDefinition, serverCapabilities -> {
                     ExecuteCommandOptions provider = serverCapabilities.getExecuteCommandProvider();
                     return provider != null && provider.getCommands().contains(command.getCommand());
                 });
-        return languageServerFuture;
     }
 
-    @SuppressWarnings("unused") // ECJ compiler for some reason thinks handlerService == null is always false
-    private static boolean executeCommandClientSide(Command command, Document document) {
+    private static boolean executeCommandClientSide(Project project, Command command, URI documentUri) {
         Application workbench = ApplicationManager.getApplication();
         if (workbench == null) {
             return false;
         }
-        URI context = LSPIJUtils.toUri(document);
-        AnAction parameterizedCommand = createEclipseCoreCommand(command, context, workbench);
+        AnAction parameterizedCommand = createIDEACoreCommand(command);
         if (parameterizedCommand == null) {
             return false;
         }
-        DataContext dataContext = createDataContext(command, context, workbench);
+        DataContext dataContext = createDataContext(project, command, documentUri);
         ActionUtil.invokeAction(parameterizedCommand, dataContext, ActionPlaces.UNKNOWN, null, null);
         return true;
     }
 
-    private static AnAction createEclipseCoreCommand(Command command, URI context,
-                                                                 Application workbench) {
+    private static AnAction createIDEACoreCommand(Command command) {
         // Usually commands are defined via extension point, but we synthesize one on
         // the fly for the command ID, since we do not want downstream users
         // having to define them.
@@ -164,21 +164,13 @@ public class CommandExecutor {
         return ActionManager.getInstance().getAction(commandId);
     }
 
-    private static DataContext createDataContext(Command command, URI context,
-                                                        Application workbench) {
+    private static DataContext createDataContext(Project project, Command command, URI documentUri) {
 
-        return new DataContext() {
-            @Nullable
-            @Override
-            public Object getData(@NotNull String dataId) {
-                if (LSP_COMMAND_PARAMETER_TYPE_ID.equals(dataId)) {
-                    return command;
-                } else if (LSP_PATH_PARAMETER_TYPE_ID.equals(dataId)) {
-                    return context;
-                }
-                return null;
-            }
-        };
+        SimpleDataContext.Builder contextBuilder = SimpleDataContext.builder();
+        contextBuilder.add(CommonDataKeys.PROJECT, project)
+                    .add(LSP_COMMAND, command)
+                    .add(LSP_COMMAND_DOCUMENT_URI, documentUri);
+        return contextBuilder.build();
     }
 
     // TODO consider using Entry/SimpleEntry instead
@@ -197,7 +189,7 @@ public class CommandExecutor {
      * Very empirical and unsafe heuristic to turn unknown command arguments into a
      * workspace edit...
      */
-    private static WorkspaceEdit createWorkspaceEdit(List<Object> commandArguments, Document document) {
+    private static WorkspaceEdit createWorkspaceEdit(List<Object> commandArguments, @NotNull Document document) {
         WorkspaceEdit res = new WorkspaceEdit();
         Map<String, List<TextEdit>> changes = new HashMap<>();
         res.setChanges(changes);

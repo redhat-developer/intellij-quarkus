@@ -24,8 +24,12 @@ import com.intellij.util.DocumentUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
+import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionOptions;
+import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,6 +75,7 @@ public class LSPLazyCodeActionIntentionAction implements IntentionAction {
 
 	@Override
 	public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+		String serverId = getLanguageServerWrapper().serverDefinition.id;
 		if (codeAction != null) {
 			if (codeAction.getEdit() == null && codeAction.getCommand() == null && isCodeActionResolveSupported()) {
 				// Unresolved code action "edit" property. Resolve it.
@@ -80,52 +85,34 @@ public class LSPLazyCodeActionIntentionAction implements IntentionAction {
 										.thenAccept(resolved -> {
 											ApplicationManager.getApplication().invokeLater(() -> {
 												DocumentUtil.writeInRunUndoTransparentAction(() -> {
-													apply(resolved != null ? resolved : codeAction, project);
+													apply(resolved != null ? resolved : codeAction, project, file, serverId);
 												});
 											});
 										})
 						);
 			} else {
-				apply(codeAction, project);
+				apply(codeAction, project, file, serverId);
 			}
 		} else if (command != null) {
-			executeCommand(command, project);
+			executeCommand(command, project, file, serverId);
 		} else {
 			// Should never get here
 		}
 	}
 
-	private void apply(CodeAction codeaction, @NotNull Project project) {
+	private void apply(CodeAction codeaction, @NotNull Project project, PsiFile file, String serverId ) {
 		if (codeaction != null) {
 			if (codeaction.getEdit() != null) {
 				LSPIJUtils.applyWorkspaceEdit(codeaction.getEdit(), codeaction.getTitle());
 			}
 			if (codeaction.getCommand() != null) {
-				executeCommand(codeaction.getCommand(), project);
+				executeCommand(codeaction.getCommand(), project, file, serverId);
 			}
 		}
 	}
 
-	private void executeCommand(Command command, @NotNull Project project) {
-		if (!canSupportCommand(command)) {
-			return;
-		}
-		ExecuteCommandParams params = new ExecuteCommandParams();
-		params.setCommand(command.getCommand());
-		params.setArguments(command.getArguments());
-		getLanguageServerWrapper()
-				.getInitializedServer()
-				.thenApply(ls -> ls.getWorkspaceService().executeCommand(params)
-				);
-	}
-
-	private boolean canSupportCommand(Command command) {
-		ServerCapabilities capabilities = getLanguageServerWrapper().getServerCapabilities();
-		if (capabilities != null) {
-			ExecuteCommandOptions provider = capabilities.getExecuteCommandProvider();
-			return (provider != null && provider.getCommands().contains(command.getCommand()));
-		}
-		return false;
+	private void executeCommand(Command command, @NotNull Project project, PsiFile file, String serverId) {
+		CommandExecutor.executeCommand(project, command, LSPIJUtils.toUri(file), serverId);
 	}
 
 	private LanguageServerWrapper getLanguageServerWrapper() {

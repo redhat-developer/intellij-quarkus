@@ -120,7 +120,7 @@ public class LanguageServiceAccessor {
             throws IOException {
         URI initialPath = LSPIJUtils.toUri(document);
         LanguageServerWrapper wrapper = getLSWrapperForConnection(document, lsDefinition, initialPath);
-        if (capabilitiesComply(wrapper, capabilitiesPredicate)) {
+        if (wrapper != null && capabilitiesComply(wrapper, capabilitiesPredicate)) {
             wrapper.connect(document);
             return wrapper.getInitializedServer();
         }
