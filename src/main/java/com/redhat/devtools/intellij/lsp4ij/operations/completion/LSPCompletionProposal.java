@@ -27,7 +27,7 @@ import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerItem;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
-import com.redhat.devtools.intellij.lsp4ij.command.internal.CommandExecutor;
+import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.snippet.LspSnippetIndentOptions;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.*;
@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -265,25 +266,26 @@ public class LSPCompletionProposal extends LookupElement {
             // Execute custom command of the completion item if needed
             Command command = item.getCommand();
             if (command != null) {
-                executeCustomCommand(command, document);
+                executeCustomCommand(command, LSPIJUtils.toUri(document));
             }
         } catch (RuntimeException ex) {
             LOGGER.warn(ex.getLocalizedMessage(), ex);
         }
     }
 
+
     /**
      * Execute custom command of the completion item.
-     *
-     * @param document
+     * @param command
+     * @param documentUri
      */
-    private void executeCustomCommand(@NotNull Command command, Document document) {
+    private void executeCustomCommand(@NotNull Command command, URI documentUri) {
         Project project = editor.getProject();
         // Execute custom command of the completion item.
         LanguageServiceAccessor.getInstance(project)
                 .resolveServerDefinition(languageServer.getServer()).map(definition -> definition.id)
                 .ifPresent(id -> {
-                    CommandExecutor.executeCommand(project, command, document, id);
+                    CommandExecutor.executeCommand(project, command, documentUri, id);
                 });
 
     }

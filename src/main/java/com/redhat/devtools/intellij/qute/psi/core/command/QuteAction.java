@@ -13,14 +13,14 @@ package com.redhat.devtools.intellij.qute.psi.core.command;
 import com.google.gson.JsonPrimitive;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
+import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
 
 import java.util.List;
 
 public abstract class QuteAction extends AnAction {
     protected String getURL(AnActionEvent e) {
         String url = null;
-        List<Object> arguments = e.getData(LSPCodelensInlayProvider.LSP_COMMAND).getArguments();
+        List<Object> arguments = e.getData(CommandExecutor.LSP_COMMAND).getArguments();
         if (!arguments.isEmpty()) {
             Object arg = arguments.get(0);
             if (arg instanceof JsonPrimitive) {

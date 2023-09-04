@@ -145,6 +145,19 @@ public class LSPIJUtils {
         return FileDocumentManager.getInstance().getDocument(docFile);
     }
 
+    /**
+     * Returns the @{@link Document} associated to the given @{@link URI}, or <code>null</code> if there's no match.
+     * @param documentUri the uri of the Document to return
+     * @return the @{@link Document} associated to <code>documentUri</code>, or <code>null</code>
+     */
+    public static @Nullable Document getDocument(URI documentUri) {
+        if (documentUri == null) {
+            return null;
+        }
+        VirtualFile documentFile = findResourceFor(documentUri.toASCIIString());
+        return getDocument(documentFile);
+    }
+
     public static @Nullable Module getProject(@Nullable VirtualFile file) {
         if (file == null) {
             return null;

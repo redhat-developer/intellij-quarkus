@@ -552,7 +552,9 @@
     <action id="microprofile.command.open.uri"
             class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileOpenURIAction"
             text="MicroprofileOpenURIAction"/>
-
+    <action id="microprofile.command.configuration.update"
+            class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileUpdateConfigurationAction"
+            text="MicroprofileUpdateConfigurationAction"/>
     <action id="qute.command.open.uri"
             class="com.redhat.devtools.intellij.qute.psi.core.command.QuteOpenURIAction"/>
     <action id="qute.command.generate.template.file"

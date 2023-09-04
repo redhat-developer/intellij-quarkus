@@ -17,7 +17,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
-import com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
+import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.ExecuteCommandParams;
@@ -45,7 +45,7 @@ public class QuteGenerateTemplateAction extends QuteAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        Command command = e.getData(LSPCodelensInlayProvider.LSP_COMMAND);
+        Command command = e.getData(CommandExecutor.LSP_COMMAND);
         LanguageServer server = getFirstServer(e);
         try {
             if (server != null) {

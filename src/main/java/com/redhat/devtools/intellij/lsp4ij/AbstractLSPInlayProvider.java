@@ -22,21 +22,19 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.ui.layout.LCFlags;
 import com.intellij.ui.layout.LayoutKt;
+import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
 import org.eclipse.lsp4j.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
 import java.awt.Component;
-import java.util.Map;
 
 public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoSettings> {
-    public static final DataKey<Command> LSP_COMMAND = DataKey.create("com.redhat.devtools.intellij.quarkus.lsp4ij.command");
 
     private SettingsKey<NoSettings> key = new SettingsKey<>("LSP.hints");
 
@@ -92,7 +90,7 @@ public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoS
         if (command != null) {
             AnAction action = ActionManager.getInstance().getAction(command.getCommand());
             if (action != null) {
-               DataContext context = SimpleDataContext.getSimpleContext(DataKey.create(LSP_COMMAND.getName()), command, DataManager.getInstance().getDataContext(source));
+               DataContext context = SimpleDataContext.getSimpleContext(CommandExecutor.LSP_COMMAND, command, DataManager.getInstance().getDataContext(source));
                 action.actionPerformed(new AnActionEvent(null, context,
                         ActionPlaces.UNKNOWN, new Presentation(),
                         ActionManager.getInstance(), 0));
