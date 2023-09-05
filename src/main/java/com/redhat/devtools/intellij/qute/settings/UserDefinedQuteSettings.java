@@ -152,7 +152,10 @@ public class UserDefinedQuteSettings implements PersistentStateComponent<UserDef
         // Validation
         Map<String, Object> validation = new HashMap<>();
         qute.put("validation", validation);
-        validation.put("enabled", isValidationEnabled());
+
+        validation.put("enabled", inspectionsInfo.enabled());
+        validation.put("excluded", inspectionsInfo.getExcludedFiles());
+
         validation.put("undefinedObject", getSeverityNode(inspectionsInfo.undefinedObjectSeverity()));
         validation.put("undefinedNamespace", getSeverityNode(inspectionsInfo.undefinedNamespaceSeverity()));
         return settings;

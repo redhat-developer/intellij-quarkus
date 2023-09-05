@@ -11,12 +11,13 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.qute.psi.core.inspections;
+package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
-import com.intellij.codeInspection.LocalInspectionTool;
+import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspection;
 
 /**
- * No-op {@link LocalInspectionTool} used as a basis for mapping inspection severities to matching LSP severities.
+ * Dummy inspection for general validation in Microprofile properties files
  */
-public abstract class AbstractDelegateInspection extends LocalInspectionTool {
+public class MicroProfilePropertiesGlobalInspection extends AbstractDelegateInspection {
+    public static final String ID = getShortName(MicroProfilePropertiesGlobalInspection.class.getSimpleName());
 }

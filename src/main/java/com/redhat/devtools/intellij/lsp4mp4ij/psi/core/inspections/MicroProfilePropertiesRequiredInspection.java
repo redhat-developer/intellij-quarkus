@@ -13,6 +13,8 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
+import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspection;
+
 /**
  * Dummy inspection for missing required properties in Microprofile properties files
  */

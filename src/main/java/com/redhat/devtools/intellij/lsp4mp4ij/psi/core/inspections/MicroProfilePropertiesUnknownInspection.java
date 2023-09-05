@@ -13,16 +13,19 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
+import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
+import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
+
 import java.util.Arrays;
 
 /**
  * Dummy inspection for unknown properties in Microprofile properties files
  */
-public class MicroProfilePropertiesUnknownInspection extends AbstractDelegateInspectionWithExcludedProperties {
+public class MicroProfilePropertiesUnknownInspection extends AbstractDelegateInspectionWithExclusions {
     public static final String ID = getShortName(MicroProfilePropertiesUnknownInspection.class.getSimpleName());
 
     public MicroProfilePropertiesUnknownInspection() {
-        super();
+        super(MicroProfileBundle.message("microprofile.properties.validation.excluded.properties"));
         excludeList.addAll(Arrays.asList("*/mp-rest/providers/*/priority", "mp.openapi.schema.*", "kafka-streams.*", "camel.*"));
     }
 }

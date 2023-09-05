@@ -13,9 +13,11 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
+import com.intellij.codeInspection.LocalInspectionTool;
+
 /**
  * Dummy inspection for invalid values in Microprofile properties files
  */
-public class MicroProfilePropertiesValueInspection extends AbstractDelegateInspection {
+public class MicroProfilePropertiesValueInspection extends LocalInspectionTool {
     public static final String ID = getShortName(MicroProfilePropertiesValueInspection.class.getSimpleName());
 }
