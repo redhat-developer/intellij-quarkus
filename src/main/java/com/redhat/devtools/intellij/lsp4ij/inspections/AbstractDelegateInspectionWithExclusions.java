@@ -11,12 +11,11 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
+package com.redhat.devtools.intellij.lsp4ij.inspections;
 
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ui.InspectionOptionsPanel;
 import com.intellij.codeInspection.ui.ListEditForm;
-import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -24,17 +23,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * No-op {@link LocalInspectionTool} used as a basis for mapping properties inspection severities to matching LSP severities.
- * Adds the possibility to define excluded properties.
+ * Base {@link LocalInspectionTool} providing the possibility to define exclusions.
  */
-public abstract class AbstractDelegateInspectionWithExcludedProperties extends LocalInspectionTool {
+public abstract class AbstractDelegateInspectionWithExclusions extends LocalInspectionTool {
 
+    private final String exclusionsLabel;
+
+    /**
+     * Inspection constructor
+     * @param exclusionsLabel the label to use for the exclusion component in the options panel
+     */
+    public AbstractDelegateInspectionWithExclusions(@NotNull String exclusionsLabel) {
+        this.exclusionsLabel = exclusionsLabel;
+    }
+
+    //Field is public, so it can be serialized as XML
     public final @NotNull List<String> excludeList = new ArrayList<>();
 
     public JComponent createOptionsPanel() {
         InspectionOptionsPanel panel = new InspectionOptionsPanel();
 
-        var injectionListTable = new ListEditForm("", MicroProfileBundle.message("microprofile.properties.validation.excluded.properties"), excludeList);
+        var injectionListTable = new ListEditForm("", exclusionsLabel, excludeList);
 
         panel.addGrowing(injectionListTable.getContentPanel());
 

@@ -65,7 +65,6 @@ public class QuteConfigurable extends NamedConfigurable<UserDefinedQuteSettings>
     public void reset() {
         if (myView == null) return;
         UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
-        myView.setValidationEnabled(settings.isValidationEnabled());
         myView.setNativeModeSupportEnabled(settings.isNativeModeSupportEnabled());
     }
 
@@ -73,15 +72,13 @@ public class QuteConfigurable extends NamedConfigurable<UserDefinedQuteSettings>
     public boolean isModified() {
         if (myView == null) return false;
         UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
-        return myView.isValidationEnabled() != settings.isValidationEnabled() ||
-                myView.isNativeModeSupportEnabled() != settings.isNativeModeSupportEnabled();
+        return myView.isNativeModeSupportEnabled() != settings.isNativeModeSupportEnabled();
     }
 
     @Override
     public void apply() throws ConfigurationException {
         if (myView == null) return;
         UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
-        settings.setValidationEnabled(myView.isValidationEnabled());
         settings.setNativeModeSupportEnabled(myView.isNativeModeSupportEnabled());
         settings.fireStateChanged();
     }

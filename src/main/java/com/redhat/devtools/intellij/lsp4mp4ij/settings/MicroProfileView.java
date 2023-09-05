@@ -14,16 +14,11 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.settings;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UI;
-import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
+import com.redhat.devtools.intellij.lsp4ij.ui.components.InspectionHyperlink;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 
 /**
  * MicroProfile view.
@@ -31,8 +26,6 @@ import javax.swing.border.TitledBorder;
 public class MicroProfileView implements Disposable {
 
     private final JPanel myMainPanel;
-
-    private JBCheckBox validationEnabledCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.validation.enabled"));
 
     public MicroProfileView() {
         JPanel settingsPanel = createSettings();
@@ -43,7 +36,7 @@ public class MicroProfileView implements Disposable {
 
     private JPanel createSettings() {
         return FormBuilder.createFormBuilder()
-                .addComponent(validationEnabledCheckBox)
+                .addComponent(new InspectionHyperlink("Configure Microprofile inspections", "MicroProfile"))
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
@@ -56,13 +49,4 @@ public class MicroProfileView implements Disposable {
     public void dispose() {
 
     }
-
-    public boolean isValidationEnabled() {
-        return validationEnabledCheckBox.isSelected();
-    }
-
-    public void setValidationEnabled(boolean enable) {
-        validationEnabledCheckBox.setSelected(enable);
-    }
-
 }

@@ -13,6 +13,8 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.core.inspections;
 
+import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspection;
+
 /**
  * Dummy inspection for undefined namespaces in Qute templates
  */

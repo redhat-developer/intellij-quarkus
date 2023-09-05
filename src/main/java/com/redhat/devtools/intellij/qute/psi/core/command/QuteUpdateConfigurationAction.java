@@ -11,7 +11,7 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command;
+package com.redhat.devtools.intellij.qute.psi.core.command;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,32 +19,34 @@ import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.FakePsiElement;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
 import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnassignedInspection;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnknownInspection;
+import com.redhat.devtools.intellij.qute.psi.core.inspections.QuteGlobalInspection;
 import org.eclipse.lsp4j.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Action for updating the Microprofile configuration, typically requested by LSP4MP.
- */
-public class MicroprofileUpdateConfigurationAction extends AnAction {
+public class QuteUpdateConfigurationAction extends AnAction {
     private final Map<String, ConfigurationUpdater> updaters = new HashMap<>();
 
-    public MicroprofileUpdateConfigurationAction() {
-        updaters.put("microprofile.tools.validation.unknown.excluded", new InspectionConfigurationUpdater(MicroProfilePropertiesUnknownInspection.ID));
-        updaters.put("microprofile.tools.validation.unassigned.excluded", new InspectionConfigurationUpdater(MicroProfilePropertiesUnassignedInspection.ID));
+    public QuteUpdateConfigurationAction() {
+        updaters.put("qute.validation.enabled", new InspectionConfigurationEnabler(QuteGlobalInspection.ID));
+        updaters.put("qute.validation.excluded", new InspectionConfigurationUpdater(QuteGlobalInspection.ID));
     }
 
     @Override
@@ -54,10 +56,9 @@ public class MicroprofileUpdateConfigurationAction extends AnAction {
             String section = configUpdate.get("section").getAsString();
             ConfigurationUpdater updater = updaters.get(section);
             if (updater == null) {
-                throw new UnsupportedOperationException("Updating "+section+" is not supported yet!");
+                throw new UnsupportedOperationException("Updating '" + section + "' is not supported yet!");
             }
-            JsonElement value = configUpdate.get("value");
-            updater.updateConfiguration(e.getProject(), value);
+            updater.updateConfiguration(e.getProject(), configUpdate);
         }
     }
 
@@ -77,33 +78,52 @@ public class MicroprofileUpdateConfigurationAction extends AnAction {
     }
 
     interface ConfigurationUpdater {
-        void updateConfiguration(Project project,  JsonElement value);
+        void updateConfiguration(Project project,  JsonObject value);
     }
 
     private static class InspectionConfigurationUpdater implements ConfigurationUpdater {
 
-        private final String inspectionId;
+        protected final String inspectionId;
 
         InspectionConfigurationUpdater(String inspectionId) {
             this.inspectionId = inspectionId;
         }
 
         @Override
-        public void updateConfiguration(Project project, JsonElement value) {
+        public void updateConfiguration(Project project, JsonObject configUpdate) {
+            JsonElement value = configUpdate.get("value");
             if (value != null) {
-                updateConfiguration(project, value.getAsString());
+                addToExclusions(project, value.getAsString());
             }
         }
 
-        private void updateConfiguration(Project project,  @NotNull String value) {
+        protected void addToExclusions(Project project, @NotNull String value) {
             InspectionProfile profile = InspectionProfileManager.getInstance(project).getCurrentProfile();
             InspectionToolWrapper<?, ?> toolWrapper = profile.getInspectionTool(inspectionId, project);
             if (toolWrapper != null && toolWrapper.getTool() instanceof AbstractDelegateInspectionWithExclusions) {
                 Key<AbstractDelegateInspectionWithExclusions> key = new Key<>(inspectionId);
                 profile.modifyToolSettings(key, getPsiElement(project), (tool) -> {
-                    tool.excludeList.add(value);
+                    tool.excludeList.add(sanitize(project, value));
                 });
             }
+        }
+
+        /**
+         * returns file value path relative to the given project
+         * @param project the reference project
+         * @param value the file path URI to get a relative path from
+         * @return file value path relative to the given project
+         */
+        private String sanitize(@NotNull Project project, @NotNull String value) {
+            if (value.startsWith("file:/")) {
+                try {
+                    URI projectURI = new File(project.getBasePath()).toURI();
+                    URI fileURI = new URI(value);
+                    return projectURI.relativize(fileURI).toString();
+                } catch (URISyntaxException ignore) {
+                }
+            }
+            return value;
         }
 
         private PsiElement getPsiElement(Project project) {
@@ -119,5 +139,29 @@ public class MicroprofileUpdateConfigurationAction extends AnAction {
                 }
             };
         }
+    }
+
+    /**
+     * Simulates a module-wide validation disabling by adding <module-path>/** to exclusions
+     */
+    private static class InspectionConfigurationEnabler extends InspectionConfigurationUpdater {
+
+        InspectionConfigurationEnabler(String inspectionId) {
+            super(inspectionId);
+        }
+
+        @Override
+        public void updateConfiguration(Project project, JsonObject value) {
+            String scopeUri = value.get("scopeUri").getAsString();
+            VirtualFile resource = LSPIJUtils.findResourceFor(scopeUri);
+            if (resource != null) {
+                @Nullable Module module = LSPIJUtils.getModule(resource);
+                if (module != null) {
+                    String modulePath = LSPIJUtils.toUri(module).resolve("**").toString();
+                    addToExclusions(project, modulePath);
+                }
+            }
+        }
+
     }
 }

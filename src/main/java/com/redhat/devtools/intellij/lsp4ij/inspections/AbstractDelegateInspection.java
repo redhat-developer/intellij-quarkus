@@ -11,13 +11,12 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
+package com.redhat.devtools.intellij.lsp4ij.inspections;
 
-import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspection;
+import com.intellij.codeInspection.LocalInspectionTool;
 
 /**
- * Dummy inspection for property syntax errors in Microprofile properties files
+ * No-op {@link LocalInspectionTool} used as a basis for mapping inspection severities to matching LSP severities.
  */
-public class MicroProfilePropertiesSyntaxInspection extends AbstractDelegateInspection {
-    public static final String ID = getShortName(MicroProfilePropertiesSyntaxInspection.class.getSimpleName());
+public abstract class AbstractDelegateInspection extends LocalInspectionTool {
 }

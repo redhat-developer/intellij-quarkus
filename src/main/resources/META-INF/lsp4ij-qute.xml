@@ -53,6 +53,17 @@
                          bundle="messages.QuteBundle"
                          key="qute.settings.title"
                          instance="com.redhat.devtools.intellij.qute.settings.QuteConfigurable"/>
+
+    <localInspection
+            unfair="true"
+            language="Qute_"
+            bundle="messages.QuteBundle"
+            key="qute.templates.inspection"
+            groupKey="qute.inspection.group.name"
+            enabledByDefault="true"
+            level="INFORMATION"
+            implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteGlobalInspection"/>
+
     <localInspection
             unfair="true"
             language="Qute_"
@@ -61,7 +72,6 @@
             groupPathKey="qute.inspection.group.name"
             groupKey="qute.templates.inspection.group.name"
             enabledByDefault="true"
-
             level="WARNING"
             implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedObjectInspection"/>
     <localInspection
