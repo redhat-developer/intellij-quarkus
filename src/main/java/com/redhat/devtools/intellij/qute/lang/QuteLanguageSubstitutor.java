@@ -34,7 +34,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class QuteLanguageSubstitutor extends LanguageSubstitutor {
     protected boolean isTemplate(VirtualFile file, Module module) {
-        return file.getPath().contains("templates") && ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
+        return file.getPath().contains("templates") &&
+                ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
     }
 
     protected boolean isQuteModule(Module module) {
@@ -42,7 +43,7 @@ public class QuteLanguageSubstitutor extends LanguageSubstitutor {
         return libraries.process(new RootPolicy<Boolean>() {
             @Override
             public Boolean visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Boolean value) {
-                return value | isQuteLibrary(libraryOrderEntry);
+                return value || isQuteLibrary(libraryOrderEntry);
             }
         }, false);
 

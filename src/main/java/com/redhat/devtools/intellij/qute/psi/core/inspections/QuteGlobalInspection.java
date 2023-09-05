@@ -11,12 +11,18 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
+package com.redhat.devtools.intellij.qute.psi.core.inspections;
 
-import com.intellij.codeInspection.LocalInspectionTool;
+import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
+import com.redhat.devtools.intellij.qute.QuteBundle;
 
 /**
- * No-op {@link LocalInspectionTool} used as a basis for mapping inspection severities to matching LSP severities.
+ * Dummy inspection for general validation in Qute template files
  */
-public abstract class AbstractDelegateInspection extends LocalInspectionTool {
+public class QuteGlobalInspection extends AbstractDelegateInspectionWithExclusions {
+    public static final String ID = getShortName(QuteGlobalInspection.class.getSimpleName());
+
+    QuteGlobalInspection() {
+        super(QuteBundle.message("qute.validation.excluded.options.label"));
+    }
 }
