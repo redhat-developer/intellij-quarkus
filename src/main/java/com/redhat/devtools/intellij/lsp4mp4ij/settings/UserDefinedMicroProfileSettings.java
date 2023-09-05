@@ -140,7 +140,7 @@ public class UserDefinedMicroProfileSettings implements PersistentStateComponent
 
         Map<String, Object> validation = new HashMap<>();
         tools.put("validation", validation);
-        validation.put("enabled", isValidationEnabled());
+        validation.put("enabled", inspectionsInfo.enabled());
         validation.put("syntax", getSeverityNode(inspectionsInfo.syntaxSeverity()));
         validation.put("duplicate", getSeverityNode(inspectionsInfo.duplicateSeverity()));
         validation.put("value", getSeverityNode(inspectionsInfo.valueSeverity()));

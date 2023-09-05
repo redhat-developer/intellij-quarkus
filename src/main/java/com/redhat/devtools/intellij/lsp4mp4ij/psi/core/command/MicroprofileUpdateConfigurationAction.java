@@ -25,7 +25,7 @@ import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.FakePsiElement;
 import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.AbstractDelegateInspectionWithExcludedProperties;
+import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnassignedInspection;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnknownInspection;
 import org.eclipse.lsp4j.Command;
@@ -43,7 +43,6 @@ public class MicroprofileUpdateConfigurationAction extends AnAction {
     private final Map<String, ConfigurationUpdater> updaters = new HashMap<>();
 
     public MicroprofileUpdateConfigurationAction() {
-        //TODO potentially load those from an extension point?
         updaters.put("microprofile.tools.validation.unknown.excluded", new InspectionConfigurationUpdater(MicroProfilePropertiesUnknownInspection.ID));
         updaters.put("microprofile.tools.validation.unassigned.excluded", new InspectionConfigurationUpdater(MicroProfilePropertiesUnassignedInspection.ID));
     }
@@ -99,8 +98,8 @@ public class MicroprofileUpdateConfigurationAction extends AnAction {
         private void updateConfiguration(Project project,  @NotNull String value) {
             InspectionProfile profile = InspectionProfileManager.getInstance(project).getCurrentProfile();
             InspectionToolWrapper<?, ?> toolWrapper = profile.getInspectionTool(inspectionId, project);
-            if (toolWrapper != null && toolWrapper.getTool() instanceof AbstractDelegateInspectionWithExcludedProperties) {
-                Key<AbstractDelegateInspectionWithExcludedProperties> key = new Key<>(inspectionId);
+            if (toolWrapper != null && toolWrapper.getTool() instanceof AbstractDelegateInspectionWithExclusions) {
+                Key<AbstractDelegateInspectionWithExclusions> key = new Key<>(inspectionId);
                 profile.modifyToolSettings(key, getPsiElement(project), (tool) -> {
                     tool.excludeList.add(value);
                 });
