@@ -24,13 +24,13 @@ public class QuarkusRunConfigurationType implements ConfigurationType {
     @NotNull
     @Override
     public String getDisplayName() {
-        return "Quarkus";
+        return "Quarkus Dev Mode";
     }
 
     @Nls
     @Override
     public String getConfigurationTypeDescription() {
-        return "Quarkus run configuration";
+        return "Quarkus Dev mode run configuration";
     }
 
     @Override

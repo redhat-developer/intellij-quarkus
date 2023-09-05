@@ -61,6 +61,7 @@ import static com.intellij.execution.runners.ExecutionUtil.createEnvironment;
 
 public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigurationModule, QuarkusRunConfigurationOptions> {
     private final static Logger LOGGER = LoggerFactory.getLogger(QuarkusRunConfiguration.class);
+    private static final String QUARKUS_CONFIGURATION = "Quarkus Configuration";
 
     private int port = 5005;
 
@@ -91,15 +92,15 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     @Override
     public void checkConfiguration() throws RuntimeConfigurationException {
         if (getModule() == null) {
-            throw new RuntimeConfigurationException("No module selected", "Quarkus configuration");
+            throw new RuntimeConfigurationException("No module selected", QUARKUS_CONFIGURATION);
         }
         Module module = getModule();
         if (!QuarkusModuleUtil.isQuarkusModule(module)) {
-            throw new RuntimeConfigurationException("Not a Quarkus module", "Quarkus configuration");
+            throw new RuntimeConfigurationException("Not a Quarkus module", QUARKUS_CONFIGURATION);
         }
         ToolDelegate delegate = ToolDelegate.getDelegate(module);
         if (delegate == null) {
-            throw new RuntimeConfigurationException("Can't find a tool to process the module", "Quarkus configuration");
+            throw new RuntimeConfigurationException("Can't find a tool to process the module", QUARKUS_CONFIGURATION);
         }
     }
 
@@ -145,7 +146,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         }
         telemetry.send();
         if (executor.getId() == DefaultDebugExecutor.EXECUTOR_ID) {
-            ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), "Quarkus configuration", false) {
+            ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), QUARKUS_CONFIGURATION, false) {
                 @Override
                 public void run(@NotNull ProgressIndicator indicator) {
                     createRemoteConfiguration(indicator);
