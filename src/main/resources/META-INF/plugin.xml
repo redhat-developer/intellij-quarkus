@@ -571,6 +571,8 @@
             class="com.redhat.devtools.intellij.qute.psi.core.command.QuteGenerateTemplateAction"/>
     <action id="qute.command.java.definition"
             class="com.redhat.devtools.intellij.qute.psi.core.command.QuteJavaDefinitionAction"/>
+    <action id="qute.command.configuration.update"
+            class="com.redhat.devtools.intellij.qute.psi.core.command.QuteUpdateConfigurationAction"/>
 
   </actions>
 </idea-plugin>

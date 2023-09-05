@@ -18,6 +18,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UI;
+import com.redhat.devtools.intellij.lsp4ij.ui.components.InspectionHyperlink;
 import com.redhat.devtools.intellij.qute.QuteBundle;
 
 import javax.swing.*;
@@ -29,7 +30,6 @@ public class QuteView implements Disposable {
 
     private final JPanel myMainPanel;
 
-    private JBCheckBox validationEnabledCheckBox = new JBCheckBox(QuteBundle.message("qute.setting.validation.enabled"));
     private JBCheckBox nativeModeSupportEnabledCheckBox = new JBCheckBox(QuteBundle.message("qute.setting.validation.native.enabled"));
 
     public QuteView() {
@@ -39,7 +39,7 @@ public class QuteView implements Disposable {
 
     private JPanel createSettings() {
         return FormBuilder.createFormBuilder()
-                .addComponent(validationEnabledCheckBox)
+                .addComponent(new InspectionHyperlink("Configure Qute inspections", "Qute"))
                 .addComponent(nativeModeSupportEnabledCheckBox)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
@@ -52,14 +52,6 @@ public class QuteView implements Disposable {
     @Override
     public void dispose() {
 
-    }
-
-    public boolean isValidationEnabled() {
-        return validationEnabledCheckBox.isSelected();
-    }
-
-    public void setValidationEnabled(boolean enabled) {
-        validationEnabledCheckBox.setSelected(enabled);
     }
 
     public boolean isNativeModeSupportEnabled() {

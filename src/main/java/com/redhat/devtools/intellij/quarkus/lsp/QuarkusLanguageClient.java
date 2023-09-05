@@ -89,7 +89,7 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     public void profileChanged(@NotNull InspectionProfile profile) {
-        // Track MicroProfile inspections settings (declared in Editor/Inspection/MicroProfue UI settings) changed,
+        // Track MicroProfile inspections settings (declared in Editor/Inspection/MicroProfile UI settings) changed,
         // convert them to matching LSP4MP configuration and push them via 'workspace/didChangeConfiguration'.
         MicroProfileInspectionsInfo newInspectionState = MicroProfileInspectionsInfo.getMicroProfileInspectionInfo(getProject());
         if (!Objects.equals(newInspectionState, inspectionsInfo)) {

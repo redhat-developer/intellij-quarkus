@@ -13,9 +13,17 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
+import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
+import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Dummy inspection for unknown properties in Microprofile properties files
  */
-public class MicroProfilePropertiesUnassignedInspection extends AbstractDelegateInspectionWithExcludedProperties {
+public class MicroProfilePropertiesUnassignedInspection extends AbstractDelegateInspectionWithExclusions {
     public static final String ID = getShortName(MicroProfilePropertiesUnassignedInspection.class.getSimpleName());
+
+    public MicroProfilePropertiesUnassignedInspection() {
+        super(MicroProfileBundle.message("microprofile.properties.validation.excluded.properties"));
+    }
 }

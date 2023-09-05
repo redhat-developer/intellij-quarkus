@@ -13,17 +13,27 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.settings;
 
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.ex.Settings;
+import com.intellij.profile.codeInspection.ui.ErrorsConfigurable;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UI;
+import com.redhat.devtools.intellij.lsp4ij.ui.components.InspectionHyperlink;
 import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
+import net.miginfocom.layout.CC;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.HyperlinkEvent;
 
 /**
  * MicroProfile view.
@@ -31,8 +41,6 @@ import javax.swing.border.TitledBorder;
 public class MicroProfileView implements Disposable {
 
     private final JPanel myMainPanel;
-
-    private JBCheckBox validationEnabledCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.validation.enabled"));
 
     public MicroProfileView() {
         JPanel settingsPanel = createSettings();
@@ -43,7 +51,7 @@ public class MicroProfileView implements Disposable {
 
     private JPanel createSettings() {
         return FormBuilder.createFormBuilder()
-                .addComponent(validationEnabledCheckBox)
+                .addComponent(new InspectionHyperlink("Configure Microprofile inspections", "MicroProfile"))
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
@@ -56,13 +64,4 @@ public class MicroProfileView implements Disposable {
     public void dispose() {
 
     }
-
-    public boolean isValidationEnabled() {
-        return validationEnabledCheckBox.isSelected();
-    }
-
-    public void setValidationEnabled(boolean enable) {
-        validationEnabledCheckBox.setSelected(enable);
-    }
-
 }

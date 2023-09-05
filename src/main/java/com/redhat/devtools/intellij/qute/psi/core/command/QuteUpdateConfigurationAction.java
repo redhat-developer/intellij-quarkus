@@ -11,11 +11,12 @@
  * Contributors:
  *     Red Hat Inc. - initial API and implementation
  *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command;
+package com.redhat.devtools.intellij.qute.psi.core.command;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.intellij.codeInspection.InspectionProfile;
+import com.intellij.codeInspection.ex.InspectionProfileImpl;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -26,8 +27,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.FakePsiElement;
 import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
 import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnassignedInspection;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnknownInspection;
+import com.redhat.devtools.intellij.qute.psi.core.inspections.QuteGlobalInspection;
 import org.eclipse.lsp4j.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,15 +36,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Action for updating the Microprofile configuration, typically requested by LSP4MP.
- */
-public class MicroprofileUpdateConfigurationAction extends AnAction {
+public class QuteUpdateConfigurationAction extends AnAction {
     private final Map<String, ConfigurationUpdater> updaters = new HashMap<>();
 
-    public MicroprofileUpdateConfigurationAction() {
-        updaters.put("microprofile.tools.validation.unknown.excluded", new InspectionConfigurationUpdater(MicroProfilePropertiesUnknownInspection.ID));
-        updaters.put("microprofile.tools.validation.unassigned.excluded", new InspectionConfigurationUpdater(MicroProfilePropertiesUnassignedInspection.ID));
+    public QuteUpdateConfigurationAction() {
+        //TODO potentially load those from an extension point?
+        updaters.put("qute.validation.enabled", new InspectionConfigurationEnabler(QuteGlobalInspection.ID));
+        updaters.put("qute.validation.excluded", new InspectionConfigurationUpdater(QuteGlobalInspection.ID));
     }
 
     @Override
@@ -118,6 +116,30 @@ public class MicroprofileUpdateConfigurationAction extends AnAction {
                     return project;
                 }
             };
+        }
+    }
+
+    private static class InspectionConfigurationEnabler implements ConfigurationUpdater {
+
+        private final String inspectionId;
+
+        InspectionConfigurationEnabler(String inspectionId) {
+            this.inspectionId = inspectionId;
+        }
+
+        @Override
+        public void updateConfiguration(Project project, JsonElement value) {
+            if (value != null) {
+                toggleInspection(project, Boolean.valueOf(value.getAsString()));//safer than value.getAsBoolean()
+            }
+        }
+
+        private void toggleInspection(Project project,  @NotNull boolean enabled) {
+            InspectionProfile profile = InspectionProfileManager.getInstance(project).getCurrentProfile();
+            if (profile instanceof InspectionProfileImpl) {
+                InspectionProfileImpl profileImpl = (InspectionProfileImpl) profile;
+                profileImpl.setToolEnabled(inspectionId, enabled);
+            }
         }
     }
 }
