@@ -37,8 +37,6 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
 
 	private static final Logger LOGGER = Logger.getLogger(MicroProfileGraphQLASTValidator.class.getName());
 
-	private static final String NO_VOID_MESSAGE = "Methods annotated with microprofile-graphql's `@Query` cannot have 'void' as a return type.";
-	private static final String NO_VOID_MUTATION_MESSAGE = "Methods annotated with microprofile-graphql's `@Mutation` cannot have 'void' as a return type.";
 	@Override
 	public boolean isAdaptedForDiagnostics(JavaDiagnosticsContext context) {
 		Module javaProject = context.getJavaProject();
@@ -53,26 +51,7 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
 	}
 
 	private void validateMethod(PsiMethod node) {
-		// ignore constructors, and non-void methods for now, it's faster than iterating through all annotations
-		if (node.getReturnTypeElement() == null ||
-			!PsiType.VOID.equals(node.getReturnType())) {
-			return;
-		}
-		for (PsiAnnotation annotation : node.getAnnotations()) {
-			if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.QUERY_ANNOTATION) ) {
-				super.addDiagnostic(NO_VOID_MESSAGE, //
-						MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE, //
-						node.getReturnTypeElement(), //
-						MicroProfileGraphQLErrorCode.NO_VOID_QUERIES, //
-						DiagnosticSeverity.Error);
-			} else if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.MUTATION_ANNOTATION)) {
-				super.addDiagnostic(NO_VOID_MUTATION_MESSAGE, //
-						MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE, //
-						node.getReturnTypeElement(), //
-						MicroProfileGraphQLErrorCode.NO_VOID_MUTATIONS, //
-						DiagnosticSeverity.Error);
-			}
-		}
+
 	}
 
 }
