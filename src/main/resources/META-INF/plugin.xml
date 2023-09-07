@@ -11,6 +11,16 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <h3>1.27.0</h3>
+    <ul>
+      <li>Added quick fixes to disable validation for unknown or unassigned MicroProfile/Quarkus properties</li>
+      <li>Renamed <i>Quarkus</i> run configurations to <i>Quarkus Dev Mode</i> to minimize confusion with IDEA Ultimate's built-in Quarkus support</li>
+      <li>Added partial support for Qute type-safe message bundles (messages from .java classes only)</li>
+      <li>Added code lens support for Quarkus reactive routes</li>
+      <li>Marked @Observer methods as implicitly used</li>
+      <li>Bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/40?closed=1">changelog</a>.
     <h3>1.26.0</h3>
     <ul>
       <li>Added Microprofile inspections preferences</li>
