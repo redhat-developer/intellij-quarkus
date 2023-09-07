@@ -20,8 +20,6 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaErr
  */
 public enum MicroProfileGraphQLErrorCode implements IJavaErrorCode {
 
-	NO_VOID_QUERIES,
-	NO_VOID_MUTATIONS
 	;
 
 	@Override
