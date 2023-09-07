@@ -11,21 +11,23 @@
 * Contributors:
 *     Red Hat Inc. - initial API and implementation
 *******************************************************************************/
-package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java;
-
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaErrorCode;
+package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql;
 
 /**
- * MicroProfile GraphQL diagnostics error code.
+ * GraphQL schema element types - used for declaring the allowed
+ * placement of directives in a GraphQL schema.
+ * See http://spec.graphql.org/draft/#TypeSystemDirectiveLocation
  */
-public enum MicroProfileGraphQLErrorCode implements IJavaErrorCode {
-
-	WRONG_DIRECTIVE_PLACEMENT
-	;
-
-	@Override
-	public String getCode() {
-		return name();
-	}
-
+public enum TypeSystemDirectiveLocation {
+    SCHEMA,
+    SCALAR,
+    OBJECT,
+    FIELD_DEFINITION,
+    ARGUMENT_DEFINITION,
+    INTERFACE,
+    UNION,
+    ENUM,
+    ENUM_VALUE,
+    INPUT_OBJECT,
+    INPUT_FIELD_DEFINITION
 }
