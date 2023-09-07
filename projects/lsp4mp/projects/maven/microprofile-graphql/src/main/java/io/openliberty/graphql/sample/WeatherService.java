@@ -36,6 +36,7 @@ public class WeatherService {
 
 
     @Query
+    @Optimistic
     public Conditions currentConditions(@Name("location") String location) throws UnknownLocationException {
         if ("nowhere".equalsIgnoreCase(location)) {
             throw new UnknownLocationException(location);
@@ -45,7 +46,7 @@ public class WeatherService {
 
     @DenyAll
     @Query
-    public List<Conditions> currentConditionsList(@Name("locations") List<String> locations)
+    public List<Conditions> currentConditionsList(@Optimistic @Name("locations") List<String> locations)
         throws UnknownLocationException, GraphQLException {
 
         List<Conditions> allConditions = new LinkedList<>();
@@ -69,7 +70,7 @@ public class WeatherService {
         return cleared;
     }
 
-    public double wetBulbTempF(@Source @Name("conditions") Conditions conditions) {
+    public double wetBulbTempF(@Source @Name("conditions") @Optimistic Conditions conditions) {
         // TODO: pretend like this is a really expensive operation
         System.out.println("wetBulbTempF for location " + conditions.getLocation());
         return conditions.getTemperatureF() - 3.0;
