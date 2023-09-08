@@ -13,22 +13,18 @@ package com.redhat.devtools.intellij.lsp4ij;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.intellij.AppTopics;
 import com.intellij.lang.Language;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.impl.BulkVirtualFileListenerAdapter;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4ij.client.LanguageClientImpl;
 import com.redhat.devtools.intellij.lsp4ij.internal.SupportedFeatures;
@@ -65,40 +61,62 @@ public class LanguageServerWrapper implements Disposable {
     private static final String CLIENT_NAME = "IntelliJ";
     private static final int MAX_NUMBER_OF_RESTART_ATTEMPTS = 20; // TODO move this max value in settings
 
-    class Listener implements DocumentListener, FileDocumentManagerListener, FileEditorManagerListener {
-
-        @Override
-        public void documentChanged(@NotNull DocumentEvent event) {
-            URI uri = LSPIJUtils.toUri(event.getDocument());
-            if (uri != null) {
-                DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
-                if (documentListener != null && documentListener.getModificationStamp() < event.getOldTimeStamp()) {
-                    documentListener.documentSaved(event);
-                }
-            }
-        }
-
-        @Override
-        public void beforeDocumentSaving(@NotNull Document document) {
-            /*VirtualFile file = LSPIJUtils.getFile(document);
-            URI uri = LSPIJUtils.toUri(file);
-            if (uri != null) {
-                disconnect(uri);
-            }*/
-        }
+    class Listener implements FileEditorManagerListener, VirtualFileListener {
 
         @Override
         public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+            if (initialProject != null && !Objects.equals(source.getProject(), initialProject)) {
+                // The file has been closed from another project,don't send textDocument/didClose
+                return;
+            }
+            // Manage textDocument/didClose
             URI uri = LSPIJUtils.toUri(file);
             if (uri != null) {
                 try {
                     // Remove the cached file wrapper if needed
                     LSPVirtualFileWrapper.dispose(file);
                     // Disconnect the given file from all language servers
-                    disconnect(uri, isDisposed());
+                    disconnect(uri, !isDisposed());
                 } catch (Exception e) {
                     LOGGER.warn("Error while disconnecting the file '" + uri + "' from all language servers", e);
                 }
+            }
+        }
+
+        @Override
+        public void contentsChanged(@NotNull VirtualFileEvent event) {
+            // Manage textDocument/didSave
+            URI uri = LSPIJUtils.toUri(event.getFile());
+            if (uri != null) {
+                DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
+                if (documentListener != null) {
+                    documentListener.documentSaved();
+                }
+            }
+        }
+
+        @Override
+        public void propertyChanged(@NotNull VirtualFilePropertyEvent event) {
+            if (event.getPropertyName().equals(VirtualFile.PROP_NAME) && event.getOldValue() instanceof String) {
+                // A file (Test1.java) has been renamed (to Test2.java) by using Refactor / Rename from IJ
+                // Send a didClose for the renamed file (Test1.java)
+                didCloseOldFile(event.getFile().getParent(), (String) event.getOldValue());
+            }
+        }
+
+        @Override
+        public void fileMoved(@NotNull VirtualFileMoveEvent event) {
+            // A file (foo.Test1.java) has been moved (to bar1.Test1.java)
+            // Send a didClose for the moved file (foo.Test1.java)
+            didCloseOldFile(event.getOldParent(), event.getFileName());
+        }
+
+        private void didCloseOldFile(VirtualFile virtualParentFile, String fileName) {
+            File parent = VfsUtilCore.virtualToIoFile(virtualParentFile);
+            URI uri = LSPIJUtils.toUri(new File(parent, fileName));
+            DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
+            if (documentListener != null) {
+                disconnect(uri, false);
             }
         }
     }
@@ -347,10 +365,11 @@ public class LanguageServerWrapper implements Disposable {
                                 }
                             }
                         });
-                        EditorFactory.getInstance().getEventMulticaster().addDocumentListener(fileBufferListener);
+
                         messageBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
-                        messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, fileBufferListener);
                         messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, fileBufferListener);
+                        messageBusConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkVirtualFileListenerAdapter(fileBufferListener));
+
                         udateStatus(ServerStatus.started);
                         getLanguageServerLifecycleManager().onStatusChanged(this);
                     }).exceptionally(e -> {
@@ -547,12 +566,11 @@ public class LanguageServerWrapper implements Disposable {
             this.lspStreamProvider = null;
 
             while (!this.connectedDocuments.isEmpty()) {
-                disconnect(this.connectedDocuments.keySet().iterator().next(), true);
+                disconnect(this.connectedDocuments.keySet().iterator().next(), false);
             }
             this.languageServer = null;
             this.languageClient = null;
 
-            EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(fileBufferListener);
             if (messageBusConnection != null) {
                 messageBusConnection.disconnect();
             }
@@ -713,22 +731,17 @@ public class LanguageServerWrapper implements Disposable {
     }
 
     private void disconnect(URI path) {
-        disconnect(path, false);
+        disconnect(path, true);
     }
 
-    private void disconnect(URI path, boolean stopping) {
+    private void disconnect(URI path, boolean stopIfNoOpenedFiles) {
         DocumentContentSynchronizer documentListener = this.connectedDocuments.remove(path);
         if (documentListener != null) {
-            // Remove teh listener from the old document stored in synchronizer
+            // Remove the listener from the old document stored in synchronizer
             documentListener.getDocument().removeDocumentListener(documentListener);
-            Document document = getDocument(path, documentListener);
-            if (document != documentListener.getDocument()) {
-                // It should never occur, but to be sure we remove the document listener from the document of the VirtualFile
-                document.removeDocumentListener(documentListener);
-            }
             documentListener.documentClosed();
         }
-        if (!stopping && this.connectedDocuments.isEmpty()) {
+        if (stopIfNoOpenedFiles && this.connectedDocuments.isEmpty()) {
             if (this.serverDefinition.lastDocumentDisconnectedTimeout != 0 && !ApplicationManager.getApplication().isUnitTestMode()) {
                 removeStopTimer(true);
                 startStopTimer();
