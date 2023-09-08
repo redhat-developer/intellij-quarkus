@@ -157,10 +157,7 @@ public class DocumentContentSynchronizer implements DocumentListener {
         return null;
     }
 
-    public void documentSaved(DocumentEvent event) {
-        long timestamp = event.getOldTimeStamp();
-        Document document = event.getDocument();
-        this.modificationStamp = timestamp;
+    public void documentSaved() {
         ServerCapabilities serverCapabilities = languageServerWrapper.getServerCapabilities();
         if (serverCapabilities != null) {
             Either<TextDocumentSyncKind, TextDocumentSyncOptions> textDocumentSync = serverCapabilities.getTextDocumentSync();
