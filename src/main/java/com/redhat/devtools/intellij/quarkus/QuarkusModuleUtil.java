@@ -42,9 +42,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class QuarkusModuleUtil {
@@ -177,6 +181,40 @@ public class QuarkusModuleUtil {
     public static boolean isQuarkusDeploymentLibrary(@NotNull LibraryOrderEntry libraryOrderEntry) {
         return libraryOrderEntry.getLibraryName() != null &&
                 libraryOrderEntry.getLibraryName().equalsIgnoreCase(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
+    }
+
+    private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
+    public static final Pattern QUARKUS_STANDARD_VERSIONING = Pattern.compile("(\\d+).(\\d+).(\\d+)(.Final)?(-redhat-\\\\d+)?$");
+
+    /**
+     * Checks whether the quarkus version used in this module matches the given predicate.
+     * If we're unable to detect the Quarkus version, this method always returns false.
+     * The predicate is based on a matcher that is based on the QUARKUS_STANDARD_VERSIONING regular expression,
+     * that means that `matcher.group(1)` returns the major version, `matcher.group(2)` returns the minor version,
+     * `matcher.group(3)` returns the patch version.
+     * If the detected Quarkus version does not follow the standard versioning, the matcher does not match at all.
+     * If we can't detect the Quarkus version, the returned value will be the value of the `returnIfNoQuarkusDetected` parameter.
+     */
+    public static boolean checkQuarkusVersion(Module module, Predicate<Matcher> predicate, boolean returnIfNoQuarkusDetected) {
+        Optional<VirtualFile> quarkusCoreJar = Arrays.stream(ModuleRootManager.getInstance(module).orderEntries()
+                        .runtimeOnly()
+                        .classes()
+                        .getRoots())
+                .filter(f -> Pattern.matches(QUARKUS_CORE_PATTERN.pattern(), f.getName()))
+                .findFirst();
+        if (quarkusCoreJar.isPresent()) {
+            Matcher quarkusCoreArtifactMatcher = QUARKUS_CORE_PATTERN.matcher(quarkusCoreJar.get().getName());
+            if(quarkusCoreArtifactMatcher.matches()) {
+                String quarkusVersion = quarkusCoreArtifactMatcher.group(1);
+                LOGGER.debug("Detected Quarkus version = " +  quarkusVersion);
+                Matcher quarkusVersionMatcher = QUARKUS_STANDARD_VERSIONING.matcher(quarkusVersion);
+                return predicate.test(quarkusVersionMatcher);
+            } else {
+                return false;
+            }
+        } else {
+            return returnIfNoQuarkusDetected;
+        }
     }
 
     public static Set<String> getModulesURIs(Project project) {
