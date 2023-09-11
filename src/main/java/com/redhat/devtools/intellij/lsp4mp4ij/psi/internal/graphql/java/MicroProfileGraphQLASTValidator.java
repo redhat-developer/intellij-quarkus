@@ -15,29 +15,20 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java;
 
 
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 
-import com.intellij.lang.jvm.JvmMethod;
-import com.intellij.lang.jvm.types.JvmArrayType;
-import com.intellij.lang.jvm.types.JvmPrimitiveType;
-import com.intellij.lang.jvm.types.JvmReferenceType;
-import com.intellij.lang.jvm.types.JvmType;
-import com.intellij.lang.jvm.types.JvmTypeVisitor;
-import com.intellij.lang.jvm.types.JvmWildcardType;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiArrayInitializerMemberValue;
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiEnumConstant;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiJvmModifiersOwner;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
@@ -45,8 +36,8 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTVa
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.MicroProfileGraphQLConstants;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.TypeSystemDirectiveLocation;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.jetbrains.annotations.NotNull;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.isMatchAnnotation;
@@ -64,18 +55,35 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
 
     private static final Logger LOGGER = Logger.getLogger(MicroProfileGraphQLASTValidator.class.getName());
 
+    private static final String NO_VOID_MESSAGE = "Methods annotated with microprofile-graphql's `@Query` cannot have 'void' as a return type.";
+    private static final String NO_VOID_MUTATION_MESSAGE = "Methods annotated with microprofile-graphql's `@Mutation` cannot have 'void' as a return type.";
     private static final String WRONG_DIRECTIVE_PLACEMENT = "Directive ''{0}'' is not allowed on element type ''{1}''";
+
+    boolean allowsVoidReturnFromOperations = true;
+
 
     @Override
     public boolean isAdaptedForDiagnostics(JavaDiagnosticsContext context) {
         Module javaProject = context.getJavaProject();
-        // Check if microprofile-graphql is on the path
-        return PsiTypeUtils.findType(javaProject, MicroProfileGraphQLConstants.QUERY_ANNOTATION) != null;
+        if(PsiTypeUtils.findType(javaProject, MicroProfileGraphQLConstants.QUERY_ANNOTATION) == null) {
+            return false;
+        }
+        // void GraphQL operations are allowed in Quarkus 3.1 and higher
+        // if we're on an unknown version, allow them too
+        allowsVoidReturnFromOperations = QuarkusModuleUtil.checkQuarkusVersion(context.getJavaProject(),
+                matcher -> !matcher.matches() || (Integer.parseInt(matcher.group(1)) > 3 ||
+                        (Integer.parseInt(matcher.group(1)) == 3) && Integer.parseInt(matcher.group(2)) > 0),
+                true);
+        LOGGER.fine("Allowing void return from GraphQL operations? " + allowsVoidReturnFromOperations);
+        return true;
     }
 
     @Override
     public void visitMethod(PsiMethod node) {
         validateDirectivesOnMethod(node);
+        if(!allowsVoidReturnFromOperations) {
+            validateNoVoidReturnedFromOperations(node);
+        }
         super.visitMethod(node);
     }
 
@@ -116,7 +124,7 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
             }
         }
         // an enum may only have directives allowed on ENUM
-        if (node.isEnum()) {
+        else if (node.isEnum()) {
             validateDirectives(node, TypeSystemDirectiveLocation.ENUM);
             // enum values may only have directives allowed on ENUM_VALUE
             for (PsiField field : node.getFields()) {
@@ -132,7 +140,7 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
         for (PsiAnnotation annotation : node.getAnnotations()) {
             PsiClass directiveDeclaration = getDirectiveDeclaration(annotation);
             if (directiveDeclaration != null) {
-                LOGGER.severe("Checking directive: " + annotation.getQualifiedName() + " on node: " + node + " (location type = " + actualLocation.name() + ")");
+                LOGGER.fine("Checking directive: " + annotation.getQualifiedName() + " on node: " + node + " (location type = " + actualLocation.name() + ")");
                 PsiArrayInitializerMemberValue allowedLocations = (PsiArrayInitializerMemberValue) directiveDeclaration
                         .getAnnotation(MicroProfileGraphQLConstants.DIRECTIVE_ANNOTATION)
                         .findAttributeValue("on");
@@ -185,5 +193,27 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
         return null;
     }
 
+    private void validateNoVoidReturnedFromOperations(PsiMethod node) {
+        // ignore constructors, and non-void methods for now, it's faster than iterating through all annotations
+        if (node.getReturnTypeElement() == null ||
+                !PsiType.VOID.equals(node.getReturnType())) {
+            return;
+        }
+        for (PsiAnnotation annotation : node.getAnnotations()) {
+            if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.QUERY_ANNOTATION) ) {
+                super.addDiagnostic(NO_VOID_MESSAGE, //
+                        MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE, //
+                        node.getReturnTypeElement(), //
+                        MicroProfileGraphQLErrorCode.NO_VOID_QUERIES, //
+                        DiagnosticSeverity.Error);
+            } else if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.MUTATION_ANNOTATION)) {
+                super.addDiagnostic(NO_VOID_MUTATION_MESSAGE, //
+                        MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE, //
+                        node.getReturnTypeElement(), //
+                        MicroProfileGraphQLErrorCode.NO_VOID_MUTATIONS, //
+                        DiagnosticSeverity.Error);
+            }
+        }
+    }
 
 }
