@@ -127,7 +127,7 @@ public class SupportedFeatures {
 		workspaceClientCapabilities.setExecuteCommand(new ExecuteCommandCapabilities(Boolean.TRUE));
 		// TODO
 		// workspaceClientCapabilities.setSymbol(new SymbolCapabilities(Boolean.TRUE));
-		workspaceClientCapabilities.setWorkspaceFolders(Boolean.FALSE);
+		workspaceClientCapabilities.setWorkspaceFolders(Boolean.TRUE);
 		WorkspaceEditCapabilities editCapabilities = new WorkspaceEditCapabilities();
 		editCapabilities.setDocumentChanges(Boolean.TRUE);
 		// TODO
@@ -136,6 +136,7 @@ public class SupportedFeatures {
 		// TODO
 		// editCapabilities.setFailureHandling(FailureHandlingKind.Undo);
 		workspaceClientCapabilities.setWorkspaceEdit(editCapabilities);
+		workspaceClientCapabilities.setDidChangeWatchedFiles(new DidChangeWatchedFilesCapabilities(Boolean.TRUE));
 		return workspaceClientCapabilities;
 	}
 
