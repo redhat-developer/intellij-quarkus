@@ -66,21 +66,36 @@ public class LSPDocumentationProvider extends DocumentationProviderEx implements
 
     @Nullable
     @Override
-    public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+    public String generateDoc(@NotNull PsiElement element, @Nullable PsiElement originalElement) {
         try {
             Project project = element.getProject();
             if (project.isDisposed()) {
                 return null;
             }
-            Editor editor = LSPIJUtils.editorForElement(element);
-            if (editor == null) {
+            Editor editor = null;
+            List<MarkupContent> markupContent = null;
+            if (element instanceof LSPPsiElementForLookupItem) {
+                // Show documentation for a given completion item in the "documentation popup" (see IJ Completion setting)
+                // (LSP textDocument/completion request)
+                editor = LSPIJUtils.editorForElement(element);
+                markupContent = ((LSPPsiElementForLookupItem) element).getDocumentation();
+            } else {
+                // Show documentation for a hovered element (LSP textDocument/hover request).
+                if (originalElement == null) {
+                    return null;
+                }
+                editor = LSPIJUtils.editorForElement(originalElement);
+                VirtualFile file = originalElement.getContainingFile().getVirtualFile();
+                if (LSPVirtualFileWrapper.hasWrapper(file)) {
+                    int targetOffset = getTargetOffset(originalElement);
+                    markupContent = LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file).getHoverContent(originalElement, targetOffset, editor);
+                }
+            }
+
+            if (editor == null || markupContent == null || markupContent.isEmpty()) {
                 return null;
             }
-            List<MarkupContent> result = getMarkupContents(element, originalElement);
-            if (result == null || result.isEmpty()) {
-                return null;
-            }
-            String s = result
+            String s = markupContent
                     .stream()
                     .map(m -> m.getValue())
                     .collect(Collectors.joining("\n\n"));

@@ -428,8 +428,8 @@ public class LSPIJUtils {
         return editors.length > 0 ? editors[0] : null;
     }
 
-    public static Editor editorForElement(PsiElement element) {
-        if (element.getContainingFile() != null && element.getContainingFile().getVirtualFile() != null) {
+    public static Editor editorForElement(@Nullable PsiElement element) {
+        if (element != null && element.getContainingFile() != null && element.getContainingFile().getVirtualFile() != null) {
             return editorForFile(element.getContainingFile().getVirtualFile());
         }
         return null;
