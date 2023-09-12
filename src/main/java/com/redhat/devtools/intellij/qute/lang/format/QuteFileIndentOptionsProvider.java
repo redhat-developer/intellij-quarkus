@@ -16,6 +16,7 @@
 package com.redhat.devtools.intellij.qute.lang.format;
 
 import com.intellij.lang.Language;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.FileViewProvider;
@@ -40,7 +41,11 @@ public class QuteFileIndentOptionsProvider extends FileIndentOptionsProvider {
   public CommonCodeStyleSettings.@Nullable IndentOptions getIndentOptions(@NotNull CodeStyleSettings settings, @NotNull PsiFile file) {
     if (file.getFileType().equals(QuteFileType.QUTE)) {
       VirtualFile virtualFile = file.getVirtualFile();
-      Project project = LSPIJUtils.getModule(virtualFile).getProject();
+      Module module = LSPIJUtils.getModule(virtualFile);
+      if (module == null) {
+        return null;
+      }
+      Project project = module.getProject();
       FileViewProvider provider = PsiManagerEx.getInstanceEx(project).findViewProvider(virtualFile);
       if (provider instanceof TemplateLanguageFileViewProvider) {
         Language language = ((TemplateLanguageFileViewProvider)provider).getTemplateDataLanguage();

@@ -33,7 +33,7 @@ public class PsiQuteProjectUtils {
 
 	public static ProjectInfo getProjectInfo(Module javaProject) {
 		String projectUri = getProjectURI(javaProject);
-		String templateBaseDir = LSPIJUtils.toUri(QuarkusModuleUtil.getModuleDirPath(javaProject).findFileByRelativePath(TEMPLATES_BASE_DIR)).toString();
+		String templateBaseDir = LSPIJUtils.toUriAsString(QuarkusModuleUtil.getModuleDirPath(javaProject)) + TEMPLATES_BASE_DIR;
 		return new ProjectInfo(projectUri, templateBaseDir);
 	}
 

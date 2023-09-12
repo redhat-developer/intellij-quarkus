@@ -14,7 +14,9 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.*;
 import com.intellij.psi.PsiDocumentManager;
@@ -196,19 +198,27 @@ public class LSPIJUtils {
     }
 
     @Nonnull
-    public static WorkspaceFolder toWorkspaceFolder(@Nonnull Module project) {
+    public static WorkspaceFolder toWorkspaceFolder(@Nonnull Project project) {
         WorkspaceFolder folder = new WorkspaceFolder();
-        folder.setUri(toUri(project).toString());
+        folder.setUri(toUri(project).toASCIIString());
         folder.setName(project.getName());
         return folder;
     }
 
-    public static URI toUri(Module project) {
-        File file = new File(project.getModuleFilePath()).getParentFile();
+    public static URI toUri(Module module) {
+        VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
+        if (roots.length > 0) {
+            return toUri(roots[0]);
+        }
+        File file = new File(module.getModuleFilePath()).getParentFile();
         return file.toURI();
     }
 
     public static URI toUri(Project project) {
+        VirtualFile[] roots = ProjectRootManager.getInstance(project).getContentRoots();
+        if (roots.length > 0) {
+            return toUri(roots[0]);
+        }
         File file = new File(project.getProjectFilePath()).getParentFile();
         return file.toURI();
     }

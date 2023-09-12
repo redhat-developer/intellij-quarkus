@@ -20,7 +20,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.*;
@@ -75,7 +74,7 @@ public class LanguageServerWrapper implements Disposable {
                 try {
                     // Remove the cached file wrapper if needed
                     LSPVirtualFileWrapper.dispose(file);
-                    // Disconnect the given file from all language servers
+                    // Disconnect the given file from the current language servers
                     disconnect(uri, !isDisposed());
                 } catch (Exception e) {
                     LOGGER.warn("Error while disconnecting the file '" + uri + "' from all language servers", e);
@@ -83,41 +82,85 @@ public class LanguageServerWrapper implements Disposable {
             }
         }
 
-        @Override
-        public void contentsChanged(@NotNull VirtualFileEvent event) {
-            // Manage textDocument/didSave
-            URI uri = LSPIJUtils.toUri(event.getFile());
-            if (uri != null) {
-                DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
-                if (documentListener != null) {
-                    documentListener.documentSaved();
-                }
-            }
-        }
 
         @Override
         public void propertyChanged(@NotNull VirtualFilePropertyEvent event) {
             if (event.getPropertyName().equals(VirtualFile.PROP_NAME) && event.getOldValue() instanceof String) {
                 // A file (Test1.java) has been renamed (to Test2.java) by using Refactor / Rename from IJ
-                // Send a didClose for the renamed file (Test1.java)
-                didCloseOldFile(event.getFile().getParent(), (String) event.getOldValue());
+
+                // 1. Send a textDocument/didClose for the renamed file (Test1.java)
+                URI oldFileUri = didClose(event.getFile().getParent(), (String) event.getOldValue());
+                URI newFileUri = LSPIJUtils.toUri(event.getFile());
+                // 2. Send a workspace/didChangeWatchedFiles
+                didChangeWatchedFiles(fe(oldFileUri, FileChangeType.Deleted),
+                        fe(newFileUri, FileChangeType.Created));
+            }
+        }
+
+        @Override
+        public void contentsChanged(@NotNull VirtualFileEvent event) {
+            URI uri = LSPIJUtils.toUri(event.getFile());
+            if (uri != null) {
+                DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
+                if (documentListener != null) {
+                    // 1. Send a textDocument/didSave for the saved file
+                    documentListener.documentSaved();
+                }
+                // 2. Send a workspace/didChangeWatchedFiles
+                didChangeWatchedFiles(fe(uri, FileChangeType.Changed));
+            }
+        }
+
+        @Override
+        public void fileCreated(@NotNull VirtualFileEvent event) {
+            URI uri = LSPIJUtils.toUri(event.getFile());
+            if (uri != null) {
+                // 2. Send a workspace/didChangeWatchedFiles
+                didChangeWatchedFiles(fe(uri, FileChangeType.Created));
+            }
+        }
+
+        @Override
+        public void fileDeleted(@NotNull VirtualFileEvent event) {
+            URI uri = LSPIJUtils.toUri(event.getFile());
+            if (uri != null) {
+                // 2. Send a workspace/didChangeWatchedFiles
+                didChangeWatchedFiles(fe(uri, FileChangeType.Deleted));
             }
         }
 
         @Override
         public void fileMoved(@NotNull VirtualFileMoveEvent event) {
             // A file (foo.Test1.java) has been moved (to bar1.Test1.java)
-            // Send a didClose for the moved file (foo.Test1.java)
-            didCloseOldFile(event.getOldParent(), event.getFileName());
+
+            // 1. Send a textDocument/didClose for the moved file (foo.Test1.java)
+            URI oldFileUri = didClose(event.getOldParent(), event.getFileName());
+            URI newFileUri = LSPIJUtils.toUri(event.getFile());
+            // 2. Send a workspace/didChangeWatchedFiles
+            didChangeWatchedFiles(fe(oldFileUri, FileChangeType.Deleted),
+                    fe(newFileUri, FileChangeType.Created));
         }
 
-        private void didCloseOldFile(VirtualFile virtualParentFile, String fileName) {
+        private FileEvent fe(URI uri, FileChangeType type) {
+            return new FileEvent(uri.toASCIIString(), type);
+        }
+
+        private @NotNull URI didClose(VirtualFile virtualParentFile, String fileName) {
             File parent = VfsUtilCore.virtualToIoFile(virtualParentFile);
             URI uri = LSPIJUtils.toUri(new File(parent, fileName));
             DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
             if (documentListener != null) {
                 disconnect(uri, false);
             }
+            return uri;
+        }
+
+        private void didChangeWatchedFiles(FileEvent... changes) {
+            LanguageServerWrapper.this.sendNotification(ls -> {
+                        DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams(Arrays.asList(changes));
+                        ls.getWorkspaceService()
+                                .didChangeWatchedFiles(params);
+                    });
         }
     }
 
@@ -128,8 +171,6 @@ public class LanguageServerWrapper implements Disposable {
     public final LanguageServersRegistry.LanguageServerDefinition serverDefinition;
     @Nullable
     protected final Project initialProject;
-    @Nonnull
-    protected final Set<Module> allWatchedProjects;
     @Nonnull
     protected Map<URI, DocumentContentSynchronizer> connectedDocuments;
     @Nullable
@@ -184,7 +225,6 @@ public class LanguageServerWrapper implements Disposable {
                                   @Nullable URI initialPath) {
         this.initialProject = project;
         this.initialPath = initialPath;
-        this.allWatchedProjects = new HashSet<>();
         this.serverDefinition = serverDefinition;
         this.connectedDocuments = new HashMap<>();
         String projectName = (project != null && project.getName() != null && !serverDefinition.isSingleton) ? ("@" + project.getName()) : "";  //$NON-NLS-1$//$NON-NLS-2$
@@ -205,11 +245,6 @@ public class LanguageServerWrapper implements Disposable {
             // We do that to be sure that language server is disposed.
             Disposer.register(project, this);
         }
-    }
-
-    @Nonnull
-    public Set<Module> getAllWatchedProjects() {
-        return allWatchedProjects;
     }
 
     public Project getProject() {
@@ -334,7 +369,6 @@ public class LanguageServerWrapper implements Disposable {
                                 currentConnectionProvider.handleMessage(message, this.languageServer, rootURI);
                             }
                         });
-                        // initParams.setWorkspaceFolders(getRelevantWorkspaceFolders());
                         Launcher<LanguageServer> launcher = serverDefinition.createLauncherBuilder() //
                                 .setLocalService(languageClient)//
                                 .setRemoteInterface(serverDefinition.getServerInterface())//
@@ -421,6 +455,11 @@ public class LanguageServerWrapper implements Disposable {
                 lspStreamProvider.getExperimentalFeaturesPOJO()));
         initParams.setClientInfo(getClientInfo());
         initParams.setTrace(this.lspStreamProvider.getTrace(rootURI));
+
+        if (initialProject != null) {
+            var folders = Arrays.asList(LSPIJUtils.toWorkspaceFolder(initialProject));
+            initParams.setWorkspaceFolders(folders);
+        }
 
         // no then...Async future here as we want this chain of operation to be sequential and "atomic"-ish
         return languageServer.initialize(initParams);
@@ -675,7 +714,7 @@ public class LanguageServerWrapper implements Disposable {
      * @since 0.5
      */
     public boolean canOperate(Project project) {
-        if (project != null && (project.equals(this.initialProject) || this.allWatchedProjects.contains(project))) {
+        if (project != null && project.equals(this.initialProject)) {
             return true;
         }
 

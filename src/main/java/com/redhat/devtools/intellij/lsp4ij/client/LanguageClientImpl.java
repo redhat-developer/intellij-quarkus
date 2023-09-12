@@ -2,7 +2,6 @@ package com.redhat.devtools.intellij.lsp4ij.client;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
@@ -13,7 +12,8 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -95,11 +95,12 @@ public class LanguageClientImpl implements LanguageClient, Disposable {
 
     @Override
     public CompletableFuture<List<WorkspaceFolder>> workspaceFolders() {
-        List<WorkspaceFolder> res = new ArrayList<>(wrapper.getAllWatchedProjects().size());
-        for (final Module project : wrapper.getAllWatchedProjects()) {
-            res.add(LSPIJUtils.toWorkspaceFolder(project));
+        Project project = wrapper.getProject();
+        if (project != null) {
+            List<WorkspaceFolder> folders = Arrays.asList(LSPIJUtils.toWorkspaceFolder(project));
+            return CompletableFuture.completedFuture(folders);
         }
-        return CompletableFuture.completedFuture(res);
+        return CompletableFuture.completedFuture(Collections.emptyList());
     }
 
     @Override
@@ -129,7 +130,7 @@ public class LanguageClientImpl implements LanguageClient, Disposable {
             return;
         }
         Object settings = createSettings();
-        if(settings == null) {
+        if (settings == null) {
             return;
         }
         DidChangeConfigurationParams params = new DidChangeConfigurationParams(settings);
