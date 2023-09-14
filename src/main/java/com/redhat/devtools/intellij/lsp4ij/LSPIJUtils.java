@@ -21,6 +21,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.light.LightRecordField;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -357,6 +358,7 @@ public class LSPIJUtils {
      */
     public static @Nullable VirtualFile createFile(URI fileUri) throws IOException {
         File newFile = new File(fileUri);
+        FileUtils.createParentDirectories(newFile);
         newFile.createNewFile();
         return VfsUtil.findFileByIoFile(newFile, true);
     }
