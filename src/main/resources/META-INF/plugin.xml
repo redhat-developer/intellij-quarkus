@@ -11,6 +11,13 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    <h3>1.28.0</h3>
+    <ul>
+      <li>Added quick fixes to disable validation for Qute templates</li>
+      <li>Added improvements to GraphQL validation
+      <li>Bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/41?closed=1">changelog</a>.
     <h3>1.27.0</h3>
     <ul>
       <li>Added quick fixes to disable validation for unknown or unassigned MicroProfile/Quarkus properties</li>
