@@ -29,6 +29,8 @@ public class QuarkusConstants {
     public static final String CONFIG_GROUP_ANNOTATION = "io.quarkus.runtime.annotations.ConfigGroup";
     public static final String CONFIG_ITEM_ANNOTATION = "io.quarkus.runtime.annotations.ConfigItem";
     public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
+    public static final String QUARKUS_DIAGNOSTIC_SOURCE = "quarkus";
+
 
     /**
      * As ConfigProperties is not part anymore of Quarkus since 3.1.2.Final,
@@ -116,5 +118,6 @@ public class QuarkusConstants {
     public static final String QUARKUS_CODE_URL = System.getProperty(QUARKUS_CODE_URL_PROPERTY_NAME, QUARKUS_CODE_URL_PRODUCTION);
 
     public static final String QUARKUS_RUNTIME_CLASS_NAME = "io.quarkus.runtime.LaunchMode";
+    public static final String QUARKUS_BUILD_ITEM_CLASS_NAME = "io.quarkus.builder.item.BuildItem";
     public static final String QUARKUS_RUN_CONTEXT_KEY = QuarkusConstants.class.getName() + ".quarkusContext";
 }
