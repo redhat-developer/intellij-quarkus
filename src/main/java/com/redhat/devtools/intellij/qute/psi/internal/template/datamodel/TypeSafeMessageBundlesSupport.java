@@ -13,10 +13,13 @@ package com.redhat.devtools.intellij.qute.psi.internal.template.datamodel;
 
 
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
@@ -99,6 +102,8 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
     private static PsiAnnotation getMessageBundleAnnotation(PsiClass type) {
         try {
             return AnnotationUtils.getAnnotation(type, MESSAGE_BUNDLE_ANNOTATION);
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while getting @MessageBundle annotation value.", e);
             return null;
@@ -111,6 +116,8 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
             if (messageBundleAnnotation != null) {
                 namespace = AnnotationUtils.getAnnotationMemberValue(messageBundleAnnotation, VALUE_ANNOTATION_NAME);
             }
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while getting @MessageBundle#value annotation value.", e);
             return null;
@@ -124,6 +131,8 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
                 return AnnotationUtils.getAnnotationMemberValue(messageBundleAnnotation,
                         MESSAGE_BUNDLE_ANNOTATION_LOCALE);
             }
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while getting @MessageBundle#locale annotation value.", e);
             return null;
@@ -134,6 +143,8 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
     private static String getMessageContent(PsiAnnotation messageAnnotation) {
         try {
             return AnnotationUtils.getAnnotationMemberValue(messageAnnotation, VALUE_ANNOTATION_NAME);
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while getting @Message#value annotation value.", e);
             return null;

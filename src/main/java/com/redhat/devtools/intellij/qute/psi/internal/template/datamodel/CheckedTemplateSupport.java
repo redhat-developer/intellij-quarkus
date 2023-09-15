@@ -17,10 +17,13 @@ import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.ge
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
 import com.intellij.psi.util.ClassUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
@@ -101,6 +104,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                     ignoreFragment = AnnotationUtils.getValueAsBoolean(pair);
                 }
             }
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
         } catch (Exception e) {
             // Do nothing
         }
@@ -198,6 +203,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                 }
             }
 
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.log(Level.WARNING,
                     "Error while getting method template parameter of '" + method.getName() + "'.", e);
