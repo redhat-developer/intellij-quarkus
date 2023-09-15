@@ -13,11 +13,14 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.template.datamodel;
 
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiReference;
@@ -68,6 +71,8 @@ public abstract class AbstractFieldDeclarationTypeReferenceDataModelProvider ext
 			try {
 				// Collect properties from the class name and stop the loop.
 				processField(field, context, monitor);
+			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+				throw e;
 			} catch (Exception e) {
 				if (LOGGER.isLoggable(Level.WARNING)) {
 					LOGGER.log(

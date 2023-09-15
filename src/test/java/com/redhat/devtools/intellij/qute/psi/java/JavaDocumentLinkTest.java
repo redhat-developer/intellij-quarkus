@@ -13,12 +13,9 @@ package com.redhat.devtools.intellij.qute.psi.java;
 
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
@@ -52,7 +49,7 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void testtemplateField() throws Exception {
+    public void testTemplateField() throws Exception {
         // public class HelloResource {
         // Template hello;
         //
@@ -62,19 +59,18 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
         // Template hallo;
 
         QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/HelloResource.java");
-        params.setUri(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString());
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/HelloResource.java").toASCIIString();
+        params.setUri(javaFileUri);
 
         List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
         assertEquals(5, links.size());
 
-        String helloTemplateUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/hello.qute.html").toURI().toString();
-        String goodbyeTemplateUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/hello2.qute.html").toURI().toString();
-        String halloTemplateUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/detail/items2_v1.html").toURI().toString();
-        String bonjourTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/detail/page1.html").toURI().toString();
-        String aurevoirTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/detail/page2.html").toURI().toString();
-
+        String helloTemplateUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/hello.qute.html").toASCIIString();
+        String goodbyeTemplateUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/hello2.qute.html").toASCIIString();
+        String halloTemplateUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/detail/items2_v1.html").toASCIIString();
+        String bonjourTemplateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/detail/page1.html").toASCIIString();
+        String aurevoirTemplateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/detail/page2.html").toASCIIString();
 
         assertDocumentLink(links, //
                 dl(r(17, 10, 17, 15), //
@@ -90,7 +86,7 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void testcheckedTemplate() throws Exception {
+    public void testCheckedTemplate() throws Exception {
         // @CheckedTemplate
         // public class Templates {
         //
@@ -98,16 +94,15 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
         //
         // public static native TemplateInstance hello3(String name);
         QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/Templates.java");
-        params.setUri(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString());
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/Templates.java").toASCIIString();
+        params.setUri(javaFileUri);
 
         List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
         assertEquals(2, links.size());
 
-        String hello2FileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/hello2.qute.html").toURI().toString();
-        String hello3FileUri1 = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/hello3.qute.html").toURI().toString();
-
+        String hello2FileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/hello2.qute.html").toASCIIString();
+        String hello3FileUri1 = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/hello3.qute.html").toASCIIString();
 
         assertDocumentLink(links, //
                 dl(r(8, 39, 8, 45), //
@@ -117,7 +112,7 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void testcheckedTemplateInInnerClass() throws Exception {
+    public void testCheckedTemplateInInnerClass() throws Exception {
         // public class ItemResource {
         // @CheckedTemplate
         // static class Templates {
@@ -129,14 +124,14 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
         // static native TemplateInstance items2(List<Item> items);
 
         QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/ItemResource.java");
-        params.setUri(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString());
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResource.java").toASCIIString();
+        params.setUri(javaFileUri);
 
         List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
         assertEquals(3, links.size());
 
-        String templateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/ItemResource/items.qute.html").toURI().toString();
+        String templateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResource/items.qute.html").toASCIIString();
 
         assertDocumentLink(links, //
                 dl(r(21, 33, 21, 38), //
@@ -148,17 +143,76 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void checkedTemplateWithFragment() throws Exception {
+    public void testCheckedTemplateWithFragment() throws Exception {
+
+        // @CheckedTemplate
+        //public class ItemTemplates {
+        //
+        //    static native TemplateInstance items(List<Item> items);
+        //    static native TemplateInstance items$id1(List<Item> items);
+        //    static native TemplateInstance items3$id2(List<Item> items);
+        //    static native TemplateInstance items3$(List<Item> items);
+        //}
 
         QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/ItemResourceWithFragment.java");
-        params.setUri(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString());
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplates.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, links.size());
+
+        String templateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/items.html").toASCIIString();
+
+        assertDocumentLink(links, //
+                dl(r(10, 35, 10, 40), //
+                        templateFileUri, "Open `src/main/resources/templates/items.html`"), //
+                dl(r(11, 35, 11, 44), //
+                        templateFileUri, "Open `src/main/resources/templates/items.html`"), //
+                dl(r(12, 35, 12, 45), //
+                        templateFileUri, "Create `src/main/resources/templates/items3.html`"));
+
+        // @CheckedTemplate(ignoreFragments = true)
+        // public class ItemTemplatesIgnoreFragments {
+        //
+        //    static native TemplateInstance items2(List<Item> items);
+        //    static native TemplateInstance items2$id1(List<Item> items);
+        //    static native TemplateInstance items2$id2(List<Item> items);
+        //}
+
+        params = new QuteJavaDocumentLinkParams();
+        javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesIgnoreFragments.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, links.size());
+
+        templateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/items.html").toASCIIString();
+
+        assertDocumentLink(links, //
+                dl(r(10, 35, 10, 41), //
+                        templateFileUri, "Open `src/main/resources/templates/items2.html`"), //
+                dl(r(11, 35, 11, 45), //
+                        templateFileUri,
+                        "Open `src/main/resources/templates/items2$id1.html`"), //
+                dl(r(12, 35, 12, 45), //
+                        templateFileUri,
+                        "Open `src/main/resources/templates/items2$id2.html`"));
+    }
+
+    @Test
+    public void testCheckedTemplateInInnerClassWithFragment() throws Exception {
+
+        QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResourceWithFragment.java").toASCIIString();
+        params.setUri(javaFileUri);
 
         List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
         assertEquals(6, links.size());
 
-        String templateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/ItemResourceWithFragment/items.html").toURI().toString();
+        String templateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResourceWithFragment/items.html").toASCIIString();
 
         assertDocumentLink(links, //
                 dl(r(21, 33, 21, 38), //

@@ -11,9 +11,12 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype;
 
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
 import com.redhat.qute.commons.InvalidMethodReason;
 import com.redhat.qute.commons.ResolvedJavaTypeInfo;
@@ -74,6 +77,8 @@ public class DefaultResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFact
             if (method.getModifierList().hasExplicitModifier(PsiModifier.STATIC)) {
                 return InvalidMethodReason.Static;
             }
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Error while checking if '" + method.getName() + "' is valid.", e);
         }

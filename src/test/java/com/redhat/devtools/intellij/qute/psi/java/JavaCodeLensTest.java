@@ -11,29 +11,25 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.java;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
+import com.redhat.qute.commons.QuteJavaCodeLensParams;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.junit.Test;
 
-import com.redhat.qute.commons.QuteJavaCodeLensParams;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Tests for Qute @CheckedTemplate support code lens inside Java files.
@@ -54,7 +50,7 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void testtemplateField() throws Exception {
+    public void testTemplateField() throws Exception {
         // public class HelloResource {
 
         // [Open `src/main/resources/templates/hello.qute.html`]
@@ -80,18 +76,18 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
         // }
 
         QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/HelloResource.java");
-        params.setUri(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString());
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/HelloResource.java").toASCIIString();
+        params.setUri(javaFileUri);
 
         List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
         assertEquals(5, lenses.size());
 
-        String helloTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/hello.qute.html").toURI().toString();
-        String goodbyeTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/goodbye.qute.html").toURI().toString();
-        String halloTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/detail/items2_v1.html").toURI().toString();
-        String bonjourTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/detail/page1.html").toURI().toString();
-        String aurevoirTemplateFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/detail/page2.html").toURI().toString();
+        String helloTemplateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/hello.qute.html").toASCIIString();
+        String goodbyeTemplateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/goodbye.qute.html").toASCIIString();
+        String halloTemplateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/detail/items2_v1.html").toASCIIString();
+        String bonjourTemplateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/detail/page1.html").toASCIIString();
+        String aurevoirTemplateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/detail/page2.html").toASCIIString();
 
         assertCodeLens(lenses, //
                 cl(r(16, 1, 17, 16), //
@@ -112,7 +108,7 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void testcheckedTemplate() throws Exception {
+    public void testCheckedTemplate() throws Exception {
         // @CheckedTemplate
         // public class Templates {
         // [Open `src/main/resources/templates/hello2.qute.html`]
@@ -120,15 +116,15 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
         // [Open `src/main/resources/templates/hello3.qute.html`]
         // public static native TemplateInstance hello3(String name);
         QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/Templates.java");
-        params.setUri(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString());
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/Templates.java").toASCIIString();
+        params.setUri(javaFileUri);
 
         List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
         assertEquals(2, lenses.size());
 
-        String goodbyeFileUri = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/hello2.qute.html").toURI().toString();
-        String hello3FileUri1 = new File(ModuleUtilCore.getModuleDirPath(module), "src/main/resources/templates/hello3.qute.html").toURI().toString();
+        String goodbyeFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/hello2.qute.html").toASCIIString();
+        String hello3FileUri1 = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/hello3.qute.html").toASCIIString();
 
         assertCodeLens(lenses, //
                 cl(r(8, 1, 8, 59), //
@@ -140,7 +136,7 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void testcheckedTemplateInInnerClass() throws Exception {
+    public void testCheckedTemplateInInnerClass() throws Exception {
         // public class ItemResource {
         // @CheckedTemplate
         // static class Templates {
@@ -152,16 +148,16 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
         // static native TemplateInstance items2(List<Item> items);
 
         QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/ItemResource.java");
-        params.setUri(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString());
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResource.java").toASCIIString();
+        params.setUri(javaFileUri);
 
         List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
         assertEquals(3, lenses.size());
 
-        String itemsUri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResource/items.qute.html")).toURI().toString();
-        String mapUri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResource")).toURI().toString() + "/map.html";
-        String items2Uri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResource")).toURI().toString() + "/items2.html";
+        String itemsUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResource/items.qute.html").toASCIIString();
+        String mapUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResource/map.html").toASCIIString();
+        String items2Uri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResource/items2.html").toASCIIString();
 
         assertCodeLens(lenses, //
                 cl(r(21, 2, 21, 57), //
@@ -176,21 +172,86 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void checkedTemplateWithFragment() throws Exception {
+    public void testCheckedTemplateWithFragment() throws Exception {
+
+        // @CheckedTemplate
+        //public class ItemTemplates {
+        //
+        //    static native TemplateInstance items(List<Item> items);
+        //    static native TemplateInstance items$id1(List<Item> items);
+        //    static native TemplateInstance items3$id2(List<Item> items);
+        //    static native TemplateInstance items3$(List<Item> items);
+        //}
 
         QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/ItemResourceWithFragment.java");
-        params.setUri(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString());
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplates.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, lenses.size());
+
+        String itemsUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/items.html").toASCIIString();
+        String items3Uri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/items3.html").toASCIIString();
+
+        assertCodeLens(lenses, //
+                cl(r(10, 4, 10, 59), //
+                        "Open `src/main/resources/templates/items.html`", //
+                        "qute.command.open.uri", Arrays.asList(itemsUri)), //
+                cl(r(11, 4, 11, 63), //
+                        "Open `id1` fragment of `src/main/resources/templates/items.html`", //
+                        "qute.command.open.uri", Arrays.asList(itemsUri, "id1")), //
+                cl(r(12, 4, 12, 64), //
+                        "Create `src/main/resources/templates/items3.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(items3Uri)));
+
+        // @CheckedTemplate(ignoreFragments = true)
+        // public class ItemTemplatesIgnoreFragments {
+        //
+        //    static native TemplateInstance items2(List<Item> items);
+        //    static native TemplateInstance items2$id1(List<Item> items);
+        //    static native TemplateInstance items2$id2(List<Item> items);
+        //}
+        params = new QuteJavaCodeLensParams();
+        javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesIgnoreFragments.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, lenses.size());
+
+        String items2Uri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/items2.html").toASCIIString();
+        String items2Uri_id1 = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/items2$id1.html").toASCIIString();
+        String items2Uri_id2 = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/items2$id2.html").toASCIIString();
+
+        assertCodeLens(lenses, //
+                cl(r(10, 4, 10, 60), //
+                        "Open `src/main/resources/templates/items2.html`", //
+                        "qute.command.open.uri", Arrays.asList(items2Uri)), //
+                cl(r(11, 4, 11, 64), //
+                        "Open `src/main/resources/templates/items2$id1.html`", //
+                        "qute.command.open.uri", Arrays.asList(items2Uri_id1)), //
+                cl(r(12, 4, 12, 64), //
+                        "Create `src/main/resources/templates/items2$id2.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(items2Uri_id2)));
+    }
+
+    @Test
+    public void testCheckedTemplateInInnerClassWithFragment() throws Exception {
+
+        QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResourceWithFragment.java").toASCIIString();
+        params.setUri(javaFileUri);
 
         List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
         assertEquals(6, lenses.size());
 
-        String itemsUri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResourceWithFragment/items.html")).toURI().toString();
-        String items3Uri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResourceWithFragment/items3.html")).toURI().toString();
-        String items2Uri = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResourceWithFragment/items2.html")).toURI().toString();
-        String items2Uri_id1 = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResourceWithFragment/items2$id1.html")).toURI().toString();
-        String items2Uri_id2 = VfsUtilCore.virtualToIoFile(LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/templates/ItemResourceWithFragment/items2$id2.html")).toURI().toString();
+        String itemsUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResourceWithFragment/items.html").toASCIIString();
+        String items3Uri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResourceWithFragment/items3.html").toASCIIString();
+        String items2Uri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResourceWithFragment/items2.html").toASCIIString();
+        String items2Uri_id1 = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResourceWithFragment/items2$id1.html").toASCIIString();
+        String items2Uri_id2 = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResourceWithFragment/items2$id2.html").toASCIIString();
 
         assertCodeLens(lenses, //
                 cl(r(21, 2, 21, 57), //
@@ -213,7 +274,6 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
                         "Create `src/main/resources/templates/ItemResourceWithFragment/items2$id2.html`", //
                         "qute.command.generate.template.file", Arrays.asList(items2Uri_id2)));
     }
-
 
     public static Range r(int line, int startChar, int endChar) {
         return r(line, startChar, line, endChar);

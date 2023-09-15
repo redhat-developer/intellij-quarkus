@@ -12,12 +12,9 @@
 package com.redhat.devtools.intellij.qute.psi.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
@@ -51,7 +48,7 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void testtemplateField() throws Exception {
+    public void testTemplateField() throws Exception {
         // public class HelloResource {
         // Template hello;
         //
@@ -71,8 +68,8 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
         // }
 
         QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/HelloResource.java");
-        params.setUris(Arrays.asList(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString()));
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/HelloResource.java").toASCIIString();
+        params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
                 PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
@@ -94,7 +91,7 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void testcheckedTemplate() throws Exception {
+    public void testCheckedTemplate() throws Exception {
         // @CheckedTemplate
         // public class Templates {
         //
@@ -102,8 +99,8 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
         //
         // public static native TemplateInstance hello3(String name);
         QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/Templates.java");
-        params.setUris(Arrays.asList(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString()));
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/Templates.java").toASCIIString();
+        params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
                 PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
@@ -118,8 +115,63 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
                         DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
     }
 
+    public void testCheckedTemplateWithFragment() throws Exception {
+
+        // @CheckedTemplate
+        //public class ItemTemplates {
+        //
+        //    static native TemplateInstance items(List<Item> items);
+        //    static native TemplateInstance items$id1(List<Item> items);
+        //    static native TemplateInstance items3$id2(List<Item> items);
+        //    static native TemplateInstance items3$(List<Item> items);
+        //}
+
+        QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplates.java").toASCIIString();
+        params.setUris(Arrays.asList(javaFileUri));
+
+        List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
+                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+        assertEquals(1, publishDiagnostics.size());
+
+        List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
+        assertEquals(2, diagnostics.size());
+
+        assertDiagnostic(diagnostics, //
+                new Diagnostic(r(12, 35, 12, 45),
+                        "No template matching the path items3 could be found for: org.acme.qute.ItemTemplates",
+                        DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+                new Diagnostic(r(13, 35, 13, 42),
+                        "Fragment [] not defined in template items3$",
+                        DiagnosticSeverity.Error, "qute", QuteErrorCode.FragmentNotDefined.name()));
+
+        // @CheckedTemplate(ignoreFragments = true)
+        // public class ItemTemplatesIgnoreFragments {
+        //
+        //    static native TemplateInstance items2(List<Item> items);
+        //    static native TemplateInstance items2$id1(List<Item> items);
+        //    static native TemplateInstance items2$id2(List<Item> items);
+        //}
+
+        params = new QuteJavaDiagnosticsParams();
+        javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesIgnoreFragments.java").toASCIIString();
+        params.setUris(Arrays.asList(javaFileUri));
+
+        publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
+                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+        assertEquals(1, publishDiagnostics.size());
+
+        diagnostics = publishDiagnostics.get(0).getDiagnostics();
+        assertEquals(1, diagnostics.size());
+
+        assertDiagnostic(diagnostics, //
+                new Diagnostic(r(12, 35, 12, 45),
+                        "No template matching the path items2$id2 could be found for: org.acme.qute.ItemTemplatesIgnoreFragments",
+                        DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
+    }
+
     @Test
-    public void testcheckedTemplateInInnerClass() throws Exception {
+    public void testCheckedTemplateInInnerClass() throws Exception {
         // public class ItemResource {
         // @CheckedTemplate
         // static class Templates {
@@ -127,8 +179,8 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
         // static native TemplateInstance items(List<Item> items);
 
         QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/ItemResource.java");
-        params.setUris(Arrays.asList(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString()));
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResource.java").toASCIIString();
+        params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
                 PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
@@ -147,11 +199,11 @@ public class JavaDiagnosticsTest extends MavenModuleImportingTestCase {
     }
 
     @Test
-    public void checkedTemplateInWithFragment() throws Exception {
+    public void testCheckedTemplateInInnerClassWithFragment() throws Exception {
 
         QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
-        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/qute/ItemResourceWithFragment.java");
-        params.setUris(Arrays.asList(VfsUtilCore.virtualToIoFile(javaFile).toURI().toString()));
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResourceWithFragment.java").toASCIIString();
+        params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
                 PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());

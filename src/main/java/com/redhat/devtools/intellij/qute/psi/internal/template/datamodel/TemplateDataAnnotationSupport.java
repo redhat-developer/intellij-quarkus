@@ -11,7 +11,9 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.template.datamodel;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -30,6 +32,7 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -136,6 +139,8 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 					resolvers.add(resolver);
 				}
 			}
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Error while getting annotation member value of '" + member.getName() + "'.", e);

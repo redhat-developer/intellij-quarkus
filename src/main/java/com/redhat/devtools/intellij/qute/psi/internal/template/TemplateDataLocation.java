@@ -11,6 +11,8 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.template;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiLiteral;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.Location;
@@ -18,6 +20,8 @@ import org.eclipse.lsp4j.Range;
 
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+
+import java.util.concurrent.CancellationException;
 
 /**
  * AST visitor used to collect {@link DataModelParameter} parameter for a given
@@ -69,6 +73,8 @@ public class TemplateDataLocation extends TemplateDataVisitor {
 							literal.getTextLength());
 					String uri = utils.toUri(getMethod().getContainingFile());
 					this.location = new Location(uri, range);
+				} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+					throw e;
 				} catch (RuntimeException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

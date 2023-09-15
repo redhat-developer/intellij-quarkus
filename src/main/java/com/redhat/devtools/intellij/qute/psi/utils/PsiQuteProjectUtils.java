@@ -76,12 +76,12 @@ public class PsiQuteProjectUtils {
 		if (className != null) {
 			templateUri.append(className);
 			templateUri.append('/');
-			if (!ignoreFragments) {
-				int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
-				if (fragmentIndex != -1) {
-					fragmentId = methodOrFieldName.substring(fragmentIndex + 1, methodOrFieldName.length());
-					methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
-				}
+		}
+		if (!ignoreFragments) {
+			int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
+			if (fragmentIndex != -1) {
+				fragmentId = methodOrFieldName.substring(fragmentIndex + 1, methodOrFieldName.length());
+				methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
 			}
 		}
 		templateUri.append(methodOrFieldName);

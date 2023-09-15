@@ -19,10 +19,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
@@ -136,6 +139,8 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
 			if (annotation != null) {
 				return AnnotationUtils.getAnnotationMemberValue(annotation, "value");
 			}
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting @Location of '" + field.getName() + "'.", e);
 		}

@@ -12,7 +12,9 @@ package com.redhat.devtools.intellij.qute.psi.internal.template;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,6 +46,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 
 import java.util.Arrays;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -98,6 +101,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		PsiClass javaType;
 		try {
 			javaType = utils.findClass(project, params.getJavaType());
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			return null;
 		}
@@ -130,6 +135,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		Document jdtTextEdit;
 		try {
 			jdtTextEdit = cu.getViewProvider().getDocument();
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			return null;
 		}
@@ -167,6 +174,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		Document jdtTextEdit;
 		try {
 			jdtTextEdit = cu.getViewProvider().getDocument();
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			return null;
 		}
@@ -181,6 +190,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		PsiClass javaType;
 		try {
 			javaType = utils.findClass(project, params.getJavaType());
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			return null;
 		}
@@ -213,6 +224,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		Document jdtTextEdit;
 		try {
 			jdtTextEdit = cu.getViewProvider().getDocument();
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			return null;
 		}
@@ -229,6 +242,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		PsiClass type = null;
 		try {
 			type = utils.findClass(project, params.getTemplateClass());
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
 					String.format("JavaModelException while trying to locate template extension class {0}",
@@ -275,6 +290,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		Document jdtTextEdit;
 		try {
 			jdtTextEdit = cu.getViewProvider().getDocument();
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			return null;
 		}
@@ -308,6 +325,8 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		try {
 			addContentEdit = createNewTemplateExtensionsContent(cu, name, params.getMissingProperty(),
 					params.getJavaType(), fixBrokenUri(destPackage.getUrl() + "/" + name + ".java"), utils);
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException("Failure while constructing new Java file content", e);
 		}

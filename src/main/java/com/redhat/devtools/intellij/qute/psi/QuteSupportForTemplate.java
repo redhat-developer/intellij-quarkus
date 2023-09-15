@@ -18,6 +18,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -46,6 +47,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -372,6 +374,8 @@ public class QuteSupportForTemplate {
 			}
 			return getJavadoc(type, params.getDocumentFormat(), params.getMemberName(), params.getSignature(), refinedUtils,
 							monitor, new HashSet<>());
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Error while collecting Javadoc for " + params.getSourceType() + "#" + params.getMemberName(), e);
@@ -431,6 +435,8 @@ public class QuteSupportForTemplate {
 							return javadoc;
 						}
 					}
+				} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+					throw e;
 				} catch (Exception e) {
 					LOGGER.log(Level.SEVERE, "Error while getting method signature of '" + method.getName() + "'.",
 							e);

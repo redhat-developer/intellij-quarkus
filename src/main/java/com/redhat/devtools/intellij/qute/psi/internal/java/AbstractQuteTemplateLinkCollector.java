@@ -12,7 +12,9 @@
 package com.redhat.devtools.intellij.qute.psi.internal.java;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -31,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -164,6 +167,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 					ignoreFragment = AnnotationUtils.getValueAsBoolean(pair);
 				}
 			}
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (Exception e) {
 			// Do nothing
 		}
@@ -205,6 +210,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 			}
 			collectTemplateLink(fieldOrMethod, locationAnnotation, type, className, fieldOrMethodName, location,
 					templateFile, templatePathInfo);
+		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			throw e;
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.WARNING, "Error while creating Qute CodeLens for Java file.", e);
 		}
