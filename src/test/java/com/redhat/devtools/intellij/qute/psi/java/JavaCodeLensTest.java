@@ -236,6 +236,75 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
                         "qute.command.generate.template.file", Arrays.asList(items2Uri_id2)));
     }
 
+    public void testCheckedTemplateWithCustomBasePath() throws Exception {
+
+        // @CheckedTemplate(basePath="ItemResourceWithFragment")
+        //public class ItemTemplatesCustomBasePath {
+        //
+        //    static native TemplateInstance items(List<Item> items);
+        //    static native TemplateInstance items$id1(List<Item> items);
+        //    static native TemplateInstance items3$id2(List<Item> items);
+        //    static native TemplateInstance items3$(List<Item> items);
+        //}
+
+        QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, lenses.size());
+
+        String itemsUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResourceWithFragment/items.html").toASCIIString();
+        String items3Uri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResourceWithFragment/items3.html").toASCIIString();
+
+        assertCodeLens(lenses, //
+                cl(r(9, 1, 9, 56), //
+                        "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+                        "qute.command.open.uri", Arrays.asList(itemsUri)), //
+                cl(r(10, 1, 10, 60), //
+                        "Open `id1` fragment of `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+                        "qute.command.open.uri", Arrays.asList(itemsUri, "id1")), //
+                cl(r(11, 1, 11, 61), //
+                        "Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(items3Uri)));
+
+    }
+
+    public void testCheckedTemplateInInnerClassWithCustomBasePath() throws Exception {
+
+        // @CheckedTemplate(basePath="ItemResourceWithFragment")
+        //public class ItemTemplatesCustomBasePath {
+        //
+        //    static native TemplateInstance items(List<Item> items);
+        //    static native TemplateInstance items$id1(List<Item> items);
+        //    static native TemplateInstance items3$id2(List<Item> items);
+        //    static native TemplateInstance items3$(List<Item> items);
+        //}
+
+        QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, lenses.size());
+
+        String itemsUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/ItemResourceWithFragment/items.html").toASCIIString();
+        String items3Uri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResourceWithFragment/items3.html").toASCIIString();
+
+        assertCodeLens(lenses, //
+                cl(r(9, 1, 9, 56), //
+                        "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+                        "qute.command.open.uri", Arrays.asList(itemsUri)), //
+                cl(r(10, 1, 10, 60), //
+                        "Open `id1` fragment of `src/main/resources/templates/ItemResourceWithFragment/items.html`", //
+                        "qute.command.open.uri", Arrays.asList(itemsUri, "id1")), //
+                cl(r(11, 1, 11, 61), //
+                        "Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(items3Uri)));
+
+    }
     @Test
     public void testCheckedTemplateInInnerClassWithFragment() throws Exception {
 

@@ -231,6 +231,57 @@ public class JavaDocumentLinkTest extends MavenModuleImportingTestCase {
                         "Open `src/main/resources/templates/ItemResourceWithFragment/items2$id2.html`"));
     }
 
+    public void testCheckedTemplateWithCustomBasePath() throws Exception {
+
+        // @CheckedTemplate(basePath="ItemResourceWithFragment")
+        //public class ItemTemplatesCustomBasePath {
+        //
+        //    static native TemplateInstance items(List<Item> items);
+        //    static native TemplateInstance items$id1(List<Item> items);
+        //    static native TemplateInstance items3$id2(List<Item> items);
+        //    static native TemplateInstance items3$(List<Item> items);
+        //}
+
+        QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, links.size());
+
+        String templateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResourceWithFragment/items.html").toASCIIString();
+
+        assertDocumentLink(links, //
+                dl(r(9, 32, 9, 37), //
+                        templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`"), //
+                dl(r(10, 32, 10, 41), //
+                        templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`"), //
+                dl(r(11, 32, 11, 42), //
+                        templateFileUri, "Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`"));
+    }
+
+    public void testCheckedTemplateInInnerClassWithCustomBasePath() throws Exception {
+        QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResourceWithCustomBasePath.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, links.size());
+
+        String templateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResourceWithFragment/items.html").toASCIIString();
+
+        assertDocumentLink(links, //
+                dl(r(21, 33, 21, 38), //
+                        templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`"), //
+                dl(r(22, 33, 22, 42), //
+                        templateFileUri, "Open `src/main/resources/templates/ItemResourceWithFragment/items.html`"), //
+                dl(r(23, 33, 23, 43), //
+                        templateFileUri, "Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`")); //
+    }
+
+
     public static Range r(int line, int startChar, int endChar) {
         return r(line, startChar, line, endChar);
     }
