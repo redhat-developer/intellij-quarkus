@@ -80,7 +80,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
         if (javaElement instanceof PsiClass) {
             PsiClass type = (PsiClass) javaElement;
             boolean ignoreFragments = isIgnoreFragments(checkedTemplateAnnotation);
-            collectDataModelTemplateForCheckedTemplate(type, ignoreFragments, context.getTypeResolver(type),
+            String basePath = getBasePath(checkedTemplateAnnotation);
+            collectDataModelTemplateForCheckedTemplate(type, basePath, ignoreFragments, context.getTypeResolver(type),
                     context.getDataModelProject().getTemplates(), monitor);
         }
     }
@@ -96,7 +97,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
      * ignored and false otherwise.
      * @CheckedTemplate(ignoreFragments=true) </code>
      */
-    private static boolean isIgnoreFragments(PsiAnnotation checkedTemplateAnnotation) {
+    public static boolean isIgnoreFragments(PsiAnnotation checkedTemplateAnnotation) {
         Boolean ignoreFragment = null;
         try {
             for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
@@ -113,14 +114,40 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
     }
 
     /**
+     * Returns the <code>basePath</code> value declared in the @CheckedTemplate annotation, relative to the templates root, to search the templates from.
+     *<code>
+     * @CheckedTemplate(basePath="somewhere")
+     *</code>
+     *
+     * @param checkedTemplateAnnotation the CheckedTemplate annotation.
+     * @return the <code>basePath</code> value declared in the @CheckedTemplate annotation
+     */
+    public static String getBasePath(PsiAnnotation checkedTemplateAnnotation) {
+        String basePath = null;
+        try {
+            for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
+                if (CHECKED_TEMPLATE_ANNOTATION_BASE_PATH.equalsIgnoreCase(pair.getAttributeName())) {
+                    basePath = pair.getLiteralValue();
+                }
+            }
+        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+            throw e;
+        } catch (Exception e) {
+            // Do nothing
+        }
+        return basePath;
+    }
+
+    /**
      * Collect data model template from @CheckedTemplate.
      *
      * @param type            the Java type.
+     * @param basePath        the base path relative to the templates root
      * @param ignoreFragments true if fragments must be ignored and false otherwise.
      * @param templates       the data model templates to update with collect of template.
      * @param monitor         the progress monitor.
      */
-    private static void collectDataModelTemplateForCheckedTemplate(PsiClass type, boolean ignoreFragments, ITypeResolver typeResolver,
+    private static void collectDataModelTemplateForCheckedTemplate(PsiClass type, String basePath, boolean ignoreFragments, ITypeResolver typeResolver,
                                                                    List<DataModelTemplate<DataModelParameter>> templates, ProgressIndicator monitor) {
         boolean innerClass = type.getContainingClass() != null;
         String className = !innerClass ? null
@@ -131,7 +158,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
         PsiMethod[] methods = type.getMethods();
         for (PsiMethod method : methods) {
             // src/main/resources/templates/${className}/${methodName}.qute.html
-            TemplatePathInfo templatePathInfo = getTemplatePath(className, method.getName(), ignoreFragments);
+            TemplatePathInfo templatePathInfo = getTemplatePath(basePath, className, method.getName(), ignoreFragments);
 
             // Get or create template
             String templateUri = templatePathInfo.getTemplateUri();

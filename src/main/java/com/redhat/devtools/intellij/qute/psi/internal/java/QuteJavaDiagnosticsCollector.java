@@ -26,6 +26,9 @@ import org.eclipse.lsp4j.Range;
 
 import java.util.List;
 
+import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.appendAndSlash;
+import static io.quarkus.qute.CheckedTemplate.DEFAULTED;
+
 /**
  * Report diagnostics error for non existing Qute template for:
  *
@@ -49,13 +52,13 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
     }
 
     @Override
-    protected void collectTemplateLink(PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className,
+    protected void collectTemplateLink(String basePath, PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className,
                                        String fieldOrMethodName, String location, VirtualFile templateFile, TemplatePathInfo templatePathInfo) {
         QuteErrorCode error = getQuteErrorCode(templatePathInfo, templateFile);
         if (error == null) {
             return;
         }
-        String path = createPath(className, fieldOrMethodName, location);
+        String path = createPath(basePath, className, fieldOrMethodName, location);
         String fragmentId = templatePathInfo.getFragmentId();
         if (templatePathInfo.hasFragment() && path.endsWith(fragmentId)) {
             // Adjust path by removing fragment information
@@ -92,14 +95,17 @@ public class QuteJavaDiagnosticsCollector extends AbstractQuteTemplateLinkCollec
         return null;
     }
 
-    private static String createPath(String className, String fieldOrMethodName, String location) {
+    private static String createPath(String basePath, String className, String fieldOrMethodName, String location) {
         if (location != null) {
             return location;
         }
-        if (className == null) {
-            return fieldOrMethodName;
+        StringBuilder path = new StringBuilder();
+        if (basePath != null && !DEFAULTED.equals(basePath)) {
+            appendAndSlash(path, basePath);
+        } else if (className != null){
+            appendAndSlash(path, className);
         }
-        return className + '/' + fieldOrMethodName;
+        return path.append(fieldOrMethodName).toString();
     }
 
     private static Diagnostic createDiagnostic(Range range, DiagnosticSeverity severity, IQuteErrorCode errorCode,

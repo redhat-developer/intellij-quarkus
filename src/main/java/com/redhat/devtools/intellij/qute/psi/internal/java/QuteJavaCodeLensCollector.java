@@ -59,7 +59,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
     }
 
     @Override
-    protected void collectTemplateLink(PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className, String fieldOrMethodName,
+    protected void collectTemplateLink(String basePath, PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className, String fieldOrMethodName,
                                        String location, VirtualFile templateFile, TemplatePathInfo templatePathInfo) {
         if (!templatePathInfo.isValid()) {
             // It is an empty fragment which is not valid, don't generate a codelens.

@@ -17,6 +17,7 @@ import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.qute.commons.ProjectInfo;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * JDT Qute utilities.
@@ -27,6 +28,11 @@ import com.redhat.qute.commons.ProjectInfo;
 public class PsiQuteProjectUtils {
 
 	private static final String TEMPLATES_BASE_DIR = "src/main/resources/templates/";
+
+	/**
+	 * Value for Qute annotations indicating behaviour should be using the default
+	 */
+	private static final String DEFAULTED = "<<defaulted>>";
 
 	private PsiQuteProjectUtils() {
 	}
@@ -61,21 +67,23 @@ public class PsiQuteProjectUtils {
 		return PsiTypeUtils.findType(javaProject, QuteJavaConstants.ENGINE_BUILDER_CLASS) != null;
 	}
 
-	public static String getTemplatePath(String className, String methodOrFieldName) {
+	public static String getTemplatePath(String basePath, String className, String methodOrFieldName) {
 		StringBuilder path = new StringBuilder(TEMPLATES_BASE_DIR);
-		if (className != null) {
-			path.append(className);
-			path.append('/');
+		if (basePath != null && !DEFAULTED.equals(basePath)) {
+			appendAndSlash(path, basePath);
+		} else if (className != null) {
+			appendAndSlash(path, className);
 		}
 		return path.append(methodOrFieldName).toString();
 	}
 
-	public static TemplatePathInfo getTemplatePath(String className, String methodOrFieldName, boolean ignoreFragments) {
+	public static TemplatePathInfo getTemplatePath(String basePath, String className, String methodOrFieldName, boolean ignoreFragments) {
 		String fragmentId = null;
 		StringBuilder templateUri = new StringBuilder(TEMPLATES_BASE_DIR);
-		if (className != null) {
-			templateUri.append(className);
-			templateUri.append('/');
+		if (basePath != null && !DEFAULTED.equals(basePath)) {
+			appendAndSlash(templateUri, basePath);
+		} else if (className != null) {
+			appendAndSlash(templateUri, className);
 		}
 		if (!ignoreFragments) {
 			int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
@@ -86,5 +94,17 @@ public class PsiQuteProjectUtils {
 		}
 		templateUri.append(methodOrFieldName);
 		return new TemplatePathInfo(templateUri.toString(), fragmentId);
+	}
+
+	/**
+	 * Appends a segment to a path, add trailing "/" if necessary
+	 * @param path the path to append to
+	 * @param segment the segment to append to the path
+	 */
+	public static void appendAndSlash(@NotNull StringBuilder path, @NotNull String segment) {
+		path.append(segment);
+		if (!segment.endsWith("/")) {
+			path.append('/');
+		}
 	}
 }

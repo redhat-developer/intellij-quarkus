@@ -49,6 +49,7 @@ public class QuteJavaConstants {
     public static final String OLD_CHECKED_TEMPLATE_ANNOTATION = "io.quarkus.qute.api.CheckedTemplate";
 
     public static final String CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS = "ignoreFragments";
+    public static final String CHECKED_TEMPLATE_ANNOTATION_BASE_PATH = "basePath";
 
     // @TemplateExtension
 
