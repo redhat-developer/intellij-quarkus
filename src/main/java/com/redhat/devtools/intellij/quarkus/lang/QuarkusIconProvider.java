@@ -24,7 +24,6 @@ import javax.swing.*;
  * Quarkus icon provider.
  */
 public class QuarkusIconProvider extends IconProvider {
-    public static final Icon QUARKUS_ICON = IconLoader.findIcon("/quarkus_icon_rgb_16px_default.png", QuarkusIconProvider.class);
 
     @Nullable
     @Override
@@ -34,7 +33,7 @@ public class QuarkusIconProvider extends IconProvider {
             VirtualFile file = element.getContainingFile().getVirtualFile();
             if (QuarkusModuleUtil.isQuarkusPropertiesFile(file, element.getProject()) ||
                     QuarkusModuleUtil.isQuarkusYAMLFile(file, element.getProject())) {
-                return QUARKUS_ICON;
+                return QuarkusIcons.Quarkus;
             }
         }
         return null;

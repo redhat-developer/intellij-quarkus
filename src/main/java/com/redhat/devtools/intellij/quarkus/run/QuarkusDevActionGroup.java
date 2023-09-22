@@ -14,6 +14,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.util.IconLoader;
+import com.redhat.devtools.intellij.quarkus.lang.QuarkusIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,8 +23,7 @@ public class QuarkusDevActionGroup extends ActionGroup {
     private static final AnAction OPEN_APP_ACTION = new QuarkusOpenAppInBrowserAction();
 
     public QuarkusDevActionGroup() {
-        super("Quarkus", "", IconLoader.getIcon("/quarkus_icon_rgb_16px_default.png",
-                QuarkusDevActionGroup.class));
+        super("Quarkus", "", QuarkusIcons.Quarkus);
         setPopup(true);
     }
 

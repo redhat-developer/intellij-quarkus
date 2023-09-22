@@ -30,7 +30,12 @@ public class QuarkusRunContext {
     }
 
     protected static QuarkusRunContext getContext(AnActionEvent e) {
-        Project project = PlatformDataKeys.PROJECT.getData(e.getDataContext());
+        var dataContext =  e.getDataContext();
+        QuarkusRunContext runContext = (QuarkusRunContext) dataContext.getData(QuarkusConstants.QUARKUS_RUN_CONTEXT_KEY);
+        if(runContext != null) {
+            return runContext;
+        }
+        Project project = PlatformDataKeys.PROJECT.getData(dataContext);
         RunContentManager contentManager = RunContentManager.getInstance(project);
         RunContentDescriptor selectedContent = contentManager.getSelectedContent();
         JComponent component = selectedContent == null ? null : selectedContent.getComponent();
@@ -53,7 +58,7 @@ public class QuarkusRunContext {
         return builder.toString();
     }
 
-    private int getPort() {
+    public int getPort() {
         int port = project.getPropertyAsInteger("quarkus.http.port", 8080);
         port = project.getPropertyAsInteger("%dev.quarkus.http.port", port);
         return port;
@@ -75,5 +80,9 @@ public class QuarkusRunContext {
         String path = getProperty("quarkus.http.root-path", "/");
         path = normalize(path);
         return "http://localhost:" + port + path;
+    }
+
+    public PsiMicroProfileProject getMicroProfileProject() {
+        return project;
     }
 }
