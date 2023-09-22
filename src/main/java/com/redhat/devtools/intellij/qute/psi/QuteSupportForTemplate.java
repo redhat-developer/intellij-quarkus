@@ -12,13 +12,12 @@
 package com.redhat.devtools.intellij.qute.psi;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.JavaModuleType;
+import com.intellij.openapi.module.*;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -43,10 +42,7 @@ import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.WorkspaceEdit;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -69,6 +65,27 @@ public class QuteSupportForTemplate {
 
 	public static QuteSupportForTemplate getInstance() {
 		return INSTANCE;
+	}
+
+	/**
+	 * Returns the list of Qute projects from the workspace.
+	 *
+	 * @param utils   the JDT LS utility.
+	 * @param monitor the progress monitor.
+	 *
+	 * @return the list of Qute projects from the workspace.
+	 */
+	public List<ProjectInfo> getProjects(Project project, IPsiUtils utils, ProgressIndicator monitor) {
+		List<ProjectInfo> quteProjects = new ArrayList<>();
+		// Loop for module from the given project
+		Module[] modules = ModuleManager.getInstance(project).getModules();
+		for (Module javaProject: modules) {
+			if (PsiQuteProjectUtils.hasQuteSupport(javaProject)) {
+				// It is a Qute project
+				quteProjects.add(PsiQuteProjectUtils.getProjectInfo(javaProject));
+			}
+		}
+		return quteProjects;
 	}
 
 	/**
@@ -476,7 +493,5 @@ public class QuteSupportForTemplate {
 		PsiClass type = findType(typeName, javaProject, monitor);
 		return type;
 	}
-
-
 
 }

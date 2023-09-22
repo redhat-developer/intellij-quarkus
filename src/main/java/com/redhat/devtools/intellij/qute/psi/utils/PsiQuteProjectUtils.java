@@ -12,12 +12,19 @@
 package com.redhat.devtools.intellij.qute.psi.utils;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.qute.commons.ProjectInfo;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * JDT Qute utilities.
@@ -39,8 +46,15 @@ public class PsiQuteProjectUtils {
 
 	public static ProjectInfo getProjectInfo(Module javaProject) {
 		String projectUri = getProjectURI(javaProject);
-		String templateBaseDir = LSPIJUtils.toUriAsString(QuarkusModuleUtil.getModuleDirPath(javaProject)) + TEMPLATES_BASE_DIR;
-		return new ProjectInfo(projectUri, templateBaseDir);
+		String templateBaseDir =  LSPIJUtils.toUri(javaProject).resolve(TEMPLATES_BASE_DIR).toASCIIString();
+		// Project dependencies
+		Set<Module> projectDependencies = new HashSet<>();
+		ModuleUtilCore.getDependencies(javaProject, projectDependencies);
+		return new ProjectInfo(projectUri, projectDependencies
+				.stream()
+				.filter(projectDependency -> !javaProject.equals(projectDependency))
+				.map(projectDependency -> LSPIJUtils.getProjectUri(projectDependency))
+				.collect(Collectors.toList()), templateBaseDir);
 	}
 
 	/**

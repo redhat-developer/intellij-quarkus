@@ -40,10 +40,7 @@ import com.redhat.qute.ls.api.QuteLanguageServerAPI;
 import org.eclipse.lsp4j.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -134,6 +131,13 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
         if (!uris.isEmpty()) {
             notifyQuteDataModelChanged(uris);
         }
+    }
+
+    @Override
+    public CompletableFuture<Collection<ProjectInfo>> getProjects() {
+        Project project = getProject();
+        var coalesceBy = new CoalesceByKey("qute/template/projects");
+        return runAsBackground("Load Qute projects", monitor -> QuteSupportForTemplate.getInstance().getProjects(project, PsiUtilsLSImpl.getInstance(project), monitor), coalesceBy);
     }
 
     @Override
