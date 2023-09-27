@@ -47,7 +47,7 @@ public class TracingMessageConsumer {
         this.sentRequests = new ConcurrentHashMap<>();
         this.receivedRequests = new ConcurrentHashMap<>();
         this.clock = Clock.systemDefaultZone();
-        this.dateTimeFormatter = DateTimeFormatter.ofPattern("KK:mm:ss a").withZone(clock.getZone());
+        this.dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(clock.getZone());
     }
 
     /**
