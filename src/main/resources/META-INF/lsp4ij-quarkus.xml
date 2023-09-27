@@ -17,7 +17,7 @@
         ]]>
       </description>
     </server>
-    <languageMapping language="Properties" serverId="quarkus"/>
+    <languageMapping language="MicroProfile" serverId="quarkus"/>
     <languageMapping language="JAVA" serverId="quarkus"/>
     <serverIconProvider serverId="quarkus" class="com.redhat.devtools.intellij.microprofile.lang.MicroProfileServerIconProvider" />
   </extensions>

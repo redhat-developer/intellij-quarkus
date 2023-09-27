@@ -328,6 +328,13 @@
             order="before javaClassReference"
             implementationClass="com.redhat.devtools.intellij.quarkus.lang.QuarkusPropertyClassNameCompletionRemover"/>
 
+    <!-- MicroProfile -->
+    <lang.substitutor language="Properties" implementationClass="com.redhat.devtools.intellij.microprofile.lang.MicroProfileLanguageSubstitutor"/>
+    <fileType name="MicroProfile"
+              language="MicroProfile"
+              instance="INSTANCE"
+              implementationClass="com.redhat.devtools.intellij.microprofile.lang.MicroProfileFileType"/>
+
     <properties.implicitPropertyUsageProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusProjectService"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager"/>
