@@ -14,6 +14,8 @@ package com.redhat.devtools.intellij.qute.psi.utils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
@@ -120,5 +122,10 @@ public class PsiQuteProjectUtils {
 		if (!segment.endsWith("/")) {
 			path.append('/');
 		}
+	}
+
+	public static boolean isQuteTemplate(VirtualFile file, Module module) {
+		return file.getPath().contains("templates") &&
+				ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
 	}
 }

@@ -41,6 +41,7 @@ public class LanguageServersRegistry {
         enum Scope {
             project, application
         }
+
         private static final int DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT = 5;
 
         public final @Nonnull
@@ -50,6 +51,9 @@ public class LanguageServersRegistry {
         public final boolean isSingleton;
         public final @Nonnull
         Map<Language, String> languageIdMappings;
+
+        private DocumentMatcher documentMatcher;
+
         public final String description;
         public final int lastDocumentDisconnectedTimeout;
         private boolean enabled;
@@ -63,7 +67,7 @@ public class LanguageServersRegistry {
             this.isSingleton = isSingleton;
             this.lastDocumentDisconnectedTimeout = lastDocumentDisconnectedTimeout != null && lastDocumentDisconnectedTimeout > 0 ? lastDocumentDisconnectedTimeout : DEFAULT_LAST_DOCUMENTED_DISCONNECTED_TIMEOUT;
             this.languageIdMappings = new ConcurrentHashMap<>();
-            this.scope = scope == null || scope.isBlank()? Scope.application : Scope.valueOf(scope);
+            this.scope = scope == null || scope.isBlank() ? Scope.application : Scope.valueOf(scope);
             setEnabled(true);
         }
 
@@ -164,6 +168,7 @@ public class LanguageServersRegistry {
             }
             return super.getServerInterface();
         }
+
     }
 
     private static LanguageServersRegistry INSTANCE = null;
@@ -194,7 +199,8 @@ public class LanguageServersRegistry {
         for (LanguageMappingExtensionPointBean extension : LanguageMappingExtensionPointBean.EP_NAME.getExtensions()) {
             Language language = Language.findLanguageByID(extension.language);
             if (language != null) {
-                languageMappings.add(new LanguageMapping(language, extension.id, extension.serverId));
+                DocumentMatcher documentMatcher = extension.getDocumentMatcher();
+                languageMappings.add(new LanguageMapping(language, extension.id, extension.serverId, documentMatcher));
             }
         }
 
@@ -205,7 +211,7 @@ public class LanguageServersRegistry {
         for (LanguageMapping mapping : languageMappings) {
             LanguageServerDefinition lsDefinition = servers.get(mapping.languageId);
             if (lsDefinition != null) {
-                registerAssociation(mapping.language, lsDefinition, mapping.languageId);
+                registerAssociation(lsDefinition, mapping);
             } else {
                 LOGGER.warn("server '" + mapping.id + "' not available"); //$NON-NLS-1$ //$NON-NLS-2$
             }
@@ -229,14 +235,15 @@ public class LanguageServersRegistry {
                 .collect(Collectors.toList());
     }
 
+    private void registerAssociation(@NonNull LanguageServerDefinition serverDefinition, @NonNull LanguageMapping mapping) {
 
-    public void registerAssociation(@Nonnull Language language,
-                                    @Nonnull LanguageServerDefinition serverDefinition, @Nullable String languageId) {
+        @Nonnull Language language = mapping.language;
+        @Nullable String languageId = mapping.languageId;
         if (languageId != null) {
             serverDefinition.registerAssociation(language, languageId);
         }
 
-        connections.add(new ContentTypeToLanguageServerDefinition(language, serverDefinition));
+        connections.add(new ContentTypeToLanguageServerDefinition(language, mapping.getDocumentMatcher(), serverDefinition));
     }
 
     public List<ContentTypeToLanguageServerDefinition> getContentTypeToLSPExtensions() {
@@ -264,23 +271,18 @@ public class LanguageServersRegistry {
         public final Language language;
         @Nullable
         public final String languageId;
+        private final DocumentMatcher documentMatcher;
 
-        public LanguageMapping(@Nonnull Language language, @Nonnull String id, @Nullable String languageId) {
+        public LanguageMapping(@Nonnull Language language, @Nonnull String id, @Nullable String languageId, DocumentMatcher documentMatcher) {
             this.language = language;
             this.id = id;
             this.languageId = languageId;
+            this.documentMatcher = documentMatcher;
         }
 
-    }
-
-    /**
-     * @param file
-     * @param serverDefinition
-     * @return whether the given serverDefinition is suitable for the file
-     */
-    public boolean matches(@Nonnull VirtualFile file, @NonNull LanguageServerDefinition serverDefinition,
-                           Project project) {
-        return getAvailableLSFor(LSPIJUtils.getFileLanguage(file, project)).contains(serverDefinition);
+        public DocumentMatcher getDocumentMatcher() {
+            return documentMatcher;
+        }
     }
 
     /**
@@ -288,22 +290,20 @@ public class LanguageServersRegistry {
      * @param serverDefinition
      * @return whether the given serverDefinition is suitable for the file
      */
-    public boolean matches(@Nonnull Document document, @Nonnull LanguageServerDefinition serverDefinition,
-                           Project project) {
-        return getAvailableLSFor(LSPIJUtils.getDocumentLanguage(document, project)).contains(serverDefinition);
-    }
-
-
-    private Set<LanguageServerDefinition> getAvailableLSFor(Language language) {
-        Set<LanguageServerDefinition> res = new HashSet<>();
-        if (language != null) {
-            for (ContentTypeToLanguageServerDefinition mapping : this.connections) {
-                if (language.isKindOf(mapping.getKey())) {
-                    res.add(mapping.getValue());
+    public boolean matches(@Nonnull Document document, VirtualFile file,
+                           Project project, @Nonnull LanguageServerDefinition serverDefinition) {
+        Language language = LSPIJUtils.getDocumentLanguage(document, project);
+        if (language == null) {
+            return false;
+        }
+        for (ContentTypeToLanguageServerDefinition mapping : this.connections) {
+            if (language.isKindOf(mapping.getKey()) && serverDefinition.equals(mapping.getValue())) {
+                if (mapping.matches(document, file, project)) {
+                    return true;
                 }
             }
         }
-        return res;
+        return false;
     }
 
     public Set<LanguageServerDefinition> getAllDefinitions() {

@@ -166,7 +166,7 @@ public class LanguageServiceAccessor {
             res.addAll(startedServers.stream()
                     .filter(wrapper -> {
                         try {
-                            return wrapper.isEnabled() && (wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(document, wrapper.serverDefinition, project));
+                            return wrapper.isEnabled() && (wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(document, file, project, wrapper.serverDefinition));
                         } catch (ProcessCanceledException cancellation) {
                             throw cancellation;
                         } catch (Exception e) {
@@ -198,9 +198,11 @@ public class LanguageServiceAccessor {
                     }
                     final Project fileProject = file != null ? LSPIJUtils.getProject(file) : null;
                     if (fileProject != null) {
-                        LanguageServerWrapper wrapper = new LanguageServerWrapper(fileProject, serverDefinition);
-                        startedServers.add(wrapper);
-                        res.add(wrapper);
+                        if(mapping.matches(document, file, fileProject)) {
+                            LanguageServerWrapper wrapper = new LanguageServerWrapper(fileProject, serverDefinition);
+                            startedServers.add(wrapper);
+                            res.add(wrapper);
+                        }
                     }
                 }
                 processedContentTypes.add(contentType);
@@ -245,17 +247,6 @@ public class LanguageServiceAccessor {
         // TODO multi-root: also return servers which support multi-root?
     }
 
-
-    private Collection<LanguageServerWrapper> getMatchingStartedWrappers(@Nonnull VirtualFile file,
-                                                                         @Nullable Predicate<ServerCapabilities> request) {
-        synchronized (startedServers) {
-            return startedServers.stream().filter(wrapper -> wrapper.isConnectedTo(LSPIJUtils.toUri(file))
-                    || (LanguageServersRegistry.getInstance().matches(file, wrapper.serverDefinition, project)
-                    && wrapper.canOperate(LSPIJUtils.getProject(file)))).filter(wrapper -> request == null
-                    || (wrapper.getServerCapabilities() == null || request.test(wrapper.getServerCapabilities())))
-                    .collect(Collectors.toList());
-        }
-    }
 
     /**
      * Gets list of running LS satisfying a capability predicate. This does not
