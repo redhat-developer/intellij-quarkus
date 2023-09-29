@@ -130,13 +130,13 @@ public class CommandExecutor {
     private static CompletableFuture<LanguageServer> getLanguageServerForCommand(Project project,
                                                                                  Command command,
                                                                                  URI documentUri, LanguageServersRegistry.LanguageServerDefinition languageServerDefinition) throws IOException {
-        Document document = LSPIJUtils.getDocument(documentUri);
-        if (document == null) {
+        VirtualFile file = LSPIJUtils.findResourceFor(documentUri);
+        if (file == null) {
             return null;
         }
         return LanguageServiceAccessor.getInstance(project)
                 //TODO pass documentUri instead of document, but looks like that implies non-trivial refactoring
-                .getInitializedLanguageServer(document, languageServerDefinition, serverCapabilities -> {
+                .getInitializedLanguageServer(file, languageServerDefinition, serverCapabilities -> {
                     ExecuteCommandOptions provider = serverCapabilities.getExecuteCommandProvider();
                     return provider != null && provider.getCommands().contains(command.getCommand());
                 });

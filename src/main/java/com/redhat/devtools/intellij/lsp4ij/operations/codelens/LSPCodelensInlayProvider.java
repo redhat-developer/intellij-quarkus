@@ -23,6 +23,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.AbstractLSPInlayProvider;
@@ -74,12 +75,13 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
                 Document document = editor.getDocument();
                 final CancellationSupport cancellationSupport = new CancellationSupport();
                 try {
-                    URI docURI = LSPIJUtils.toUri(document);
+                    VirtualFile file = LSPIJUtils.getFile(psiElement);
+                    URI docURI = LSPIJUtils.toUri(file);
                     if (docURI != null) {
                         CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
                         BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
 
-                        CompletableFuture<Void> future = collect(document, project, param, pairs, cancellationSupport);
+                        CompletableFuture<Void> future = collect(file, project, param, pairs, cancellationSupport);
                         List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future, cancellationSupport);
                         codeLenses.stream()
                                 .collect(Collectors.groupingBy(p -> p.first))
@@ -122,9 +124,9 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
                 return codelenses;
             }
 
-            private CompletableFuture<Void> collect(Document document, Project project, CodeLensParams param, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CancellationSupport cancellationSupport) {
+            private CompletableFuture<Void> collect(VirtualFile file, Project project, CodeLensParams param, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CancellationSupport cancellationSupport) {
                 return LanguageServiceAccessor.getInstance(project)
-                        .getLanguageServers(document, capabilities -> capabilities.getCodeLensProvider() != null)
+                        .getLanguageServers(file, capabilities -> capabilities.getCodeLensProvider() != null)
                         .thenComposeAsync(languageServers ->
                                 cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
                                         .map(languageServer ->

@@ -24,14 +24,14 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileWrapper;
+import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileData;
+import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.operations.codeactions.LSPLazyCodeActionIntentionAction;
 import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.net.URI;
 import java.util.List;
 
 import static com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.SeverityMapping.toHighlightSeverity;
@@ -40,61 +40,62 @@ import static com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.Severit
  * Intellij {@link ExternalAnnotator} implementation which get the current LSP diagnostics for a given file and translate
  * them into Intellij {@link com.intellij.lang.annotation.Annotation}.
  */
-public class LSPDiagnosticAnnotator extends ExternalAnnotator<LSPVirtualFileWrapper, LSPVirtualFileWrapper> {
+public class LSPDiagnosticAnnotator extends ExternalAnnotator<Boolean, Boolean> {
 
 	@Nullable
 	@Override
-	public LSPVirtualFileWrapper collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
-		try {
-			return LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file.getVirtualFile());
-		} catch (Exception e) {
-			return null;
-		}
+	public Boolean collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
+		return Boolean.TRUE;
 	}
 
 	@Override
-	public @Nullable LSPVirtualFileWrapper doAnnotate(LSPVirtualFileWrapper wrapper) {
-		return wrapper;
+	public @Nullable Boolean doAnnotate(Boolean unused) {
+        return Boolean.TRUE;
 	}
 
-	@Override
-	public void apply(@NotNull PsiFile file, LSPVirtualFileWrapper wrapper, @NotNull AnnotationHolder holder) {
-		// Get current LSP diagnostics of the current file
-		final Collection<LSPDiagnosticsForServer> diagnosticsPerServer = wrapper.getAllDiagnostics();
-		Document document = LSPIJUtils.getDocument(file.getVirtualFile());
+    @Override
+    public void apply(@NotNull PsiFile file, Boolean unused, @NotNull AnnotationHolder holder) {
+        URI fileUri = LSPIJUtils.toUri(file);
+        Document document = LSPIJUtils.getDocument(file.getVirtualFile());
 
-		// Loop for language server which report diagnostics for the given file
-		for (var ds :
-				diagnosticsPerServer) {
-			// Loop for LSP diagnostics to transform it to Intellij annotation.
-			for (Diagnostic diagnostic : ds.getDiagnostics()) {
-				ProgressManager.checkCanceled();
-				createAnnotation(diagnostic, document, ds, holder);
-			}
-		}
-	}
+        // Loop for language server which report diagnostics for the given file
+        var servers = LanguageServiceAccessor.getInstance(file.getProject())
+                .getStartedServers();
+        for (var ls : servers) {
+            LSPVirtualFileData data = ls.getLSPVirtualFileData(fileUri);
+            if (data != null) {
+                // The file is mapped with the current language server
+                var ds = data.getDiagnosticsForServer();
+                // Loop for LSP diagnostics to transform it to Intellij annotation.
+                for (Diagnostic diagnostic : ds.getDiagnostics()) {
+                    ProgressManager.checkCanceled();
+                    createAnnotation(diagnostic, document, ds, holder);
+                }
+            }
+        }
+    }
 
-	private static void createAnnotation(Diagnostic diagnostic, Document document, LSPDiagnosticsForServer diagnosticsForServer, AnnotationHolder holder) {
-		TextRange range = LSPIJUtils.toTextRange(diagnostic.getRange(), document);
-		if (range == null) {
-			// Language server reports invalid diagnostic, ignore it.
-			return;
-		}
-		// Collect information required to create Intellij Annotations
-		HighlightSeverity severity = toHighlightSeverity(diagnostic.getSeverity());
-		String message = diagnostic.getMessage();
+    private static void createAnnotation(Diagnostic diagnostic, Document document, LSPDiagnosticsForServer diagnosticsForServer, AnnotationHolder holder) {
+        TextRange range = LSPIJUtils.toTextRange(diagnostic.getRange(), document);
+        if (range == null) {
+            // Language server reports invalid diagnostic, ignore it.
+            return;
+        }
+        // Collect information required to create Intellij Annotations
+        HighlightSeverity severity = toHighlightSeverity(diagnostic.getSeverity());
+        String message = diagnostic.getMessage();
 
-		// Create Intellij Annotation from the given LSP diagnostic
-		AnnotationBuilder builder = holder
-				.newAnnotation(severity, message)
-				.range(range);
+        // Create Intellij Annotation from the given LSP diagnostic
+        AnnotationBuilder builder = holder
+                .newAnnotation(severity, message)
+                .range(range);
 
-		// Register lazy quick fixes
-		List<LSPLazyCodeActionIntentionAction> fixes = diagnosticsForServer.getQuickFixesFor(diagnostic);
-		for (IntentionAction fix : fixes) {
-			builder.withFix(fix);
-		}
-		builder.create();
-	}
+        // Register lazy quick fixes
+        List<LSPLazyCodeActionIntentionAction> fixes = diagnosticsForServer.getQuickFixesFor(diagnostic);
+        for (IntentionAction fix : fixes) {
+            builder.withFix(fix);
+        }
+        builder.create();
+    }
 
 }

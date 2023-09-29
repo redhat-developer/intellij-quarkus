@@ -16,7 +16,6 @@ package com.redhat.devtools.intellij.lsp4ij.operations.diagnostics;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,11 +23,12 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileWrapper;
+import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileData;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.lsp4ij.client.CoalesceByKey;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 
+import java.net.URI;
 import java.util.function.Consumer;
 
 /**
@@ -48,7 +48,7 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
     @Override
     public void accept(PublishDiagnosticsParams params) {
         Project project = languageServerWrapper.getProject();
-        if(project.isDisposed()) {
+        if (project.isDisposed()) {
             return;
         }
         if (ApplicationManager.getApplication().isReadAccessAllowed()) {
@@ -68,26 +68,31 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
     }
 
     public void updateDiagnostics(PublishDiagnosticsParams params) {        //ApplicationManager.getApplication().runReadAction(() -> {
-            VirtualFile file = LSPIJUtils.findResourceFor(params.getUri());
-            if (file == null) {
-                return;
-            }
-            Project project = LSPIJUtils.getProject(file);
-            if (project == null || project.isDisposed()) {
-                return;
-            }
-            final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-            if (psiFile == null) {
-                return;
-            }
-            LSPVirtualFileWrapper wrapper = LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file);
-            synchronized (wrapper) {
-                // Update LSP diagnostic reported by the language server id
-                wrapper.updateDiagnostics(params.getDiagnostics(), languageServerWrapper);
+        VirtualFile file = LSPIJUtils.findResourceFor(params.getUri());
+        if (file == null) {
+            return;
+        }
+        Project project = LSPIJUtils.getProject(file);
+        if (project == null || project.isDisposed()) {
+            return;
+        }
+        final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+        if (psiFile == null) {
+            return;
+        }
+
+        // Update LSP diagnostic reported by the language server id
+        URI fileURI = LSPIJUtils.toUri(file);
+        LSPVirtualFileData data = languageServerWrapper.getLSPVirtualFileData(fileURI);
+        if (data != null) {
+            synchronized (data) {
+                data.updateDiagnostics(params.getDiagnostics());
             }
             // Trigger Intellij validation to execute
             // {@link LSPDiagnosticAnnotator}.
             // which translates LSP Diagnostics into Intellij Annotation
             DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
+        }
+
     }
 }

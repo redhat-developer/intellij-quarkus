@@ -49,11 +49,11 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
         return targets.isEmpty() ? null : new LSPHighlightUsagesHandler(editor, file, targets);
     }
 
-    private List<LSPHighlightPsiElement> getTargets(Editor editor, PsiFile file) {
+    private List<LSPHighlightPsiElement> getTargets(Editor editor, PsiFile psiFile) {
         List<LSPHighlightPsiElement> elements = new ArrayList<>();
         final CancellationSupport cancellationSupport = new CancellationSupport();
         try {
-            int offset = TargetElementUtil.adjustOffset(file, editor.getDocument(), editor.getCaretModel().getOffset());
+            int offset = TargetElementUtil.adjustOffset(psiFile, editor.getDocument(), editor.getCaretModel().getOffset());
             Document document = editor.getDocument();
             Position position;
             position = LSPIJUtils.toPosition(offset, document);
@@ -67,7 +67,7 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
             BlockingDeque<DocumentHighlight> highlights = new LinkedBlockingDeque<>();
 
             CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(editor.getProject())
-                    .getLanguageServers(document, capabilities -> LSPIJUtils.hasCapability(capabilities.getDocumentHighlightProvider()))
+                    .getLanguageServers(psiFile.getVirtualFile(), capabilities -> LSPIJUtils.hasCapability(capabilities.getDocumentHighlightProvider()))
                     .thenAcceptAsync(languageServers ->
                             cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
                                     .map(languageServer -> cancellationSupport.execute(languageServer.getServer().getTextDocumentService().documentHighlight(params)))

@@ -25,12 +25,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileWrapper;
+import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileData;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerBundle;
+import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import org.eclipse.lsp4j.DocumentLink;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -42,16 +45,14 @@ public class LSPDocumentLinkGotoDeclarationHandler implements GotoDeclarationHan
     public PsiElement @Nullable [] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
         Document document = editor.getDocument();
         VirtualFile file = LSPIJUtils.getFile(document);
-        if (!LSPVirtualFileWrapper.hasWrapper(file)) {
-            return PsiElement.EMPTY_ARRAY;
-        }
         Module module = LSPIJUtils.getModule(file);
         Project project = module != null ? module.getProject() : null;
         if (project == null || project.isDisposed()) {
             return PsiElement.EMPTY_ARRAY;
         }
-        LSPVirtualFileWrapper wrapper = LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file);
-        Collection<LSPDocumentLinkForServer> allLinks = wrapper.getAllDocumentLink();
+
+        URI fileUri = LSPIJUtils.toUri(file);
+        Collection<LSPDocumentLinkForServer> allLinks = getAllDocumentLink(fileUri, project);
         if (allLinks.isEmpty()) {
             return PsiElement.EMPTY_ARRAY;
         }
@@ -96,5 +97,18 @@ public class LSPDocumentLinkGotoDeclarationHandler implements GotoDeclarationHan
             }
         }
         return PsiElement.EMPTY_ARRAY;
+    }
+
+    private Collection<LSPDocumentLinkForServer> getAllDocumentLink(URI fileUri, Project project) {
+        Collection<LSPDocumentLinkForServer> links = new ArrayList<>();
+        LanguageServiceAccessor.getInstance(project)
+                .getStartedServers()
+                .forEach(ls -> {
+                    LSPVirtualFileData data = ls.getLSPVirtualFileData(fileUri);
+                    if (data != null) {
+                        links.add(data.getDocumentLinkForServer());
+                    }
+                });
+        return links;
     }
 }

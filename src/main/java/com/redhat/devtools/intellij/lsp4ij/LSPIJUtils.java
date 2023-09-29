@@ -27,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,12 +141,20 @@ public class LSPIJUtils {
         return file != null ? toUri(file) : null;
     }
 
-    public static VirtualFile getFile(Document document) {
+    public static @Nullable VirtualFile getFile(Document document) {
         return FileDocumentManager.getInstance().getFile(document);
     }
 
-    public static Document getDocument(VirtualFile docFile) {
-        return FileDocumentManager.getInstance().getDocument(docFile);
+    public static @Nullable VirtualFile getFile(@NotNull PsiElement element) {
+        PsiFile psFile = element.getContainingFile();
+        return psFile != null ? psFile.getVirtualFile() : null;
+    }
+
+    public static @Nullable Document getDocument(@NotNull VirtualFile file) {
+        if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+            return FileDocumentManager.getInstance().getDocument(file);
+        }
+        return ReadAction.compute(() -> FileDocumentManager.getInstance().getDocument(file));
     }
 
     /**
@@ -405,11 +414,11 @@ public class LSPIJUtils {
         return getFileLanguage(file, project);
     }
 
-    public static VirtualFile findResourceFor(URI uri) {
+    public static @Nullable VirtualFile findResourceFor(URI uri) {
         return LocalFileSystem.getInstance().findFileByIoFile(Paths.get(uri).toFile());
     }
 
-    public static VirtualFile findResourceFor(String uri) {
+    public static @Nullable VirtualFile findResourceFor(String uri) {
         if (uri.startsWith(JAR_SCHEME) || uri.startsWith(JRT_SCHEME)) {
             // ex : jar:file:///C:/Users/azerr/.m2/repository/io/quarkus/quarkus-core/3.0.1.Final/quarkus-core-3.0.1.Final.jar!/io/quarkus/runtime/ApplicationConfig.class
             try {
@@ -423,7 +432,7 @@ public class LSPIJUtils {
 
     public static Editor[] editorsForFile(VirtualFile file) {
         Editor[] editors = new Editor[0];
-        Document document = FileDocumentManager.getInstance().getDocument(file);
+        Document document = getDocument(file);
         if (document != null) {
             editors = editorsForFile(file, document);
         }
@@ -518,4 +527,5 @@ public class LSPIJUtils {
         }
         return project.getName();
     }
+
 }

@@ -22,6 +22,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerItem;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
@@ -51,15 +53,16 @@ public class LSPCompletionContributor extends CompletionContributor {
     public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet result) {
         Document document = parameters.getEditor().getDocument();
         Editor editor = parameters.getEditor();
-        PsiFile file = parameters.getOriginalFile();
-        Project project = file.getProject();
+        PsiFile psiFile = parameters.getOriginalFile();
+        Project project = psiFile.getProject();
         int offset = parameters.getOffset();
-
+        VirtualFile file = psiFile.getVirtualFile();
+        URI uri = LSPIJUtils.toUri(file);
         ProgressManager.checkCanceled();
 
         final CancellationSupport cancellationSupport = new CancellationSupport();
         try {
-            CompletableFuture<List<LanguageServerItem>> completionLanguageServersFuture = initiateLanguageServers(project, document);
+            CompletableFuture<List<LanguageServerItem>> completionLanguageServersFuture = initiateLanguageServers(project, file);
             cancellationSupport.execute(completionLanguageServersFuture);
             ProgressManager.checkCanceled();
 
@@ -68,7 +71,7 @@ public class LSPCompletionContributor extends CompletionContributor {
              more characters as toProposals will require as read lock that this thread already have and
              async processing is occuring on a separate thread.
              */
-            CompletionParams params = LSPIJUtils.toCompletionParams(LSPIJUtils.toUri(document), offset, document);
+            CompletionParams params = LSPIJUtils.toCompletionParams(uri, offset, document);
             BlockingDeque<Pair<Either<List<CompletionItem>, CompletionList>, LanguageServerItem>> proposals = new LinkedBlockingDeque<>();
 
             CompletableFuture<Void> future = completionLanguageServersFuture
@@ -87,7 +90,7 @@ public class LSPCompletionContributor extends CompletionContributor {
                     Either<List<CompletionItem>, CompletionList> completion = pair.getFirst();
                     if (completion != null) {
                         CompletionPrefix completionPrefix = new CompletionPrefix(offset, document);
-                        addCompletionItems(file, editor, completionPrefix, pair.getFirst(), pair.getSecond(), result, cancellationSupport);
+                        addCompletionItems(psiFile, editor, completionPrefix, pair.getFirst(), pair.getSecond(), result, cancellationSupport);
                     }
                 }
             }
@@ -169,8 +172,8 @@ public class LSPCompletionContributor extends CompletionContributor {
         return LookupElementBuilder.create("Error while computing completion", "");
     }
 
-    private static CompletableFuture<List<LanguageServerItem>> initiateLanguageServers(Project project, Document document) {
-        return LanguageServiceAccessor.getInstance(project).getLanguageServers(document,
+    private static CompletableFuture<List<LanguageServerItem>> initiateLanguageServers(Project project, VirtualFile file) {
+        return LanguageServiceAccessor.getInstance(project).getLanguageServers(file,
                 capabilities -> {
                     CompletionOptions provider = capabilities.getCompletionProvider();
                     if (provider != null) {
