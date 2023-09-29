@@ -10,10 +10,15 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.operations.documentation;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.impl.EditorImpl;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.intellij.lsp4ij.internal.CancellationSupport;
@@ -34,13 +39,19 @@ import java.util.stream.Collectors;
 /**
  * LSP textDocument/hover support for a given file.
  */
-public class LSPTextHoverForFile {
+public class LSPTextHoverForFile implements Disposable  {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPTextHoverForFile.class);
     private PsiElement lastElement;
     private int lastOffset = -1;
     private CompletableFuture<List<Hover>> lspRequest;
     private CancellationSupport previousCancellationSupport;
+
+    public LSPTextHoverForFile(Editor editor) {
+        if (editor instanceof EditorImpl) {
+            Disposer.register(((EditorImpl)editor).getDisposable(), this);
+        }
+    }
 
     public List<MarkupContent> getHoverContent(PsiElement element, int targetOffset, Editor editor) {
         initiateHoverRequest(element, targetOffset);
@@ -81,13 +92,15 @@ public class LSPTextHoverForFile {
             this.previousCancellationSupport.cancel();
         }
         PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
-        final Document document = manager.getDocument(element.getContainingFile());
+        PsiFile psiFile = element.getContainingFile();
+        VirtualFile file = LSPIJUtils.getFile(element);
+        final Document document = manager.getDocument(psiFile);
         if (offset != -1 && (this.lspRequest == null || !element.equals(this.lastElement) || offset != this.lastOffset)) {
             this.lastElement = element;
             this.lastOffset = offset;
             CancellationSupport cancellationSupport = new CancellationSupport();
             this.lspRequest = LanguageServiceAccessor.getInstance(element.getProject())
-                    .getLanguageServers(document, capabilities -> isHoverCapable(capabilities))
+                    .getLanguageServers(file, capabilities -> isHoverCapable(capabilities))
                     .thenApplyAsync(languageServers -> // Async is very important here, otherwise the LS Client thread is in
                             // deadlock and doesn't read bytes from LS
                             languageServers.stream()
@@ -137,4 +150,11 @@ public class LSPTextHoverForFile {
         return (capabilities.getHoverProvider().isLeft() && capabilities.getHoverProvider().getLeft()) || capabilities.getHoverProvider().isRight();
     }
 
+    @Override
+    public void dispose() {
+        if (this.previousCancellationSupport != null) {
+            // The previous LSP hover request is not finished,cancel it
+            this.previousCancellationSupport.cancel();
+        }
+    }
 }

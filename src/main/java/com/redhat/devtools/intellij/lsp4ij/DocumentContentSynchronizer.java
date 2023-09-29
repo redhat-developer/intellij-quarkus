@@ -21,10 +21,10 @@ import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.TextDocumentSyncOptions;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,29 +33,30 @@ import java.util.concurrent.CompletableFuture;
 public class DocumentContentSynchronizer implements DocumentListener {
     private final static Logger LOGGER = LoggerFactory.getLogger(DocumentContentSynchronizer.class);
 
-    private final @Nonnull LanguageServerWrapper languageServerWrapper;
-    private final @Nonnull Document document;
-    private final @Nonnull URI fileUri;
+    private final @NotNull LanguageServerWrapper languageServerWrapper;
+    private final @NotNull Document document;
+    private final @NotNull String fileUri;
     private final TextDocumentSyncKind syncKind;
 
     private int version = 0;
     private final List<TextDocumentContentChangeEvent> changeEvents;
     private long modificationStamp;
-    final @Nonnull
+    final @NotNull
     CompletableFuture<Void> didOpenFuture;
 
-    public DocumentContentSynchronizer(@Nonnull LanguageServerWrapper languageServerWrapper,
-                                       @Nonnull Document document,
+    public DocumentContentSynchronizer(@NotNull LanguageServerWrapper languageServerWrapper,
+                                       @NotNull URI fileUri,
+                                       @NotNull Document document,
                                        TextDocumentSyncKind syncKind) {
         this.languageServerWrapper = languageServerWrapper;
-        this.fileUri = LSPIJUtils.toUri(document);
+        this.fileUri = fileUri.toASCIIString();
         this.modificationStamp = -1;
         this.syncKind = syncKind != null ? syncKind : TextDocumentSyncKind.Full;
 
         this.document = document;
         // add a document buffer
         TextDocumentItem textDocument = new TextDocumentItem();
-        textDocument.setUri(fileUri.toString());
+        textDocument.setUri(this.fileUri);
         textDocument.setText(document.getText());
 
         Language contentTypes = LSPIJUtils.getDocumentLanguage(document, languageServerWrapper.getProject());

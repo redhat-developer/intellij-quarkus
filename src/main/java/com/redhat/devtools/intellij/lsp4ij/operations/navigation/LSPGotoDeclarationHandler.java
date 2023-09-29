@@ -53,12 +53,13 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
     public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
         URI uri = LSPIJUtils.toUri(editor.getDocument());
         if (uri != null) {
+            VirtualFile file = LSPIJUtils.getFile(sourceElement);
             DefinitionParams params = new DefinitionParams(LSPIJUtils.toTextDocumentIdentifier(uri), LSPIJUtils.toPosition(offset, editor.getDocument()));
             Set<PsiElement> targets = new HashSet<>();
             final CancellationSupport cancellationSupport = new CancellationSupport();
             try {
                 LanguageServiceAccessor.getInstance(editor.getProject())
-                        .getLanguageServers(editor.getDocument(), capabilities -> LSPIJUtils.hasCapability(capabilities.getDefinitionProvider()))
+                        .getLanguageServers(file, capabilities -> LSPIJUtils.hasCapability(capabilities.getDefinitionProvider()))
                         .thenComposeAsync(languageServers ->
                                 cancellationSupport.execute(
                                         CompletableFuture.allOf(

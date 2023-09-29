@@ -16,6 +16,10 @@ package com.redhat.devtools.intellij.lsp4ij;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.operations.diagnostics.LSPDiagnosticsForServer;
 import com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkForServer;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DocumentLink;
+
+import java.util.List;
 
 /**
  * LSP data stored in {@link VirtualFile} which are used by some LSP operations.
@@ -28,16 +32,31 @@ public class LSPVirtualFileData {
 
     private final LSPDocumentLinkForServer documentLinkForServer;
 
-    public LSPVirtualFileData(LanguageServerWrapper languageServerWrapper, VirtualFile file) {
+    private final DocumentContentSynchronizer synchronizer;
+
+    public LSPVirtualFileData(LanguageServerWrapper languageServerWrapper, VirtualFile file, DocumentContentSynchronizer synchronizer) {
+        this.synchronizer = synchronizer;
         this.diagnosticsForServer = new LSPDiagnosticsForServer(languageServerWrapper,file);
         this.documentLinkForServer = new LSPDocumentLinkForServer(languageServerWrapper, file);
     }
 
-    public LSPDiagnosticsForServer getLSPDiagnosticsForServer() {
+    public DocumentContentSynchronizer getSynchronizer() {
+        return synchronizer;
+    }
+
+    public LSPDiagnosticsForServer getDiagnosticsForServer() {
         return diagnosticsForServer;
     }
 
     public LSPDocumentLinkForServer getDocumentLinkForServer() {
         return documentLinkForServer;
+    }
+
+    public void updateDiagnostics(List<Diagnostic> diagnostics) {
+        diagnosticsForServer.update(diagnostics);
+    }
+
+    public void updateDocumentLink(List<DocumentLink> documentLinks) {
+        documentLinkForServer.update(documentLinks);
     }
 }

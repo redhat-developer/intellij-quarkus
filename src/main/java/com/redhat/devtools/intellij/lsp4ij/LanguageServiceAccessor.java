@@ -12,19 +12,17 @@ package com.redhat.devtools.intellij.lsp4ij;
 
 import com.intellij.lang.Language;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4ij.server.StreamConnectionProvider;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.services.LanguageServer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
@@ -51,21 +49,21 @@ public class LanguageServiceAccessor {
     private final Set<LanguageServerWrapper> startedServers = new HashSet<>();
     private Map<StreamConnectionProvider, LanguageServersRegistry.LanguageServerDefinition> providersToLSDefinitions = new HashMap<>();
 
-    @Nonnull
-    public CompletableFuture<List<LanguageServerItem>> getLanguageServers(@Nonnull Document document,
+    @NotNull
+    public CompletableFuture<List<LanguageServerItem>> getLanguageServers(@NotNull VirtualFile file,
                                                                                  Predicate<ServerCapabilities> filter) {
-        URI uri = LSPIJUtils.toUri(document);
+        URI uri = LSPIJUtils.toUri(file);
         if (uri == null) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
         final List<LanguageServerItem> servers = Collections.synchronizedList(new ArrayList<>());
         try {
-            return CompletableFuture.allOf(getLSWrappers(document).stream().map(wrapper ->
+            return CompletableFuture.allOf(getLSWrappers(file).stream().map(wrapper ->
                     wrapper.getInitializedServer()
                             .thenComposeAsync(server -> {
                                 if (server != null && wrapper.isEnabled() && (filter == null || filter.test(wrapper.getServerCapabilities()))) {
                                     try {
-                                        return wrapper.connect(document);
+                                        return wrapper.connect(file);
                                     } catch (IOException ex) {
                                         LOGGER.warn(ex.getLocalizedMessage(), ex);
                                     }
@@ -104,24 +102,24 @@ public class LanguageServiceAccessor {
     }
 
     /**
-     * Get the requested language server instance for the given document. Starts the
+     * Get the requested language server instance for the given file. Starts the
      * language server if not already started.
      *
-     * @param document             the document for which the initialized LanguageServer shall be returned
-     * @param serverId             the ID of the LanguageServer to be returned
-     * @param capabilitesPredicate a predicate to check capabilities
+     * @param file             the file for which the initialized LanguageServer shall be returned
+     * @param lsDefinition             the language server definition
+     * @param capabilitiesPredicate a predicate to check capabilities
      * @return a LanguageServer for the given file, which is defined with provided
      * server ID and conforms to specified request. If
      * {@code capabilitesPredicate} does not test positive for the server's
      * capabilities, {@code null} is returned.
      */
-    public CompletableFuture<LanguageServer> getInitializedLanguageServer(Document document,
+    public CompletableFuture<LanguageServer> getInitializedLanguageServer(VirtualFile file,
                                                                           LanguageServersRegistry.LanguageServerDefinition lsDefinition, Predicate<ServerCapabilities> capabilitiesPredicate)
             throws IOException {
-        URI initialPath = LSPIJUtils.toUri(document);
-        LanguageServerWrapper wrapper = getLSWrapperForConnection(document, lsDefinition, initialPath);
+        URI initialPath = LSPIJUtils.toUri(file);
+        LanguageServerWrapper wrapper = getLSWrapperForConnection(file, lsDefinition, initialPath);
         if (wrapper != null && capabilitiesComply(wrapper, capabilitiesPredicate)) {
-            wrapper.connect(document);
+            wrapper.connect(file);
             return wrapper.getInitializedServer();
         }
         return null;
@@ -146,11 +144,10 @@ public class LanguageServiceAccessor {
                 || capabilitiesPredicate.test(wrapper.getServerCapabilities());
     }
 
-    @Nonnull
-    private Collection<LanguageServerWrapper> getLSWrappers(@Nonnull Document document) {
+    @NotNull
+    private Collection<LanguageServerWrapper> getLSWrappers(@NotNull VirtualFile file) {
         LinkedHashSet<LanguageServerWrapper> res = new LinkedHashSet<>();
-        VirtualFile file = LSPIJUtils.getFile(document);
-        URI uri = LSPIJUtils.toUri(document);
+        URI uri = LSPIJUtils.toUri(file);
         if (uri == null) {
             return Collections.emptyList();
         }
@@ -159,14 +156,14 @@ public class LanguageServiceAccessor {
         // look for running language servers via content-type
         Queue<Language> contentTypes = new LinkedList<>();
         Set<Language> processedContentTypes = new HashSet<>();
-        contentTypes.add(LSPIJUtils.getDocumentLanguage(document, project));
+        contentTypes.add(LSPIJUtils.getFileLanguage(file, project));
 
         synchronized (startedServers) {
             // already started compatible servers that fit request
             res.addAll(startedServers.stream()
                     .filter(wrapper -> {
                         try {
-                            return wrapper.isEnabled() && (wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(document, wrapper.serverDefinition, project));
+                            return wrapper.isEnabled() && (wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(file, wrapper.serverDefinition, project));
                         } catch (ProcessCanceledException cancellation) {
                             throw cancellation;
                         } catch (Exception e) {
@@ -174,7 +171,7 @@ public class LanguageServiceAccessor {
                             return false;
                         }
                     })
-                    .filter(wrapper -> wrapper.canOperate(document))
+                    .filter(wrapper -> wrapper.canOperate(file))
                     .collect(Collectors.toList()));
 
             while (!contentTypes.isEmpty()) {
@@ -192,7 +189,7 @@ public class LanguageServiceAccessor {
                         continue;
                     }
                     if (startedServers.stream().anyMatch(wrapper -> wrapper.serverDefinition.equals(serverDefinition)
-                            && wrapper.canOperate(document))) {
+                            && wrapper.canOperate(file))) {
                         // we already checked a compatible LS with this definition
                         continue;
                     }
@@ -209,7 +206,7 @@ public class LanguageServiceAccessor {
         }
     }
 
-    private LanguageServerWrapper getLSWrapperForConnection(Document document,
+    private LanguageServerWrapper getLSWrapperForConnection(VirtualFile file,
                                                             LanguageServersRegistry.LanguageServerDefinition serverDefinition, URI initialPath) throws IOException {
         if (!serverDefinition.isEnabled()) {
             // don't return a language server wrapper for the given server definition
@@ -218,7 +215,7 @@ public class LanguageServiceAccessor {
         LanguageServerWrapper wrapper = null;
 
         synchronized (startedServers) {
-            for (LanguageServerWrapper startedWrapper : getStartedLSWrappers(document)) {
+            for (LanguageServerWrapper startedWrapper : getStartedLSWrappers(file)) {
                 if (startedWrapper.serverDefinition.equals(serverDefinition)) {
                     wrapper = startedWrapper;
                     break;
@@ -235,8 +232,8 @@ public class LanguageServiceAccessor {
     }
 
     private List<LanguageServerWrapper> getStartedLSWrappers(
-            Document document) {
-        return getStartedLSWrappers(wrapper -> wrapper.canOperate(document));
+            VirtualFile file) {
+        return getStartedLSWrappers(wrapper -> wrapper.canOperate(file));
     }
 
     private List<LanguageServerWrapper> getStartedLSWrappers(Predicate<LanguageServerWrapper> predicate) {
@@ -246,7 +243,7 @@ public class LanguageServiceAccessor {
     }
 
 
-    private Collection<LanguageServerWrapper> getMatchingStartedWrappers(@Nonnull VirtualFile file,
+    private Collection<LanguageServerWrapper> getMatchingStartedWrappers(@NotNull VirtualFile file,
                                                                          @Nullable Predicate<ServerCapabilities> request) {
         synchronized (startedServers) {
             return startedServers.stream().filter(wrapper -> wrapper.isConnectedTo(LSPIJUtils.toUri(file))
@@ -264,7 +261,7 @@ public class LanguageServiceAccessor {
      * @param request
      * @return list of Language Servers
      */
-    @Nonnull
+    @NotNull
     public List<LanguageServer> getActiveLanguageServers(Predicate<ServerCapabilities> request) {
         return getLanguageServers(null, request, true);
     }
@@ -277,7 +274,7 @@ public class LanguageServiceAccessor {
      *                     will be re-activated
      * @return list of Language Servers
      */
-    @Nonnull
+    @NotNull
     public List<LanguageServer> getLanguageServers(@Nullable Project project,
                                                    Predicate<ServerCapabilities> request, boolean onlyActiveLS) {
         List<LanguageServer> serverInfos = new ArrayList<>();

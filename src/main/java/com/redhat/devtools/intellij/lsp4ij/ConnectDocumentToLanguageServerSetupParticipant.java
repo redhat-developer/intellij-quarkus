@@ -46,21 +46,21 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectM
             if (DumbService.isDumb(project)) {
                 // Force the start of all languages servers mapped with the given file when indexation is finished
                 DumbService.getInstance(project).runWhenSmart(() -> {
-                    startLanguageServer(source, document);
+                    startLanguageServer(source, file);
                 });
             } else {
                 // Force the start of all languages servers mapped with the given file immediately
-                startLanguageServer(source, document);
+                startLanguageServer(source, file);
             }
         }
     }
 
-    private static void startLanguageServer(@NotNull FileEditorManager source, Document document) {
+    private static void startLanguageServer(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
         // Force the start of all languages servers mapped with the given file
         // Server capabilities filter is set to null to avoid waiting
         // for the start of the server when server capabilities are checked
         LanguageServiceAccessor.getInstance(source.getProject())
-                .getLanguageServers(document, null);
+                .getLanguageServers(file, null);
     }
 
 }

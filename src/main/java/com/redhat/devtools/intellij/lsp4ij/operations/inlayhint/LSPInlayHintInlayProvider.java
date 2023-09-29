@@ -23,6 +23,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.AbstractLSPInlayProvider;
@@ -41,7 +42,6 @@ import java.awt.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
@@ -72,15 +72,16 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
                 Document document = editor.getDocument();
                 final CancellationSupport cancellationSupport = new CancellationSupport();
                 try {
-                    URI docURI = LSPIJUtils.toUri(document);
-                    if (docURI == null) {
+                    VirtualFile file = LSPIJUtils.getFile(psiFile);
+                    if (file == null) {
                         return false;
                     }
+                    URI docURI = LSPIJUtils.toUri(file);
                     Range viewPortRange = getViewPortRange(editor);
                     InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(docURI.toString()), viewPortRange);
                     BlockingDeque<Pair<InlayHint, LanguageServer>> pairs = new LinkedBlockingDeque<>();
 
-                    CompletableFuture<Void> future = collect(psiElement.getProject(), document, param, pairs, cancellationSupport);
+                    CompletableFuture<Void> future = collect(psiElement.getProject(), file, param, pairs, cancellationSupport);
                     List<Pair<Integer, Pair<InlayHint, LanguageServer>>> inlayHints = createInlayHints(document, pairs, future);
                     inlayHints.stream()
                             .collect(Collectors.groupingBy(p -> p.first))
@@ -115,9 +116,9 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
                 return inlayHints;
             }
 
-            private CompletableFuture<Void> collect(@NotNull Project project, @NotNull Document document, InlayHintParams param, BlockingDeque<Pair<InlayHint, LanguageServer>> pairs, CancellationSupport cancellationSupport) {
+            private CompletableFuture<Void> collect(@NotNull Project project, @NotNull VirtualFile file, InlayHintParams param, BlockingDeque<Pair<InlayHint, LanguageServer>> pairs, CancellationSupport cancellationSupport) {
                 return LanguageServiceAccessor.getInstance(project)
-                        .getLanguageServers(document, capabilities -> capabilities.getInlayHintProvider() != null)
+                        .getLanguageServers(file, capabilities -> capabilities.getInlayHintProvider() != null)
                         .thenComposeAsync(languageServers -> cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
                                 .map(languageServer ->
                                         cancellationSupport.execute(languageServer.getServer().getTextDocumentService().inlayHint(param))

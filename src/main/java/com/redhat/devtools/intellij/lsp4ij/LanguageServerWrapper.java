@@ -17,6 +17,7 @@ import com.intellij.lang.Language;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -37,11 +38,10 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -72,8 +72,6 @@ public class LanguageServerWrapper implements Disposable {
             URI uri = LSPIJUtils.toUri(file);
             if (uri != null) {
                 try {
-                    // Remove the cached file wrapper if needed
-                    LSPVirtualFileWrapper.dispose(file);
                     // Disconnect the given file from the current language servers
                     disconnect(uri, !isDisposed());
                 } catch (Exception e) {
@@ -81,7 +79,6 @@ public class LanguageServerWrapper implements Disposable {
                 }
             }
         }
-
 
         @Override
         public void propertyChanged(@NotNull VirtualFilePropertyEvent event) {
@@ -101,10 +98,10 @@ public class LanguageServerWrapper implements Disposable {
         public void contentsChanged(@NotNull VirtualFileEvent event) {
             URI uri = LSPIJUtils.toUri(event.getFile());
             if (uri != null) {
-                DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
+                LSPVirtualFileData documentListener = connectedDocuments.get(uri);
                 if (documentListener != null) {
                     // 1. Send a textDocument/didSave for the saved file
-                    documentListener.documentSaved();
+                    documentListener.getSynchronizer().documentSaved();
                 }
                 // 2. Send a workspace/didChangeWatchedFiles
                 didChangeWatchedFiles(fe(uri, FileChangeType.Changed));
@@ -148,8 +145,7 @@ public class LanguageServerWrapper implements Disposable {
         private @NotNull URI didClose(VirtualFile virtualParentFile, String fileName) {
             File parent = VfsUtilCore.virtualToIoFile(virtualParentFile);
             URI uri = LSPIJUtils.toUri(new File(parent, fileName));
-            DocumentContentSynchronizer documentListener = connectedDocuments.get(uri);
-            if (documentListener != null) {
+            if (isConnectedTo(uri)) {
                 disconnect(uri, false);
             }
             return uri;
@@ -157,22 +153,22 @@ public class LanguageServerWrapper implements Disposable {
 
         private void didChangeWatchedFiles(FileEvent... changes) {
             LanguageServerWrapper.this.sendNotification(ls -> {
-                        DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams(Arrays.asList(changes));
-                        ls.getWorkspaceService()
-                                .didChangeWatchedFiles(params);
-                    });
+                DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams(Arrays.asList(changes));
+                ls.getWorkspaceService()
+                        .didChangeWatchedFiles(params);
+            });
         }
     }
 
     private Listener fileBufferListener = new Listener();
     private MessageBusConnection messageBusConnection;
 
-    @Nonnull
+    @NotNull
     public final LanguageServersRegistry.LanguageServerDefinition serverDefinition;
     @Nullable
     protected final Project initialProject;
-    @Nonnull
-    protected Map<URI, DocumentContentSynchronizer> connectedDocuments;
+    @NotNull
+    protected Map<URI, LSPVirtualFileData> connectedDocuments;
     @Nullable
     protected final URI initialPath;
     protected final InitializeParams initParams = new InitializeParams();
@@ -205,23 +201,23 @@ public class LanguageServerWrapper implements Disposable {
     /**
      * Map containing unregistration handlers for dynamic capability registrations.
      */
-    private @Nonnull
+    private @NotNull
     Map<String, Runnable> dynamicRegistrations = new HashMap<>();
     private boolean initiallySupportsWorkspaceFolders = false;
 
     /* Backwards compatible constructor */
-    public LanguageServerWrapper(@Nonnull Project project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition) {
+    public LanguageServerWrapper(@NotNull Project project, @NotNull LanguageServersRegistry.LanguageServerDefinition serverDefinition) {
         this(project, serverDefinition, null);
     }
 
-    public LanguageServerWrapper(@Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition, @Nullable URI initialPath) {
+    public LanguageServerWrapper(@NotNull LanguageServersRegistry.LanguageServerDefinition serverDefinition, @Nullable URI initialPath) {
         this(null, serverDefinition, initialPath);
     }
 
     /**
      * Unified private constructor to set sensible defaults in all cases
      */
-    private LanguageServerWrapper(@Nullable Project project, @Nonnull LanguageServersRegistry.LanguageServerDefinition serverDefinition,
+    private LanguageServerWrapper(@Nullable Project project, @NotNull LanguageServersRegistry.LanguageServerDefinition serverDefinition,
                                   @Nullable URI initialPath) {
         this.initialProject = project;
         this.initialPath = initialPath;
@@ -301,16 +297,13 @@ public class LanguageServerWrapper implements Disposable {
                 numberOfRestartAttempts++;
             }
         }
-        final var filesToReconnect = new HashMap<URI, Document>();
+        final var filesToReconnect = new ArrayList<URI>();
         if (this.languageServer != null) {
             if (isActive()) {
                 return;
             } else {
-                for (Map.Entry<URI, DocumentContentSynchronizer> entry : this.connectedDocuments.entrySet()) {
-                    // Get the Document from the VirtualFile to use the proper Document Instance
-                    // (not an old instanceof the synchronizer which could be out of dated).
-                    Document document = getDocument(entry.getKey(), entry.getValue());
-                    filesToReconnect.put(entry.getKey(), document);
+                for (Map.Entry<URI, LSPVirtualFileData> entry : this.connectedDocuments.entrySet()) {
+                    filesToReconnect.add(entry.getKey());
                 }
                 stop();
             }
@@ -389,11 +382,11 @@ public class LanguageServerWrapper implements Disposable {
                     }).thenRun(() -> {
                         this.languageServer.initialized(new InitializedParams());
                     }).thenRun(() -> {
-                        final Map<URI, Document> toReconnect = filesToReconnect;
+                        final List<URI> toReconnect = filesToReconnect;
                         initializeFuture.thenRunAsync(() -> {
-                            for (Map.Entry<URI, Document> fileToReconnect : toReconnect.entrySet()) {
+                            for (URI fileToReconnect : toReconnect) {
                                 try {
-                                    connect(fileToReconnect.getKey(), fileToReconnect.getValue());
+                                    connect(fileToReconnect);
                                 } catch (IOException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -421,25 +414,6 @@ public class LanguageServerWrapper implements Disposable {
                         return null;
                     });
         }
-    }
-
-    /**
-     * Returns the document instance from the virtual file which matches the given uri and the document from teh synchronizer otherwise.
-     *
-     * @param uri          the document Uri
-     * @param synchronizer the document synchronizer.
-     * @return the document instance from the virtual file which matches the given uri and the document from teh synchronizer otherwise.
-     */
-    private static Document getDocument(URI uri, DocumentContentSynchronizer synchronizer) {
-        Document document = synchronizer.getDocument();
-        VirtualFile file = LSPIJUtils.findResourceFor(uri);
-        if (file != null) {
-            Document documentFromFile = LSPIJUtils.getDocument(file);
-            if (documentFromFile != null) {
-                document = documentFromFile;
-            }
-        }
-        return document;
     }
 
     private CompletableFuture<InitializeResult> initServer(final URI rootURI) {
@@ -676,34 +650,17 @@ public class LanguageServerWrapper implements Disposable {
     }
 
     /**
-     * @param file
-     * @param document
+     * Connect the given file to the language server.
+     *
+     * @param file the file to connect to the language server
      * @return null if not connection has happened, a future tracking the connection state otherwise
      * @throws IOException
      */
-    public @Nullable
-    CompletableFuture<LanguageServer> connect(@Nonnull VirtualFile file, Document document) throws IOException {
-        return connect(LSPIJUtils.toUri(file), document);
-    }
-
-    /**
-     * @param document
-     * @return null if not connection has happened, a future tracking the connection state otherwise
-     * @throws IOException
-     */
-    public @Nullable
-    CompletableFuture<LanguageServer> connect(Document document) throws IOException {
-        VirtualFile file = LSPIJUtils.getFile(document);
-
+    public CompletableFuture<@Nullable LanguageServer> connect(VirtualFile file) throws IOException {
         if (file != null && file.exists()) {
-            return connect(file, document);
-        } else {
-            URI uri = LSPIJUtils.toUri(document);
-            if (uri != null) {
-                return connect(uri, document);
-            }
+            return connect(LSPIJUtils.toUri(file));
         }
-        return null;
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
@@ -727,28 +684,23 @@ public class LanguageServerWrapper implements Disposable {
      * @return null if not connection has happened, a future that completes when file is initialized otherwise
      * @noreference internal so far
      */
-    private CompletableFuture<LanguageServer> connect(@Nonnull URI absolutePath, Document document) throws IOException {
+    private CompletableFuture<LanguageServer> connect(@NotNull URI fileUri) throws IOException {
         removeStopTimer(false);
-        final URI thePath = absolutePath; // should be useless
 
-        if (this.connectedDocuments.containsKey(thePath)) {
+        if (this.connectedDocuments.containsKey(fileUri)) {
             return CompletableFuture.completedFuture(languageServer);
         }
         start();
         if (this.initializeFuture == null) {
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
-        if (document == null) {
-            VirtualFile docFile = LSPIJUtils.findResourceFor(thePath);
-            document = LSPIJUtils.getDocument(docFile);
+        VirtualFile file = LSPIJUtils.findResourceFor(fileUri);
+        if (file == null) {
+            return CompletableFuture.completedFuture(null);
         }
-        if (document == null) {
-            return null;
-        }
-        final Document theDocument = document;
         return initializeFuture.thenComposeAsync(theVoid -> {
             synchronized (connectedDocuments) {
-                if (this.connectedDocuments.containsKey(thePath)) {
+                if (this.connectedDocuments.containsKey(fileUri)) {
                     return CompletableFuture.completedFuture(null);
                 }
                 Either<TextDocumentSyncKind, TextDocumentSyncOptions> syncOptions = initializeFuture == null ? null
@@ -761,10 +713,15 @@ public class LanguageServerWrapper implements Disposable {
                         syncKind = syncOptions.getLeft();
                     }
                 }
-                DocumentContentSynchronizer listener = new DocumentContentSynchronizer(this, theDocument, syncKind);
-                theDocument.addDocumentListener(listener);
-                LanguageServerWrapper.this.connectedDocuments.put(thePath, listener);
-                return listener.didOpenFuture;
+
+                Document document = LSPIJUtils.getDocument(file);
+                DocumentContentSynchronizer synchronizer = new DocumentContentSynchronizer(this, fileUri, document, syncKind);
+                document.addDocumentListener(synchronizer);
+
+                LSPVirtualFileData data = new LSPVirtualFileData(this, file, synchronizer);
+                LanguageServerWrapper.this.connectedDocuments.put(fileUri, data);
+
+                return synchronizer.didOpenFuture;
             }
         }).thenApply(theVoid -> languageServer);
     }
@@ -774,11 +731,12 @@ public class LanguageServerWrapper implements Disposable {
     }
 
     private void disconnect(URI path, boolean stopIfNoOpenedFiles) {
-        DocumentContentSynchronizer documentListener = this.connectedDocuments.remove(path);
-        if (documentListener != null) {
+        LSPVirtualFileData data = this.connectedDocuments.remove(path);
+        if (data != null) {
             // Remove the listener from the old document stored in synchronizer
-            documentListener.getDocument().removeDocumentListener(documentListener);
-            documentListener.documentClosed();
+            DocumentContentSynchronizer synchronizer = data.getSynchronizer();
+            synchronizer.getDocument().removeDocumentListener(synchronizer);
+            synchronizer.documentClosed();
         }
         if (stopIfNoOpenedFiles && this.connectedDocuments.isEmpty()) {
             if (this.serverDefinition.lastDocumentDisconnectedTimeout != 0 && !ApplicationManager.getApplication().isUnitTestMode()) {
@@ -797,6 +755,10 @@ public class LanguageServerWrapper implements Disposable {
      */
     public boolean isConnectedTo(URI location) {
         return connectedDocuments.containsKey(location);
+    }
+
+    public @Nullable LSPVirtualFileData getLSPVirtualFileData(URI fileUri) {
+        return connectedDocuments.get(fileUri);
     }
 
     /**
@@ -821,7 +783,7 @@ public class LanguageServerWrapper implements Disposable {
      * server to be initialized. If done in the UI stream, a job will be created
      * displaying that the server is being initialized
      */
-    @Nonnull
+    @NotNull
     public CompletableFuture<LanguageServer> getInitializedServer() {
         try {
             start();
@@ -854,7 +816,7 @@ public class LanguageServerWrapper implements Disposable {
      *
      * @param fn LS notification to send
      */
-    public void sendNotification(@Nonnull Consumer<LanguageServer> fn) {
+    public void sendNotification(@NotNull Consumer<LanguageServer> fn) {
         // Enqueues a notification on the dispatch thread associated with the wrapped language server. This
         // ensures the interleaving of document updates and other requests in the UI is mirrored in the
         // order in which they get dispatched to the server
@@ -953,7 +915,7 @@ public class LanguageServerWrapper implements Disposable {
         });
     }
 
-    private void addRegistration(@Nonnull Registration reg, @Nonnull Runnable unregistrationHandler) {
+    private void addRegistration(@NotNull Registration reg, @NotNull Runnable unregistrationHandler) {
         String regId = reg.getId();
         synchronized (dynamicRegistrations) {
             assert !dynamicRegistrations.containsKey(regId) : "Registration id is not unique"; //$NON-NLS-1$
@@ -1022,23 +984,28 @@ public class LanguageServerWrapper implements Disposable {
     }
 
     int getVersion(VirtualFile file) {
-        if (file != null && LSPIJUtils.toUri(file) != null) {
-            DocumentContentSynchronizer documentContentSynchronizer = connectedDocuments.get(LSPIJUtils.toUri(file));
-            if (documentContentSynchronizer != null) {
-                return documentContentSynchronizer.getVersion();
+        if (file != null) {
+            URI uri = LSPIJUtils.toUri(file);
+            if (uri != null) {
+                LSPVirtualFileData data = connectedDocuments.get(LSPIJUtils.toUri(file));
+                if (data != null) {
+                    var synchronizer = data.getSynchronizer();
+                    if (synchronizer != null) {
+                        return synchronizer.getVersion();
+                    }
+                }
             }
         }
         return -1;
     }
 
-    public boolean canOperate(@Nonnull Document document) {
-        if (this.isConnectedTo(LSPIJUtils.toUri(document))) {
+    public boolean canOperate(@NotNull VirtualFile file) {
+        if (this.isConnectedTo(LSPIJUtils.toUri(file))) {
             return true;
         }
         if (this.initialProject == null && this.connectedDocuments.isEmpty()) {
             return true;
         }
-        VirtualFile file = LSPIJUtils.getFile(document);
         if (file != null && file.exists() && canOperate(LSPIJUtils.getProject(file))) {
             return true;
         }

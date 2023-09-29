@@ -21,7 +21,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileWrapper;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.LSPCompletionProposal;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
@@ -31,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +46,8 @@ public class LSPDocumentationProvider extends DocumentationProviderEx implements
     private static final HtmlRenderer RENDERER = HtmlRenderer.builder().build();
 
     private static final Key<Integer> TARGET_OFFSET_KEY = new Key<>(LSPDocumentationProvider.class.getName());
+
+    private static final Key<LSPTextHoverForFile> LSP_HOVER_KEY = new Key<>(LSPTextHoverForFile.class.getName());
 
     @Nullable
     @Override
@@ -85,10 +85,14 @@ public class LSPDocumentationProvider extends DocumentationProviderEx implements
                     return null;
                 }
                 editor = LSPIJUtils.editorForElement(originalElement);
-                VirtualFile file = originalElement.getContainingFile().getVirtualFile();
-                if (LSPVirtualFileWrapper.hasWrapper(file)) {
+                if (editor != null) {
+                    LSPTextHoverForFile hover = editor.getUserData(LSP_HOVER_KEY);
+                    if (hover == null) {
+                        hover = new LSPTextHoverForFile(editor);
+                        editor.putUserData(LSP_HOVER_KEY, hover);
+                    }
                     int targetOffset = getTargetOffset(originalElement);
-                    markupContent = LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file).getHoverContent(originalElement, targetOffset, editor);
+                    markupContent = hover.getHoverContent(originalElement, targetOffset, editor);
                 }
             }
 
@@ -105,28 +109,6 @@ public class LSPDocumentationProvider extends DocumentationProviderEx implements
                 originalElement.putUserData(TARGET_OFFSET_KEY, null);
             }
         }
-    }
-
-    @Nullable
-    public List<MarkupContent> getMarkupContents(PsiElement element, @Nullable PsiElement originalElement) {
-        if (element instanceof LSPPsiElementForLookupItem) {
-            // Show documentation for a given completion item in the "documentation popup" (see IJ Completion setting)
-            // (LSP textDocument/completion request)
-            return ((LSPPsiElementForLookupItem) element).getDocumentation();
-        }
-
-        Editor editor = LSPIJUtils.editorForElement(originalElement);
-        if (editor == null) {
-            return null;
-        }
-
-        // Show documentation for a hovered element (LSP textDocument/hover request).
-        VirtualFile file = originalElement.getContainingFile().getVirtualFile();
-        if (LSPVirtualFileWrapper.hasWrapper(file)) {
-            int targetOffset = getTargetOffset(originalElement);
-            return LSPVirtualFileWrapper.getLSPVirtualFileWrapper(file).getHoverContent(originalElement, targetOffset, editor);
-        }
-        return null;
     }
 
     private static int getTargetOffset(PsiElement originalElement) {
