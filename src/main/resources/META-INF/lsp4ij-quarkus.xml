@@ -1,7 +1,7 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
     <!-- Quarkus LSP -->
-    <server id="quarkus"
+    <server id="microprofile"
             label="Tools for MicroProfile"
             class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer"
             clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient"
@@ -17,9 +17,13 @@
         ]]>
       </description>
     </server>
-    <languageMapping language="Properties" serverId="quarkus"/>
-    <languageMapping language="JAVA" serverId="quarkus"/>
-    <serverIconProvider serverId="quarkus" class="com.redhat.devtools.intellij.microprofile.lang.MicroProfileServerIconProvider" />
+    <languageMapping language="Properties"
+                     serverId="microprofile"
+                     documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForPropertiesFile" />
+    <languageMapping language="JAVA"
+                     serverId="microprofile"
+                     documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForJavaFile"/>
+    <serverIconProvider serverId="microprofile" class="com.redhat.devtools.intellij.microprofile.lang.MicroProfileServerIconProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

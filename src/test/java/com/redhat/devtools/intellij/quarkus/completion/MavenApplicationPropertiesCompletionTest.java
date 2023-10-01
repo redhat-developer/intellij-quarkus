@@ -17,6 +17,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenEditorTest;
+import com.redhat.devtools.intellij.lsp4ij.ConnectDocumentToLanguageServerSetupParticipant;
 import org.junit.Test;
 
 import java.io.File;
@@ -30,6 +31,7 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 
 	@Test
 	public void testBooleanCompletion() throws Exception {
+
 		Module module = createMavenModule(new File("projects/quarkus/projects/maven/config-quickstart"));
 		VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/application.properties");
 		codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);

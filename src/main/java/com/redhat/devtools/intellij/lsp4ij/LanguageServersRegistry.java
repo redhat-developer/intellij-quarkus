@@ -20,6 +20,7 @@ import com.redhat.devtools.intellij.lsp4ij.server.StreamConnectionProvider;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.eclipse.lsp4j.services.LanguageServer;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -194,7 +195,7 @@ public class LanguageServersRegistry {
         for (LanguageMappingExtensionPointBean extension : LanguageMappingExtensionPointBean.EP_NAME.getExtensions()) {
             Language language = Language.findLanguageByID(extension.language);
             if (language != null) {
-                languageMappings.add(new LanguageMapping(language, extension.id, extension.serverId));
+                languageMappings.add(new LanguageMapping(language, extension.id, extension.serverId, extension.getDocumentMatcher()));
             }
         }
 
@@ -205,7 +206,7 @@ public class LanguageServersRegistry {
         for (LanguageMapping mapping : languageMappings) {
             LanguageServerDefinition lsDefinition = servers.get(mapping.languageId);
             if (lsDefinition != null) {
-                registerAssociation(mapping.language, lsDefinition, mapping.languageId);
+                registerAssociation(lsDefinition, mapping);
             } else {
                 LOGGER.warn("server '" + mapping.id + "' not available"); //$NON-NLS-1$ //$NON-NLS-2$
             }
@@ -223,24 +224,21 @@ public class LanguageServersRegistry {
      * @return the {@link LanguageServerDefinition}s <strong>directly</strong> associated to the given content-type.
      * This does <strong>not</strong> include the one that match transitively as per content-type hierarchy
      */
-    List<ContentTypeToLanguageServerDefinition> findProviderFor(final @NonNull Language contentType) {
+    List<ContentTypeToLanguageServerDefinition> findProviderFor(final @NotNull Language contentType) {
         return connections.stream()
                 .filter(entry -> contentType.isKindOf(entry.getKey()))
                 .collect(Collectors.toList());
     }
 
 
-    public void registerAssociation(@Nonnull Language language,
-                                    @Nonnull LanguageServerDefinition serverDefinition, @Nullable String languageId) {
+    public void registerAssociation(@NotNull LanguageServerDefinition serverDefinition, @Nullable LanguageMapping mapping) {
+        @NotNull Language language = mapping.language;
+        @Nullable String languageId = mapping.languageId;
         if (languageId != null) {
             serverDefinition.registerAssociation(language, languageId);
         }
 
-        connections.add(new ContentTypeToLanguageServerDefinition(language, serverDefinition));
-    }
-
-    public List<ContentTypeToLanguageServerDefinition> getContentTypeToLSPExtensions() {
-        return this.connections.stream().filter(mapping -> mapping.getValue() instanceof ExtensionLanguageServerDefinition).collect(Collectors.toList());
+        connections.add(new ContentTypeToLanguageServerDefinition(language, serverDefinition, mapping.getDocumentMatcher()));
     }
 
     public @Nullable
@@ -258,52 +256,25 @@ public class LanguageServersRegistry {
      */
     private static class LanguageMapping {
 
-        @Nonnull
+        @NotNull
         public final String id;
-        @Nonnull
+        @NotNull
         public final Language language;
         @Nullable
         public final String languageId;
 
-        public LanguageMapping(@Nonnull Language language, @Nonnull String id, @Nullable String languageId) {
+        private final DocumentMatcher documentMatcher;
+
+        public LanguageMapping(@NotNull Language language, @Nullable String id, @Nullable String languageId,  @NotNull DocumentMatcher documentMatcher) {
             this.language = language;
             this.id = id;
             this.languageId = languageId;
+            this.documentMatcher = documentMatcher;
         }
 
-    }
-
-    /**
-     * @param file
-     * @param serverDefinition
-     * @return whether the given serverDefinition is suitable for the file
-     */
-    public boolean matches(@Nonnull VirtualFile file, @NonNull LanguageServerDefinition serverDefinition,
-                           Project project) {
-        return getAvailableLSFor(LSPIJUtils.getFileLanguage(file, project)).contains(serverDefinition);
-    }
-
-    /**
-     * @param document
-     * @param serverDefinition
-     * @return whether the given serverDefinition is suitable for the file
-     */
-    public boolean matches(@Nonnull Document document, @Nonnull LanguageServerDefinition serverDefinition,
-                           Project project) {
-        return getAvailableLSFor(LSPIJUtils.getDocumentLanguage(document, project)).contains(serverDefinition);
-    }
-
-
-    private Set<LanguageServerDefinition> getAvailableLSFor(Language language) {
-        Set<LanguageServerDefinition> res = new HashSet<>();
-        if (language != null) {
-            for (ContentTypeToLanguageServerDefinition mapping : this.connections) {
-                if (language.isKindOf(mapping.getKey())) {
-                    res.add(mapping.getValue());
-                }
-            }
+        public DocumentMatcher getDocumentMatcher() {
+            return documentMatcher;
         }
-        return res;
     }
 
     public Set<LanguageServerDefinition> getAllDefinitions() {
