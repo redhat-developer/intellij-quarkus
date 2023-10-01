@@ -228,18 +228,21 @@ public class QuarkusModuleUtil {
     public static boolean isQuarkusPropertiesFile(VirtualFile file, Project project) {
         if (APPLICATION_PROPERTIES.matcher(file.getName()).matches() ||
                 MICROPROFILE_CONFIG_PROPERTIES.matcher(file.getName()).matches()) {
-            Module module = ModuleUtilCore.findModuleForFile(file, project);
-            return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
+            return isQuarkusModule(file, project);
         }
         return false;
     }
 
     public static boolean isQuarkusYAMLFile(VirtualFile file, Project project) {
         if (APPLICATION_YAML.matcher(file.getName()).matches()) {
-            Module module = ModuleUtilCore.findModuleForFile(file, project);
-            return module != null && FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null;
+            return isQuarkusModule(file, project);
         }
         return false;
+    }
+
+    private static boolean isQuarkusModule(VirtualFile file, Project project) {
+        Module module = ModuleUtilCore.findModuleForFile(file, project);
+        return module != null && (FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null || QuarkusModuleUtil.isQuarkusModule(module));
     }
 
     public static VirtualFile getModuleDirPath(Module module) {

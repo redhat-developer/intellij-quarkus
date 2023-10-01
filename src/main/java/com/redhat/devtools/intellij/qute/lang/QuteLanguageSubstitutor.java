@@ -25,6 +25,8 @@ import com.intellij.psi.LanguageSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.isQuteTemplate;
+
 /**
  * Qute language substitutor to force some language file (ex:HTML, YAML, etc) to "_Qute" language when:
  * <ul>
@@ -34,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class QuteLanguageSubstitutor extends LanguageSubstitutor {
     protected boolean isTemplate(VirtualFile file, Module module) {
-        return file.getPath().contains("templates") &&
+        return isQuteTemplate(file, module) &&
                 ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
     }
 

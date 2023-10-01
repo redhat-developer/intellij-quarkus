@@ -11,6 +11,8 @@
 package com.redhat.devtools.intellij.lsp4ij;
 
 import com.intellij.lang.Language;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
@@ -51,29 +53,41 @@ public class LanguageServiceAccessor {
 
     @NotNull
     public CompletableFuture<List<LanguageServerItem>> getLanguageServers(@NotNull VirtualFile file,
-                                                                                 Predicate<ServerCapabilities> filter) {
+                                                                          Predicate<ServerCapabilities> filter) {
         URI uri = LSPIJUtils.toUri(file);
         if (uri == null) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
+
+        // Collect started (or not) language servers which matches the given file.
+        CompletableFuture<Collection<LanguageServerWrapper>> matchedServers = getMatchedLanguageServersWrappers(file);
+        if (matchedServers.isDone() && matchedServers.getNow(Collections.emptyList()).isEmpty()) {
+            // None language servers matches the given file
+            return CompletableFuture.completedFuture(Collections.emptyList());
+        }
+
+        // Returns the language servers which match the given file, start them and connect the file to each matched language server
         final List<LanguageServerItem> servers = Collections.synchronizedList(new ArrayList<>());
         try {
-            return CompletableFuture.allOf(getLSWrappers(file).stream().map(wrapper ->
-                    wrapper.getInitializedServer()
-                            .thenComposeAsync(server -> {
-                                if (server != null && wrapper.isEnabled() && (filter == null || filter.test(wrapper.getServerCapabilities()))) {
-                                    try {
-                                        return wrapper.connect(file);
-                                    } catch (IOException ex) {
-                                        LOGGER.warn(ex.getLocalizedMessage(), ex);
-                                    }
-                                }
-                                return CompletableFuture.completedFuture(null);
-                            }).thenAccept(server -> {
-                                if (server != null) {
-                                    servers.add(new LanguageServerItem(server, wrapper));
-                                }
-                            })).toArray(CompletableFuture[]::new))
+            return matchedServers
+                    .thenComposeAsync(result -> CompletableFuture.allOf(result
+                            .stream()
+                            .map(wrapper ->
+                                    wrapper.getInitializedServer()
+                                            .thenComposeAsync(server -> {
+                                                if (server != null && wrapper.isEnabled() && (filter == null || filter.test(wrapper.getServerCapabilities()))) {
+                                                    try {
+                                                        return wrapper.connect(file);
+                                                    } catch (IOException ex) {
+                                                        LOGGER.warn(ex.getLocalizedMessage(), ex);
+                                                    }
+                                                }
+                                                return CompletableFuture.completedFuture(null);
+                                            }).thenAccept(server -> {
+                                                if (server != null) {
+                                                    servers.add(new LanguageServerItem(server, wrapper));
+                                                }
+                                            })).toArray(CompletableFuture[]::new)))
                     .thenApply(theVoid -> servers);
         } catch (final ProcessCanceledException cancellation) {
             throw cancellation;
@@ -105,8 +119,8 @@ public class LanguageServiceAccessor {
      * Get the requested language server instance for the given file. Starts the
      * language server if not already started.
      *
-     * @param file             the file for which the initialized LanguageServer shall be returned
-     * @param lsDefinition             the language server definition
+     * @param file                  the file for which the initialized LanguageServer shall be returned
+     * @param lsDefinition          the language server definition
      * @param capabilitiesPredicate a predicate to check capabilities
      * @return a LanguageServer for the given file, which is defined with provided
      * server ID and conforms to specified request. If
@@ -145,65 +159,184 @@ public class LanguageServiceAccessor {
     }
 
     @NotNull
-    private Collection<LanguageServerWrapper> getLSWrappers(@NotNull VirtualFile file) {
-        LinkedHashSet<LanguageServerWrapper> res = new LinkedHashSet<>();
-        URI uri = LSPIJUtils.toUri(file);
-        if (uri == null) {
-            return Collections.emptyList();
+    private CompletableFuture<Collection<LanguageServerWrapper>> getMatchedLanguageServersWrappers(@NotNull VirtualFile file) {
+        final Project fileProject = LSPIJUtils.getProject(file);
+        if (fileProject == null) {
+            return CompletableFuture.completedFuture(Collections.emptyList());
         }
-        URI path = uri;
+        MatchedLanguageServerDefinitions mappings = getMatchedLanguageServerDefinitions(file, fileProject);
+        if (mappings == MatchedLanguageServerDefinitions.NO_MATCH) {
+            // There are no mapping for the given file
+            return CompletableFuture.completedFuture(Collections.emptyList());
+        }
+
+        LinkedHashSet<LanguageServerWrapper> matchedServers = new LinkedHashSet<>();
+
+        // Collect sync server definitions
+        var serverDefinitions = mappings.getMatched();
+        collectLanguageServersFromDefinition(file, fileProject, serverDefinitions, matchedServers);
+
+        CompletableFuture<Set<LanguageServersRegistry.LanguageServerDefinition>> async = mappings.getAsyncMatched();
+        if (async != null) {
+            // Collect async server definitions
+            return async
+                    .thenApply(asyncServerDefinitions -> {
+                        collectLanguageServersFromDefinition(file, fileProject, asyncServerDefinitions, matchedServers);
+                        return matchedServers;
+                    });
+        }
+        return CompletableFuture.completedFuture(matchedServers);
+    }
+
+    /**
+     * Get or create a language server wrapper for the given server definitions and add then to the given  matched servers.
+     *
+     * @param file              the file.
+     * @param fileProject       the file project.
+     * @param serverDefinitions the server definitions.
+     * @param matchedServers    the list to update with get/created language server.
+     */
+    private void collectLanguageServersFromDefinition(@NotNull VirtualFile file, @NotNull Project fileProject, @NotNull Set<LanguageServersRegistry.LanguageServerDefinition> serverDefinitions, @NotNull Set<LanguageServerWrapper> matchedServers) {
+        synchronized (startedServers) {
+            for (var serverDefinition : serverDefinitions) {
+                boolean useExistingServer = false;
+                // Loop for started language servers
+                for (var startedServer : startedServers) {
+                    if (startedServer.serverDefinition.equals(serverDefinition)
+                            && startedServer.canOperate(file)) {
+                        // A started language server match the file, use it
+                        matchedServers.add(startedServer);
+                        useExistingServer = true;
+                        break;
+                    }
+                }
+                if (!useExistingServer) {
+                    // There are none started servers which matches the file, create and add it.
+                    LanguageServerWrapper wrapper = new LanguageServerWrapper(fileProject, serverDefinition);
+                    startedServers.add(wrapper);
+                    matchedServers.add(wrapper);
+                }
+            }
+        }
+    }
+
+    /**
+     * Store the matched language server definitions for a given file.
+     */
+    private static class MatchedLanguageServerDefinitions {
+
+        public static final MatchedLanguageServerDefinitions NO_MATCH = new MatchedLanguageServerDefinitions(Collections.emptySet(), null);
+
+        private final Set<LanguageServersRegistry.LanguageServerDefinition> matched;
+
+        private final CompletableFuture<Set<LanguageServersRegistry.LanguageServerDefinition>> asyncMatched;
+
+        public MatchedLanguageServerDefinitions(@NotNull Set<LanguageServersRegistry.LanguageServerDefinition> matchedLanguageServersDefinition, CompletableFuture<Set<LanguageServersRegistry.LanguageServerDefinition>> async) {
+            this.matched = matchedLanguageServersDefinition;
+            this.asyncMatched = async;
+        }
+
+        /**
+         * Return the matched server definitions get synchronously.
+         *
+         * @return the matched server definitions get synchronously.
+         */
+        public @NotNull Set<LanguageServersRegistry.LanguageServerDefinition> getMatched() {
+            return matched;
+        }
+
+        /**
+         * Return the matched server definitions get asynchronously or null otherwise.
+         *
+         * @return the matched server definitions get asynchronously or null otherwise.
+         */
+        public CompletableFuture<Set<LanguageServersRegistry.LanguageServerDefinition>> getAsyncMatched() {
+            return asyncMatched;
+        }
+    }
+
+    /**
+     * Returns the matched language server definitions for the given file.
+     *
+     * @param file        the file.
+     * @param fileProject the file project.
+     * @return the matched language server definitions for the given file.
+     */
+    private MatchedLanguageServerDefinitions getMatchedLanguageServerDefinitions(@NotNull VirtualFile file, @NotNull Project fileProject) {
+
+        Set<LanguageServersRegistry.LanguageServerDefinition> syncMatchedDefinitions = null;
+        Set<ContentTypeToLanguageServerDefinition> asyncMatchedDefinitions = null;
 
         // look for running language servers via content-type
         Queue<Language> contentTypes = new LinkedList<>();
         Set<Language> processedContentTypes = new HashSet<>();
         contentTypes.add(LSPIJUtils.getFileLanguage(file, project));
 
-        synchronized (startedServers) {
-            // already started compatible servers that fit request
-            res.addAll(startedServers.stream()
-                    .filter(wrapper -> {
-                        try {
-                            return wrapper.isEnabled() && (wrapper.isConnectedTo(path) || LanguageServersRegistry.getInstance().matches(file, wrapper.serverDefinition, project));
-                        } catch (ProcessCanceledException cancellation) {
-                            throw cancellation;
-                        } catch (Exception e) {
-                            LOGGER.warn(e.getLocalizedMessage(), e);
-                            return false;
-                        }
-                    })
-                    .filter(wrapper -> wrapper.canOperate(file))
-                    .collect(Collectors.toList()));
-
-            while (!contentTypes.isEmpty()) {
-                Language contentType = contentTypes.poll();
-                if (contentType == null || processedContentTypes.contains(contentType)) {
+        while (!contentTypes.isEmpty()) {
+            Language contentType = contentTypes.poll();
+            if (contentType == null || processedContentTypes.contains(contentType)) {
+                continue;
+            }
+            // Loop for server/language mapping
+            for (ContentTypeToLanguageServerDefinition mapping : LanguageServersRegistry.getInstance()
+                    .findProviderFor(contentType)) {
+                if (mapping == null || !mapping.isEnabled() || (syncMatchedDefinitions != null && syncMatchedDefinitions.contains(mapping.getValue()))) {
+                    // the mapping is disabled
+                    // or the server definition has been already added
                     continue;
                 }
-                for (ContentTypeToLanguageServerDefinition mapping : LanguageServersRegistry.getInstance()
-                        .findProviderFor(contentType)) {
-                    if (mapping == null || !mapping.isEnabled()) {
-                        continue;
+                if (mapping.shouldBeMatchedAsynchronously(fileProject)) {
+                    // Async mapping
+                    // Mapping must be done asynchronously because the match of DocumentMatcher of the mapping need to be done asynchronously
+                    // This usecase comes from for instance when custom match need to collect classes from the Java project and requires read only action.
+                    if (asyncMatchedDefinitions == null) {
+                        asyncMatchedDefinitions = new HashSet<>();
                     }
-                    LanguageServersRegistry.LanguageServerDefinition serverDefinition = mapping.getValue();
-                    if (serverDefinition == null) {
-                        continue;
-                    }
-                    if (startedServers.stream().anyMatch(wrapper -> wrapper.serverDefinition.equals(serverDefinition)
-                            && wrapper.canOperate(file))) {
-                        // we already checked a compatible LS with this definition
-                        continue;
-                    }
-                    final Project fileProject = file != null ? LSPIJUtils.getProject(file) : null;
-                    if (fileProject != null) {
-                        LanguageServerWrapper wrapper = new LanguageServerWrapper(fileProject, serverDefinition);
-                        startedServers.add(wrapper);
-                        res.add(wrapper);
+                    asyncMatchedDefinitions.add(mapping);
+                } else {
+                    // Sync mapping
+                    if (match(file, fileProject, mapping)) {
+                        if (syncMatchedDefinitions == null) {
+                            syncMatchedDefinitions = new HashSet<>();
+                        }
+                        syncMatchedDefinitions.add(mapping.getValue());
                     }
                 }
-                processedContentTypes.add(contentType);
             }
-            return res;
         }
+        if (syncMatchedDefinitions != null || asyncMatchedDefinitions != null) {
+            // Some match...
+            CompletableFuture<Set<LanguageServersRegistry.LanguageServerDefinition>> async = null;
+            if (asyncMatchedDefinitions != null) {
+                // Async match, compute a future which process all matchAsync and return a list of server definitions
+                final Set<LanguageServersRegistry.LanguageServerDefinition> serverDefinitions = Collections.synchronizedSet(new HashSet<>());
+                async = CompletableFuture.allOf(asyncMatchedDefinitions
+                                .stream()
+                                .map(mapping -> {
+                                            return mapping
+                                                    .matchAsync(file, fileProject)
+                                                    .thenApply(result -> {
+                                                        if (result) {
+                                                            serverDefinitions.add(mapping.getValue());
+                                                        }
+                                                        return null;
+                                                    });
+                                        }
+                                )
+                                .toArray(CompletableFuture[]::new))
+                        .thenApply(theVoid -> serverDefinitions);
+            }
+            return new MatchedLanguageServerDefinitions(syncMatchedDefinitions != null ? syncMatchedDefinitions : Collections.emptySet(), async);
+        }
+        // No match...
+        return MatchedLanguageServerDefinitions.NO_MATCH;
+    }
+
+    private static boolean match(VirtualFile file, Project fileProject, ContentTypeToLanguageServerDefinition mapping) {
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+            return ReadAction.compute(() -> mapping.match(file, fileProject));
+        }
+        return mapping.match(file, fileProject);
     }
 
     private LanguageServerWrapper getLSWrapperForConnection(VirtualFile file,
@@ -240,18 +373,6 @@ public class LanguageServiceAccessor {
         return startedServers.stream().filter(predicate)
                 .collect(Collectors.toList());
         // TODO multi-root: also return servers which support multi-root?
-    }
-
-
-    private Collection<LanguageServerWrapper> getMatchingStartedWrappers(@NotNull VirtualFile file,
-                                                                         @Nullable Predicate<ServerCapabilities> request) {
-        synchronized (startedServers) {
-            return startedServers.stream().filter(wrapper -> wrapper.isConnectedTo(LSPIJUtils.toUri(file))
-                    || (LanguageServersRegistry.getInstance().matches(file, wrapper.serverDefinition, project)
-                    && wrapper.canOperate(LSPIJUtils.getProject(file)))).filter(wrapper -> request == null
-                    || (wrapper.getServerCapabilities() == null || request.test(wrapper.getServerCapabilities())))
-                    .collect(Collectors.toList());
-        }
     }
 
     /**
