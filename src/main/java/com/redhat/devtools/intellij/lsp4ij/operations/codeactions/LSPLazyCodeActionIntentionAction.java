@@ -25,7 +25,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
-import org.apache.commons.lang.StringUtils;
+import com.redhat.devtools.intellij.lsp4ij.internal.StringUtils;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.Command;

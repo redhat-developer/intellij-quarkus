@@ -72,28 +72,33 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
                     // The project has been closed, don't collect code lenses.
                     return false;
                 }
+                VirtualFile file = LSPIJUtils.getFile(psiFile);
+                if (file == null) {
+                    return false;
+                }
+                URI fileUri = LSPIJUtils.toUri(file);
+                if (fileUri == null) {
+                    return false;
+                }
                 Document document = editor.getDocument();
                 final CancellationSupport cancellationSupport = new CancellationSupport();
                 try {
-                    VirtualFile file = LSPIJUtils.getFile(psiElement);
-                    URI docURI = LSPIJUtils.toUri(file);
-                    if (docURI != null) {
-                        CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
-                        BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
 
-                        CompletableFuture<Void> future = collect(file, project, param, pairs, cancellationSupport);
-                        List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future, cancellationSupport);
-                        codeLenses.stream()
-                                .collect(Collectors.groupingBy(p -> p.first))
-                                .forEach((offset, list) ->
-                                        inlayHintsSink.addBlockElement(
-                                                offset,
-                                                true,
-                                                true,
-                                                0,
-                                                toPresentation(editor, offset, list, getFactory()))
-                                );
-                    }
+                    CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(fileUri.toString()));
+                    BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
+
+                    CompletableFuture<Void> future = collect(file, project, param, pairs, cancellationSupport);
+                    List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future, cancellationSupport);
+                    codeLenses.stream()
+                            .collect(Collectors.groupingBy(p -> p.first))
+                            .forEach((offset, list) ->
+                                    inlayHintsSink.addBlockElement(
+                                            offset,
+                                            true,
+                                            true,
+                                            0,
+                                            toPresentation(editor, offset, list, getFactory()))
+                            );
                 } catch (ProcessCanceledException e) {
                     // Cancel all LSP requests
                     cancellationSupport.cancel();
@@ -109,16 +114,11 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
             private List<Pair<Integer, Pair<CodeLens, LanguageServer>>> createCodeLenses(Document document, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CompletableFuture<Void> future, CancellationSupport cancellationSupport) throws InterruptedException {
                 List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
                 while (!future.isDone() || !pairs.isEmpty()) {
-                    try {
-                        ProgressManager.checkCanceled();
-                        Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
-                        if (pair != null) {
-                            int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), document);
-                            codelenses.add(Pair.create(offset, pair));
-                        }
-                    } catch (ProcessCanceledException e) {
-                        cancellationSupport.cancel();
-                        throw e;
+                    ProgressManager.checkCanceled();
+                    Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
+                    if (pair != null) {
+                        int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), document);
+                        codelenses.add(Pair.create(offset, pair));
                     }
                 }
                 return codelenses;

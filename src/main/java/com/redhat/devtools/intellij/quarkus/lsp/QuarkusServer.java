@@ -14,11 +14,14 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
+import com.redhat.devtools.intellij.lsp4ij.operations.codelens.LSPCodelensInlayProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileInspectionsInfo;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -31,6 +34,8 @@ import java.util.Map;
  * Start the MicroProfile language server process with the Quarkus extension.
  */
 public class QuarkusServer extends ProcessStreamConnectionProvider {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusServer.class);
 
     private final Project project;
 
@@ -47,7 +52,12 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         commands.add("-DrunAsync=true");
         super.setCommands(commands);
 
-        TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "start").send();
+        try {
+            TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "start").send();
+        }
+        catch(Exception e) {
+            LOGGER.error("Error while consuming telemetry service", e);
+        }
     }
 
     @Override

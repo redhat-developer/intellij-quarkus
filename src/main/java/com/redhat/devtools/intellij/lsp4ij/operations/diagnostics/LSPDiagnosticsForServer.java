@@ -37,8 +37,6 @@ public class LSPDiagnosticsForServer {
 
 	private final LanguageServerWrapper languageServerWrapper;
 
-	private final boolean codeActionSupported;
-
 	private final VirtualFile file;
 
 	// Map which contains all current diagnostics (as key) and future which load associated quick fixes (as value)
@@ -46,19 +44,8 @@ public class LSPDiagnosticsForServer {
 
 	public LSPDiagnosticsForServer(LanguageServerWrapper languageServerWrapper, VirtualFile file) {
 		this.languageServerWrapper = languageServerWrapper;
-		this.codeActionSupported = isCodeActionSupported(languageServerWrapper);
 		this.file = file;
 		this.diagnostics = Collections.emptyMap();
-	}
-
-	private static boolean isCodeActionSupported(LanguageServerWrapper languageServerWrapper) {
-		if (!languageServerWrapper.isActive() || languageServerWrapper.isStopping()) {
-			// This use-case comes from when a diagnostics is published and the language server is stopped
-			// We cannot use here languageServerWrapper.getServerCapabilities() otherwise it will restart the language server.
-			return false;
-		}
-		ServerCapabilities serverCapabilities = languageServerWrapper.getServerCapabilities();
-		return serverCapabilities != null && LSPIJUtils.hasCapability(serverCapabilities.getCodeActionProvider());
 	}
 
 	/**
@@ -101,11 +88,22 @@ public class LSPDiagnosticsForServer {
 	 * @return Intellij quickfixes for the given diagnostic if there available.
 	 */
 	public List<LSPLazyCodeActionIntentionAction> getQuickFixesFor(Diagnostic diagnostic) {
+		boolean codeActionSupported = isCodeActionSupported(languageServerWrapper);
 		if (!codeActionSupported || diagnostics.isEmpty()) {
 			return Collections.emptyList();
 		}
 		LSPLazyCodeActions codeActions = diagnostics.get(diagnostic);
 		return codeActions != null ? codeActions.getCodeActions() : Collections.emptyList();
+	}
+
+	private static boolean isCodeActionSupported(LanguageServerWrapper languageServerWrapper) {
+		if (!languageServerWrapper.isActive() || languageServerWrapper.isStopping()) {
+			// This use-case comes from when a diagnostics is published and the language server is stopped
+			// We cannot use here languageServerWrapper.getServerCapabilities() otherwise it will restart the language server.
+			return false;
+		}
+		ServerCapabilities serverCapabilities = languageServerWrapper.getServerCapabilities();
+		return serverCapabilities != null && LSPIJUtils.hasCapability(serverCapabilities.getCodeActionProvider());
 	}
 
 }

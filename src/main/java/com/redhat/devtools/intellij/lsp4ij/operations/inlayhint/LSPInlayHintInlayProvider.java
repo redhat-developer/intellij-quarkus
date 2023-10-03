@@ -69,16 +69,19 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
                     // The project has been closed, don't collect inlay hints.
                     return false;
                 }
+                VirtualFile file = LSPIJUtils.getFile(psiFile);
+                if (file == null) {
+                    return false;
+                }
+                URI fileUri = LSPIJUtils.toUri(file);
+                if (fileUri == null) {
+                    return false;
+                }
                 Document document = editor.getDocument();
                 final CancellationSupport cancellationSupport = new CancellationSupport();
                 try {
-                    VirtualFile file = LSPIJUtils.getFile(psiFile);
-                    if (file == null) {
-                        return false;
-                    }
-                    URI docURI = LSPIJUtils.toUri(file);
                     Range viewPortRange = getViewPortRange(editor);
-                    InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(docURI.toString()), viewPortRange);
+                    InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(fileUri.toASCIIString()), viewPortRange);
                     BlockingDeque<Pair<InlayHint, LanguageServer>> pairs = new LinkedBlockingDeque<>();
 
                     CompletableFuture<Void> future = collect(psiElement.getProject(), file, param, pairs, cancellationSupport);
@@ -90,7 +93,7 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
                 } catch (ProcessCanceledException e) {
                     // Cancel all LSP requests
                     cancellationSupport.cancel();
-                    throw e;
+                    return false; //throw e;
                 } catch (InterruptedException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);
                     Thread.currentThread().interrupt();
