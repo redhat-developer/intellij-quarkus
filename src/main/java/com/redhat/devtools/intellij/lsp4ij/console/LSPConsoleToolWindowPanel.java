@@ -37,12 +37,13 @@ import com.redhat.devtools.intellij.lsp4ij.console.explorer.LanguageServerProces
 import com.redhat.devtools.intellij.lsp4ij.console.explorer.LanguageServerTreeNode;
 import com.redhat.devtools.intellij.lsp4ij.settings.ServerTrace;
 import com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -218,7 +219,7 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
                     }
                     ServerTrace newServerTrace = settings.getServerTrace();
                     if (newServerTrace != null && !newServerTrace.equals(serverTraceComboBox.getSelectedItem())) {
-                            serverTraceComboBox.setSelectedItem(newServerTrace);
+                        serverTraceComboBox.setSelectedItem(newServerTrace);
                     }
                 }
             };
@@ -249,7 +250,7 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         }
 
         public void showError(Throwable exception) {
-            String stacktrace = ExceptionUtils.getStackTrace(exception);
+            String stacktrace = getStackTrace(exception);
             consoleView.print(stacktrace, ConsoleViewContentType.ERROR_OUTPUT);
         }
 
@@ -303,5 +304,19 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
 
     private boolean isDisposed() {
         return disposed || project.isDisposed();
+    }
+
+    /**
+     * Code copied from https://github.com/apache/commons-lang/blob/24744a40b2c094945e542b71cc1fbf59caa0d70b/src/main/java/org/apache/commons/lang3/exception/ExceptionUtils.java#L400C5-L407C6
+     * @param throwable
+     * @return
+     */
+    private static String getStackTrace(final Throwable throwable) {
+        if (throwable == null) {
+            return "";
+        }
+        final StringWriter sw = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(sw, true));
+        return sw.toString();
     }
 }
