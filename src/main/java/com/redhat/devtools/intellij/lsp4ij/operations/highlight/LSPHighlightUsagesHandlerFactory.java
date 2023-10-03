@@ -18,6 +18,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
@@ -50,17 +51,18 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
     }
 
     private List<LSPHighlightPsiElement> getTargets(Editor editor, PsiFile psiFile) {
+        VirtualFile file = LSPIJUtils.getFile(psiFile);
+        if (file == null) {
+            return Collections.emptyList();
+        }
+        URI uri = LSPIJUtils.toUri(file);
         List<LSPHighlightPsiElement> elements = new ArrayList<>();
         final CancellationSupport cancellationSupport = new CancellationSupport();
         try {
             int offset = TargetElementUtil.adjustOffset(psiFile, editor.getDocument(), editor.getCaretModel().getOffset());
             Document document = editor.getDocument();
-            Position position;
-            position = LSPIJUtils.toPosition(offset, document);
-            URI uri = LSPIJUtils.toUri(document);
-            if (uri == null) {
-                return Collections.emptyList();
-            }
+            Position position = LSPIJUtils.toPosition(offset, document);
+
             ProgressManager.checkCanceled();
             TextDocumentIdentifier identifier = new TextDocumentIdentifier(uri.toString());
             DocumentHighlightParams params = new DocumentHighlightParams(identifier, position);
@@ -77,14 +79,14 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
                                         }
                                     })).toArray(CompletableFuture[]::new))));
             while (!future.isDone() || !highlights.isEmpty()) {
-                    ProgressManager.checkCanceled();
-                    DocumentHighlight highlight = highlights.poll(25, TimeUnit.MILLISECONDS);
-                    if (highlight != null) {
-                        TextRange textRange = LSPIJUtils.toTextRange(highlight.getRange(), document);
-                        if (textRange != null) {
-                            elements.add(new LSPHighlightPsiElement(textRange, highlight.getKind()));
-                        }
+                ProgressManager.checkCanceled();
+                DocumentHighlight highlight = highlights.poll(25, TimeUnit.MILLISECONDS);
+                if (highlight != null) {
+                    TextRange textRange = LSPIJUtils.toTextRange(highlight.getRange(), document);
+                    if (textRange != null) {
+                        elements.add(new LSPHighlightPsiElement(textRange, highlight.getKind()));
                     }
+                }
             }
         } catch (ProcessCanceledException cancellation) {
             cancellationSupport.cancel();
