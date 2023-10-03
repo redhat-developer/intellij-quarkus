@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 /**
  * LSP textDocument/hover support for a given file.
  */
-public class LSPTextHoverForFile implements Disposable  {
+public class LSPTextHoverForFile implements Disposable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPTextHoverForFile.class);
     private PsiElement lastElement;
@@ -49,7 +49,7 @@ public class LSPTextHoverForFile implements Disposable  {
 
     public LSPTextHoverForFile(Editor editor) {
         if (editor instanceof EditorImpl) {
-            Disposer.register(((EditorImpl)editor).getDisposable(), this);
+            Disposer.register(((EditorImpl) editor).getDisposable(), this);
         }
     }
 
@@ -91,10 +91,14 @@ public class LSPTextHoverForFile implements Disposable  {
             // The previous LSP hover request is not finished,cancel it
             this.previousCancellationSupport.cancel();
         }
-        PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
-        PsiFile psiFile = element.getContainingFile();
         VirtualFile file = LSPIJUtils.getFile(element);
-        final Document document = manager.getDocument(psiFile);
+        if (file == null) {
+            return;
+        }
+        final Document document = LSPIJUtils.getDocument(file);
+        if (document == null) {
+            return;
+        }
         if (offset != -1 && (this.lspRequest == null || !element.equals(this.lastElement) || offset != this.lastOffset)) {
             this.lastElement = element;
             this.lastOffset = offset;
