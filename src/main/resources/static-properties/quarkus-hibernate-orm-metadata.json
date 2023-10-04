@@ -21,6 +21,10 @@
 				{
 					"value": "update",
 					"description": "Update the schema if necessary."
+				},
+				{
+					"value": "validate",
+					"description": "Validate the schema."
 				}
 			],
 			"name": "quarkus.hibernate-orm.database.generation"
