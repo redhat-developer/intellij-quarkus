@@ -23,8 +23,8 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.light.LightRecordField;
+import com.redhat.devtools.intellij.lsp4ij.internal.StringUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jetbrains.annotations.NotNull;
@@ -159,6 +159,7 @@ public class LSPIJUtils {
 
     /**
      * Returns the @{@link Document} associated to the given @{@link URI}, or <code>null</code> if there's no match.
+     *
      * @param documentUri the uri of the Document to return
      * @return the @{@link Document} associated to <code>documentUri</code>, or <code>null</code>
      */
@@ -239,9 +240,8 @@ public class LSPIJUtils {
     /**
      * Returns the IJ {@link TextRange} from the given LSP range and null otherwise.
      *
-     * @param range the LSP range to conert.
+     * @param range    the LSP range to conert.
      * @param document the document.
-     *
      * @return the IJ {@link TextRange} from the given LSP range and null otherwise.
      */
     public static @Nullable TextRange toTextRange(Range range, Document document) {
@@ -356,10 +356,8 @@ public class LSPIJUtils {
      * Create the file with the given file Uri.
      *
      * @param fileUri the file Uri.
-     *
-     * @throws IOException
-     *
      * @return the created virtual file and null otherwise.
+     * @throws IOException
      */
     public static @Nullable VirtualFile createFile(String fileUri) throws IOException {
         URI targetURI = URI.create(fileUri);
@@ -370,10 +368,8 @@ public class LSPIJUtils {
      * Create the file with the given file Uri.
      *
      * @param fileUri the file Uri.
-     *
-     * @throws IOException
-     *
      * @return the created virtual file and null otherwise.
+     * @throws IOException
      */
     public static @Nullable VirtualFile createFile(URI fileUri) throws IOException {
         File newFile = new File(fileUri);

@@ -15,7 +15,7 @@ package com.redhat.devtools.intellij.lsp4ij.operations.completion;
 
 import com.intellij.openapi.editor.Document;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
-import org.apache.commons.lang.StringUtils;
+import com.redhat.devtools.intellij.lsp4ij.internal.StringUtils;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
