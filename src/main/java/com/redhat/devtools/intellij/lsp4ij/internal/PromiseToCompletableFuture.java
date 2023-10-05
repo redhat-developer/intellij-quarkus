@@ -91,7 +91,7 @@ public class PromiseToCompletableFuture<R> extends CompletableFuture<R> {
         promise.onError(ex -> {
             if (ex instanceof ProcessCanceledException || ex instanceof CancellationException) {
                 // Case 2: cancel the completable future
-                this.cancel(true);
+                super.cancel(true);
             } else {
                 // Other case..., mark the completable future as error
                 this.completeExceptionally(ex);
