@@ -14,11 +14,12 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
-import com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileInspectionsInfo;
-import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
+import com.redhat.devtools.intellij.quarkus.TelemetryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -32,6 +33,8 @@ import java.util.Map;
  */
 public class QuarkusServer extends ProcessStreamConnectionProvider {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusServer.class);
+
     private final Project project;
 
     public QuarkusServer(Project project) {
@@ -40,14 +43,18 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         File lsp4mpServerPath = new File(descriptor.getPath(), "lib/server/org.eclipse.lsp4mp.ls-uber.jar");
         File quarkusServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls.jar");
 
-        List<String> commands = new JavaProcessCommandBuilder(project,"quarkus")
+        List<String> commands = new JavaProcessCommandBuilder(project, "quarkus")
                 .setJar(lsp4mpServerPath.getAbsolutePath())
                 .setCp(quarkusServerPath.getAbsolutePath())
                 .create();
         commands.add("-DrunAsync=true");
         super.setCommands(commands);
 
-        TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "start").send();
+        try {
+            TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "start").send();
+        } catch (Exception e) {
+            LOGGER.error("Error while consuming telemetry service", e);
+        }
     }
 
     @Override
