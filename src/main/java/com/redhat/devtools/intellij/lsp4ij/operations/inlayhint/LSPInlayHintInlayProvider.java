@@ -22,6 +22,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -55,6 +56,12 @@ import java.util.stream.Collectors;
 public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPInlayHintInlayProvider.class);
 
+    private static final Key<InlayHintsSink> SINK_KEY = new Key<>(LSPInlayHintInlayProvider.class.getName());
+
+    public LSPInlayHintInlayProvider() {
+        super(SINK_KEY);
+    }
+
     @Nullable
     @Override
     public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile,
@@ -64,21 +71,17 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
         return new FactoryInlayHintsCollector(editor) {
             @Override
             public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
-                Project project = psiElement.getProject();
-                if (project.isDisposed()) {
-                    // The project has been closed, don't collect inlay hints.
+                VirtualFile file = getFile(psiFile, editor, inlayHintsSink);
+                if (file == null) {
+                    // InlayHint must not be collected
                     return false;
                 }
                 Document document = editor.getDocument();
                 final CancellationSupport cancellationSupport = new CancellationSupport();
                 try {
-                    VirtualFile file = LSPIJUtils.getFile(psiFile);
-                    if (file == null) {
-                        return false;
-                    }
-                    URI docURI = LSPIJUtils.toUri(file);
+                    URI fileUri = LSPIJUtils.toUri(file);
                     Range viewPortRange = getViewPortRange(editor);
-                    InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(docURI.toString()), viewPortRange);
+                    InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(fileUri.toASCIIString()), viewPortRange);
                     BlockingDeque<Pair<InlayHint, LanguageServer>> pairs = new LinkedBlockingDeque<>();
 
                     CompletableFuture<Void> future = collect(psiElement.getProject(), file, param, pairs, cancellationSupport);
@@ -90,8 +93,9 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
                 } catch (ProcessCanceledException e) {
                     // Cancel all LSP requests
                     cancellationSupport.cancel();
-                    throw e;
                 } catch (InterruptedException e) {
+                    // Cancel all LSP requests
+                    cancellationSupport.cancel();
                     LOGGER.warn(e.getLocalizedMessage(), e);
                     Thread.currentThread().interrupt();
                 }

@@ -22,6 +22,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -40,11 +41,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.Component;
+import java.awt.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
@@ -58,6 +58,12 @@ import java.util.stream.Collectors;
 public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(LSPCodelensInlayProvider.class);
 
+    private static final Key<InlayHintsSink> SINK_KEY = new Key<>(LSPCodelensInlayProvider.class.getName());
+
+    public LSPCodelensInlayProvider() {
+        super(SINK_KEY);
+    }
+
     @Nullable
     @Override
     public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile,
@@ -67,38 +73,36 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
         return new FactoryInlayHintsCollector(editor) {
             @Override
             public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
-                Project project = psiElement.getProject();
-                if (project.isDisposed()) {
-                    // The project has been closed, don't collect code lenses.
+                VirtualFile file = getFile(psiFile, editor, inlayHintsSink);
+                if (file == null) {
+                    // Codelens must not be collected
                     return false;
                 }
                 Document document = editor.getDocument();
                 final CancellationSupport cancellationSupport = new CancellationSupport();
                 try {
-                    VirtualFile file = LSPIJUtils.getFile(psiElement);
-                    URI docURI = LSPIJUtils.toUri(file);
-                    if (docURI != null) {
-                        CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(docURI.toString()));
-                        BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
+                    URI fileUri = LSPIJUtils.toUri(file);
+                    CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(fileUri.toASCIIString()));
+                    BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
 
-                        CompletableFuture<Void> future = collect(file, project, param, pairs, cancellationSupport);
-                        List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future, cancellationSupport);
-                        codeLenses.stream()
-                                .collect(Collectors.groupingBy(p -> p.first))
-                                .forEach((offset, list) ->
-                                        inlayHintsSink.addBlockElement(
-                                                offset,
-                                                true,
-                                                true,
-                                                0,
-                                                toPresentation(editor, offset, list, getFactory()))
-                                );
-                    }
+                    CompletableFuture<Void> future = collect(file, psiFile.getProject(), param, pairs, cancellationSupport);
+                    List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future, cancellationSupport);
+                    codeLenses.stream()
+                            .collect(Collectors.groupingBy(p -> p.first))
+                            .forEach((offset, list) ->
+                                    inlayHintsSink.addBlockElement(
+                                            offset,
+                                            true,
+                                            true,
+                                            0,
+                                            toPresentation(editor, offset, list, getFactory()))
+                            );
                 } catch (ProcessCanceledException e) {
                     // Cancel all LSP requests
                     cancellationSupport.cancel();
-                    throw e;
                 } catch (InterruptedException e) {
+                    // Cancel all LSP requests
+                    cancellationSupport.cancel();
                     LOGGER.warn(e.getLocalizedMessage(), e);
                     Thread.currentThread().interrupt();
                 }
@@ -109,22 +113,17 @@ public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
             private List<Pair<Integer, Pair<CodeLens, LanguageServer>>> createCodeLenses(Document document, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CompletableFuture<Void> future, CancellationSupport cancellationSupport) throws InterruptedException {
                 List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
                 while (!future.isDone() || !pairs.isEmpty()) {
-                    try {
-                        ProgressManager.checkCanceled();
-                        Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
-                        if (pair != null) {
-                            int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), document);
-                            codelenses.add(Pair.create(offset, pair));
-                        }
-                    } catch (ProcessCanceledException e) {
-                        cancellationSupport.cancel();
-                        throw e;
+                    ProgressManager.checkCanceled();
+                    Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
+                    if (pair != null) {
+                        int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), document);
+                        codelenses.add(Pair.create(offset, pair));
                     }
                 }
                 return codelenses;
             }
 
-            private CompletableFuture<Void> collect(VirtualFile file, Project project, CodeLensParams param, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CancellationSupport cancellationSupport) {
+            private @NotNull CompletableFuture<Void> collect(@NotNull VirtualFile file, @NotNull Project project, @NotNull CodeLensParams param, @NotNull BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, @NotNull CancellationSupport cancellationSupport) {
                 return LanguageServiceAccessor.getInstance(project)
                         .getLanguageServers(file, capabilities -> capabilities.getCodeLensProvider() != null)
                         .thenComposeAsync(languageServers ->
