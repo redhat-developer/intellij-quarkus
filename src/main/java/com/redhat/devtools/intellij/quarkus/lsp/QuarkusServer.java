@@ -43,7 +43,7 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         File lsp4mpServerPath = new File(descriptor.getPath(), "lib/server/org.eclipse.lsp4mp.ls-uber.jar");
         File quarkusServerPath = new File(descriptor.getPath(), "lib/server/com.redhat.quarkus.ls.jar");
 
-        List<String> commands = new JavaProcessCommandBuilder(project, "quarkus")
+        List<String> commands = new JavaProcessCommandBuilder(project, "microprofile")
                 .setJar(lsp4mpServerPath.getAbsolutePath())
                 .setCp(quarkusServerPath.getAbsolutePath())
                 .create();
