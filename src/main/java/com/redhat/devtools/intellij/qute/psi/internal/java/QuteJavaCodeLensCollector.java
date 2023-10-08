@@ -19,6 +19,7 @@ import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.qute.psi.QuteCommandConstants;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.TemplatePathInfo;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.GenerateTemplateInfo;
@@ -109,7 +110,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
             //ITypeBinding binding = parameterType.resolveBinding();
             DataModelParameter parameter = new DataModelParameter();
             parameter.setKey(parameterName);
-            parameter.setSourceType(parameterType.getPresentableText());
+            parameter.setSourceType(PsiTypeUtils.resolveSignature(parameterType, false));
             parameters.add(parameter);
         }
         return parameters;
