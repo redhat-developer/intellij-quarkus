@@ -223,11 +223,12 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved) {
+        var coalesceBy = new CoalesceByKey("microprofile/java/resolveCodeAction");
         return runAsBackground("Computing Java resolve code actions", monitor -> {
             CodeActionResolveData data = JSONUtility.toModel(unresolved.getData(), CodeActionResolveData.class);
             unresolved.setData(data);
             return (CodeAction) PropertiesManagerForJava.getInstance().resolveCodeAction(unresolved, PsiUtilsLSImpl.getInstance(getProject()));
-        });
+        }, coalesceBy);
     }
 
     @Override
