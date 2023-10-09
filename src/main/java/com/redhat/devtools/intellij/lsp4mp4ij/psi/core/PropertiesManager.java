@@ -153,17 +153,19 @@ public class PropertiesManager {
         return info;
     }
 
-    private SearchScope createSearchScope(Module module, List<MicroProfilePropertiesScope> scopes,
+    private SearchScope createSearchScope(@NotNull Module module, List<MicroProfilePropertiesScope> scopes,
                                           boolean excludeTestCode) {
-        SearchScope searchScope = GlobalSearchScope.EMPTY_SCOPE;
-
+        if (MicroProfilePropertiesScope.isOnlySources(scopes)) {
+            return module.getModuleScope(!excludeTestCode);
+        }
+        SearchScope searchScope = GlobalSearchScope.moduleRuntimeScope(module, !excludeTestCode);
         for (MicroProfilePropertiesScope scope : scopes) {
             switch (scope) {
                 case sources:
-                    searchScope = module != null ? searchScope.union(module.getModuleScope(!excludeTestCode)) : searchScope;
+                    searchScope = searchScope.union(module.getModuleScope(!excludeTestCode));
                     break;
                 case dependencies:
-                    searchScope = module != null ? searchScope.union(module.getModuleWithLibrariesScope()) : searchScope;
+                    searchScope = searchScope.union(module.getModuleWithLibrariesScope());
                     break;
                 /*added missing default case */
                 default:

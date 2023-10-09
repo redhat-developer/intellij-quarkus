@@ -33,6 +33,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImp
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileInspectionsInfo;
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4mp.commons.*;
 import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
@@ -41,6 +42,7 @@ import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageClientAPI;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +59,9 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     public QuarkusLanguageClient(Project project) {
         super(project);
+        // Call Quarkus deployment support here to react on library changed (to evict quarkus deploiement cache) before
+        // sending an LSP microprofile/propertiesChanged notifications
+        QuarkusDeploymentSupport.getInstance(project);
         connection = project.getMessageBus().connect(project);
         connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
         inspectionsInfo = MicroProfileInspectionsInfo.getMicroProfileInspectionInfo(project);
@@ -144,11 +149,31 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     public CompletableFuture<MicroProfileProjectInfo> getProjectInfo(MicroProfileProjectInfoParams params) {
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
+        VirtualFile file = null;
+        try {
+            file = utils.findFile(params.getUri());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Module module = utils.getModule(file);
+        if (module == null) {
+            throw new RuntimeException();
+        }
+        CompletableFuture<Void> quarkusDeploymentSupport = QuarkusDeploymentSupport.getInstance(getProject()).updateClasspathWithQuarkusDeploymentAsync(module);
+        if (quarkusDeploymentSupport.isDone()) {
+            return internalGetProjectInfo(params);
+        }
+        return quarkusDeploymentSupport
+                .thenCompose(unused -> internalGetProjectInfo(params));
+    }
+
+    private CompletableFuture<MicroProfileProjectInfo> internalGetProjectInfo(MicroProfileProjectInfoParams params) {
         var coalesceBy = new CoalesceByKey("microprofile/projectInfo", params.getUri(), params.getScopes());
         String filePath = getFilePath(params.getUri());
         return runAsBackground("Computing MicroProfile properties for '" + filePath + "'.", monitor ->
-                PropertiesManager.getInstance().getMicroProfileProjectInfo(params, PsiUtilsLSImpl.getInstance(getProject()), monitor)
-        , coalesceBy);
+                        PropertiesManager.getInstance().getMicroProfileProjectInfo(params, PsiUtilsLSImpl.getInstance(getProject()), monitor)
+                , coalesceBy);
     }
 
     @Override

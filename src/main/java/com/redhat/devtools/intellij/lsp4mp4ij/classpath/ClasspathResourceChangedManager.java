@@ -69,13 +69,10 @@ public class ClasspathResourceChangedManager implements Disposable {
 
 	private final Project project;
 
-	private final List<RunnableProgress> preprocessors;
-
 	public ClasspathResourceChangedManager(Project project) {
 		this.project = project;
-		this.preprocessors = new ArrayList<>();
 		// Send source files changed in debounce mode
-		this.resourceChangedNotifier = new ClasspathResourceChangedNotifier(project, preprocessors);
+		this.resourceChangedNotifier = new ClasspathResourceChangedNotifier(project);
 		listener = new ClasspathResourceChangedListener(this);
 		projectConnection = project.getMessageBus().connect();
 		// Track end of Java libraries update
@@ -104,14 +101,5 @@ public class ClasspathResourceChangedManager implements Disposable {
 
 	ClasspathResourceChangedNotifier getResourceChangedNotifier() {
 		return resourceChangedNotifier;
-	}
-
-	/**
-	 * Add a preprocessor to update classpatch when a library changed before sending the {@link Listener#librariesChanged()} event.
-	 *
-	 * @param preprocessor the preprocessor to add.
-	 */
-	public void addPreprocessor(RunnableProgress preprocessor) {
-		preprocessors.add(preprocessor);
 	}
 }

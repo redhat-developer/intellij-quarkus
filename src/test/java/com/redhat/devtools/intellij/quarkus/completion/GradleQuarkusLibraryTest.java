@@ -10,11 +10,13 @@
 package com.redhat.devtools.intellij.quarkus.completion;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.redhat.devtools.intellij.GradleTestCase;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
+import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
@@ -37,6 +39,8 @@ public class GradleQuarkusLibraryTest extends GradleTestCase {
 	@Test
 	public void testQuarkusLibraryDoesNotReplicateExistingDependencies() throws Exception {
 		Module module = getModule("config-quickstart.native-test");
+		QuarkusDeploymentSupport.getInstance(module.getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
+
 		Optional<LibraryOrderEntry> library = Stream.of(ModuleRootManager.getInstance(module).getOrderEntries()).filter(entry -> entry instanceof LibraryOrderEntry).
 				map(entry -> LibraryOrderEntry.class.cast(entry)).filter(entry -> entry.getLibraryName().equals(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME)).findFirst();
 		assertTrue(library.isPresent());

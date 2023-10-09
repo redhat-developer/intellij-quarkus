@@ -31,7 +31,6 @@ import org.jetbrains.idea.maven.model.MavenId;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
-import org.jetbrains.idea.maven.server.MavenServerManager;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
@@ -39,12 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class MavenToolDelegate implements ToolDelegate {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenToolDelegate.class);
@@ -101,7 +95,7 @@ public class MavenToolDelegate implements ToolDelegate {
         // Step1: searching deployment JAR
         for (MavenArtifact artifact : dependencies) {
             progressIndicator.checkCanceled();
-            progressIndicator.setText2("Searching deployment descriptor in '" + artifact.getArtifactId() + "'");
+            progressIndicator.setText2("Searching deployment descriptor in '" + artifact.getArtifactId() + "' in Maven project dependencies.");
             if (artifact.getFile() != null) {
                 String deploymentIdStr = ToolDelegate.getDeploymentJarId(artifact.getFile());
                 if (deploymentIdStr != null) {
@@ -116,12 +110,14 @@ public class MavenToolDelegate implements ToolDelegate {
         }
 
         // Step2
-        List<MavenArtifact> binaryDependencies = ensureDownloaded(module, mavenProject, toDownload, null);
+        progressIndicator.checkCanceled();
+        progressIndicator.setText2("Collecting Quarkus deployment dependencies from '" + toDownload.size() + "' binary dependencies");
+        Set<MavenArtifact> binaryDependencies = resolveDeploymentArtifacts(module, mavenProject, toDownload, null, progressIndicator);
         i = counter / binaryDependencies.size();
         toDownload.clear();
         for (MavenArtifact binaryDependency : binaryDependencies) {
             progressIndicator.checkCanceled();
-            progressIndicator.setText2("Searching deployment descriptor in '" + binaryDependency.getArtifactId() + "'");
+            progressIndicator.setText2("Searching deployment descriptor in '" + binaryDependency.getArtifactId() + "' binary");
             if (!"test".equals(binaryDependency.getScope())) {
                 if (processDependency(mavenProject, result, downloaded, binaryDependency, BINARY)) {
                     toDownload.add(binaryDependency.getMavenId());
@@ -132,11 +128,13 @@ public class MavenToolDelegate implements ToolDelegate {
         }
 
         // Step3
-        List<MavenArtifact> sourcesDependencies = ensureDownloaded(module, mavenProject, toDownload, "sources");
+        progressIndicator.checkCanceled();
+        progressIndicator.setText2("Collecting Quarkus deployment dependencies from '" + toDownload.size() + "' source dependencies");
+        Set<MavenArtifact> sourcesDependencies = resolveDeploymentArtifacts(module, mavenProject, toDownload, "sources", progressIndicator);
         i = counter / sourcesDependencies.size();
         for (MavenArtifact sourceDependency : sourcesDependencies) {
             progressIndicator.checkCanceled();
-            progressIndicator.setText2("Searching deployment descriptor in '" + sourceDependency.getArtifactId() + "'");
+            progressIndicator.setText2("Searching deployment descriptor in '" + sourceDependency.getArtifactId() + "' sources");
             processDependency(mavenProject, result, downloaded, sourceDependency, SOURCES);
             p+=i;
             progressIndicator.setFraction(p);
@@ -145,7 +143,6 @@ public class MavenToolDelegate implements ToolDelegate {
 
     private boolean processDependency(MavenProject mavenProject, List<VirtualFile>[] result, Set<MavenArtifact> downloaded, MavenArtifact dependency, int type) {
         boolean added = false;
-
         if (mavenProject.findDependencies(dependency.getGroupId(), dependency.getArtifactId()).isEmpty() && !downloaded.contains(dependency)) {
             downloaded.add(dependency);
             VirtualFile jarRoot = getJarFile(dependency.getFile());
@@ -157,23 +154,46 @@ public class MavenToolDelegate implements ToolDelegate {
         return added;
     }
 
-    private List<MavenArtifact> ensureDownloaded(Module module, MavenProject mavenProject, Set<MavenId> deploymentIds, String classifier) {
-        List<MavenArtifact> result = new ArrayList<>();
-        long start = System.currentTimeMillis();
+    private Set<MavenArtifact> resolveDeploymentArtifacts(Module module, MavenProject mavenProject, Set<MavenId> deploymentIds, String classifier, ProgressIndicator progressIndicator) {
+        Set<MavenArtifact> deploymentArtifacts = new HashSet<>();
         try {
             MavenEmbedderWrapper serverWrapper = createEmbedderWrapper(module.getProject(), mavenProject.getDirectory());
+            if (serverWrapper == null) {
+                return Collections.emptySet();
+            }
             if (classifier != null) {
                 for(MavenId id : deploymentIds) {
-                    result.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));
+                    deploymentArtifacts.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));
                 }
             } else {
-                List<MavenArtifactInfo> infos = deploymentIds.stream().map(id -> new MavenArtifactInfo(id, "jar", classifier)).collect(Collectors.toList());
-                result = serverWrapper.resolveTransitively(infos, mavenProject.getRemoteRepositories());
+                for (var deploymentId : deploymentIds) {
+                    boolean shouldResolveArtifactTransitively = ToolDelegate.shouldResolveArtifactTransitively(deploymentId);
+                    progressIndicator.checkCanceled();
+                    progressIndicator.setText2("Resolving " + (shouldResolveArtifactTransitively ? " (Transitevely) " : "") + "'" + deploymentId + "'");
+                    if (shouldResolveArtifactTransitively) {
+                        // Resolving the deployment artifact and their dependencies
+                        List<MavenArtifactInfo> infos = Arrays.asList( new MavenArtifactInfo(deploymentId, "jar", classifier));
+                        List<MavenArtifact> resolvedArtifacts = serverWrapper.resolveArtifactTransitively(infos, mavenProject.getRemoteRepositories()).mavenResolvedArtifacts;
+                        for (var resolvedArtifact: resolvedArtifacts) {
+                            addDeploymentArtifact(resolvedArtifact, deploymentArtifacts);
+                        }
+                    } else {
+                        // Resolving only the deployment artifact
+                        MavenArtifact resolvedArtifact = serverWrapper.resolve(new MavenArtifactInfo(deploymentId, "jar", classifier), mavenProject.getRemoteRepositories()); //.mavenResolvedArtifacts;
+                        addDeploymentArtifact(resolvedArtifact, deploymentArtifacts);
+                    }
+                }
             }
         } catch (MavenProcessCanceledException | RuntimeException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
-        return result;
+        return deploymentArtifacts;
+    }
+
+    private static void addDeploymentArtifact(MavenArtifact resolvedArtifact, Set<MavenArtifact> result) {
+        if (resolvedArtifact != null && !result.contains(resolvedArtifact)) {
+            result.add(resolvedArtifact);
+        }
     }
 
     /**

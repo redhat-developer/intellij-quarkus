@@ -10,8 +10,10 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.GradleTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.lsp4j.Location;
 import org.junit.Assert;
@@ -36,8 +38,8 @@ public class GradlePropertiesManagerLocationUsingVertxTest extends GradleTestCas
 
     @Test
     public void testUsingVertxTest() throws Exception {
-
         Module javaProject = getModule("using-vertx.main");
+        QuarkusDeploymentSupport.getInstance(javaProject.getProject()).updateClasspathWithQuarkusDeployment(javaProject, new EmptyProgressIndicator());
 
         // Test with JAR
         // quarkus.datasource.url

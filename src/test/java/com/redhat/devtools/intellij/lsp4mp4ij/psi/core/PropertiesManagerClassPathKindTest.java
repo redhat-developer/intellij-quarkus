@@ -47,7 +47,7 @@ public class PropertiesManagerClassPathKindTest extends LSP4MPMavenModuleImporti
     @Test
     public void testconfigQuickstartTest() throws Exception {
 
-        Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart_test);
+        Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart_test, true);
         IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(javaProject.getProject());
 
         // not in classpath -> 0 quarkus properties

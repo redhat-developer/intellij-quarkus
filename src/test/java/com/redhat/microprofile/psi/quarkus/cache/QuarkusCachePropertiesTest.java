@@ -41,7 +41,7 @@ public class QuarkusCachePropertiesTest extends QuarkusMavenModuleImportingTestC
 	@Test
 	public void testCacheQuickstartFromClasspath() throws Exception {
 
-		Module javaProject = loadMavenProject(QuarkusMavenProjectName.cache_quickstart);
+		Module javaProject = loadMavenProject(QuarkusMavenProjectName.cache_quickstart, true);
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(
 				javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
 				PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());

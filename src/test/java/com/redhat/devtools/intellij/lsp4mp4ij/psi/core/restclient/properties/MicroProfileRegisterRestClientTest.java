@@ -33,7 +33,7 @@ public class MicroProfileRegisterRestClientTest extends LSP4MPMavenModuleImporti
     @Test
     public void testRestClientQuickstart() throws Exception {
 
-        Module module = loadMavenProject(MicroProfileMavenProjectName.rest_client_quickstart);
+        Module module = loadMavenProject(MicroProfileMavenProjectName.rest_client_quickstart, true);
         MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         // mp-rest Properties
