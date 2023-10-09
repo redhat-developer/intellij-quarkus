@@ -333,7 +333,7 @@ public class LanguageServiceAccessor {
     }
 
     private static boolean match(VirtualFile file, Project fileProject, ContentTypeToLanguageServerDefinition mapping) {
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
+        if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
             return ReadAction.compute(() -> mapping.match(file, fileProject));
         }
         return mapping.match(file, fileProject);
