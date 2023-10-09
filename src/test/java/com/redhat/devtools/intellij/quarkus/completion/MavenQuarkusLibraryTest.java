@@ -17,6 +17,8 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.junit.Test;
 
@@ -26,11 +28,11 @@ import java.util.stream.Stream;
 /**
  * Quarkus library test
  */
-public class MavenQuarkusLibraryTest extends MavenModuleImportingTestCase {
+public class MavenQuarkusLibraryTest extends LSP4MPMavenModuleImportingTestCase {
 
 	@Test
 	public void testQuarkusLibraryDoesNotReplicateExistingDependencies() throws Exception {
-		Module module = createMavenModule(new File("projects/maven/config-quickstart"));
+		Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
 		ModifiableRootModel model = ReadAction.compute(() -> ModuleRootManager.getInstance(module).getModifiableModel());
 		LibraryTable table = model.getModuleLibraryTable();
 		Library library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);

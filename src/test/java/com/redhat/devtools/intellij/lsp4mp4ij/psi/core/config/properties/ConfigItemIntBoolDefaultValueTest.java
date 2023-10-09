@@ -39,7 +39,7 @@ public class ConfigItemIntBoolDefaultValueTest extends LSP4MPMavenModuleImportin
     @Test
     public void testConfigItemIntBoolDefaultValueTest() throws Exception {
 
-        Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+        Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
         MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
                 PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
 

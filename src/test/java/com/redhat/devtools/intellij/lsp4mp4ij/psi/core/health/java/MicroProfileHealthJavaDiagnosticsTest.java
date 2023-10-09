@@ -14,7 +14,8 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants;
@@ -26,7 +27,6 @@ import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Arrays;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
@@ -37,10 +37,10 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  * @author Angelo ZERR
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/health/JavaDiagnosticsMicroProfileHealthTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/health/JavaDiagnosticsMicroProfileHealthTest.java</a>
  */
-public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingTestCase {
+public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImportingTestCase {
     @Test
     public void testImplementHealthCheck() throws Exception {
-        Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-health-quickstart"));
+        Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_health_quickstart);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -68,7 +68,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
     @Test
     public void testHealthAnnotationMissing() throws Exception {
 
-        Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-health-quickstart"));
+        Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_health_quickstart);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -108,7 +108,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
 
     @Test
     public void testHealthAnnotationMissingv3() throws Exception {
-        Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-health-3"));
+        Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_health_3, true);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -130,9 +130,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends MavenModuleImportingT
                 ca(uri, "Insert @Liveness", MicroProfileCodeActionId.InsertMissingHealthAnnotation, d, //
                         te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")), //
                 ca(uri, "Insert @Readiness", MicroProfileCodeActionId.InsertMissingHealthAnnotation, d, //
-                        te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")), //
-                ca(uri, "Generate OpenAPI Annotations for 'MyLivenessCheck'", MicroProfileCodeActionId.GenerateOpenApiAnnotations, d, //
-                        te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\n\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")) //
+                        te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n"))
         );
     }
 }

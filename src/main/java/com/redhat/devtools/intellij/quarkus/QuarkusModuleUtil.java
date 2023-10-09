@@ -38,10 +38,12 @@ import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
 import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -59,101 +61,6 @@ public class QuarkusModuleUtil {
     public static final Pattern MICROPROFILE_CONFIG_PROPERTIES = Pattern.compile("microprofile-config(-.+)?\\.properties");
 
     public static final Pattern APPLICATION_YAML = Pattern.compile("application(-.+)?\\.ya?ml");
-
-    public static boolean isQuarkusExtensionWithDeploymentArtifact(Library library) {
-        boolean result = false;
-        if (library != null) {
-            VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
-
-            for(int i=0; !result && i < files.length;++i) {
-                if (files[i].isDirectory()) {
-                    result = ToolDelegate.getDeploymentJarId(VfsUtilCore.virtualToIoFile(files[i])) != null;
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Check if the Quarkus library needs to be recomputed and update it if required.
-     *
-     * @param module the module to check
-     * @param progressIndicator
-     */
-    public static void ensureQuarkusLibrary(Module module, ProgressIndicator progressIndicator) {
-        if (module.isDisposed())
-            return;
-        LOGGER.info("Ensuring library to " + module.getName());
-        long start = System.currentTimeMillis();
-        ToolDelegate toolDelegate = ToolDelegate.getDelegate(module);
-        if (toolDelegate != null) {
-            LOGGER.info("Tool delegate found for " + module.getName());
-            if (isQuarkusModule(module)) {
-                LOGGER.info("isQuarkus module " + module.getName());
-                QuarkusModuleComponent component = module.getComponent(QuarkusModuleComponent.class);
-                Integer previousHash = component.getHash();
-                Integer actualHash = computeHash(module);
-                var qlib = OrderEntryUtil.findLibraryOrderEntry(ModuleRootManager.getInstance(module), QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
-                if (qlib == null || (actualHash != null && !actualHash.equals(previousHash)) ||
-                        !QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION.equals(component.getVersion())){
-                    ModuleRootModificationUtil.updateModel(module, model -> {
-                        LibraryTable table = model.getModuleLibraryTable();
-                        Library library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
-                        while (library != null) {
-                            table.removeLibrary(library);
-                            TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "removeLibrary");
-                            library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
-                        }
-                        progressIndicator.checkCanceled();
-                        progressIndicator.setText("Collecting Quarkus deployment dependencies...");
-                        List<VirtualFile>[] files = toolDelegate.getDeploymentFiles(module, progressIndicator);
-                        LOGGER.info("Adding library to " + module.getName() + " previousHash=" + previousHash + " newHash=" + actualHash);
-                        TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "addLibrary").send();
-                        addLibrary(model, files, module);
-                    });
-                    component.setHash(actualHash);
-                    component.setVersion(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION);
-                }
-            }
-        }
-        LOGGER.info("ensureQuarkusLibrary ran in " + (System.currentTimeMillis() - start));
-    }
-
-    private static void addLibrary(ModifiableRootModel model, List<VirtualFile>[] files, Module module) {
-        LibraryEx library = (LibraryEx)model.getModuleLibraryTable().createLibrary(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
-        LibraryEx.ModifiableModelEx libraryModel = library.getModifiableModel();
-
-        for (VirtualFile rootFile : files[ToolDelegate.BINARY]) {
-            libraryModel.addRoot(rootFile, OrderRootType.CLASSES);
-        }
-        for (VirtualFile rootFile : files[ToolDelegate.SOURCES]) {
-            libraryModel.addRoot(rootFile, OrderRootType.SOURCES);
-        }
-
-        LibraryOrderEntry entry = model.findLibraryOrderEntry(library);
-        assert entry != null : library;
-        entry.setScope(DependencyScope.PROVIDED);
-        entry.setExported(false);
-        ApplicationManager.getApplication().invokeAndWait(() -> {
-            WriteAction.run(libraryModel::commit);
-        });
-    }
-
-    private static Integer computeHash(Module module) {
-        ModuleRootManager manager = ModuleRootManager.getInstance(module);
-        Set<String> files = manager.processOrder(new RootPolicy<Set<String>>() {
-            @Override
-            public Set<String> visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Set<String> value) {
-                if (!isQuarkusDeploymentLibrary(libraryOrderEntry) && isQuarkusExtensionWithDeploymentArtifact(libraryOrderEntry.getLibrary())) {
-                    for(VirtualFile file : libraryOrderEntry.getFiles(OrderRootType.CLASSES)) {
-                        value.add(file.getPath());
-                    }
-                }
-                return value;
-            }
-        }, new HashSet<>());
-        return files.isEmpty()?null:files.hashCode();
-    }
 
     /**
      * Check if the module is a Quarkus project. Should check if some class if present
@@ -174,13 +81,8 @@ public class QuarkusModuleUtil {
     }
 
     public static boolean isQuarkusLibrary(@NotNull LibraryOrderEntry libraryOrderEntry) {
-        return  libraryOrderEntry.getLibraryName() != null &&
-                libraryOrderEntry.getLibraryName().contains(QuarkusConstants.QUARKUS_CORE_PREFIX);
-    }
-
-    public static boolean isQuarkusDeploymentLibrary(@NotNull LibraryOrderEntry libraryOrderEntry) {
         return libraryOrderEntry.getLibraryName() != null &&
-                libraryOrderEntry.getLibraryName().equalsIgnoreCase(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
+                libraryOrderEntry.getLibraryName().contains(QuarkusConstants.QUARKUS_CORE_PREFIX);
     }
 
     private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
@@ -204,9 +106,9 @@ public class QuarkusModuleUtil {
                 .findFirst();
         if (quarkusCoreJar.isPresent()) {
             Matcher quarkusCoreArtifactMatcher = QUARKUS_CORE_PATTERN.matcher(quarkusCoreJar.get().getName());
-            if(quarkusCoreArtifactMatcher.matches()) {
+            if (quarkusCoreArtifactMatcher.matches()) {
                 String quarkusVersion = quarkusCoreArtifactMatcher.group(1);
-                LOGGER.debug("Detected Quarkus version = " +  quarkusVersion);
+                LOGGER.debug("Detected Quarkus version = {}", quarkusVersion);
                 Matcher quarkusVersionMatcher = QUARKUS_STANDARD_VERSIONING.matcher(quarkusVersion);
                 return predicate.test(quarkusVersionMatcher);
             } else {
@@ -219,7 +121,7 @@ public class QuarkusModuleUtil {
 
     public static Set<String> getModulesURIs(Project project) {
         Set<String> uris = new HashSet<>();
-        for(Module module : ModuleManager.getInstance(project).getModules()) {
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
             uris.add(PsiUtilsLSImpl.getProjectURI(module));
         }
         return uris;

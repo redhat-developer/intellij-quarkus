@@ -42,7 +42,7 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_RUN_
 public class MavenQuarkusConfigRootTest extends QuarkusMavenModuleImportingTestCase {
 
     public void testHibernateOrmResteasy() throws Exception {
-        Module module = loadMavenProject(QuarkusMavenProjectName.hibernate_orm_resteasy);
+        Module module = loadMavenProject(QuarkusMavenProjectName.hibernate_orm_resteasy, true);
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
         assertProperties(info,
 
@@ -63,7 +63,7 @@ public class MavenQuarkusConfigRootTest extends QuarkusMavenModuleImportingTestC
     }
 
     public void testAllQuarkusExtensions() throws Exception {
-        Module module = loadMavenProject(QuarkusMavenProjectName.all_quarkus_extensions);
+        Module module = loadMavenProject(QuarkusMavenProjectName.all_quarkus_extensions, true);
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
         assertProperties(info,
 

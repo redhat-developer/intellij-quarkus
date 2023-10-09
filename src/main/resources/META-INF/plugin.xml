@@ -332,6 +332,7 @@
     <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusProjectService"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager"/>
     <projectService serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager"/>
+    <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport"/>
     <configurationType implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationType"/>
     <consoleActionsPostProcessor implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConsolePostProcessor"/>
 

@@ -14,10 +14,13 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenEditorTest;
 import com.redhat.devtools.intellij.lsp4ij.ConnectDocumentToLanguageServerSetupParticipant;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
+import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 import org.junit.Test;
 
 import java.io.File;
@@ -31,8 +34,7 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 
 	@Test
 	public void testBooleanCompletion() throws Exception {
-
-		Module module = createMavenModule(new File("projects/quarkus/projects/maven/config-quickstart"));
+		Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
 		VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/application.properties");
 		codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
@@ -48,5 +50,17 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 			codeInsightTestFixture.type(s.charAt(i));
 		}
 		Thread.sleep(1000);
+	}
+
+	protected Module loadMavenProject(String projectName) throws Exception {
+		return loadMavenProject(projectName, false);
+	}
+
+	protected Module loadMavenProject(String projectName, boolean collectAndAddQuarkusDeploymentDependencies) throws Exception {
+		Module module = createMavenModule(new File("projects/quarkus/projects/maven/" + projectName));
+		if(collectAndAddQuarkusDeploymentDependencies) {
+			QuarkusDeploymentSupport.updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
+		}
+		return module;
 	}
 }

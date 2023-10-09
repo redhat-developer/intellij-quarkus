@@ -11,10 +11,12 @@
 package com.redhat.microprofile.psi.quarkus;
 
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.GradleTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
@@ -39,7 +41,10 @@ public class GradleQuarkusConfigRootAllQuarkusExtensionsTest extends GradleTestC
 
     @Test
     public void testAllExtensions() throws Exception {
-        MicroProfileProjectInfo info = ReadAction.compute(() ->PropertiesManager.getInstance().getMicroProfileProjectInfo(getModule("all-quarkus-extensions.main"), MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator()));
+        Module module = getModule("all-quarkus-extensions.main");
+        QuarkusDeploymentSupport.getInstance(module.getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
+
+        MicroProfileProjectInfo info = ReadAction.compute(() ->PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator()));
         File keycloakJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-keycloak-authorization", "1.0.1.Final");
         assertNotNull("Test existing of quarkus-keycloak-deployment*.jar", keycloakJARFile);
         File hibernateJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-hibernate-orm-deployment", "1.0.1.Final");

@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.idea.maven.model.MavenId;
 
 import java.io.File;
 import java.io.FileReader;
@@ -36,6 +37,24 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPL
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_EXTENSION_PROPERTIES;
 
 public interface ToolDelegate  {
+
+    static boolean shouldResolveArtifactTransitively(MavenId deploymentId) {
+        // The kubernetes support is only available if quarkus-kubernetes artifact is
+        // declared in the pom.xml
+        // When quarkus-kubernetes is declared, this JAR declares the deployment JAR
+        // quarkus-kubernetes-deployment
+        // This quarkus-kubernetes-deployment artifact has some dependencies to
+        // io.dekorate
+
+        // In other words, to add
+        // io.dekorate.kubernetes.annotation.KubernetesApplication class in the search
+        // classpath,
+        // the dependencies of quarkus-kubernetes-deployment artifact must be downloaded
+        return "quarkus-kubernetes-deployment".equals(deploymentId.getArtifactId())
+                || "quarkus-openshift-deployment".equals(deploymentId.getArtifactId())
+                || "quarkus-smallrye-openapi-deployment".equals(deploymentId.getArtifactId());
+    }
+
     static String getDeploymentJarId(File file) {
         String result = null;
         if (file.isDirectory()) {
@@ -57,6 +76,10 @@ public interface ToolDelegate  {
             } catch (IOException e) {}
         }
         return result;
+    }
+
+    static boolean hasExtensionProperties(File file) {
+        return getDeploymentJarId(file) != null;
     }
 
     static String getQuarkusExtension(Reader r) throws IOException {

@@ -24,12 +24,12 @@ import java.io.File;
  * @author Angelo ZERR
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerLocationTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerLocationTest.java</a>
  */
-public class PropertiesManagerLocationTest extends MavenModuleImportingTestCase {
+public class PropertiesManagerLocationTest extends LSP4MPMavenModuleImportingTestCase  {
 
     @Test
     public void testUsingVertxTest() throws Exception {
 
-        Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/using-vertx"));
+        Module javaProject = loadMavenProject(MicroProfileMavenProjectName.using_vertx,true);
         // Test with JAR
         // quarkus.datasource.url
         Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
