@@ -46,7 +46,7 @@ public class JavaEEImplicitUsageProvider implements ImplicitUsageProvider {
     private boolean isObserverMethod(@NotNull PsiElement element) {
         if (element instanceof PsiMethod) {
             PsiMethod method = (PsiMethod) element;
-            return isPublicNonAbstract(method) && observesOneParameter(method);
+            return isNonAbstract(method) && observesOneParameter(method);
         }
         return false;
     }
@@ -71,9 +71,8 @@ public class JavaEEImplicitUsageProvider implements ImplicitUsageProvider {
         return observesAnnotationCount == 1;
     }
 
-    private boolean isPublicNonAbstract(@NotNull PsiMethod method) {
+    private boolean isNonAbstract(@NotNull PsiMethod method) {
         return !method.isConstructor() &&
-                method.hasModifierProperty(PsiModifier.PUBLIC) &&
                 !method.hasModifierProperty(PsiModifier.ABSTRACT);
     }
 
