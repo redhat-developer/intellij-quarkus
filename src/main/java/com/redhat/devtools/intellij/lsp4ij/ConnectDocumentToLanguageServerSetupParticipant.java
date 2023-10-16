@@ -11,8 +11,6 @@
 package com.redhat.devtools.intellij.lsp4ij;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.DumbService;
@@ -56,21 +54,18 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectM
 
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        Document document = FileDocumentManager.getInstance().getDocument(file);
-        if (document != null) {
-            Project project = source.getProject();
-            boolean readAccessAllowed = ApplicationManager.getApplication().isReadAccessAllowed();
-            boolean dumb = DumbService.isDumb(project);
-            // As document matcher requires read action, we try to open the file in read action and when indexing is finishsed.
-            if (readAccessAllowed && !dumb) {
-                // No indexing and read action enabled
-                // --> force the start of all languages servers mapped with the given file immediately
-                connectToLanguageServer(file, project);
-            } else {
-                // Wait for indexing is finished and read action is enabled
-                // --> force the start of all languages servers mapped with the given file when indexing is finished and read action is allowed
-                new ConnectToLanguageServerCompletableFuture(file, project);
-            }
+        Project project = source.getProject();
+        boolean readAccessAllowed = ApplicationManager.getApplication().isReadAccessAllowed();
+        boolean dumb = DumbService.isDumb(project);
+        // As document matcher requires read action, we try to open the file in read action and when indexing is finishsed.
+        if (readAccessAllowed && !dumb) {
+            // No indexing and read action enabled
+            // --> force the start of all languages servers mapped with the given file immediately
+            connectToLanguageServer(file, project);
+        } else {
+            // Wait for indexing is finished and read action is enabled
+            // --> force the start of all languages servers mapped with the given file when indexing is finished and read action is allowed
+            new ConnectToLanguageServerCompletableFuture(file, project);
         }
     }
 
