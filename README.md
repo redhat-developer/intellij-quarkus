@@ -294,6 +294,22 @@ Data and Telemetry
 ==================
 The JetBrains IntelliJ Quarkus Tools plugin collects anonymous [usage data](USAGE_DATA.md) and sends it to Red Hat servers to help improve our products and services. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection) to learn more. This extension respects the Red Hat Telemetry setting which you can learn more about at [https://github.com/redhat-developer/intellij-redhat-telemetry#telemetry-reporting](https://github.com/redhat-developer/intellij-redhat-telemetry#telemetry-reporting)
 
+## Articles
+
+ * [A recap of Quarkus Tools for IntelliJ's latest improvements](https://quarkus.io/blog/intellij-quarkus-recap/)
+ * [Quarkus Tools for IntelliJ 1.14.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.14.0/)
+ * [Quarkus Tools for IntelliJ 1.13.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.13.0/)
+ * [Quarkus Tools for IntelliJ 1.12.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.12.0/)
+ * [Quarkus Tools for IntelliJ 1.11.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.11.0/)
+ * [Quarkus Tools for IntelliJ 1.10.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.10.0/)
+ * [Quarkus Tools for IntelliJ 1.9.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.9.0/)
+ * [Quarkus Tools for IntelliJ 1.8.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.8.0/)
+ * [Quarkus Tools for IntelliJ 1.4.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.4.0/)
+ * [Quarkus Tools for IntelliJ 1.3.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.3.0/)
+ * [Quarkus Tools for IntelliJ 1.2.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.2.0/)
+ * [Quarkus Tools for IntelliJ 1.1.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.1.0/)
+ * [Quarkus Tools for IntelliJ 1.0.0 released!](https://quarkus.io/blog/intellij-quarkus-tools-1.0.0/)
+
 ## Feedback
 
 File a bug in [GitHub Issues](https://github.com/redhat-developer/intellij-quarkus/issues).
