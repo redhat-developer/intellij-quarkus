@@ -22,18 +22,18 @@ import com.intellij.openapi.editor.colors.TextAttributesKey;
  */
 public class QuteHighlighterColors {
 
-    public static final TextAttributesKey COMMENT = TextAttributesKey.createTextAttributesKey("COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
+    public static final TextAttributesKey COMMENT = TextAttributesKey.createTextAttributesKey("QUTE_TOOLS.COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
 
-    public static final TextAttributesKey QUTE_EDGE = TextAttributesKey.createTextAttributesKey("EXPRESSION", XmlHighlighterColors.XML_TAG);
+    public static final TextAttributesKey QUTE_EDGE = TextAttributesKey.createTextAttributesKey("QUTE_TOOLS.EXPRESSION", XmlHighlighterColors.XML_TAG);
 
-    public static final TextAttributesKey SECTION_TAG_NAME = TextAttributesKey.createTextAttributesKey("SECTION_TAG_NAME", XmlHighlighterColors.XML_TAG_NAME);
+    public static final TextAttributesKey SECTION_TAG_NAME = TextAttributesKey.createTextAttributesKey("QUTE_TOOLS.SECTION_TAG_NAME", XmlHighlighterColors.XML_TAG_NAME);
 
-    public static final TextAttributesKey STRING = TextAttributesKey.createTextAttributesKey("STRING", XmlHighlighterColors.XML_ATTRIBUTE_VALUE);
+    public static final TextAttributesKey STRING = TextAttributesKey.createTextAttributesKey("QUTE_TOOLS.STRING", XmlHighlighterColors.XML_ATTRIBUTE_VALUE);
 
-    public static final TextAttributesKey NUMERIC = TextAttributesKey.createTextAttributesKey("NUMERIC", DefaultLanguageHighlighterColors.NUMBER);
+    public static final TextAttributesKey NUMERIC = TextAttributesKey.createTextAttributesKey("QUTE_TOOLS.NUMERIC", DefaultLanguageHighlighterColors.NUMBER);
 
-    public static final TextAttributesKey BOOLEAN = TextAttributesKey.createTextAttributesKey("BOOLEAN", DefaultLanguageHighlighterColors.KEYWORD);
+    public static final TextAttributesKey BOOLEAN = TextAttributesKey.createTextAttributesKey("QUTE_TOOLS.BOOLEAN", DefaultLanguageHighlighterColors.KEYWORD);
 
-    public static final TextAttributesKey KEYWORD = TextAttributesKey.createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
+    public static final TextAttributesKey KEYWORD = TextAttributesKey.createTextAttributesKey("QUTE_TOOLS.KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
 
 }
