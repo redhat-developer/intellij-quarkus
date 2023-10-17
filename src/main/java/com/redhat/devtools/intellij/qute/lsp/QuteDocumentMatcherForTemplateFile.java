@@ -26,6 +26,6 @@ public class QuteDocumentMatcherForTemplateFile extends AbstractQuteDocumentMatc
         if (!super.match(file, fileProject)) {
             return false;
         }
-        return isQuteTemplate(file, LSPIJUtils.getModule(file));
+        return isQuteTemplate(file, LSPIJUtils.getModule(file, fileProject));
     }
 }

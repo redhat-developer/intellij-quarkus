@@ -192,7 +192,7 @@ public class QuteUpdateConfigurationAction extends AnAction {
             String scopeUri = value.get("scopeUri").getAsString();
             VirtualFile resource = LSPIJUtils.findResourceFor(scopeUri);
             if (resource != null) {
-                @Nullable Module module = LSPIJUtils.getModule(resource);
+                @Nullable Module module = LSPIJUtils.getModule(resource, project);
                 if (module != null) {
                     String modulePath = LSPIJUtils.toUri(module).resolve("**").toString();
                     addToExclusions(project, modulePath);

@@ -27,6 +27,7 @@ import com.redhat.devtools.intellij.lsp4ij.LSPVirtualFileData;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.lsp4ij.client.CoalesceByKey;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.function.Consumer;
@@ -52,12 +53,12 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             return;
         }
         if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-            updateDiagnostics(params);
+            updateDiagnostics(params, project);
         } else {
             // Cancel if needed the previous "textDocument/publishDiagnostics" for a given uri.
             var coalesceBy = new CoalesceByKey("textDocument/publishDiagnostics", params.getUri());
             var executeInSmartMode = DumbService.getInstance(languageServerWrapper.getProject()).isDumb();
-            var action = ReadAction.nonBlocking(() -> updateDiagnostics(params))
+            var action = ReadAction.nonBlocking(() -> updateDiagnostics(params, project))
                     .expireWith(languageServerWrapper)
                     .coalesceBy(coalesceBy);
             if (executeInSmartMode) {
@@ -67,13 +68,12 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
         }
     }
 
-    public void updateDiagnostics(PublishDiagnosticsParams params) {        //ApplicationManager.getApplication().runReadAction(() -> {
-        VirtualFile file = LSPIJUtils.findResourceFor(params.getUri());
-        if (file == null) {
+    private void updateDiagnostics(@NotNull PublishDiagnosticsParams params, @NotNull Project project) {
+        if (project.isDisposed()) {
             return;
         }
-        Project project = LSPIJUtils.getProject(file);
-        if (project == null || project.isDisposed()) {
+        VirtualFile file = LSPIJUtils.findResourceFor(params.getUri());
+        if (file == null) {
             return;
         }
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
@@ -93,6 +93,5 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             // which translates LSP Diagnostics into Intellij Annotation
             DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
         }
-
     }
 }
