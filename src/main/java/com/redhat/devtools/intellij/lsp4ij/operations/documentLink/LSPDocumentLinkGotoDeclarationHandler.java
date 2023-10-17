@@ -45,7 +45,7 @@ public class LSPDocumentLinkGotoDeclarationHandler implements GotoDeclarationHan
     public PsiElement @Nullable [] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
         Document document = editor.getDocument();
         VirtualFile file = LSPIJUtils.getFile(document);
-        Module module = LSPIJUtils.getModule(file);
+        Module module = LSPIJUtils.getModule(file, sourceElement.getProject());
         Project project = module != null ? module.getProject() : null;
         if (project == null || project.isDisposed()) {
             return PsiElement.EMPTY_ARRAY;

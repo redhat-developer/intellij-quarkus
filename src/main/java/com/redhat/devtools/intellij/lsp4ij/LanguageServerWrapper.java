@@ -17,7 +17,6 @@ import com.intellij.lang.Language;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -1006,7 +1005,7 @@ public class LanguageServerWrapper implements Disposable {
         if (this.initialProject == null && this.connectedDocuments.isEmpty()) {
             return true;
         }
-        if (file != null && file.exists() && canOperate(LSPIJUtils.getProject(file))) {
+        if (file != null && file.exists()) {
             return true;
         }
         return serverDefinition.isSingleton;

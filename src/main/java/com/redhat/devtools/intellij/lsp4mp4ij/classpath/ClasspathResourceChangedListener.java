@@ -157,7 +157,7 @@ class ClasspathResourceChangedListener extends PsiTreeChangeAdapter implements B
             return;
         }
         // The file is a Java file or microprofile-config.properties
-        Module module = LSPIJUtils.getModule(file);
+        Module module = LSPIJUtils.getModule(file, project);
         if (module == null || module.isDisposed()) {
             return;
         }

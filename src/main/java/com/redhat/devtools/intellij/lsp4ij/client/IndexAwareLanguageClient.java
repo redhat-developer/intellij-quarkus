@@ -63,7 +63,7 @@ public class IndexAwareLanguageClient extends LanguageClientImpl {
     protected String getFilePath(String fileUri) {
         VirtualFile file = LSPIJUtils.findResourceFor(fileUri);
         if (file != null) {
-            Module module = LSPIJUtils.getModule(file);
+            Module module = LSPIJUtils.getModule(file, getProject());
             if (module != null) {
                 ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
                 VirtualFile[] contentRoots = rootManager.getContentRoots();

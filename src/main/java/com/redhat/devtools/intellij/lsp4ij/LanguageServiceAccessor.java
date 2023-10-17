@@ -160,11 +160,7 @@ public class LanguageServiceAccessor {
 
     @NotNull
     private CompletableFuture<Collection<LanguageServerWrapper>> getMatchedLanguageServersWrappers(@NotNull VirtualFile file) {
-        final Project fileProject = LSPIJUtils.getProject(file);
-        if (fileProject == null) {
-            return CompletableFuture.completedFuture(Collections.emptyList());
-        }
-        MatchedLanguageServerDefinitions mappings = getMatchedLanguageServerDefinitions(file, fileProject);
+        MatchedLanguageServerDefinitions mappings = getMatchedLanguageServerDefinitions(file, project);
         if (mappings == MatchedLanguageServerDefinitions.NO_MATCH) {
             // There are no mapping for the given file
             return CompletableFuture.completedFuture(Collections.emptyList());
@@ -174,14 +170,14 @@ public class LanguageServiceAccessor {
 
         // Collect sync server definitions
         var serverDefinitions = mappings.getMatched();
-        collectLanguageServersFromDefinition(file, fileProject, serverDefinitions, matchedServers);
+        collectLanguageServersFromDefinition(file, project, serverDefinitions, matchedServers);
 
         CompletableFuture<Set<LanguageServersRegistry.LanguageServerDefinition>> async = mappings.getAsyncMatched();
         if (async != null) {
             // Collect async server definitions
             return async
                     .thenApply(asyncServerDefinitions -> {
-                        collectLanguageServersFromDefinition(file, fileProject, asyncServerDefinitions, matchedServers);
+                        collectLanguageServersFromDefinition(file, project, asyncServerDefinitions, matchedServers);
                         return matchedServers;
                     });
         }

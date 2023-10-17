@@ -48,7 +48,7 @@ public class PsiQuteProjectUtils {
 
 	public static ProjectInfo getProjectInfo(Module javaProject) {
 		String projectUri = getProjectURI(javaProject);
-		String templateBaseDir =  LSPIJUtils.toUri(javaProject).resolve(TEMPLATES_BASE_DIR).toASCIIString();
+		String templateBaseDir = getTemplateBaseDir(javaProject);
 		// Project dependencies
 		Set<Module> projectDependencies = new HashSet<>();
 		ModuleUtilCore.getDependencies(javaProject, projectDependencies);
@@ -57,6 +57,10 @@ public class PsiQuteProjectUtils {
 				.filter(projectDependency -> !javaProject.equals(projectDependency))
 				.map(projectDependency -> LSPIJUtils.getProjectUri(projectDependency))
 				.collect(Collectors.toList()), templateBaseDir);
+	}
+
+	private static String getTemplateBaseDir(Module javaProject) {
+		return LSPIJUtils.toUri(javaProject).resolve(TEMPLATES_BASE_DIR).toASCIIString();
 	}
 
 	/**

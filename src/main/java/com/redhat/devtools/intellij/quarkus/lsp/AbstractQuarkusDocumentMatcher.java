@@ -24,7 +24,7 @@ public class AbstractQuarkusDocumentMatcher extends AbstractDocumentMatcher {
 
     @Override
     public boolean match(VirtualFile file, Project fileProject) {
-        Module module = LSPIJUtils.getModule(file);
+        Module module = LSPIJUtils.getModule(file, fileProject);
         return module != null && QuarkusModuleUtil.isQuarkusModule(module);
     }
 }

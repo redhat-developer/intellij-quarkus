@@ -1,12 +1,12 @@
 /**
  * Copyright 2012 Daniel Marcotte
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,22 +36,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public class QuteFileIndentOptionsProvider extends FileIndentOptionsProvider {
 
-  @Nullable
-  @Override
-  public CommonCodeStyleSettings.@Nullable IndentOptions getIndentOptions(@NotNull CodeStyleSettings settings, @NotNull PsiFile file) {
-    if (file.getFileType().equals(QuteFileType.QUTE)) {
-      VirtualFile virtualFile = file.getVirtualFile();
-      Module module = LSPIJUtils.getModule(virtualFile);
-      if (module == null) {
+    @Nullable
+    @Override
+    public CommonCodeStyleSettings.@Nullable IndentOptions getIndentOptions(@NotNull CodeStyleSettings settings, @NotNull PsiFile file) {
+        if (file.getFileType().equals(QuteFileType.QUTE)) {
+            VirtualFile virtualFile = file.getVirtualFile();
+            Project project = file.getProject();
+            Module module = LSPIJUtils.getModule(virtualFile, project);
+            if (module == null) {
+                return null;
+            }
+            FileViewProvider provider = PsiManagerEx.getInstanceEx(project).findViewProvider(virtualFile);
+            if (provider instanceof TemplateLanguageFileViewProvider) {
+                Language language = ((TemplateLanguageFileViewProvider) provider).getTemplateDataLanguage();
+                return settings.getCommonSettings(language).getIndentOptions();
+            }
+        }
         return null;
-      }
-      Project project = module.getProject();
-      FileViewProvider provider = PsiManagerEx.getInstanceEx(project).findViewProvider(virtualFile);
-      if (provider instanceof TemplateLanguageFileViewProvider) {
-        Language language = ((TemplateLanguageFileViewProvider)provider).getTemplateDataLanguage();
-        return settings.getCommonSettings(language).getIndentOptions();
-      }
     }
-    return null;
-  }
 }

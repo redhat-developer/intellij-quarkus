@@ -171,27 +171,15 @@ public class LSPIJUtils {
         return getDocument(documentFile);
     }
 
-    public static @Nullable Module getModule(@Nullable VirtualFile file) {
+    @Nullable
+    public static Module getModule(@Nullable VirtualFile file, @NotNull Project project) {
         if (file == null) {
             return null;
         }
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            Module module = null;
-            if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-                module = ProjectFileIndex.getInstance(project).getModuleForFile(file, false);
-            } else {
-                module = ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file, false));
-            }
-            if (module != null) {
-                return module;
-            }
+        if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+            return ProjectFileIndex.getInstance(project).getModuleForFile(file, false);
         }
-        return null;
-    }
-
-    public static @Nullable Project getProject(@Nullable VirtualFile file) {
-        Module module = getModule(file);
-        return module != null ? module.getProject() : null;
+        return ReadAction.compute(() -> ProjectFileIndex.getInstance(project).getModuleForFile(file, false));
     }
 
     public static int toOffset(Position start, Document document) throws IndexOutOfBoundsException {
@@ -426,30 +414,23 @@ public class LSPIJUtils {
         return VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.fixURLforIDEA(uri));
     }
 
-    public static Editor[] editorsForFile(VirtualFile file) {
-        Editor[] editors = new Editor[0];
-        Document document = getDocument(file);
-        if (document != null) {
-            editors = editorsForFile(file, document);
+    public static @Nullable Editor editorForElement(@Nullable PsiElement element) {
+        if (element != null && element.getContainingFile() != null && element.getContainingFile().getVirtualFile() != null) {
+            return editorForFile(element.getContainingFile().getVirtualFile(), element.getProject());
         }
-        return editors;
+        return null;
     }
 
-    public static Editor[] editorsForFile(VirtualFile file, Document document) {
-        Project project = LSPIJUtils.getProject(file);
-        return project != null ? EditorFactory.getInstance().getEditors(document, project) : new Editor[0];
-    }
-
-    public static Editor editorForFile(VirtualFile file) {
-        Editor[] editors = editorsForFile(file);
+    private static @Nullable Editor editorForFile(@Nullable VirtualFile file, @NotNull Project project) {
+        Editor[] editors = editorsForDocument(getDocument(file), project);
         return editors.length > 0 ? editors[0] : null;
     }
 
-    public static Editor editorForElement(@Nullable PsiElement element) {
-        if (element != null && element.getContainingFile() != null && element.getContainingFile().getVirtualFile() != null) {
-            return editorForFile(element.getContainingFile().getVirtualFile());
+    private static @NotNull Editor[] editorsForDocument(@Nullable Document document, @Nullable Project project) {
+        if (document == null) {
+            return new Editor[0];
         }
-        return null;
+        return EditorFactory.getInstance().getEditors(document, project);
     }
 
     public static CompletionParams toCompletionParams(URI fileUri, int offset, Document document) {
