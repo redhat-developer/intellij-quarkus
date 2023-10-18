@@ -38,6 +38,7 @@ public class ConnectDocumentToLanguageServerSetupParticipant implements ProjectM
                 connectToLanguageServer(file, project);
                 return null;
             }, MessageFormat.format(MESSAGE_KEY, file.getUrl()), project, null, new CoalesceByKey(ConnectDocumentToLanguageServerSetupParticipant.class.getName(), file.getUrl()));
+            init();
         }
     }
 
