@@ -21,6 +21,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,10 +56,6 @@ public class LSPDocumentLinkAnnotator extends ExternalAnnotator<List<LSPVirtualF
     @Nullable
     @Override
     public List<LSPVirtualFileData> collectInformation(@NotNull PsiFile psiFile, @NotNull Editor editor, boolean hasErrors) {
-        URI uri = LSPIJUtils.toUri(editor.getDocument());
-        if (uri == null) {
-            return null;
-        }
         Document document = editor.getDocument();
         VirtualFile file = LSPIJUtils.getFile(document);
         if (file == null) {
@@ -68,10 +65,13 @@ public class LSPDocumentLinkAnnotator extends ExternalAnnotator<List<LSPVirtualF
         final CancellationSupport cancellationSupport = new CancellationSupport();
         try {
             ProgressManager.checkCanceled();
+
+            URI uri = LSPIJUtils.toUri(file);
             DocumentLinkParams params = new DocumentLinkParams(LSPIJUtils.toTextDocumentIdentifier(uri));
 
+            Project project = editor.getProject();
             BlockingDeque<Pair<List<DocumentLink>, LanguageServerWrapper>> documentLinks = new LinkedBlockingDeque<>();
-            CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(editor.getProject()).getLanguageServers(file,
+            CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(project).getLanguageServers(file,
                             capabilities -> capabilities.getDocumentLinkProvider() != null)
                     .thenAcceptAsync(languageServers ->
                             cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()

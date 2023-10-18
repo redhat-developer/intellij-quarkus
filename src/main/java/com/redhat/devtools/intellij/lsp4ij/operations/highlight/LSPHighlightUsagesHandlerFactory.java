@@ -55,21 +55,22 @@ public class LSPHighlightUsagesHandlerFactory implements HighlightUsagesHandlerF
         if (file == null) {
             return Collections.emptyList();
         }
-        URI uri = LSPIJUtils.toUri(file);
         List<LSPHighlightPsiElement> elements = new ArrayList<>();
         final CancellationSupport cancellationSupport = new CancellationSupport();
         try {
-            int offset = TargetElementUtil.adjustOffset(psiFile, editor.getDocument(), editor.getCaretModel().getOffset());
             Document document = editor.getDocument();
+            int offset = TargetElementUtil.adjustOffset(psiFile, document, editor.getCaretModel().getOffset());
             Position position = LSPIJUtils.toPosition(offset, document);
 
             ProgressManager.checkCanceled();
-            TextDocumentIdentifier identifier = new TextDocumentIdentifier(uri.toString());
+
+            String uri = LSPIJUtils.toUriAsString(file);
+            TextDocumentIdentifier identifier = new TextDocumentIdentifier(uri);
             DocumentHighlightParams params = new DocumentHighlightParams(identifier, position);
             BlockingDeque<DocumentHighlight> highlights = new LinkedBlockingDeque<>();
 
             CompletableFuture<Void> future = LanguageServiceAccessor.getInstance(editor.getProject())
-                    .getLanguageServers(psiFile.getVirtualFile(), capabilities -> LSPIJUtils.hasCapability(capabilities.getDocumentHighlightProvider()))
+                    .getLanguageServers(file, capabilities -> LSPIJUtils.hasCapability(capabilities.getDocumentHighlightProvider()))
                     .thenAcceptAsync(languageServers ->
                             cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
                                     .map(languageServer -> cancellationSupport.execute(languageServer.getServer().getTextDocumentService().documentHighlight(params)))
