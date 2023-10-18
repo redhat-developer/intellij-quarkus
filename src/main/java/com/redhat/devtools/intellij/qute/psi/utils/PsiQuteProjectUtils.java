@@ -1,135 +1,212 @@
 /*******************************************************************************
-* Copyright (c) 2021 Red Hat Inc. and others.
-* All rights reserved. This program and the accompanying materials
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v20.html
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     Red Hat Inc. - initial API and implementation
-*******************************************************************************/
+ * Copyright (c) 2021 Red Hat Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.utils;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.qute.commons.ProjectInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JavaResourceRootType;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * JDT Qute utilities.
  *
  * @author Angelo ZERR
- *
  */
 public class PsiQuteProjectUtils {
 
-	private static final String TEMPLATES_BASE_DIR = "src/main/resources/templates/";
+    public static final String RESOURCES_BASE_DIR = "src/main/resources";
 
-	/**
-	 * Value for Qute annotations indicating behaviour should be using the default
-	 */
-	private static final String DEFAULTED = "<<defaulted>>";
+    public static final String TEMPLATES_FOLDER_NAME = "templates";
 
-	private PsiQuteProjectUtils() {
-	}
+    /**
+     * Value for Qute annotations indicating behaviour should be using the default
+     */
+    private static final String DEFAULTED = "<<defaulted>>";
+    private static final Comparator<VirtualFile> ROOT_COMPARATOR = Comparator.comparingInt(r -> r.getPath().length());
 
-	public static ProjectInfo getProjectInfo(Module javaProject) {
-		String projectUri = getProjectURI(javaProject);
-		String templateBaseDir = getTemplateBaseDir(javaProject);
-		// Project dependencies
-		Set<Module> projectDependencies = new HashSet<>();
-		ModuleUtilCore.getDependencies(javaProject, projectDependencies);
-		return new ProjectInfo(projectUri, projectDependencies
-				.stream()
-				.filter(projectDependency -> !javaProject.equals(projectDependency))
-				.map(projectDependency -> LSPIJUtils.getProjectUri(projectDependency))
-				.collect(Collectors.toList()), templateBaseDir);
-	}
+    private PsiQuteProjectUtils() {
+    }
 
-	private static String getTemplateBaseDir(Module javaProject) {
-		return LSPIJUtils.toUri(javaProject).resolve(TEMPLATES_BASE_DIR).toASCIIString();
-	}
+    public static ProjectInfo getProjectInfo(Module javaProject) {
+        String projectUri = getProjectURI(javaProject);
+        String templateBaseDir = getTemplateBaseDir(javaProject);
+        // Project dependencies
+        Set<Module> projectDependencies = new HashSet<>();
+        ModuleUtilCore.getDependencies(javaProject, projectDependencies);
+        return new ProjectInfo(projectUri, projectDependencies
+                .stream()
+                .filter(projectDependency -> !javaProject.equals(projectDependency))
+                .map(LSPIJUtils::getProjectUri)
+                .collect(Collectors.toList()), templateBaseDir);
+    }
 
-	/**
-	 * Returns the project URI of the given project.
-	 *
-	 * @param project the project
-	 * @return the project URI of the given project.
-	 */
-	public static String getProjectURI(Module project) {
-		return LSPIJUtils.getProjectUri(project);
-	}
+    /**
+     * Returns the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
+     *
+     * @param javaProject the Java module project.
+     *
+     * @return the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
+     */
+    private static String getTemplateBaseDir(Module javaProject) {
+        VirtualFile resourcesDir = findBestResourcesDir(javaProject);
+        if (resourcesDir != null) {
+            return LSPIJUtils.toUri(resourcesDir).resolve(TEMPLATES_FOLDER_NAME).toASCIIString();
+        }
+        return LSPIJUtils.toUri(javaProject).resolve(RESOURCES_BASE_DIR).resolve(TEMPLATES_FOLDER_NAME).toASCIIString();
+    }
 
-	/**
-	 * Returns the project URI of the given project.
-	 *
-	 * @param project the project
-	 * @return the project URI of the given project.
-	 */
-	public static String getProjectURI(Project project) {
-		return LSPIJUtils.getProjectUri(project);
-	}
+    public static @NotNull String getRelativeTemplateBaseDir(Module module) {
+        VirtualFile resourcesDir = findBestResourcesDir(module);
+       return getRelativeTemplateBaseDir(module, resourcesDir);
+    }
 
-	public static boolean hasQuteSupport(Module javaProject) {
-		return PsiTypeUtils.findType(javaProject, QuteJavaConstants.ENGINE_BUILDER_CLASS) != null;
-	}
+    public static @NotNull String getRelativeTemplateBaseDir(Module module,  @Nullable VirtualFile resourcesDir) {
+        String relativeResourcesPath = RESOURCES_BASE_DIR;
+        if (resourcesDir != null) {
+            for (VirtualFile root : ModuleRootManager.getInstance(module).getContentRoots()) {
+                String path = VfsUtilCore.getRelativePath(resourcesDir, root);
+                if (path != null) {
+                    relativeResourcesPath = path;
+                    break;
+                }
+            }
+        }
+        return relativeResourcesPath + "/" + TEMPLATES_FOLDER_NAME + "/";
+    }
 
-	public static String getTemplatePath(String basePath, String className, String methodOrFieldName) {
-		StringBuilder path = new StringBuilder(TEMPLATES_BASE_DIR);
-		if (basePath != null && !DEFAULTED.equals(basePath)) {
-			appendAndSlash(path, basePath);
-		} else if (className != null) {
-			appendAndSlash(path, className);
-		}
-		return path.append(methodOrFieldName).toString();
-	}
+    /**
+     * Returns the best 'resources' directory for the given Java module project and null otherwise.
+     *
+     * @param javaProject the Java module project.
+     *
+     * @return the best resources dir for the given Java module project.
+     */
+    public static @Nullable VirtualFile findBestResourcesDir(@NotNull Module javaProject) {
+        List<VirtualFile> resourcesDirs = ModuleRootManager.getInstance(javaProject).getSourceRoots(JavaResourceRootType.RESOURCE);
+        if (!resourcesDirs.isEmpty()) {
+            Collections.sort(resourcesDirs, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
+            // The module configure 'Resources folder'
+            // 1) loop for each configured resources dir and returns the first which contains 'templates' folder.
+            for (var dir : resourcesDirs) {
+                var templatesDir = dir.findChild(TEMPLATES_FOLDER_NAME);
+                if (templatesDir != null && templatesDir.exists()) {
+                    return dir;
+                }
+            }
+            // 2) no resources directories contains the 'templates' folder,returns the first.
+            return resourcesDirs.get(0);
+        }
+        // Corner usecase, the module doesn't configure 'Resources folder', use the first content roots
+        VirtualFile[] roots = getContentRoots(javaProject);
+        if (roots.length > 0) {
+            return roots[0];
+        }
+        return javaProject.getModuleFile();
+    }
 
-	public static TemplatePathInfo getTemplatePath(String basePath, String className, String methodOrFieldName, boolean ignoreFragments) {
-		String fragmentId = null;
-		StringBuilder templateUri = new StringBuilder(TEMPLATES_BASE_DIR);
-		if (basePath != null && !DEFAULTED.equals(basePath)) {
-			appendAndSlash(templateUri, basePath);
-		} else if (className != null) {
-			appendAndSlash(templateUri, className);
-		}
-		if (!ignoreFragments) {
-			int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
-			if (fragmentIndex != -1) {
-				fragmentId = methodOrFieldName.substring(fragmentIndex + 1, methodOrFieldName.length());
-				methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
-			}
-		}
-		templateUri.append(methodOrFieldName);
-		return new TemplatePathInfo(templateUri.toString(), fragmentId);
-	}
+    /**
+     * Returns an array of content roots of the given module sorted with smallest path first (to eliminate generated sources roots) from all content entries.
+     *
+     * @param module the module
+     * @return the array of content roots.
+     */
+    public static VirtualFile[] getContentRoots(Module module) {
+        VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
+        if (roots.length <= 1) {
+            return roots;
+        }
+        Arrays.sort(roots, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
+        return roots;
+    }
 
-	/**
-	 * Appends a segment to a path, add trailing "/" if necessary
-	 * @param path the path to append to
-	 * @param segment the segment to append to the path
-	 */
-	public static void appendAndSlash(@NotNull StringBuilder path, @NotNull String segment) {
-		path.append(segment);
-		if (!segment.endsWith("/")) {
-			path.append('/');
-		}
-	}
+    /**
+     * Returns the project URI of the given project.
+     *
+     * @param project the project
+     * @return the project URI of the given project.
+     */
+    public static String getProjectURI(Module project) {
+        return LSPIJUtils.getProjectUri(project);
+    }
 
-	public static boolean isQuteTemplate(VirtualFile file, Module module) {
-		return file.getPath().contains("templates") &&
-				ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
-	}
+    /**
+     * Returns the project URI of the given project.
+     *
+     * @param project the project
+     * @return the project URI of the given project.
+     */
+    public static String getProjectURI(Project project) {
+        return LSPIJUtils.getProjectUri(project);
+    }
+
+    public static boolean hasQuteSupport(Module javaProject) {
+        return PsiTypeUtils.findType(javaProject, QuteJavaConstants.ENGINE_BUILDER_CLASS) != null;
+    }
+
+    public static String getTemplatePath(String basePath, String className, String methodOrFieldName) {
+        StringBuilder path = new StringBuilder();
+        if (basePath != null && !DEFAULTED.equals(basePath)) {
+            appendAndSlash(path, basePath);
+        } else if (className != null) {
+            appendAndSlash(path, className);
+        }
+        return path.append(methodOrFieldName).toString();
+    }
+
+    public static TemplatePathInfo getTemplatePath(String templatesBaseDir, String basePath, String className, String methodOrFieldName, boolean ignoreFragments) {
+        String fragmentId = null;
+        StringBuilder templateUri = new StringBuilder(templatesBaseDir != null ? templatesBaseDir : "");
+        if (basePath != null && !DEFAULTED.equals(basePath)) {
+            appendAndSlash(templateUri, basePath);
+        } else if (className != null) {
+            appendAndSlash(templateUri, className);
+        }
+        if (!ignoreFragments) {
+            int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
+            if (fragmentIndex != -1) {
+                fragmentId = methodOrFieldName.substring(fragmentIndex + 1);
+                methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
+            }
+        }
+        templateUri.append(methodOrFieldName);
+        return new TemplatePathInfo(templateUri.toString(), fragmentId);
+    }
+
+    /**
+     * Appends a segment to a path, add trailing "/" if necessary
+     *
+     * @param path    the path to append to
+     * @param segment the segment to append to the path
+     */
+    public static void appendAndSlash(@NotNull StringBuilder path, @NotNull String segment) {
+        path.append(segment);
+        if (!segment.endsWith("/")) {
+            path.append('/');
+        }
+    }
+
+    public static boolean isQuteTemplate(VirtualFile file, Module module) {
+        return file.getPath().contains(TEMPLATES_FOLDER_NAME) &&
+                ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
+    }
 }

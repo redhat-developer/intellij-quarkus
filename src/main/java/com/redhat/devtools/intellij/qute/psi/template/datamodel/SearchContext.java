@@ -23,10 +23,13 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.devtools.intellij.qute.psi.internal.resolver.ITypeResolver;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.qute.commons.QuteProjectScope;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+
+import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.getRelativeTemplateBaseDir;
 
 /**
  * The search context used to collect properties.
@@ -36,6 +39,7 @@ import com.redhat.qute.commons.datamodel.DataModelTemplate;
  */
 public class SearchContext extends BaseContext {
 	private final DataModelProject<DataModelTemplate<DataModelParameter>> dataModelProject;
+	private final String relativeTemplateBaseDir;
 
 	private Map<PsiClass, ITypeResolver> typeResolvers;
 
@@ -47,6 +51,7 @@ public class SearchContext extends BaseContext {
 		super(javaProject, scopes);
 		this.dataModelProject = dataModelProject;
 		this.utils = utils;
+		relativeTemplateBaseDir = PsiQuteProjectUtils.getRelativeTemplateBaseDir(javaProject);
 	}
 
 	public DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject() {
@@ -81,5 +86,7 @@ public class SearchContext extends BaseContext {
 		return typeResolver;
 	}
 
-
+	public String getRelativeTemplateBaseDir() {
+		return relativeTemplateBaseDir;
+	}
 }

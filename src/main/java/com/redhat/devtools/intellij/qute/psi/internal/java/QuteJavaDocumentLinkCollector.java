@@ -56,7 +56,7 @@ public class QuteJavaDocumentLinkCollector extends AbstractQuteTemplateLinkColle
             // It is an empty fragment which is not valid, don't generate a document link.
             return;
         }
-        String templateUri = templateFile != null ? templateFile.getUrl() : getVirtualFileUrl(utils.getModule(), templatePathInfo.getTemplateUri(), PREFERRED_SUFFIX);
+        String templateUri = templateFile != null ? templateFile.getUrl() : getVirtualFileUrl(utils.getModule(), templatePathInfo.getTemplateUri());
         String tooltip = getTooltip(templateFile, templatePathInfo.getTemplateUri());
         Range range = createRange(locationAnnotation != null ? locationAnnotation : fieldOrMethod);
         DocumentLink link = new DocumentLink(range, templateUri, null, tooltip);

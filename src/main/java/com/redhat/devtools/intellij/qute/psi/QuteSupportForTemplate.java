@@ -317,20 +317,7 @@ public class QuteSupportForTemplate {
 		try {
 			templateFileUri = templateFileUri.replace("vscode-notebook-cell", "file");
 			VirtualFile file = utils.findFile(templateFileUri);
-
-			Module module = utils.getModule(file);
-			if (file == null || module == null) {
-				// The uri doesn't belong to an IntelliJ project
-				return null;
-			}
-			// The uri belong to an IntelliJ project
-			if (ModuleType.get(module) != JavaModuleType.getModuleType()) {
-				// The uri doesn't belong to a IntelliJ project
-				return null;
-			}
-
-			String projectName = module.getName();
-			return module;
+			return utils.getModule(file);
 		} catch (IOException e) {
 			return null;
 		}
