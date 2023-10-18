@@ -18,6 +18,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -46,6 +47,8 @@ import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils.findType;
 
@@ -80,12 +83,18 @@ public class QuteSupportForTemplate {
 		// Loop for module from the given project
 		Module[] modules = ModuleManager.getInstance(project).getModules();
 		for (Module javaProject: modules) {
-			if (PsiQuteProjectUtils.hasQuteSupport(javaProject)) {
+			if (!isTestModule(javaProject) && PsiQuteProjectUtils.hasQuteSupport(javaProject)) {
 				// It is a Qute project
 				quteProjects.add(PsiQuteProjectUtils.getProjectInfo(javaProject));
 			}
 		}
 		return quteProjects;
+	}
+
+	private static final Pattern GRADLE_TEST_MODULE_PATTERN = Pattern.compile("\\..*test", Pattern.CASE_INSENSITIVE);
+
+	private boolean isTestModule(Module module) {
+		return GRADLE_TEST_MODULE_PATTERN.matcher(module.getName()).find();
 	}
 
 	/**

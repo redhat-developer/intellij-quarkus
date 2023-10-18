@@ -16,16 +16,13 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.qute.commons.ProjectInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.java.JavaResourceRootType;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -55,13 +52,30 @@ public class PsiQuteProjectUtils {
 		return new ProjectInfo(projectUri, projectDependencies
 				.stream()
 				.filter(projectDependency -> !javaProject.equals(projectDependency))
-				.map(projectDependency -> LSPIJUtils.getProjectUri(projectDependency))
+				.map(LSPIJUtils::getProjectUri)
 				.collect(Collectors.toList()), templateBaseDir);
 	}
 
 	private static String getTemplateBaseDir(Module javaProject) {
+		List<VirtualFile> resourcesDirs = ModuleRootManager.getInstance(javaProject).getSourceRoots(JavaResourceRootType.RESOURCE);
+		if (!resourcesDirs.isEmpty()) {
+			for (var dir : resourcesDirs) {
+				var templatesDir = dir.findChild("templates");
+				if (templatesDir != null && templatesDir.exists()) {
+					return LSPIJUtils.toUri(templatesDir).toASCIIString();
+				}
+			}
+			return LSPIJUtils.toUri(resourcesDirs.get(0)).resolve("templates").toASCIIString();
+		}
 		return LSPIJUtils.toUri(javaProject).resolve(TEMPLATES_BASE_DIR).toASCIIString();
 	}
+
+	public List<VirtualFile> getSortedSourceRoots(Module module) {
+		VirtualFile @NotNull [] roots = ModuleRootManager.getInstance(module).getContentRoots();
+		Arrays.sort(roots, Comparator.comparingInt(r -> r.getPath().length()));//put root with smallest path first (eliminates generated sources roots)
+		return null;
+	}
+
 
 	/**
 	 * Returns the project URI of the given project.
@@ -108,7 +122,7 @@ public class PsiQuteProjectUtils {
 		if (!ignoreFragments) {
 			int fragmentIndex = methodOrFieldName != null ? methodOrFieldName.lastIndexOf('$') : -1;
 			if (fragmentIndex != -1) {
-				fragmentId = methodOrFieldName.substring(fragmentIndex + 1, methodOrFieldName.length());
+				fragmentId = methodOrFieldName.substring(fragmentIndex + 1);
 				methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
 			}
 		}

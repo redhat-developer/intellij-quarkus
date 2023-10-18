@@ -29,10 +29,15 @@ import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.TemplatePathInfo;
 import org.eclipse.lsp4j.Range;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -203,8 +208,12 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 
 	@Nullable
 	private VirtualFile getVirtualFile(Module project, String templateFilePathWithoutExtension, String suffix) {
+		VirtualFile @NotNull [] roots = ModuleRootManager.getInstance(project).getContentRoots();
+		String templatePath = templateFilePathWithoutExtension.endsWith(suffix)? templateFilePathWithoutExtension : templateFilePathWithoutExtension +suffix;
+		Arrays.sort(roots, Comparator.comparingInt(r -> r.getPath().length()));//put root with smallest path first (eliminates generated sources roots)
 		for(VirtualFile root : ModuleRootManager.getInstance(project).getContentRoots()) {
-			VirtualFile templateFile = root.findFileByRelativePath(templateFilePathWithoutExtension + suffix);
+			URI templateUri = mergeURI(LSPIJUtils.toUri(root), templatePath);
+			VirtualFile templateFile = LSPIJUtils.findResourceFor(templateUri);
 			if (templateFile != null && templateFile.exists()) {
 				return templateFile;
 			}
@@ -213,12 +222,50 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 	}
 
 	protected String getVirtualFileUrl(Module project, String templateFilePathWithoutExtension, String suffix) {
-		try {
-			for(VirtualFile root : ModuleRootManager.getInstance(project).getContentRoots()) {
-				return new URL(LSPIJUtils.toUri(root).toURL(), templateFilePathWithoutExtension + suffix).toString();
-			}
-		} catch (MalformedURLException e) {}
+		// Sort the roots based on the length of their paths
+		VirtualFile @NotNull [] roots = ModuleRootManager.getInstance(project).getContentRoots();
+		String templatePath = templateFilePathWithoutExtension.endsWith(suffix)? templateFilePathWithoutExtension : templateFilePathWithoutExtension +suffix;
+		Arrays.sort(roots, Comparator.comparingInt(r -> r.getPath().length()));//put root with smallest path first (eliminates generated sources roots)
+		for(VirtualFile root : roots) {
+
+			return mergeURI(LSPIJUtils.toUri(root), templatePath).toString();
+		}
 		return null;
+	}
+
+
+	/**
+	 * Merge relative path with base URI. Eg. if base = file:///foo/bar/projectname/src/main
+	 * and relativePath = src/main/resources/templates/foo.html, then the merged URI will be
+	 * file:///foo/bar/projectname/src/main/resources/templates/foo.html
+	 *
+	 * @param base
+	 * @param relativePath
+	 * @return
+	 */
+	public static URI mergeURI(URI base, String relativePath) {
+		String basePath = base.getPath();
+		if (basePath.endsWith("/")) {
+			basePath = basePath.substring(0, basePath.length()-1);
+		}
+		if (relativePath.startsWith("/")) {
+			relativePath = relativePath.substring(1);
+		}
+		String[] relativePathSegments = relativePath.split("/");
+		StringBuilder prefix = new StringBuilder();
+		for (String segment : relativePathSegments) {
+			if (segment.isEmpty()) {
+				continue;
+			}
+			if (prefix.length() > 0) {
+				prefix.append("/");
+			}
+			prefix.append(segment);
+			if (basePath.endsWith(prefix.toString())){
+				return base.resolve(relativePath.substring(prefix.length()+1));
+			}
+		}
+		return base.resolve(relativePath);
 	}
 
 	protected String getRelativePath(String templateFilePath, VirtualFile templateFile, Module module) {
