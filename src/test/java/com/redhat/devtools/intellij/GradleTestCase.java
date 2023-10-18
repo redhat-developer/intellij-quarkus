@@ -11,6 +11,7 @@
 package com.redhat.devtools.intellij;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.redhat.devtools.intellij.quarkus.gradle.AbstractGradleToolDelegate;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -72,4 +73,7 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
         return Arrays.asList(new Object[][]{{"8.4"}});
     }
 
+    protected String getJavaFileUri(String path, Module module) {
+        return new File(ModuleUtilCore.getModuleDirPath(module), path).toURI().toString();
+    }
 }

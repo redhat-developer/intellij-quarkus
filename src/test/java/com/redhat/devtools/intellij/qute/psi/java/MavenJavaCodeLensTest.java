@@ -13,9 +13,9 @@ package com.redhat.devtools.intellij.qute.psi.java;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
 import com.redhat.qute.commons.QuteJavaCodeLensParams;
@@ -25,7 +25,6 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -36,9 +35,9 @@ import java.util.logging.Logger;
  *
  * @author Angelo ZERR
  */
-public class JavaCodeLensTest extends MavenModuleImportingTestCase {
+public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
 
-    private static final Logger LOGGER = Logger.getLogger(JavaCodeLensTest.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(MavenJavaCodeLensTest.class.getSimpleName());
     private static Level oldLevel;
 
     private Module module;
@@ -46,7 +45,7 @@ public class JavaCodeLensTest extends MavenModuleImportingTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        module = createMavenModule(new File("projects/qute/projects/maven/" + QuteMavenProjectName.qute_quickstart));
+        module = loadMavenProject(QuteMavenProjectName.qute_quickstart);
     }
 
     @Test

@@ -81,7 +81,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
             PsiClass type = (PsiClass) javaElement;
             boolean ignoreFragments = isIgnoreFragments(checkedTemplateAnnotation);
             String basePath = getBasePath(checkedTemplateAnnotation);
-            collectDataModelTemplateForCheckedTemplate(type, basePath, ignoreFragments, context.getTypeResolver(type),
+            collectDataModelTemplateForCheckedTemplate(type, context.getRelativeTemplateBaseDir(), basePath, ignoreFragments, context.getTypeResolver(type),
                     context.getDataModelProject().getTemplates(), monitor);
         }
     }
@@ -147,18 +147,18 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
      * @param templates       the data model templates to update with collect of template.
      * @param monitor         the progress monitor.
      */
-    private static void collectDataModelTemplateForCheckedTemplate(PsiClass type, String basePath, boolean ignoreFragments, ITypeResolver typeResolver,
+    private static void collectDataModelTemplateForCheckedTemplate(PsiClass type, String templatesBaseDir, String basePath, boolean ignoreFragments, ITypeResolver typeResolver,
                                                                    List<DataModelTemplate<DataModelParameter>> templates, ProgressIndicator monitor) {
         boolean innerClass = type.getContainingClass() != null;
         String className = !innerClass ? null
                 : PsiTypeUtils.getSimpleClassName(type.getContainingFile().getName());
 
-        // Loop for each methods (book, book) and create a template data model per
+        // Loop for each method (book, book) and create a template data model per
         // method.
         PsiMethod[] methods = type.getMethods();
         for (PsiMethod method : methods) {
             // src/main/resources/templates/${className}/${methodName}.qute.html
-            TemplatePathInfo templatePathInfo = getTemplatePath(basePath, className, method.getName(), ignoreFragments);
+            TemplatePathInfo templatePathInfo = getTemplatePath(templatesBaseDir, basePath, className, method.getName(), ignoreFragments);
 
             // Get or create template
             String templateUri = templatePathInfo.getTemplateUri();

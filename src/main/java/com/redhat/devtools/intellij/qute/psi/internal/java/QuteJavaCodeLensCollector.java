@@ -81,7 +81,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
             GenerateTemplateInfo info = new GenerateTemplateInfo();
             info.setParameters(parameters);
             info.setProjectUri(PsiQuteProjectUtils.getProjectURI(utils.getModule()));
-            info.setTemplateFileUri(getVirtualFileUrl(utils.getModule(), templateUri, ""));
+            info.setTemplateFileUri(getVirtualFileUrl(utils.getModule(), templateUri));
             info.setTemplateFilePath(templateUri);
             command = new Command(MessageFormat.format(QUTE_COMMAND_GENERATE_TEMPLATE_MESSAGE, templateUri), //
                     QuteCommandConstants.QUTE_COMMAND_GENERATE_TEMPLATE_FILE, Arrays.asList(info));

@@ -30,10 +30,6 @@ import java.io.File;
 public class GradlePropertiesManagerForJavaTest extends GradleTestCase {
     private Module javaProject;
 
-    private String getJavaFileUri(String path) {
-        return new File(ModuleUtilCore.getModuleDirPath(javaProject), path).toURI().toString();
-    }
-
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -78,6 +74,8 @@ public class GradlePropertiesManagerForJavaTest extends GradleTestCase {
                 PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject))
         );
     }
-
+    private String getJavaFileUri(String path) {
+        return super.getJavaFileUri(path, javaProject);
+    }
 
 }
