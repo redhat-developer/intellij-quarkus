@@ -246,10 +246,16 @@ public class LSPConsoleToolWindowPanel extends SimpleToolWindowPanel implements 
         }
 
         public void showMessage(String message) {
+            if (consoleView == null) {
+                return;
+            }
             consoleView.print(message, ConsoleViewContentType.SYSTEM_OUTPUT);
         }
 
         public void showError(Throwable exception) {
+            if (consoleView == null) {
+                return;
+            }
             String stacktrace = getStackTrace(exception);
             consoleView.print(stacktrace, ConsoleViewContentType.ERROR_OUTPUT);
         }
