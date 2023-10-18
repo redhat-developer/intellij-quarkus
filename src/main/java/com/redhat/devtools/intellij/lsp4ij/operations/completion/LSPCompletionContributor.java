@@ -50,18 +50,23 @@ public class LSPCompletionContributor extends CompletionContributor {
 
     @Override
     public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet result) {
-        Document document = parameters.getEditor().getDocument();
-        Editor editor = parameters.getEditor();
         PsiFile psiFile = parameters.getOriginalFile();
+        VirtualFile file = psiFile.getVirtualFile();
+        if (file == null) {
+            return;
+        }
+
+        Editor editor = parameters.getEditor();
+        Document document = editor.getDocument();
         Project project = psiFile.getProject();
         int offset = parameters.getOffset();
-        VirtualFile file = psiFile.getVirtualFile();
         URI uri = LSPIJUtils.toUri(file);
+
         ProgressManager.checkCanceled();
 
         final CancellationSupport cancellationSupport = new CancellationSupport();
         try {
-            CompletableFuture<List<LanguageServerItem>> completionLanguageServersFuture = initiateLanguageServers(project, file);
+            CompletableFuture<List<LanguageServerItem>> completionLanguageServersFuture = initiateLanguageServers(file, project);
             cancellationSupport.execute(completionLanguageServersFuture);
             ProgressManager.checkCanceled();
 
@@ -171,7 +176,7 @@ public class LSPCompletionContributor extends CompletionContributor {
         return LookupElementBuilder.create("Error while computing completion", "");
     }
 
-    private static CompletableFuture<List<LanguageServerItem>> initiateLanguageServers(Project project, VirtualFile file) {
+    private static CompletableFuture<List<LanguageServerItem>> initiateLanguageServers(@NotNull VirtualFile file, @NotNull Project project) {
         return LanguageServiceAccessor.getInstance(project).getLanguageServers(file,
                 capabilities -> {
                     CompletionOptions provider = capabilities.getCompletionProvider();

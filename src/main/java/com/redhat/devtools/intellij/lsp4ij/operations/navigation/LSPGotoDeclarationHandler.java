@@ -51,39 +51,41 @@ public class LSPGotoDeclarationHandler implements GotoDeclarationHandler {
     @Nullable
     @Override
     public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
-        URI uri = LSPIJUtils.toUri(editor.getDocument());
-        if (uri != null) {
-            VirtualFile file = LSPIJUtils.getFile(sourceElement);
-            DefinitionParams params = new DefinitionParams(LSPIJUtils.toTextDocumentIdentifier(uri), LSPIJUtils.toPosition(offset, editor.getDocument()));
-            Set<PsiElement> targets = new HashSet<>();
-            final CancellationSupport cancellationSupport = new CancellationSupport();
-            try {
-                LanguageServiceAccessor.getInstance(editor.getProject())
-                        .getLanguageServers(file, capabilities -> LSPIJUtils.hasCapability(capabilities.getDefinitionProvider()))
-                        .thenComposeAsync(languageServers ->
-                                cancellationSupport.execute(
-                                        CompletableFuture.allOf(
-                                                languageServers
-                                                        .stream()
-                                                        .map(server ->
-                                                                cancellationSupport.execute(server.getServer().getTextDocumentService().definition(params))
-                                                                        .thenAcceptAsync(definitions -> targets.addAll(toElements(editor.getProject(), definitions))))
-                                                        .toArray(CompletableFuture[]::new))))
-                        .get(1_000, TimeUnit.MILLISECONDS);
-            } catch (ResponseErrorException | ExecutionException | CancellationException e) {
-                // do not report error if the server has cancelled the request
-                if (!CancellationUtil.isRequestCancelledException(e)) {
-                    LOGGER.warn(e.getLocalizedMessage(), e);
-                }
-            } catch (TimeoutException e) {
-                LOGGER.warn(e.getLocalizedMessage(), e);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+        VirtualFile file = LSPIJUtils.getFile(sourceElement);
+        if (file == null) {
+            return PsiElement.EMPTY_ARRAY;
+        }
+        URI uri = LSPIJUtils.toUri(file);
+        Document document = editor.getDocument();
+        DefinitionParams params = new DefinitionParams(LSPIJUtils.toTextDocumentIdentifier(uri), LSPIJUtils.toPosition(offset, document));
+        Set<PsiElement> targets = new HashSet<>();
+        final CancellationSupport cancellationSupport = new CancellationSupport();
+        try {
+            Project project = editor.getProject();
+            LanguageServiceAccessor.getInstance(project)
+                    .getLanguageServers(file, capabilities -> LSPIJUtils.hasCapability(capabilities.getDefinitionProvider()))
+                    .thenComposeAsync(languageServers ->
+                            cancellationSupport.execute(
+                                    CompletableFuture.allOf(
+                                            languageServers
+                                                    .stream()
+                                                    .map(server ->
+                                                            cancellationSupport.execute(server.getServer().getTextDocumentService().definition(params))
+                                                                    .thenAcceptAsync(definitions -> targets.addAll(toElements(project, definitions))))
+                                                    .toArray(CompletableFuture[]::new))))
+                    .get(1_000, TimeUnit.MILLISECONDS);
+        } catch (ResponseErrorException | ExecutionException | CancellationException e) {
+            // do not report error if the server has cancelled the request
+            if (!CancellationUtil.isRequestCancelledException(e)) {
                 LOGGER.warn(e.getLocalizedMessage(), e);
             }
-            return targets.toArray(new PsiElement[targets.size()]);
+        } catch (TimeoutException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
-        return new PsiElement[0];
+        return targets.toArray(new PsiElement[targets.size()]);
     }
 
     private List<PsiElement> toElements(Project project, Either<List<? extends Location>, List<? extends LocationLink>> definitions) {

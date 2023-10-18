@@ -87,10 +87,10 @@ public class LSPIJUtils {
     }
 
     private static <T extends TextDocumentPositionParams> T toTextDocumentPositionParamsCommon(T param, int offset, Document document) {
-        URI uri = toUri(document);
         Position start = toPosition(offset, document);
         param.setPosition(start);
         TextDocumentIdentifier id = new TextDocumentIdentifier();
+        URI uri = toUri(document);
         if (uri != null) {
             id.setUri(uri.toASCIIString());
         }
@@ -106,7 +106,19 @@ public class LSPIJUtils {
         return toTextDocumentPositionParamsCommon(new HoverParams(), offset, document);
     }
 
-    public static URI toUri(File file) {
+
+    /**
+     * Returns the Uri of the virtual file corresponding to the specified document.
+     *
+     * @param document the document for which the virtual file is requested.
+     * @return the Uri of the file, or null if the document wasn't created from a virtual file.
+     */
+    public static @Nullable URI toUri(@NotNull Document document) {
+        VirtualFile file = getFile(document);
+        return file != null ? toUri(file) : null;
+    }
+
+    public static @NotNull URI toUri(@NotNull File file) {
         // URI scheme specified by language server protocol and LSP
         try {
             return new URI("file", "", file.getAbsoluteFile().toURI().getPath(), null); //$NON-NLS-1$ //$NON-NLS-2$
@@ -116,19 +128,21 @@ public class LSPIJUtils {
         }
     }
 
-    public static URI toUri(PsiFile file) {
-        return toUri(file.getVirtualFile());
+    public static @Nullable URI toUri(@NotNull PsiFile psiFile) {
+        VirtualFile file = getFile(psiFile);
+        return file != null ? toUri(file) : null;
     }
 
-    public static URI toUri(VirtualFile file) {
+    public static @NotNull URI toUri(@NotNull VirtualFile file) {
         return toUri(VfsUtilCore.virtualToIoFile(file));
     }
 
-    public static String toUriAsString(PsiFile file) {
-        return toUriAsString(file.getVirtualFile());
+    public static @Nullable String toUriAsString(@NotNull PsiFile psFile) {
+        VirtualFile file = psFile.getVirtualFile();
+        return file != null ? toUriAsString(file) : null;
     }
 
-    public static String toUriAsString(VirtualFile file) {
+    public static @NotNull String toUriAsString(@NotNull VirtualFile file) {
         String protocol = file.getFileSystem() != null ? file.getFileSystem().getProtocol() : null;
         if (JAR_PROTOCOL.equals(protocol) || JRT_PROTOCOL.equals(protocol)) {
             return VfsUtilCore.convertToURL(file.getUrl()).toExternalForm();
@@ -136,15 +150,24 @@ public class LSPIJUtils {
         return toUri(VfsUtilCore.virtualToIoFile(file)).toASCIIString();
     }
 
-    public static URI toUri(Document document) {
-        VirtualFile file = getFile(document);
-        return file != null ? toUri(file) : null;
+    /**
+     * Returns the virtual file corresponding to the specified document.
+     *
+     * @param document the document for which the virtual file is requested.
+     * @return the file, or null if the document wasn't created from a virtual file.
+     */
+    public static @Nullable VirtualFile getFile(@NotNull Document document) {
+        if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+            return FileDocumentManager.getInstance().getFile(document);
+        }
+        return ReadAction.compute(() -> FileDocumentManager.getInstance().getFile(document));
     }
 
-    public static @Nullable VirtualFile getFile(Document document) {
-        return FileDocumentManager.getInstance().getFile(document);
-    }
-
+    /**
+     * Returns the virtual file corresponding to the PSI file.
+     *
+     * @return the virtual file, or {@code null} if the file exists only in memory.
+     */
     public static @Nullable VirtualFile getFile(@NotNull PsiElement element) {
         PsiFile psFile = element.getContainingFile();
         return psFile != null ? psFile.getVirtualFile() : null;
