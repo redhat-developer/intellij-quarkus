@@ -4,8 +4,8 @@ plugins {
     id "org.jetbrains.intellij" version "1.14.2"
     id 'idea'
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
     id 'jacoco'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
     id 'com.adarshr.test-logger' version '3.2.0'
 }
 
@@ -45,7 +45,7 @@ repositories {
         url 'https://repo.eclipse.org/content/repositories/lsp4mp-releases'
     }
     maven {
-        url 'https://packages.jetbrains.team/maven/p/ij/intellij-dependencies'
+        url 'https://cache-redirector.jetbrains.com/intellij-dependencies'
     }
 }
 
@@ -88,7 +88,7 @@ sourceSets {
     integrationTest {
         java.srcDir file('src/it/java')
         resources.srcDir file('src/it/resources')
-        compileClasspath += sourceSets.main.output + configurations.testRuntime
+        compileClasspath += sourceSets.main.output + sourceSets.test.output + configurations.testRuntimeClasspath
         runtimeClasspath += output + compileClasspath
     }
 }
@@ -101,6 +101,13 @@ task integrationTest(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false }
     mustRunAfter test
+    testlogger {
+        showStandardStreams true
+        showPassedStandardStreams false
+        showSkippedStandardStreams false
+        showFailedStandardStreams true
+        showFullStackTraces true
+    }
 }
 
 testlogger {
