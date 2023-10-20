@@ -4,12 +4,6 @@
   <version>1.0</version>
   <vendor email="developers@redhat.com" url="https://github.com/redhat-developer/intellij-quarkus/issues">Red-Hat</vendor>
 
-  <description><![CDATA[
-      <img src="https://raw.githubusercontent.com/redhat-developer/intellij-quarkus/master/src/main/resources/quarkus_icon_rgb_32px_default.png" width="32" height="32"/>
-      <h2>Quarkus Tools for IntelliJ</h2>
-      <p>A plugin aimed at Quarkus based development, providing easy bootstrapping and code assist from <a href="https://quarkus.io/">Quarkus</a> related assets and <a href="https://quarkus.io/guides/qute-reference">Qute</a>.<p>
-  ]]></description>
-
   <change-notes><![CDATA[
     <h3>1.29.0</h3>
     <ul>

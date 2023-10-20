@@ -13,21 +13,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 17
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      # Set up Java environment for the next steps
+      - name: Setup Java
         uses: actions/setup-java@v3
         with:
+          distribution: temurin
           java-version: 17
-          distribution: 'temurin'
-          cache: 'gradle'
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+          cache: maven
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-home-cache-cleanup: true
+
       - name: Build with Gradle
-        run: ./gradlew build --continue -PideaVersion=LATEST-EAP-SNAPSHOT
-      - uses: actions/upload-artifact@v2
+        run: ./gradlew check -PplatformVersion=LATEST-EAP-SNAPSHOT
+
+
+      - name: Collect Tests Result
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-reports
           path: |
-            build/test-results/**/*.xml
-            build/jacoco/
+            path: ${{ github.workspace }}/build/reports/tests
+            path: ${{ github.workspace }}/build/jacoco/

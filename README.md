@@ -1,4 +1,5 @@
-# Quarkus Tools for IntelliJ
+<h1><img src="https://raw.githubusercontent.com/redhat-developer/intellij-quarkus/master/src/main/resources/quarkus_icon_rgb_32px_default.png" /> Quarkus Tools for IntelliJ</h1>
+
 [plugin-repo]: https://plugins.jetbrains.com/plugin/13234-quarkus
 [plugin-version-svg]: https://img.shields.io/jetbrains/plugin/v/13234-quarkus.svg
 [plugin-downloads-svg]: https://img.shields.io/jetbrains/plugin/d/13234-quarkus.svg
@@ -11,9 +12,9 @@
 
 
 ## Description
-
-This JetBrains IntelliJ plugin provides support for Quarkus development via a 
-[Quarkus language server](https://github.com/redhat-developer/quarkus-ls/tree/master/microprofile.ls).
+<!-- Plugin description -->
+A plugin aimed at Quarkus based development, providing easy bootstrapping and code assist from [Quarkus](https://quarkus.io/) related assets and [Qute](https://quarkus.io/guides/qute-reference).
+<!-- Plugin description end -->
 
 ### application.properties support
 
@@ -230,7 +231,7 @@ When editing `application.properties` files, you have access to:
 ## Requirements
 
   * Intellij IDEA 2022.2 or more recent (we **try** to support the last 4 major IDEA releases)
-  * Java JDK (or JRE) 11 or more recent
+  * Java JDK (or JRE) 17 or more recent
 
     ​    
 ## Contributing
@@ -268,10 +269,10 @@ So we extracted these classes into the ```intellij-community``` folder. But as t
 classes are highly linked to the version of the IntelliJ SDK used to build, there is
 a script to copy them from the GitHub intellij-community repository.
 
-This script is ```pulltest.sh```
+This script is ```pull_intellij_tests```
 
 If the version of the IntelliJ SDK used to build is changed (see gradle.properties), you must
-update the branch in ```pulltest.sh``` and run the script again.
+update the branch in ```pull_intellij_tests``` and run the script again.
 
 #### UI testing
 
@@ -287,8 +288,7 @@ You can download and install CI builds of the latest commits or a pull request:
 - open the [`Build plugin zip` workflow](https://github.com/redhat-developer/intellij-quarkus/actions/workflows/buildZip.yml)
 - click on the build you are interested in
 - scroll down and download the `Quarkus Tools <version>.zip` file
-- the file is [zipped twice](https://github.com/actions/upload-artifact/issues/39), you need to unzip it once
-- install the newly decompressed `Quarkus Tools <version>.zip` into IntelliJ IDEA by following these [instructions](https://www.jetbrains.com/help/idea/managing-plugins.html#install_plugin_from_disk).
+- install `Quarkus Tools <version>.zip` into IntelliJ IDEA by following these [instructions](https://www.jetbrains.com/help/idea/managing-plugins.html#install_plugin_from_disk).
 
 Data and Telemetry
 ==================

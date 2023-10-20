@@ -78,7 +78,7 @@
 				<!-- This is what injects the magic Quarkus bytecode -->
 				<groupId>io.quarkus</groupId>
 				<artifactId>quarkus-maven-plugin</artifactId>
-				<version>${quarkus.version}</version>
+				<version>${quarkus.platform.version}</version>
 				<executions>
 					<execution>
 						<goals>
@@ -92,7 +92,7 @@
 					Docker -->
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
-				<version>${docker-plugin.version}</version>
+				<version>0.42.1</version>
 				<configuration>
 					<skip>${skipTests}</skip>
 					<images>
@@ -161,7 +161,7 @@
 					<plugin>
 						<groupId>io.quarkus</groupId>
 						<artifactId>quarkus-maven-plugin</artifactId>
-						<version>${quarkus.version}</version>
+						<version>${quarkus.platform.version}</version>
 						<executions>
 							<execution>
 								<goals>
