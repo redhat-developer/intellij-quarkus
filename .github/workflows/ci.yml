@@ -13,7 +13,6 @@ jobs:
   # Run tests and upload a code coverage report
   test:
     name: Test
-    needs: [ build ]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
