@@ -175,7 +175,7 @@ The [Qute templating engine](https://quarkus.io/guides/qute-reference) is suppor
 
 ## Quarkus project wizards
 
-Generate a Quarkus Maven project, based on https://code.quarkus.io/. Call `File -> New -> Module -> Quarkus`. It is possible to filter the list of displayed Quarkus extension by name pattern and allow or disallow the inclusion of non platforms Quarkus extensions.
+Generate a Quarkus Maven project, based on https://code.quarkus.io/. Call `File > New > Module > Quarkus`. It is possible to filter the list of displayed Quarkus extension by name pattern and allow or disallow the inclusion of non platforms Quarkus extensions.
 
 ![](images/1.12.0/quarkus-tools2.gif)
 
@@ -281,9 +281,21 @@ You can perform UI testing by running the following command:
 ```sh
 ./gradlew integrationTest 
 ```
+#### Testing nightly builds
+
+You can easily install nightly builds from the nightly channel:
+
+- in IntelliJ, open `Setting > Plugins > [Gear icon] > Manage Plugin Repositories...`
+- Add `https://plugins.jetbrains.com/plugins/nightly/13234` and press `OK`
+![Nightly Channel Repositpry](images/nightly-channel-repo.png)
+- install the latest `Quarkus Tools` version
+
+Nightly builds are published once a day.
+
+
 #### Testing the CI builds
 
-You can download and install CI builds of the latest commits or a pull request:
+You can also download and install CI builds of the latest commits or a specific pull request:
 
 - open the [`Build plugin zip` workflow](https://github.com/redhat-developer/intellij-quarkus/actions/workflows/buildZip.yml)
 - click on the build you are interested in
