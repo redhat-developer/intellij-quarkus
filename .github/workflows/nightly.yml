@@ -63,7 +63,7 @@ jobs:
 
       - name: Publish Plugin
         env:
-          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          PUBLISH_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
         run: |
           PLUGIN_VERSION=$(./get_timestamp_version.sh)
           ./gradlew publishPlugin -Pchannel=nightly -PpluginVersion=${PLUGIN_VERSION}
