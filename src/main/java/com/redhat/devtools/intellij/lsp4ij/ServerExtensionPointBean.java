@@ -42,6 +42,9 @@ public class ServerExtensionPointBean extends BaseKeyedLazyInstance<StreamConnec
     @Attribute("singleton")
     public boolean singleton;
 
+    @Attribute("supportsLightEdit")
+    public boolean supportsLightEdit;
+
     @Attribute("lastDocumentDisconnectedTimeout")
     public Integer lastDocumentDisconnectedTimeout;
 
