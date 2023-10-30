@@ -20,7 +20,7 @@ public class ContentTypeToLanguageServerDefinition extends AbstractMap.SimpleEnt
     }
 
     public boolean match(VirtualFile file, Project project) {
-        return documentMatcher.match(file, project);
+        return getValue().supportsCurrentEditMode(project) && documentMatcher.match(file, project);
     }
 
     public boolean shouldBeMatchedAsynchronously(Project project) {
@@ -32,6 +32,9 @@ public class ContentTypeToLanguageServerDefinition extends AbstractMap.SimpleEnt
     }
 
     public @NotNull <R> CompletableFuture<Boolean> matchAsync(VirtualFile file, Project project) {
+        if (!getValue().supportsCurrentEditMode(project)) {
+            return CompletableFuture.completedFuture(false);
+        }
         return documentMatcher.matchAsync(file, project);
     }
 }

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.internal;
 
+import com.intellij.ide.lightEdit.LightEdit;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -74,8 +75,8 @@ public class PromiseToCompletableFuture<R> extends CompletableFuture<R> {
     }
 
     protected void init() {
-        // if indexation is processing, we need to execute the promise in smart mode
-        var executeInSmartMode = DumbService.getInstance(project).isDumb();
+        // if indexation is processing and not in Light Edit mode, we need to execute the promise in smart mode
+        var executeInSmartMode =  !LightEdit.owns(project) && DumbService.getInstance(project).isDumb();
         var promise = nonBlockingReadActionPromise(executeInSmartMode);
         bind(promise);
     }
