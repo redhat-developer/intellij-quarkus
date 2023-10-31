@@ -287,7 +287,7 @@ You can easily install nightly builds from the nightly channel:
 
 - in IntelliJ, open `Setting > Plugins > [Gear icon] > Manage Plugin Repositories...`
 - Add `https://plugins.jetbrains.com/plugins/nightly/13234` and press `OK`
-![Nightly Channel Repositpry](images/nightly-channel-repo.png)
+<img alt="Nightly Channel Repository" src="images/nightly-channel-repo.png" width="500px" />
 - install the latest `Quarkus Tools` version
 
 Nightly builds are published once a day.
