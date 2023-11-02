@@ -497,7 +497,12 @@ public class LanguageServerWrapper implements Disposable {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                stop();
+                try {
+                    stop();
+                } catch (Throwable t) {
+                    //Need to catch time task exceptions, or it will cancel the timer
+                    LOGGER.error("Failed to stop language server "+LanguageServerWrapper.this.serverDefinition.id, t);
+                }
             }
         }, TimeUnit.SECONDS.toMillis(this.serverDefinition.lastDocumentDisconnectedTimeout));
     }

@@ -24,6 +24,8 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +36,8 @@ import java.util.TimerTask;
  * Source file change notifier with a debounce mode.
  */
 public class ClasspathResourceChangedNotifier implements Disposable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathResourceChangedNotifier.class);
 
     private static final long DEBOUNCE_DELAY = 1000;
 
@@ -80,7 +84,12 @@ public class ClasspathResourceChangedNotifier implements Disposable {
             debounceTask = new TimerTask() {
                 @Override
                 public void run() {
-                    notifyChanges();
+                    try {
+                        notifyChanges();
+                    } catch (Throwable t) {
+                        //Need to catch time task exceptions, or it will cancel the timer
+                        LOGGER.error("Failed to notify classpath resource change", t);
+                    }
                 }
             };
 
