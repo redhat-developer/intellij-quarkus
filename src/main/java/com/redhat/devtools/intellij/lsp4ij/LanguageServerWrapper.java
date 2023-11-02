@@ -222,15 +222,15 @@ public class LanguageServerWrapper implements Disposable {
         this.initialPath = initialPath;
         this.serverDefinition = serverDefinition;
         this.connectedDocuments = new HashMap<>();
-        String projectName = (project != null && project.getName() != null && !serverDefinition.isSingleton) ? ("@" + project.getName()) : "";  //$NON-NLS-1$//$NON-NLS-2$
-        String dispatcherThreadNameFormat = "LS-" + serverDefinition.id + projectName + "#dispatcher"; //$NON-NLS-1$ //$NON-NLS-2$
+        String projectName = sanitize((project != null && project.getName() != null && !serverDefinition.isSingleton) ? ("@" + project.getName()) : "");  //$NON-NLS-1$//$NON-NLS-2$
+        String dispatcherThreadNameFormat ="LS-" + serverDefinition.id + projectName + "#dispatcher"; //$NON-NLS-1$ //$NON-NLS-2$
         this.dispatcher = Executors
                 .newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(dispatcherThreadNameFormat).build());
 
         // Executor service passed through to the LSP4j layer when we attempt to start the LS. It will be used
         // to create a listener that sits on the input stream and processes inbound messages (responses, or server-initiated
         // requests).
-        String listenerThreadNameFormat = "LS-" + serverDefinition.id + projectName + "#listener-%d"; //$NON-NLS-1$ //$NON-NLS-2$
+        String listenerThreadNameFormat ="LS-" + serverDefinition.id + projectName + "#listener-%d"; //$NON-NLS-1$ //$NON-NLS-2$
         this.listener = Executors
                 .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(listenerThreadNameFormat).build());
         udateStatus(ServerStatus.none);
@@ -240,6 +240,13 @@ public class LanguageServerWrapper implements Disposable {
             // We do that to be sure that language server is disposed.
             Disposer.register(project, this);
         }
+    }
+
+    /**
+     * Removes '%' from the given name
+     */
+    private static String sanitize(String name) {
+        return name.replace("%","");
     }
 
     public Project getProject() {
