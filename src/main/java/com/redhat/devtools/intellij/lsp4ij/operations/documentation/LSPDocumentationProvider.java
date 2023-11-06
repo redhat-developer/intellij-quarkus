@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.io.URLUtil;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.operations.completion.LSPCompletionProposal;
 import com.vladsch.flexmark.html.HtmlRenderer;
@@ -146,6 +147,10 @@ public class LSPDocumentationProvider extends DocumentationProviderEx implements
 
     @Override
     public boolean handleExternalLink(PsiManager psiManager, String link, PsiElement context) {
+        //Ignore non-local uri (http(s), mailto, ftp...)
+        if (URLUtil.URL_PATTERN.matcher(link).matches()) {
+            return false;
+        }
         VirtualFile file = LSPIJUtils.findResourceFor(link);
         if (file != null) {
             FileEditorManager.getInstance(psiManager.getProject()).openFile(file, true, true);
