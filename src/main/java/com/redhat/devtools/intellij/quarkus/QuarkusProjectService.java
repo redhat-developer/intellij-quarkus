@@ -31,6 +31,7 @@ import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.eclipse.lsp4mp.utils.JSONSchemaUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class QuarkusProjectService implements ClasspathResourceChangedManager.Li
 
     private final Map<Module, MutablePair<VirtualFile, Boolean>> schemas = new ConcurrentHashMap<>();
 
-    public static QuarkusProjectService getInstance(Project project) {
+    public static QuarkusProjectService getInstance(@NotNull Project project) {
         return project.getService(QuarkusProjectService.class);
     }
 

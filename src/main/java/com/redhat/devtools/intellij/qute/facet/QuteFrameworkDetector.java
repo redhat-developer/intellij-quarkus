@@ -13,8 +13,8 @@ package com.redhat.devtools.intellij.qute.facet;
 import com.intellij.facet.FacetType;
 import com.intellij.framework.detection.FacetBasedFrameworkDetector;
 import com.intellij.framework.detection.FileContentPattern;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.patterns.ElementPattern;
 import com.intellij.util.indexing.FileContent;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ public class QuteFrameworkDetector extends FacetBasedFrameworkDetector<QuteFacet
     @NotNull
     @Override
     public FileType getFileType() {
-        return StdFileTypes.XML;
+        return XmlFileType.INSTANCE;
     }
 
     @NotNull

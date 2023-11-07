@@ -17,6 +17,7 @@ import com.intellij.openapi.project.Project;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import org.eclipse.lsp4j.jsonrpc.MessageConsumer;
 import org.eclipse.lsp4j.jsonrpc.messages.Message;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class LanguageServerLifecycleManager {
 
-    public static LanguageServerLifecycleManager getInstance(Project project) {
+    public static LanguageServerLifecycleManager getInstance(@NotNull Project project) {
         return project.getService(LanguageServerLifecycleManager.class);
     }
 

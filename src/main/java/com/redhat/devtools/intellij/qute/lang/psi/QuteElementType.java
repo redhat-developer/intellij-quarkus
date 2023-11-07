@@ -22,6 +22,6 @@ public class QuteElementType extends IElementType {
 
     @Override
     public String toString() {
-        return "QuteElementType." + getDebugName();
+        return "QuteElementType." + super.toString();
     }
 }

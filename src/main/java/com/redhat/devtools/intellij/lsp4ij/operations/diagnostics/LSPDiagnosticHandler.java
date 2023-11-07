@@ -30,6 +30,7 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 /**
@@ -49,7 +50,7 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
     @Override
     public void accept(PublishDiagnosticsParams params) {
         Project project = languageServerWrapper.getProject();
-        if (project.isDisposed()) {
+        if (project == null || project.isDisposed()) {
             return;
         }
         if (ApplicationManager.getApplication().isReadAccessAllowed()) {
@@ -58,9 +59,11 @@ public class LSPDiagnosticHandler implements Consumer<PublishDiagnosticsParams> 
             // Cancel if needed the previous "textDocument/publishDiagnostics" for a given uri.
             var coalesceBy = new CoalesceByKey("textDocument/publishDiagnostics", params.getUri());
             var executeInSmartMode = DumbService.getInstance(languageServerWrapper.getProject()).isDumb();
-            var action = ReadAction.nonBlocking(() -> updateDiagnostics(params, project))
-                    .expireWith(languageServerWrapper)
-                    .coalesceBy(coalesceBy);
+            var action = ReadAction.nonBlocking((Callable<Void>) () -> {
+                            updateDiagnostics(params, project);
+                            return null;
+                        }).expireWith(languageServerWrapper)
+                        .coalesceBy(coalesceBy);
             if (executeInSmartMode) {
                 action.inSmartMode(project);
             }
