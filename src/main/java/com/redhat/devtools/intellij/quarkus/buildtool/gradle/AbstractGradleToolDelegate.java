@@ -13,18 +13,14 @@ package com.redhat.devtools.intellij.quarkus.buildtool.gradle;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.settings.ExternalSystemExecutionSettings;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager;
 import com.intellij.openapi.externalSystem.service.RemoteExternalSystemFacade;
-import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModelsProviderImpl;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManagerImpl;
 import com.intellij.openapi.externalSystem.service.remote.RemoteExternalSystemTaskManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.ModifiableModuleModel;
@@ -160,7 +156,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      */
     private void collectDependencies(Module module, Path customBuildFile, Path customSettingsFile, Path outputPath, List<VirtualFile>[] result) throws IOException {
         try {
-            final ExternalSystemFacadeManager manager = ServiceManager.getService(ExternalSystemFacadeManager.class);
+            final ExternalSystemFacadeManager manager = ApplicationManager.getApplication().getService(ExternalSystemFacadeManager.class);
 
             ExternalSystemExecutionSettings settings = ExternalSystemApiUtil.getExecutionSettings(module.getProject(),
                     getModuleDirPath(module),

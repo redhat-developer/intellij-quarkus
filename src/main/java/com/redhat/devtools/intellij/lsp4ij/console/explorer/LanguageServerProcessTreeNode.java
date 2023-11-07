@@ -14,7 +14,7 @@
 package com.redhat.devtools.intellij.lsp4ij.console.explorer;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.text.Formats;
 import com.intellij.ui.AnimatedIcon;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import com.redhat.devtools.intellij.lsp4ij.ServerStatus;
@@ -124,6 +124,6 @@ public class LanguageServerProcessTreeNode extends DefaultMutableTreeNode {
     public String getElapsedTime() {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
-        return StringUtil.formatDuration(duration, "\u2009");
+        return Formats.formatDuration(duration, "\u2009");
     }
 }

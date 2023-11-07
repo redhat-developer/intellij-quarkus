@@ -58,7 +58,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
     private final MessageBusConnection connection;
     private final Project project;
 
-    public static QuarkusDeploymentSupport getInstance(Project project) {
+    public static QuarkusDeploymentSupport getInstance(@NotNull Project project) {
         return project.getService(QuarkusDeploymentSupport.class);
     }
 

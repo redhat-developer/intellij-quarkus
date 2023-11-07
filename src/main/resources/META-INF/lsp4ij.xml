@@ -57,6 +57,7 @@
                 implementation="com.redhat.devtools.intellij.lsp4ij.operations.documentLink.LSPDocumentLinkGotoDeclarationHandler"/>
         <highlightUsagesHandlerFactory
                 implementation="com.redhat.devtools.intellij.lsp4ij.operations.highlight.LSPHighlightUsagesHandlerFactory"/>
+        <notificationGroup id="Language Server Protocol" displayType="BALLOON" hideFromSettings="true"/>
     </extensions>
 
     <applicationListeners>

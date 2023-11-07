@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -190,7 +191,7 @@ public abstract class AbstractConfigSource<T> implements IConfigSource {
     public void reload(PsiFile file) {
         reset();
         String content = file.getText();
-        try (InputStream input = IOUtils.toInputStream(content)) {
+        try (InputStream input = IOUtils.toInputStream(content, Charset.defaultCharset())) {
             config = loadConfig(input);
             lastModified = System.currentTimeMillis();
         } catch (IOException e) {

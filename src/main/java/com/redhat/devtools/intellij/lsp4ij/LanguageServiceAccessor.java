@@ -39,7 +39,7 @@ public class LanguageServiceAccessor {
 
     private final Project project;
 
-    public static LanguageServiceAccessor getInstance(Project project) {
+    public static LanguageServiceAccessor getInstance(@NotNull Project project) {
         return project.getService(LanguageServiceAccessor.class);
     }
 

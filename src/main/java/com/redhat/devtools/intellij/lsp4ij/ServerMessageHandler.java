@@ -44,30 +44,23 @@ public class ServerMessageHandler {
     }
 
     private static NotificationType messageTypeToNotificationType(MessageType type) {
-        NotificationType result = null;
-
-        switch (type) {
-            case Error:
-                result = NotificationType.ERROR;
-                break;
-            case Info:
-            case Log:
-                result = NotificationType.INFORMATION;
-                break;
-            case Warning:
-                result = NotificationType.WARNING;
-        }
+        NotificationType result = switch (type) {
+            case Error -> NotificationType.ERROR;
+            case Info, Log -> NotificationType.INFORMATION;
+            case Warning -> NotificationType.WARNING;
+        };
         return result;
     }
 
 
     public static void showMessage(String title, MessageParams params) {
-        Notification notification = new Notification("Language Server Protocol", messageTypeToIcon(params.getType()), title, null, params.getMessage(), messageTypeToNotificationType(params.getType()), null);
+        Notification notification = new Notification("Language Server Protocol", title, params.getMessage(), messageTypeToNotificationType(params.getType()));
+        notification.setIcon(messageTypeToIcon(params.getType()));
         Notifications.Bus.notify(notification);
     }
 
     public static CompletableFuture<MessageActionItem> showMessageRequest(LanguageServerWrapper wrapper, ShowMessageRequestParams params) {
-        String options[] = params.getActions().stream().map(MessageActionItem::getTitle).toArray(String[]::new);
+        String[] options = params.getActions().stream().map(MessageActionItem::getTitle).toArray(String[]::new);
         CompletableFuture<MessageActionItem> future = new CompletableFuture<>();
 
         ApplicationManager.getApplication().invokeLater(() -> {

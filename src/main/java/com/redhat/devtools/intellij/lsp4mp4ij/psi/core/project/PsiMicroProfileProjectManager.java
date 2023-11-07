@@ -36,7 +36,7 @@ public final class PsiMicroProfileProjectManager implements Disposable {
 
 	private static final String JAVA_FILE_EXTENSION = "java";
 
-	public static PsiMicroProfileProjectManager getInstance(Project project) {
+	public static PsiMicroProfileProjectManager getInstance(@NotNull Project project) {
 		return project.getService(PsiMicroProfileProjectManager.class);
 	}
 
