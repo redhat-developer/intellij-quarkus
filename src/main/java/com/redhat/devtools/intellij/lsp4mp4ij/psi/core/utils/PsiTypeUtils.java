@@ -58,7 +58,6 @@ import java.util.Map;
  * PSI Type utilities.
  *
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/core/utils/JDTTypeUtils.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/core/utils/JDTTypeUtils.java</a>
- *
  */
 
 public class PsiTypeUtils {
@@ -71,7 +70,7 @@ public class PsiTypeUtils {
             return null;
         }
         while (type instanceof PsiArrayType) {
-            type = ((PsiArrayType)type).getComponentType();
+            type = ((PsiArrayType) type).getComponentType();
         }
         return type.getCanonicalText();
     }
@@ -102,24 +101,24 @@ public class PsiTypeUtils {
     public static String getDefaultValue(PsiMethod method) {
         String value = null;
         if (method instanceof PsiAnnotationMethod) {
-            PsiAnnotationMemberValue defaultValue = ((PsiAnnotationMethod)method).getDefaultValue();
+            PsiAnnotationMemberValue defaultValue = ((PsiAnnotationMethod) method).getDefaultValue();
             if (defaultValue instanceof PsiAnnotation) {
-                value = ((PsiAnnotation)defaultValue).getQualifiedName();
+                value = ((PsiAnnotation) defaultValue).getQualifiedName();
                 int index = value.lastIndexOf('.');
                 if (index != (-1)) {
                     value = value.substring(index + 1, value.length());
                 }
             } else if (defaultValue instanceof PsiLiteral) {
-                value = ((PsiLiteral)defaultValue).getValue().toString();
+                value = ((PsiLiteral) defaultValue).getValue().toString();
             } else if (defaultValue instanceof PsiReference) {
-                value = ((PsiReference)defaultValue).getCanonicalText();
+                value = ((PsiReference) defaultValue).getCanonicalText();
                 int index = value.lastIndexOf('.');
                 if (index != (-1)) {
                     value = value.substring(index + 1, value.length());
                 }
             }
         }
-        return value == null || value.isEmpty()? null : value;
+        return value == null || value.isEmpty() ? null : value;
     }
 
 
@@ -129,10 +128,11 @@ public class PsiTypeUtils {
 
     public static String getSourceType(PsiModifierListOwner psiElement) {
         if (psiElement instanceof PsiField || psiElement instanceof PsiMethod) {
-            return ClassUtil.getJVMClassName(((PsiMember)psiElement).getContainingClass());
+            return ClassUtil.getJVMClassName(((PsiMember) psiElement).getContainingClass());
         } else if (psiElement instanceof PsiParameter) {
-            return ClassUtil.getJVMClassName(((PsiMethod)((PsiParameter)psiElement).getDeclarationScope()).getContainingClass());
-        } if (psiElement instanceof PsiClass) {
+            return ClassUtil.getJVMClassName(((PsiMethod) ((PsiParameter) psiElement).getDeclarationScope()).getContainingClass());
+        }
+        if (psiElement instanceof PsiClass) {
             return getPropertyType((PsiClass) psiElement, null);
         }
         return null;
@@ -146,13 +146,12 @@ public class PsiTypeUtils {
 
     @Nullable
     public static PsiClass findType(PsiManager manager, String name) {
-        JavaPsiFacade facade = JavaPsiFacade.getInstance(manager.getProject());
-        return facade.findClass(name, GlobalSearchScope.allScope(manager.getProject()));
+        return ClassUtil.findPsiClass(manager, name);
     }
 
     public static PsiClass findType(Module module, String name) {
-        JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-        return facade.findClass(name, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module));
+        return ClassUtil.findPsiClass(PsiManager.getInstance(module.getProject()), name, null, false,
+                GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module));
     }
 
     public static String getSourceField(PsiMember psiMember) {
@@ -191,7 +190,7 @@ public class PsiTypeUtils {
     /**
      * Returns the first (generic) type parameter for the given <code>psiType</code>.
      * Returns <code>null</code> if the given psiType has no generic type parameter.
-     *
+     * <p>
      * Examples:
      * <ul>.
      *  <li>returns {@code String} for {@code List<String>}</li>

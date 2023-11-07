@@ -47,9 +47,9 @@ public class PsiTypeUtils {
         return className;
     }
 
-    public static PsiClass findType(Module project, String name) {
-        JavaPsiFacade facade = JavaPsiFacade.getInstance(project.getProject());
-        return facade.findClass(name, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(project));
+    public static PsiClass findType(Module module, String name) {
+        return ClassUtil.findPsiClass(PsiManager.getInstance(module.getProject()), name, null, false,
+                GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module));
     }
 
     /**

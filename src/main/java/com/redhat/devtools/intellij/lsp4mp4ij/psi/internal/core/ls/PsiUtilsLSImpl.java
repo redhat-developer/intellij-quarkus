@@ -25,6 +25,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.ClassUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JsonRpcHelpers;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -89,8 +90,8 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public PsiClass findClass(Module module, String className) {
-        JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-        return facade.findClass(className, GlobalSearchScope.allScope(module.getProject()));
+        return ClassUtil.findPsiClass(PsiManager.getInstance(module.getProject()), className, null, false,
+                GlobalSearchScope.allScope(module.getProject()));
     }
 
     @Override
