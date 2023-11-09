@@ -13,7 +13,6 @@ package com.redhat.devtools.intellij.quarkus;
 import com.intellij.json.JsonFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -46,7 +45,7 @@ public class QuarkusProjectService implements ClasspathResourceChangedManager.Li
     private final Map<Module, MutablePair<VirtualFile, Boolean>> schemas = new ConcurrentHashMap<>();
 
     public static QuarkusProjectService getInstance(Project project) {
-        return ServiceManager.getService(project, QuarkusProjectService.class);
+        return project.getService(QuarkusProjectService.class);
     }
 
     private final MessageBusConnection connection;

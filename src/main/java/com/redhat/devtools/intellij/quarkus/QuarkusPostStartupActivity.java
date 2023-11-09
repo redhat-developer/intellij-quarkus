@@ -15,11 +15,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
+import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationManager;
 import org.jetbrains.annotations.NotNull;
 
 public class QuarkusPostStartupActivity implements StartupActivity, DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
+        QuarkusRunConfigurationManager.getInstance(project);
         ClasspathResourceChangedManager.getInstance(project);
         // Force the instantiation of the manager to be sure that classpath listener
         // are registered before QuarkusLanguageClient classpath listener

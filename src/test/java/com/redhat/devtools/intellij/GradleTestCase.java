@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.redhat.devtools.intellij.quarkus.gradle.AbstractGradleToolDelegate;
+import com.redhat.devtools.intellij.quarkus.buildtool.gradle.AbstractGradleToolDelegate;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.idea.IdeaProject;

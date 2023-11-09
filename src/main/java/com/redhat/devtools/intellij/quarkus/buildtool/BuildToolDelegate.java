@@ -8,15 +8,17 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.tool;
+package com.redhat.devtools.intellij.quarkus.buildtool;
 
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.model.MavenId;
@@ -36,7 +38,7 @@ import java.util.jar.JarFile;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_DEPLOYMENT_PROPERTY_NAME;
 import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_EXTENSION_PROPERTIES;
 
-public interface ToolDelegate  {
+public interface BuildToolDelegate {
 
     static boolean shouldResolveArtifactTransitively(MavenId deploymentId) {
         // The kubernetes support is only available if quarkus-kubernetes artifact is
@@ -88,8 +90,8 @@ public interface ToolDelegate  {
         return p.getProperty(QUARKUS_DEPLOYMENT_PROPERTY_NAME);
     }
 
-    public static ToolDelegate getDelegate(Module module) {
-        for(ToolDelegate toolDelegate : getDelegates()) {
+    public static BuildToolDelegate getDelegate(Module module) {
+        for(BuildToolDelegate toolDelegate : getDelegates()) {
             if (toolDelegate.isValid(module)) {
                 return toolDelegate;
             }
@@ -161,7 +163,7 @@ public interface ToolDelegate  {
         return virtualFile != null? JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile):null;
     }
 
-    static final ExtensionPointName<ToolDelegate> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.toolDelegate");
+    static final ExtensionPointName<BuildToolDelegate> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.toolDelegate");
 
     @NotNull
     static List<VirtualFile>[] initDeploymentFiles() {
@@ -171,11 +173,20 @@ public interface ToolDelegate  {
         return result;
     }
 
-    public static ToolDelegate[] getDelegates() {
-        ToolDelegate[] delegates = EP_NAME.getExtensions();
+    public static BuildToolDelegate[] getDelegates() {
+        BuildToolDelegate[] delegates = EP_NAME.getExtensions();
         Arrays.sort(delegates, (a,b) -> a.getOrder() - b.getOrder());
         return delegates;
     }
 
     RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration);
+
+    /**
+     * Add project import listener.
+     *
+     * @param project the project.
+     * @param connection the project connection used to subscribe maven, gradle listener which tracks project import.
+     * @param listener the project import listener.
+     */
+    void addProjectImportListener(@NotNull Project project,  @NotNull MessageBusConnection connection, @NotNull ProjectImportListener listener);
 }

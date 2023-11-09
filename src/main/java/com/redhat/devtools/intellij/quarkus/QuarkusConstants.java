@@ -13,10 +13,10 @@ package com.redhat.devtools.intellij.quarkus;
 import com.intellij.openapi.util.Key;
 import com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusExtensionsModel;
 import com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModel;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
+import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 
 public class QuarkusConstants {
-    public final static Key<ToolDelegate> WIZARD_TOOL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".tool");
+    public final static Key<BuildToolDelegate> WIZARD_TOOL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".tool");
     public final static Key<Boolean> WIZARD_EXAMPLE_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".example");
     public final static Key<String> WIZARD_GROUPID_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".groupId");
     public final static Key<String> WIZARD_ARTIFACTID_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".artifactId");

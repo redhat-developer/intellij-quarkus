@@ -8,7 +8,7 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.maven;
+package com.redhat.devtools.intellij.quarkus.buildtool.maven;
 
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -18,16 +18,21 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.buildtool.ProjectImportListener;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
+import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
+import com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettings;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.execution.MavenRunConfiguration;
 import org.jetbrains.idea.maven.execution.MavenRunConfigurationType;
 import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenArtifactInfo;
 import org.jetbrains.idea.maven.model.MavenId;
+import org.jetbrains.idea.maven.project.MavenImportListener;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
@@ -40,7 +45,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class MavenToolDelegate implements ToolDelegate {
+public class MavenToolDelegate implements BuildToolDelegate {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenToolDelegate.class);
 
     @Override
@@ -51,7 +56,7 @@ public class MavenToolDelegate implements ToolDelegate {
     @Override
     public List<VirtualFile>[] getDeploymentFiles(Module module, ProgressIndicator progressIndicator) {
         MavenProject mavenProject = MavenProjectsManager.getInstance(module.getProject()).findProject(module);
-        List<VirtualFile>[] result = ToolDelegate.initDeploymentFiles();
+        List<VirtualFile>[] result = BuildToolDelegate.initDeploymentFiles();
         if (mavenProject != null) {
             getDeploymentFiles(module, mavenProject, result, progressIndicator);
         }
@@ -97,7 +102,7 @@ public class MavenToolDelegate implements ToolDelegate {
             progressIndicator.checkCanceled();
             progressIndicator.setText2("Searching deployment descriptor in '" + artifact.getArtifactId() + "' in Maven project dependencies.");
             if (artifact.getFile() != null) {
-                String deploymentIdStr = ToolDelegate.getDeploymentJarId(artifact.getFile());
+                String deploymentIdStr = BuildToolDelegate.getDeploymentJarId(artifact.getFile());
                 if (deploymentIdStr != null) {
                     MavenId deploymentId = new MavenId(deploymentIdStr);
                     if (mavenProject.findDependencies(deploymentId).isEmpty()) {
@@ -167,7 +172,7 @@ public class MavenToolDelegate implements ToolDelegate {
                 }
             } else {
                 for (var deploymentId : deploymentIds) {
-                    boolean shouldResolveArtifactTransitively = ToolDelegate.shouldResolveArtifactTransitively(deploymentId);
+                    boolean shouldResolveArtifactTransitively = BuildToolDelegate.shouldResolveArtifactTransitively(deploymentId);
                     progressIndicator.checkCanceled();
                     progressIndicator.setText2("Resolving " + (shouldResolveArtifactTransitively ? " (Transitevely) " : "") + "'" + deploymentId + "'");
                     if (shouldResolveArtifactTransitively) {
@@ -254,6 +259,25 @@ public class MavenToolDelegate implements ToolDelegate {
         mavenConfiguration.getRunnerSettings().getMavenProperties().put("debug", Integer.toString(configuration.getPort()));
         mavenConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
+    }
+
+    @Override
+    public void addProjectImportListener(@NotNull Project project, @NotNull MessageBusConnection connection, @NotNull ProjectImportListener listener) {
+        connection.subscribe(MavenImportListener.TOPIC, new MavenImportListener() {
+            @Override
+            public void importFinished(@NotNull Collection<MavenProject> importedProjects, @NotNull List<Module> newModules) {
+                List<Module> modules = new ArrayList<>();
+                for (MavenProject mavenProject : importedProjects) {
+                    MavenProjectsManager projectsManager = MavenProjectsManager.getInstance(project);
+                    Module module = projectsManager.findModule(mavenProject);
+                    if (module != null) {
+                        modules.add(module);
+                    }
+                }
+                listener.importFinished(modules);
+            }
+        });
+
     }
 
     private void ensureRunnerSettings(MavenRunConfiguration mavenConfiguration) {

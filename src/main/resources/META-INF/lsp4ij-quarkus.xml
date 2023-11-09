@@ -47,6 +47,15 @@
     <projectService id="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"
                         serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"/>
 
+    <!-- Quarkus settings -->
+    <projectConfigurable groupId="language"
+                         id="Quarkus"
+                         bundle="messages.QuarkusBundle"
+                         key="quarkus"
+                         instance="com.redhat.devtools.intellij.quarkus.settings.QuarkusConfigurable"/>
+    <projectService id="com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettingss"
+                    serviceImplementation="com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettings"/>
+
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JavaEEImplicitUsageProvider"/>
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.QuarkusBuildImplicitUsageProvider"/>
     <implicitUsageProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.ScheduledImplicitUsageProvider"/>

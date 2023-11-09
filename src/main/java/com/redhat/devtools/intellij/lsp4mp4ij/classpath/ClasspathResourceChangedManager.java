@@ -16,7 +16,6 @@ package com.redhat.devtools.intellij.lsp4mp4ij.classpath;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
@@ -27,8 +26,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -57,7 +54,7 @@ public class ClasspathResourceChangedManager implements Disposable {
 	private final ClasspathResourceChangedListener listener;
 
 	public static ClasspathResourceChangedManager getInstance(Project project) {
-		return ServiceManager.getService(project, ClasspathResourceChangedManager.class);
+		return project.getService(ClasspathResourceChangedManager.class);
 	}
 
 	public interface Listener {
