@@ -252,6 +252,7 @@ public class MavenToolDelegate implements ToolDelegate {
             mavenConfiguration.getRunnerSettings().getMavenProperties().put("quarkus.profile", configuration.getProfile());
         }
         mavenConfiguration.getRunnerSettings().getMavenProperties().put("debug", Integer.toString(configuration.getPort()));
+        mavenConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
     }
 
