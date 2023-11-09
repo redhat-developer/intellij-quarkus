@@ -1,13 +1,13 @@
 <idea-plugin>
 
   <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
-    <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.maven.MavenToolDelegate"/>
+    <toolDelegate implementation="com.redhat.devtools.intellij.quarkus.buildtool.maven.MavenToolDelegate"/>
     <projectLabelProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MavenProjectLabelProvider"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.idea.maven">
     <!-- Add your extensions here -->
-    <importer implementation="com.redhat.devtools.intellij.quarkus.maven.QuarkusFacetMavenImporter"/>
-    <importer implementation="com.redhat.devtools.intellij.quarkus.maven.QuarkusMavenLibraryImporter"/>
+    <importer implementation="com.redhat.devtools.intellij.quarkus.buildtool.maven.QuarkusFacetMavenImporter"/>
+    <importer implementation="com.redhat.devtools.intellij.quarkus.buildtool.maven.QuarkusMavenLibraryImporter"/>
 
     <!-- Qute -->
     <importer implementation="com.redhat.devtools.intellij.qute.maven.QuteFacetMavenImporter"/>

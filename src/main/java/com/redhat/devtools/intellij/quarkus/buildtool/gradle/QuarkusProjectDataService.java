@@ -8,7 +8,7 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus.gradle;
+package com.redhat.devtools.intellij.quarkus.buildtool.gradle;
 
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetType;

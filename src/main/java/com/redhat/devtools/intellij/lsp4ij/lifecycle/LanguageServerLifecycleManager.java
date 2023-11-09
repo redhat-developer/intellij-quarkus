@@ -13,7 +13,6 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.lifecycle;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServerWrapper;
 import org.eclipse.lsp4j.jsonrpc.MessageConsumer;
@@ -30,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class LanguageServerLifecycleManager {
 
     public static LanguageServerLifecycleManager getInstance(Project project) {
-        return ServiceManager.getService(project, LanguageServerLifecycleManager.class);
+        return project.getService(LanguageServerLifecycleManager.class);
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageServerLifecycleManager.class);//$NON-NLS-1$

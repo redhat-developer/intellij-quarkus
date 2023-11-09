@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.Icon;
 
 public class QuarkusRunConfigurationType implements ConfigurationType {
-    private static final String ID = "QuarkusRunConfiguration";
+    public static final String ID = "QuarkusRunConfiguration";
 
     @NotNull
     @Override

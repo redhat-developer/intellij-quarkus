@@ -13,7 +13,6 @@ package com.redhat.devtools.intellij.quarkus;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -33,8 +32,8 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
+import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -60,7 +59,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
     private final Project project;
 
     public static QuarkusDeploymentSupport getInstance(Project project) {
-        return ServiceManager.getService(project, QuarkusDeploymentSupport.class);
+        return project.getService(QuarkusDeploymentSupport.class);
     }
 
     public QuarkusDeploymentSupport(Project project) {
@@ -94,7 +93,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
             return;
         LOGGER.info("Ensuring library to " + module.getName());
         long start = System.currentTimeMillis();
-        ToolDelegate toolDelegate = ToolDelegate.getDelegate(module);
+        BuildToolDelegate toolDelegate = BuildToolDelegate.getDelegate(module);
         if (toolDelegate != null) {
             LOGGER.info("Tool delegate found for " + module.getName());
             if (isQuarkusModule(module)) {
@@ -190,11 +189,11 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
         LibraryEx.ModifiableModelEx libraryModel = library.getModifiableModel();
 
         // Add quarkus deployment dependencies binaries
-        for (VirtualFile rootFile : quarkusDeploymentDependencies[ToolDelegate.BINARY]) {
+        for (VirtualFile rootFile : quarkusDeploymentDependencies[BuildToolDelegate.BINARY]) {
             libraryModel.addRoot(rootFile, OrderRootType.CLASSES);
         }
         // Add quarkus deployment dependencies sources
-        for (VirtualFile rootFile : quarkusDeploymentDependencies[ToolDelegate.SOURCES]) {
+        for (VirtualFile rootFile : quarkusDeploymentDependencies[BuildToolDelegate.SOURCES]) {
             libraryModel.addRoot(rootFile, OrderRootType.SOURCES);
         }
 
@@ -235,7 +234,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
     private static boolean isQuarkusExtensionWithDeploymentArtifact(@Nullable Library library) {
         if (library != null) {
             for (VirtualFile vFile : library.getFiles(OrderRootType.CLASSES)) {
-                if (vFile.isDirectory() && ToolDelegate.hasExtensionProperties(VfsUtilCore.virtualToIoFile(vFile))) {
+                if (vFile.isDirectory() && BuildToolDelegate.hasExtensionProperties(VfsUtilCore.virtualToIoFile(vFile))) {
                     return true;
                 }
             }

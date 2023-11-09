@@ -11,7 +11,6 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ModuleListener;
@@ -38,7 +37,7 @@ public final class PsiMicroProfileProjectManager implements Disposable {
 	private static final String JAVA_FILE_EXTENSION = "java";
 
 	public static PsiMicroProfileProjectManager getInstance(Project project) {
-		return ServiceManager.getService(project, PsiMicroProfileProjectManager.class);
+		return project.getService(PsiMicroProfileProjectManager.class);
 	}
 
 	private final MessageBusConnection connection;

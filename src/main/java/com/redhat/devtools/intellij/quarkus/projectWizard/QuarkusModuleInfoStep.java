@@ -33,7 +33,7 @@ import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.redhat.devtools.intellij.quarkus.QuarkusBundle;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
+import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +60,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
     private ComboBox<QuarkusStream> streamComboBox;
 
-    private ComboBox<ToolDelegate> toolComboBox;
+    private ComboBox<BuildToolDelegate> toolComboBox;
 
     private JBCheckBox exampleField;
 
@@ -98,7 +98,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
     @Override
     public void updateDataModel() {
-        context.putUserData(QuarkusConstants.WIZARD_TOOL_KEY, (ToolDelegate)toolComboBox.getModel().getSelectedItem());
+        context.putUserData(QuarkusConstants.WIZARD_TOOL_KEY, (BuildToolDelegate)toolComboBox.getModel().getSelectedItem());
         context.putUserData(QuarkusConstants.WIZARD_EXAMPLE_KEY, exampleField.isSelected());
         context.putUserData(QuarkusConstants.WIZARD_GROUPID_KEY, groupIdField.getText());
         context.putUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY, artifactIdField.getText());
@@ -171,11 +171,11 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
         formBuilder.addLabeledComponent("Quarkus stream:", streamComponent);
 
-        final CollectionComboBoxModel<ToolDelegate> toolModel = new CollectionComboBoxModel<>(Arrays.asList(ToolDelegate.getDelegates()));
+        final CollectionComboBoxModel<BuildToolDelegate> toolModel = new CollectionComboBoxModel<>(Arrays.asList(BuildToolDelegate.getDelegates()));
         toolComboBox = new ComboBox<>(toolModel);
-        toolComboBox.setRenderer(new ColoredListCellRenderer<ToolDelegate>() {
+        toolComboBox.setRenderer(new ColoredListCellRenderer<BuildToolDelegate>() {
             @Override
-            protected void customizeCellRenderer(@NotNull JList<? extends ToolDelegate> list, ToolDelegate toolDelegate, int index, boolean selected, boolean hasFocus) {
+            protected void customizeCellRenderer(@NotNull JList<? extends BuildToolDelegate> list, BuildToolDelegate toolDelegate, int index, boolean selected, boolean hasFocus) {
                 this.append(toolDelegate.getDisplay());
             }
         });

@@ -13,7 +13,6 @@ package com.redhat.devtools.intellij.lsp4ij;
 import com.intellij.lang.Language;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,7 +40,7 @@ public class LanguageServiceAccessor {
     private final Project project;
 
     public static LanguageServiceAccessor getInstance(Project project) {
-        return ServiceManager.getService(project, LanguageServiceAccessor.class);
+        return project.getService(LanguageServiceAccessor.class);
     }
 
     private LanguageServiceAccessor(Project project) {

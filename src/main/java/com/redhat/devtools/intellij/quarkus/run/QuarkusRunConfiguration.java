@@ -42,7 +42,7 @@ import com.intellij.openapi.ui.Messages;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
-import com.redhat.devtools.intellij.quarkus.tool.ToolDelegate;
+import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,7 +98,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         if (!QuarkusModuleUtil.isQuarkusModule(module)) {
             throw new RuntimeConfigurationException("Not a Quarkus module", QUARKUS_CONFIGURATION);
         }
-        ToolDelegate delegate = ToolDelegate.getDelegate(module);
+        BuildToolDelegate delegate = BuildToolDelegate.getDelegate(module);
         if (delegate == null) {
             throw new RuntimeConfigurationException("Can't find a tool to process the module", QUARKUS_CONFIGURATION);
         }
@@ -131,7 +131,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
         TelemetryMessageBuilder.ActionMessage telemetry = TelemetryService.instance().action(TelemetryService.RUN_PREFIX + "run");
         telemetry.property("kind", executor.getId());
-        ToolDelegate toolDelegate = ToolDelegate.getDelegate(getModule());
+        BuildToolDelegate toolDelegate = BuildToolDelegate.getDelegate(getModule());
         allocateLocalPort();
         if (toolDelegate != null) {
             telemetry.property("tool", toolDelegate.getDisplay());
