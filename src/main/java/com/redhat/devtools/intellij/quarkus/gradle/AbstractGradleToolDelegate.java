@@ -365,6 +365,7 @@ public abstract class AbstractGradleToolDelegate implements ToolDelegate {
             parameters += " -Dquarkus.profile=" + configuration.getProfile();
         }
         gradleConfiguration.getSettings().setScriptParameters(parameters);
+        gradleConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
     }
 }
