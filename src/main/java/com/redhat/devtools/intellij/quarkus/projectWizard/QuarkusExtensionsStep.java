@@ -53,6 +53,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
 
     private JPanel outerPanel;
     private final WizardContext wizardContext;
+    private SearchTextField filter;
 
     private static class ExtensionsTreeCellRenderer extends CheckboxTree.CheckboxTreeCellRenderer {
 
@@ -135,7 +136,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             JLabel label1 = new JLabel("Filter extensions");
             label1.setAlignmentX(Component.LEFT_ALIGNMENT);
             panel.add(label1);
-            SearchTextField filter = new SearchTextField() {
+            filter = new SearchTextField() {
                 @Override
                 public Dimension getMaximumSize() {
                     Dimension maxSize = super.getMaximumSize();
@@ -221,6 +222,12 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             outerPanel.add(panel, BorderLayout.CENTER);
         }
         return outerPanel;
+    }
+
+
+    @Override
+    public JComponent getPreferredFocusedComponent() {
+        return filter;
     }
 
     private KeyListener onSelectedExtensionsKeyPressed(List<QuarkusCategory> categories, CheckboxTree extensionsTree, JList<QuarkusExtension> selectedExtensions) {
