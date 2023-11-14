@@ -10,19 +10,15 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.projectWizard;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class QuarkusExtensionsModel {
     private final String key;
-    private List<QuarkusCategory> categories = new ArrayList<>();
+    private final List<QuarkusCategory> categories = new ArrayList<>();
 
     public QuarkusExtensionsModel(String key, List<QuarkusExtension> extensions) {
         this.key = key;
-        Collections.sort(extensions, (e1, e2) -> e1.getOrder() - e2.getOrder());
+        extensions.sort(Comparator.comparingInt(QuarkusExtension::getOrder));
         Map<String, QuarkusExtension> extensionIds = new HashMap<>();
         final QuarkusCategory[] currentCategory = {null};
         extensions.forEach(e -> {

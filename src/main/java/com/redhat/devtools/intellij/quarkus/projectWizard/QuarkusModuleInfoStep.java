@@ -74,7 +74,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
     private JBTextField pathField;
 
-    private AsyncProcessIcon spinner = new AsyncProcessIcon(QuarkusBundle.message("quarkus.wizard.loading.extensions"));
+    private final AsyncProcessIcon spinner = new AsyncProcessIcon(QuarkusBundle.message("quarkus.wizard.loading.extensions"));
 
     private final WizardContext context;
 
@@ -85,6 +85,8 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
     private QuarkusExtensionsModel extensionsModel;
     private CollectionComboBoxModel<QuarkusStream> streamModel;
     private EmptyProgressIndicator indicator;
+
+    private boolean isInitialized = false;
 
     public QuarkusModuleInfoStep(WizardContext context) {
         Disposer.register(context.getDisposable(), this);
@@ -107,7 +109,6 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
         context.putUserData(QuarkusConstants.WIZARD_PATH_KEY, pathField.getText());
         context.putUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY, extensionsModel);
     }
-
     @Override
     public void dispose() {
         if (model != null) {
@@ -122,6 +123,9 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
     @Override
     public void _init() {
+        if (isInitialized) {
+            return;
+        }
         panel.setBorder(JBUI.Borders.empty(20));
 
         indicator = new EmptyProgressIndicator() {
@@ -195,6 +199,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
         panel.add(ScrollPaneFactory.createScrollPane(formBuilder.getPanel(), true), "North");
         hideSpinner();
         extensionsModelRequest = loadExtensionsModel(streamModel, indicator);
+        isInitialized = true;
     }
 
     private Future<QuarkusExtensionsModel> loadExtensionsModel(CollectionComboBoxModel<QuarkusStream> streamModel, ProgressIndicator indicator) {

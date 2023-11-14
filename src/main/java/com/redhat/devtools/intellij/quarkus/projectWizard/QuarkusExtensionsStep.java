@@ -257,7 +257,6 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
                             // so we force it manually
                             selectedExtensions.setModel(new SelectedExtensionsModel(categories));
                         }
-                        ;
                     }
                 }
             }
