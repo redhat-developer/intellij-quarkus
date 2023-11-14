@@ -202,6 +202,11 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
         isInitialized = true;
     }
 
+    @Override
+    public JComponent getPreferredFocusedComponent() {
+        return toolComboBox;
+    }
+
     private Future<QuarkusExtensionsModel> loadExtensionsModel(CollectionComboBoxModel<QuarkusStream> streamModel, ProgressIndicator indicator) {
         String key = ((QuarkusStream) streamModel.getSelectedItem()).getKey();
         if (key == null) {
