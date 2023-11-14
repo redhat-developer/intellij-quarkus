@@ -21,11 +21,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class QuarkusModel implements Disposable {
-    private String baseURL;
+    private final String baseURL;
 
-    private List<QuarkusStream> streams;
+    private final List<QuarkusStream> streams;
 
-    private Map<String, QuarkusExtensionsModel> extensionsModelMap = new HashMap<>();
+    private final Map<String, QuarkusExtensionsModel> extensionsModelMap = new HashMap<>();
 
     public QuarkusModel(String baseURL, List<QuarkusStream> streams) {
         this.baseURL = baseURL;
