@@ -15,6 +15,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -23,7 +24,6 @@ import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.buildtool.ProjectImportListener;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
-import com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettings;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.execution.MavenRunConfiguration;
@@ -33,9 +33,11 @@ import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenArtifactInfo;
 import org.jetbrains.idea.maven.model.MavenId;
 import org.jetbrains.idea.maven.project.MavenImportListener;
+import org.jetbrains.idea.maven.project.MavenGeneralSettings;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
+import org.jetbrains.idea.maven.server.MavenServerManager;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
@@ -44,6 +46,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import static com.redhat.devtools.intellij.quarkus.buildtool.maven.MavenWrapperUtils.getWrapperDistributionUrl;
 
 public class MavenToolDelegate implements BuildToolDelegate {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenToolDelegate.class);
@@ -62,7 +66,6 @@ public class MavenToolDelegate implements BuildToolDelegate {
         }
         return result;
     }
-
 
     @Override
     public String getDisplay() {
@@ -85,6 +88,15 @@ public class MavenToolDelegate implements BuildToolDelegate {
         if (pomFile != null) {
             MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
             mavenProjectsManager.addManagedFiles(Collections.singletonList(pomFile));
+            MavenGeneralSettings mavenSettings = mavenProjectsManager.getGeneralSettings();
+            //TODO Once 2023-3 is the minimal required version, the following code can be removed
+            var distributionUrl = getWrapperDistributionUrl(ProjectUtil.guessProjectDir(project));
+            if (distributionUrl != null) {
+                String mavenHome = mavenSettings.getMavenHome();
+                if (!MavenServerManager.WRAPPED_MAVEN.equals(mavenHome)){
+                    mavenSettings.setMavenHome(MavenServerManager.WRAPPED_MAVEN);
+                }
+            }
         }
     }
 
