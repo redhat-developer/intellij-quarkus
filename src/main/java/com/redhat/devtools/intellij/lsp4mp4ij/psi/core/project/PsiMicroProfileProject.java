@@ -299,4 +299,7 @@ public class PsiMicroProfileProject {
         return provider;
     }
 
+    public Module getJavaProject() {
+        return javaProject;
+    }
 }

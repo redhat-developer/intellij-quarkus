@@ -30,7 +30,12 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.ide.ui.IdeUiService;
+import com.intellij.openapi.actionSystem.CustomizedDataContext;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.impl.AsyncDataContext;
+import com.intellij.openapi.actionSystem.impl.EdtDataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
@@ -44,11 +49,13 @@ import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuilder;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.ServerSocket;
@@ -61,7 +68,7 @@ import static com.intellij.execution.runners.ExecutionUtil.createEnvironment;
 
 public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigurationModule, QuarkusRunConfigurationOptions> {
     private final static Logger LOGGER = LoggerFactory.getLogger(QuarkusRunConfiguration.class);
-    private static final String QUARKUS_CONFIGURATION = "Quarkus Configuration";
+    public static final String QUARKUS_CONFIGURATION = "Quarkus Configuration";
 
     private int port = 5005;
 
@@ -138,7 +145,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
             RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(getModule(), this);
             if (settings != null) {
                 long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
-                doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId, null,
+                doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId, newDataContext(environment),
                         desc -> desc.getComponent().putClientProperty(QuarkusConstants.QUARKUS_RUN_CONTEXT_KEY, new QuarkusRunContext(getModule())));
             }
         } else {
@@ -154,6 +161,21 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
             });
         }
         return null;
+    }
+
+    private class MyDataContext implements DataProvider, AsyncDataContext {
+
+        @Override
+        public @Nullable Object getData(@NotNull @NonNls String dataId) {
+            if (QUARKUS_CONFIGURATION.equals(dataId)) {
+                return QuarkusRunConfiguration.this;
+            }
+            return null;
+        }
+    }
+
+    private DataContext newDataContext(ExecutionEnvironment environment) {
+        return new MyDataContext();
     }
 
     private void waitForPortAvailable(int port, ProgressIndicator monitor) throws IOException {
@@ -213,10 +235,10 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     }
 
     private static void doRunConfiguration(@NotNull RunnerAndConfigurationSettings configuration,
-                                          @NotNull Executor executor,
-                                          @Nullable ExecutionTarget targetOrNullForDefault,
-                                          @Nullable Long executionId,
-                                          @Nullable DataContext dataContext,
+                                           @NotNull Executor executor,
+                                           @Nullable ExecutionTarget targetOrNullForDefault,
+                                           @Nullable Long executionId,
+                                           @Nullable DataContext dataContext,
                                            ProgramRunner.Callback callback) {
         ExecutionEnvironmentBuilder builder = createEnvironment(executor, configuration);
         if (builder == null) {
@@ -225,8 +247,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
 
         if (targetOrNullForDefault != null) {
             builder.target(targetOrNullForDefault);
-        }
-        else {
+        } else {
             builder.activeTarget();
         }
         if (executionId != null) {

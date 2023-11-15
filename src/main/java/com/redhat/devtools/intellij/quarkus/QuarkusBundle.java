@@ -26,20 +26,22 @@ import java.util.function.Supplier;
  */
 public final class QuarkusBundle extends DynamicBundle {
 
-  @NonNls public static final String BUNDLE = "messages.QuarkusBundle";
-  private static final QuarkusBundle INSTANCE = new QuarkusBundle();
+    @NonNls
+    public static final String BUNDLE = "messages.QuarkusBundle";
+    private static final QuarkusBundle INSTANCE = new QuarkusBundle();
 
-  private QuarkusBundle() {
-    super(BUNDLE);
-  }
+    private QuarkusBundle() {
+        super(BUNDLE);
+    }
 
-  @NotNull
-  public static @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, Object @NotNull ... params) {
-    return INSTANCE.getMessage(key, params);
-  }
+    @NotNull
+    public static @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, Object @NotNull ... params) {
+        return INSTANCE.getMessage(key, params);
+    }
 
-  @NotNull
-  public static Supplier<@Nls String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, Object @NotNull ... params) {
-    return INSTANCE.getLazyMessage(key, params);
-  }
+    @NotNull
+    public static Supplier<@Nls String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, Object @NotNull ... params) {
+        return INSTANCE.getLazyMessage(key, params);
+    }
+
 }

@@ -18,6 +18,9 @@ import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import org.jetbrains.annotations.NotNull;
 
 public class QuarkusOpenAppInBrowserAction extends QuarkusDevAction {
+
+    public static final String ACTION_ID = "com.redhat.devtools.intellij.quarkus.run.QuarkusOpenAppInBrowserAction";
+
     public QuarkusOpenAppInBrowserAction() {
         super("Open application","Launches the application in a browser", IconLoader.getIcon("/quarkus_icon_rgb_16px_default.png", QuarkusOpenAppInBrowserAction.class));
     }

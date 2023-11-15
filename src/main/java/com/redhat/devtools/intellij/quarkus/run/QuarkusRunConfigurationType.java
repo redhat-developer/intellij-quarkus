@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.quarkus.run;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.openapi.util.IconLoader;
+import com.redhat.devtools.intellij.quarkus.lang.QuarkusIcons;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +36,7 @@ public class QuarkusRunConfigurationType implements ConfigurationType {
 
     @Override
     public Icon getIcon() {
-        return IconLoader.findIcon("/quarkus_icon_rgb_16px_default.png", QuarkusRunConfigurationType.class);
+        return QuarkusIcons.Quarkus;
     }
 
     @NotNull

@@ -342,6 +342,10 @@
     <configurationType implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationType"/>
     <consoleActionsPostProcessor implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConsolePostProcessor"/>
 
+    <toolWindow id="Quarkus"
+                anchor="right"
+                factoryClass="com.redhat.devtools.intellij.quarkus.explorer.QuarkusToolWindowFactory"
+                icon="com.redhat.devtools.intellij.quarkus.lang.QuarkusIcons.Quarkus" />
     <!-- Qute -->
     <facetType implementation="com.redhat.devtools.intellij.qute.facet.QuteFacetType"/>
     <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
@@ -589,5 +593,14 @@
     <action id="qute.command.configuration.update"
             class="com.redhat.devtools.intellij.qute.psi.core.command.QuteUpdateConfigurationAction"/>
 
+      <action id="com.redhat.devtools.intellij.quarkus.explorer.actions.QuarkusDevStartAction"
+              class="com.redhat.devtools.intellij.quarkus.explorer.actions.QuarkusDevStartAction"
+              icon="AllIcons.General.GearPlain"/>
+      <action id="com.redhat.devtools.intellij.quarkus.run.QuarkusOpenDevUIAction"
+              class="com.redhat.devtools.intellij.quarkus.run.QuarkusOpenDevUIAction"
+              icon="AllIcons.General.GearPlain"/>
+    <action id="com.redhat.devtools.intellij.quarkus.run.QuarkusOpenAppInBrowserAction"
+            class="com.redhat.devtools.intellij.quarkus.run.QuarkusOpenAppInBrowserAction"
+            icon="AllIcons.General.GearPlain"/>
   </actions>
 </idea-plugin>

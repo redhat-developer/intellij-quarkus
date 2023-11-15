@@ -13,17 +13,14 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lang;
 
-import com.redhat.devtools.intellij.lsp4ij.ServerIconProvider;
+import com.intellij.openapi.util.IconLoader;
 
 import javax.swing.*;
 
 /**
- * Quarkus server icon provider used by Qute LS.
+ * Quarkus icons.
  */
-public class QuarkusServerIconProvider implements ServerIconProvider {
+public class QuarkusIcons {
 
-    @Override
-    public Icon getIcon() {
-        return QuarkusIcons.Quarkus;
-    }
+    public static final Icon Quarkus = IconLoader.findIcon("/quarkus_icon_rgb_16px_default.png", QuarkusIcons.class);
 }
