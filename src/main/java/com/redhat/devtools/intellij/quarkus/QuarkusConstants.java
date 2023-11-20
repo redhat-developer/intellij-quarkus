@@ -74,6 +74,9 @@ public class QuarkusConstants {
     public static final String QUARKUS_SCHEDULED_ANNOTATION = "io.quarkus.scheduler.Scheduled";
 
     public static final String QUARKUS_CORE_PREFIX = "io.quarkus:quarkus-core:";
+
+    public static final String QUARKUS_VERTX_HTTP_PREFIX = "io.quarkus:quarkus-vertx-http:";
+
     public static final String QUARKUS_PREFIX = "quarkus";
     public static final String QUARKUS_JAVADOC_PROPERTIES_FILE = "quarkus-javadoc.properties";
     public static final String QUARKUS_EXTENSION_PROPERTIES = "META-INF/quarkus-extension.properties";
