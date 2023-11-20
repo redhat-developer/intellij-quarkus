@@ -39,37 +39,55 @@ import java.util.regex.Pattern;
 public class QuarkusModuleUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleUtil.class);
 
+    private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
+
+    public static final Pattern QUARKUS_STANDARD_VERSIONING = Pattern.compile("(\\d+).(\\d+).(\\d+)(.Final)?(-redhat-\\\\d+)?$");
+
     public static final Pattern APPLICATION_PROPERTIES = Pattern.compile("application(-.+)?\\.properties");
 
     public static final Pattern MICROPROFILE_CONFIG_PROPERTIES = Pattern.compile("microprofile-config(-.+)?\\.properties");
 
     public static final Pattern APPLICATION_YAML = Pattern.compile("application(-.+)?\\.ya?ml");
 
+
     /**
      * Check if the module is a Quarkus project. Should check if some class if present
      * but it seems PSI is not available when the module is added thus we rely on the
-     * library names.
+     * library names (io.quarkus:quarkus-core*).
      *
      * @param module the module to check
-     * @return yes if module is a Quarkus project
+     * @return true if module is a Quarkus project and false otherwise.
      */
     public static boolean isQuarkusModule(Module module) {
+       return hasLibrary(module, QuarkusConstants.QUARKUS_CORE_PREFIX);
+    }
+
+    /**
+     * Check if the module is a Quarkus Web Application project. Should check if some class if present
+     * but it seems PSI is not available when the module is added thus we rely on the
+     * library names (io.quarkus:quarkus-vertx-http:*).
+     *
+     * @param module the module to check
+     * @return true if module is a Quarkus project and false otherwise.
+     */
+    public static boolean isQuarkusWebAppModule(Module module) {
+        return hasLibrary(module, QuarkusConstants.QUARKUS_VERTX_HTTP_PREFIX);
+    }
+
+    private static boolean hasLibrary(Module module, String libraryNamePrefix) {
         OrderEnumerator libraries = ModuleRootManager.getInstance(module).orderEntries().librariesOnly();
         return libraries.process(new RootPolicy<Boolean>() {
             @Override
             public Boolean visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Boolean value) {
-                return value || isQuarkusLibrary(libraryOrderEntry);
+                return value || isLibrary(libraryOrderEntry, libraryNamePrefix);
             }
         }, false);
     }
 
-    public static boolean isQuarkusLibrary(@NotNull LibraryOrderEntry libraryOrderEntry) {
+    private static boolean isLibrary(@NotNull LibraryOrderEntry libraryOrderEntry, String libraryNamePrefix) {
         return libraryOrderEntry.getLibraryName() != null &&
-                libraryOrderEntry.getLibraryName().contains(QuarkusConstants.QUARKUS_CORE_PREFIX);
+                libraryOrderEntry.getLibraryName().contains(libraryNamePrefix);
     }
-
-    private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
-    public static final Pattern QUARKUS_STANDARD_VERSIONING = Pattern.compile("(\\d+).(\\d+).(\\d+)(.Final)?(-redhat-\\\\d+)?$");
 
     /**
      * Checks whether the quarkus version used in this module matches the given predicate.
