@@ -114,12 +114,7 @@ public class QuarkusRunConfigurationManager implements Disposable {
         if (modules.isEmpty()) {
             return;
         }
-        ReadAction.nonBlocking(() -> doTryToCreateRunConfigurations(modules))
-                .inSmartMode(project)
-                .submit(NonUrgentExecutor.getInstance());
-    }
 
-    private void doTryToCreateRunConfigurations(List<Module> modules) {
         boolean runConfigurationCreated = false;
         for (Module module : modules) {
             if (tryToCreateRunConfiguration(module)) {
@@ -175,6 +170,7 @@ public class QuarkusRunConfigurationManager implements Disposable {
 
     /**
      * Add "QuarkusRunConfigurationType" in the Services view settings to show "Quarkus Dev Mode" and their Quarkus run configuration in the Services view.
+     *
      * @param logError true if error must be logged while updating Services view settings.
      * @return true if the update is done correctly and false otherwise.
      */
@@ -187,8 +183,7 @@ public class QuarkusRunConfigurationManager implements Disposable {
                 runDashboardManager.setTypes(types);
             }
             return true;
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             // This case comes from when Ultimate is used and Ultimate Quarkus support update in same time their Quarkus Configuration Type.
             // java.util.ConcurrentModificationException
             //	at java.base/java.util.HashMap$HashIterator.nextNode(HashMap.java:1597)

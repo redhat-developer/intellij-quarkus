@@ -14,6 +14,7 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.model.settings.ExternalSystemExecutionSettings;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
@@ -39,6 +40,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportBuilder;
 import com.intellij.projectImport.ProjectImportProvider;
+import com.intellij.util.concurrency.NonUrgentExecutor;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
@@ -379,15 +381,20 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
                     // The imported project doesn't belong to the input project, ignore it.
                     return;
                 }
-                List<Module> modules = new ArrayList<>();
-                Module[] existingModules = ModuleManager.getInstance(project).getModules();
-                for (Module module : existingModules) {
-                    // Check if the module is a Gradle project
-                    if (GradleRunnerUtil.isGradleModule(module) && isValidGradleModule(module)) {
-                        modules.add(module);
-                    }
-                }
-                listener.importFinished(modules);
+
+                ReadAction.nonBlocking(() -> {
+                            List<Module> modules = new ArrayList<>();
+                            Module[] existingModules = ModuleManager.getInstance(project).getModules();
+                            for (Module module : existingModules) {
+                                // Check if the module is a Gradle project
+                                if (GradleRunnerUtil.isGradleModule(module) && isValidGradleModule(module)) {
+                                    modules.add(module);
+                                }
+                            }
+                            listener.importFinished(modules);
+                        })
+                        .inSmartMode(project)
+                        .submit(NonUrgentExecutor.getInstance());
             }
         });
     }

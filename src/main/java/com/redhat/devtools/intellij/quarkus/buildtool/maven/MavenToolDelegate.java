@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij.quarkus.buildtool.maven;
 
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -19,11 +20,12 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.concurrency.NonUrgentExecutor;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.quarkus.buildtool.ProjectImportListener;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
-import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.execution.MavenRunConfiguration;
@@ -32,12 +34,11 @@ import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenArtifactInfo;
 import org.jetbrains.idea.maven.model.MavenId;
-import org.jetbrains.idea.maven.project.MavenImportListener;
 import org.jetbrains.idea.maven.project.MavenGeneralSettings;
+import org.jetbrains.idea.maven.project.MavenImportListener;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
-import org.jetbrains.idea.maven.server.MavenServerManager;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
@@ -77,7 +78,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
         Project project = module.getProject();
         VirtualFile pomFile = null;
         VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-        for(VirtualFile contentRoot : contentRoots) {
+        for (VirtualFile contentRoot : contentRoots) {
             VirtualFile child = contentRoot.findChild("pom.xml");
             if (child != null) {
                 pomFile = child;
@@ -94,7 +95,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
             if (distributionUrl != null) {
                 String mavenHome = mavenSettings.getMavenHome();
                 String WRAPPED_MAVEN = "Use Maven wrapper"; //MavenServerManager.WRAPPED_MAVEN was removed in 2023.3 without any deprecation warning!
-                if (!WRAPPED_MAVEN.equals(mavenHome)){
+                if (!WRAPPED_MAVEN.equals(mavenHome)) {
                     mavenSettings.setMavenHome(WRAPPED_MAVEN);
                 }
             }
@@ -105,8 +106,8 @@ public class MavenToolDelegate implements BuildToolDelegate {
         Set<MavenArtifact> downloaded = new HashSet<>();
         Set<MavenId> toDownload = new HashSet<>();
 
-        List<MavenArtifact>  dependencies = mavenProject.getDependencies();
-        double counter = 80d /100d / 3d;
+        List<MavenArtifact> dependencies = mavenProject.getDependencies();
+        double counter = 80d / 100d / 3d;
         double i = counter / dependencies.size();
         double p = 0;
 
@@ -123,7 +124,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
                     }
                 }
             }
-            p+=i;
+            p += i;
             progressIndicator.setFraction(p);
         }
 
@@ -141,7 +142,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
                     toDownload.add(binaryDependency.getMavenId());
                 }
             }
-            p+=i;
+            p += i;
             progressIndicator.setFraction(p);
         }
 
@@ -154,7 +155,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
             progressIndicator.checkCanceled();
             progressIndicator.setText2("Searching deployment descriptor in '" + sourceDependency.getArtifactId() + "' sources");
             processDependency(mavenProject, result, downloaded, sourceDependency, SOURCES);
-            p+=i;
+            p += i;
             progressIndicator.setFraction(p);
         }
     }
@@ -180,7 +181,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
                 return Collections.emptySet();
             }
             if (classifier != null) {
-                for(MavenId id : deploymentIds) {
+                for (MavenId id : deploymentIds) {
                     deploymentArtifacts.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));
                 }
             } else {
@@ -190,9 +191,9 @@ public class MavenToolDelegate implements BuildToolDelegate {
                     progressIndicator.setText2("Resolving " + (shouldResolveArtifactTransitively ? " (Transitevely) " : "") + "'" + deploymentId + "'");
                     if (shouldResolveArtifactTransitively) {
                         // Resolving the deployment artifact and their dependencies
-                        List<MavenArtifactInfo> infos = Arrays.asList( new MavenArtifactInfo(deploymentId, "jar", classifier));
+                        List<MavenArtifactInfo> infos = Arrays.asList(new MavenArtifactInfo(deploymentId, "jar", classifier));
                         List<MavenArtifact> resolvedArtifacts = serverWrapper.resolveArtifactTransitively(infos, mavenProject.getRemoteRepositories()).mavenResolvedArtifacts;
-                        for (var resolvedArtifact: resolvedArtifacts) {
+                        for (var resolvedArtifact : resolvedArtifacts) {
                             addDeploymentArtifact(resolvedArtifact, deploymentArtifacts);
                         }
                     } else {
@@ -219,7 +220,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
      * This code is using reflection to get the instance of the {@code MavenServerManager} and calls
      * {@code createEmbedder} on it (MavenServerManager.getInstance().createEmbedder()).
      * The instance that is created is then returned.
-     *
+     * <p>
      * This code can be removed once the minimum version gets IC-2023.1.
      *
      * <ul>
@@ -252,7 +253,8 @@ public class MavenToolDelegate implements BuildToolDelegate {
                     false,
                     workingDirectory,
                     workingDirectory);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+                 InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
@@ -279,15 +281,19 @@ public class MavenToolDelegate implements BuildToolDelegate {
         connection.subscribe(MavenImportListener.TOPIC, new MavenImportListener() {
             @Override
             public void importFinished(@NotNull Collection<MavenProject> importedProjects, @NotNull List<Module> newModules) {
-                List<Module> modules = new ArrayList<>();
-                for (MavenProject mavenProject : importedProjects) {
-                    MavenProjectsManager projectsManager = MavenProjectsManager.getInstance(project);
-                    Module module = projectsManager.findModule(mavenProject);
-                    if (module != null) {
-                        modules.add(module);
-                    }
-                }
-                listener.importFinished(modules);
+                ReadAction.nonBlocking(() -> {
+                            List<Module> modules = new ArrayList<>();
+                            for (MavenProject mavenProject : importedProjects) {
+                                MavenProjectsManager projectsManager = MavenProjectsManager.getInstance(project);
+                                Module module = projectsManager.findModule(mavenProject);
+                                if (module != null) {
+                                    modules.add(module);
+                                }
+                            }
+                            listener.importFinished(modules);
+                        })
+                        .inSmartMode(project)
+                        .submit(NonUrgentExecutor.getInstance());
             }
         });
 
