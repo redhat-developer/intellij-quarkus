@@ -93,8 +93,9 @@ public class MavenToolDelegate implements BuildToolDelegate {
             var distributionUrl = getWrapperDistributionUrl(ProjectUtil.guessProjectDir(project));
             if (distributionUrl != null) {
                 String mavenHome = mavenSettings.getMavenHome();
-                if (!MavenServerManager.WRAPPED_MAVEN.equals(mavenHome)){
-                    mavenSettings.setMavenHome(MavenServerManager.WRAPPED_MAVEN);
+                String WRAPPED_MAVEN = "Use Maven wrapper"; //MavenServerManager.WRAPPED_MAVEN was removed in 2023.3 without any deprecation warning!
+                if (!WRAPPED_MAVEN.equals(mavenHome)){
+                    mavenSettings.setMavenHome(WRAPPED_MAVEN);
                 }
             }
         }
