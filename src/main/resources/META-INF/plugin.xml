@@ -5,6 +5,13 @@
   <vendor email="developers@redhat.com" url="https://github.com/redhat-developer/intellij-quarkus/issues">Red-Hat</vendor>
 
   <change-notes><![CDATA[
+    <h3>1.30.0</h3>
+    <ul>
+      <li>Create "Quarkus Dev Mode" run configuration on project import</li>
+      <li>"Quarkus Dev Mode" run configuration integration in standard "Services" view</li>
+      <li>More bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/43?closed=1">changelog</a>.
     <h3>1.29.0</h3>
     <ul>
       <li>Language servers no longer affect non-Quarkus projects</li>
