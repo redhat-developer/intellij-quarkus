@@ -11,10 +11,10 @@
 package com.redhat.devtools.intellij.quarkus.json;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider;
 import com.jetbrains.jsonSchema.extension.SchemaType;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ public class QuarkusJsonSchemaProvider implements JsonSchemaFileProvider {
 
     @Override
     public boolean isAvailable(@NotNull VirtualFile file) {
-        return isApplicationYAMLFile(file) && module.equals(ModuleUtilCore.findModuleForFile(file, module.getProject()));
+        return isApplicationYAMLFile(file) && module.equals(LSPIJUtils.getModule(file, module.getProject()));
     }
 
     private boolean isApplicationYAMLFile(VirtualFile file) {

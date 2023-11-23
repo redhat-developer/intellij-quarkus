@@ -22,6 +22,7 @@ import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.RootPolicy;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.LanguageSubstitutor;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,7 +71,7 @@ public class QuteLanguageSubstitutor extends LanguageSubstitutor {
 
     @Override
     public @Nullable Language getLanguage(@NotNull VirtualFile file, @NotNull Project project) {
-        Module module = ModuleUtilCore.findModuleForFile(file, project);
+        Module module = LSPIJUtils.getModule(file, project);
         if (module != null) {
             if (isTemplate(file, module) && isQuteModule(module)) {
                 return QuteLanguage.INSTANCE;

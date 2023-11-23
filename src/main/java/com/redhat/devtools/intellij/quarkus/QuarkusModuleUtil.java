@@ -13,7 +13,6 @@ package com.redhat.devtools.intellij.quarkus;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -21,6 +20,7 @@ import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.RootPolicy;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
 import org.jetbrains.annotations.NotNull;
@@ -144,7 +144,7 @@ public class QuarkusModuleUtil {
     }
 
     private static boolean isQuarkusModule(VirtualFile file, Project project) {
-        Module module = ModuleUtilCore.findModuleForFile(file, project);
+        Module module = LSPIJUtils.getModule(file, project);
         return module != null && (FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null || QuarkusModuleUtil.isQuarkusModule(module));
     }
 
