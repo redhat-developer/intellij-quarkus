@@ -10,23 +10,17 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.operations.inlayhint;
 
-import com.intellij.codeInsight.hints.FactoryInlayHintsCollector;
-import com.intellij.codeInsight.hints.InlayHintsCollector;
 import com.intellij.codeInsight.hints.InlayHintsSink;
-import com.intellij.codeInsight.hints.NoSettings;
 import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.codeInsight.hints.presentation.PresentationFactory;
 import com.intellij.codeInsight.hints.presentation.SequencePresentation;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.AbstractLSPInlayProvider;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
@@ -35,9 +29,6 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.net.URI;
@@ -54,88 +45,62 @@ import java.util.stream.Collectors;
  * LSP textDocument/inlayHint support.
  */
 public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LSPInlayHintInlayProvider.class);
 
-    private static final Key<InlayHintsSink> SINK_KEY = new Key<>(LSPInlayHintInlayProvider.class.getName());
+    private static final Key<CancellationSupport> CANCELLATION_SUPPORT_KEY = new Key<>(LSPInlayHintInlayProvider.class.getName() + "-CancellationSupport");
 
     public LSPInlayHintInlayProvider() {
-        super(SINK_KEY);
+        super(CANCELLATION_SUPPORT_KEY);
     }
 
-    @Nullable
+
     @Override
-    public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile,
-                                               @NotNull Editor editor,
-                                               @NotNull NoSettings o,
-                                               @NotNull InlayHintsSink inlayHintsSink) {
-        return new FactoryInlayHintsCollector(editor) {
-            @Override
-            public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
-                VirtualFile file = getFile(psiFile, editor, inlayHintsSink);
-                if (file == null) {
-                    // InlayHint must not be collected
-                    return false;
-                }
-                Document document = editor.getDocument();
-                final CancellationSupport cancellationSupport = new CancellationSupport();
-                try {
-                    URI fileUri = LSPIJUtils.toUri(file);
-                    Range viewPortRange = getViewPortRange(editor);
-                    InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(fileUri.toASCIIString()), viewPortRange);
-                    BlockingDeque<Pair<InlayHint, LanguageServer>> pairs = new LinkedBlockingDeque<>();
+    protected void doCollect(@NotNull VirtualFile file, @NotNull Project project, @NotNull Editor editor, @NotNull PresentationFactory factory, @NotNull InlayHintsSink inlayHintsSink, @NotNull CancellationSupport cancellationSupport) throws InterruptedException {
+        Document document = editor.getDocument();
+        URI fileUri = LSPIJUtils.toUri(file);
+        Range viewPortRange = getViewPortRange(editor);
+        InlayHintParams param = new InlayHintParams(new TextDocumentIdentifier(fileUri.toASCIIString()), viewPortRange);
+        BlockingDeque<Pair<InlayHint, LanguageServer>> pairs = new LinkedBlockingDeque<>();
 
-                    CompletableFuture<Void> future = collect(psiElement.getProject(), file, param, pairs, cancellationSupport);
-                    List<Pair<Integer, Pair<InlayHint, LanguageServer>>> inlayHints = createInlayHints(document, pairs, future);
-                    inlayHints.stream()
-                            .collect(Collectors.groupingBy(p -> p.first))
-                            .forEach((offset, list) ->
-                                    inlayHintsSink.addInlineElement(offset, false, toPresentation(editor, list, getFactory()), false));
-                } catch (ProcessCanceledException e) {
-                    // Cancel all LSP requests
-                    cancellationSupport.cancel();
-                } catch (InterruptedException e) {
-                    // Cancel all LSP requests
-                    cancellationSupport.cancel();
-                    LOGGER.warn(e.getLocalizedMessage(), e);
-                    Thread.currentThread().interrupt();
-                }
-                return false;
-            }
+        CompletableFuture<Void> future = collect(project, file, param, pairs, cancellationSupport);
+        List<Pair<Integer, Pair<InlayHint, LanguageServer>>> inlayHints = createInlayHints(document, pairs, future);
+        inlayHints.stream()
+                .collect(Collectors.groupingBy(p -> p.first))
+                .forEach((offset, list) ->
+                        inlayHintsSink.addInlineElement(offset, false, toPresentation(editor, list, factory, cancellationSupport), false));
+    }
 
-            @NotNull
-            private List<Pair<Integer, Pair<InlayHint, LanguageServer>>> createInlayHints(
-                    @NotNull Document document,
-                    BlockingDeque<Pair<InlayHint, LanguageServer>> pairs,
-                    CompletableFuture<Void> future)
-                    throws InterruptedException {
-                List<Pair<Integer, Pair<InlayHint, LanguageServer>>> inlayHints = new ArrayList<>();
-                while (!future.isDone() || !pairs.isEmpty()) {
-                    ProgressManager.checkCanceled();
-                    Pair<InlayHint, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
-                    if (pair != null) {
-                        int offset = LSPIJUtils.toOffset(pair.getFirst().getPosition(), document);
-                        inlayHints.add(Pair.create(offset, pair));
-                    }
-                }
-                return inlayHints;
+    @NotNull
+    private List<Pair<Integer, Pair<InlayHint, LanguageServer>>> createInlayHints(
+            @NotNull Document document,
+            BlockingDeque<Pair<InlayHint, LanguageServer>> pairs,
+            CompletableFuture<Void> future)
+            throws InterruptedException {
+        List<Pair<Integer, Pair<InlayHint, LanguageServer>>> inlayHints = new ArrayList<>();
+        while (!future.isDone() || !pairs.isEmpty()) {
+            ProgressManager.checkCanceled();
+            Pair<InlayHint, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
+            if (pair != null) {
+                int offset = LSPIJUtils.toOffset(pair.getFirst().getPosition(), document);
+                inlayHints.add(Pair.create(offset, pair));
             }
+        }
+        return inlayHints;
+    }
 
-            private CompletableFuture<Void> collect(@NotNull Project project, @NotNull VirtualFile file, InlayHintParams param, BlockingDeque<Pair<InlayHint, LanguageServer>> pairs, CancellationSupport cancellationSupport) {
-                return LanguageServiceAccessor.getInstance(project)
-                        .getLanguageServers(file, capabilities -> capabilities.getInlayHintProvider() != null)
-                        .thenComposeAsync(languageServers -> cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
-                                .map(languageServer ->
-                                        cancellationSupport.execute(languageServer.getServer().getTextDocumentService().inlayHint(param))
-                                                .thenAcceptAsync(inlayHints -> {
-                                                    // textDocument/codeLens may return null
-                                                    if (inlayHints != null) {
-                                                        inlayHints.stream().filter(Objects::nonNull)
-                                                                .forEach(inlayHint -> pairs.add(new Pair(inlayHint, languageServer.getServer())));
-                                                    }
-                                                }))
-                                .toArray(CompletableFuture[]::new))));
-            }
-        };
+    private CompletableFuture<Void> collect(@NotNull Project project, @NotNull VirtualFile file, InlayHintParams param, BlockingDeque<Pair<InlayHint, LanguageServer>> pairs, CancellationSupport cancellationSupport) {
+        return LanguageServiceAccessor.getInstance(project)
+                .getLanguageServers(file, capabilities -> capabilities.getInlayHintProvider() != null)
+                .thenComposeAsync(languageServers -> cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
+                        .map(languageServer ->
+                                cancellationSupport.execute(languageServer.getServer().getTextDocumentService().inlayHint(param))
+                                        .thenAcceptAsync(inlayHints -> {
+                                            // textDocument/codeLens may return null
+                                            if (inlayHints != null) {
+                                                inlayHints.stream().filter(Objects::nonNull)
+                                                        .forEach(inlayHint -> pairs.add(new Pair(inlayHint, languageServer.getServer())));
+                                            }
+                                        }))
+                        .toArray(CompletableFuture[]::new))));
     }
 
     @NotNull
@@ -149,11 +114,13 @@ public class LSPInlayHintInlayProvider extends AbstractLSPInlayProvider {
         return new Range(start, end);
     }
 
-    private InlayPresentation toPresentation(Editor editor,
-                                             List<Pair<Integer, Pair<InlayHint, LanguageServer>>> elements,
-                                             PresentationFactory factory) {
+    private InlayPresentation toPresentation(@NotNull Editor editor,
+                                             @NotNull List<Pair<Integer, Pair<InlayHint, LanguageServer>>> elements,
+                                             @NotNull PresentationFactory factory,
+                                             @NotNull CancellationSupport cancellationSupport) {
         List<InlayPresentation> presentations = new ArrayList<>();
         elements.forEach(p -> {
+            cancellationSupport.checkCanceled();
             Either<String, List<InlayHintLabelPart>> label = p.second.first.getLabel();
             if (label.isLeft()) {
                 presentations.add(factory.smallText(label.getLeft()));
