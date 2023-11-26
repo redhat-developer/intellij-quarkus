@@ -10,23 +10,17 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4ij.operations.codelens;
 
-import com.intellij.codeInsight.hints.FactoryInlayHintsCollector;
-import com.intellij.codeInsight.hints.InlayHintsCollector;
 import com.intellij.codeInsight.hints.InlayHintsSink;
-import com.intellij.codeInsight.hints.NoSettings;
 import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.codeInsight.hints.presentation.PresentationFactory;
 import com.intellij.codeInsight.hints.presentation.SequencePresentation;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4ij.AbstractLSPInlayProvider;
 import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4ij.LanguageServiceAccessor;
@@ -37,9 +31,6 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.net.URI;
@@ -56,109 +47,84 @@ import java.util.stream.Collectors;
  * LSP textDocument/codeLens support.
  */
 public class LSPCodelensInlayProvider extends AbstractLSPInlayProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LSPCodelensInlayProvider.class);
 
-    private static final Key<InlayHintsSink> SINK_KEY = new Key<>(LSPCodelensInlayProvider.class.getName());
+    private static final Key<CancellationSupport> CANCELLATION_SUPPORT_KEY = new Key<>(LSPCodelensInlayProvider.class.getName() + "-CancellationSupport");
+
 
     public LSPCodelensInlayProvider() {
-        super(SINK_KEY);
+        super(CANCELLATION_SUPPORT_KEY);
     }
 
-    @Nullable
     @Override
-    public InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile,
-                                               @NotNull Editor editor,
-                                               @NotNull NoSettings o,
-                                               @NotNull InlayHintsSink inlayHintsSink) {
-        return new FactoryInlayHintsCollector(editor) {
-            @Override
-            public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
-                VirtualFile file = getFile(psiFile, editor, inlayHintsSink);
-                if (file == null) {
-                    // Codelens must not be collected
-                    return false;
-                }
-                Document document = editor.getDocument();
-                final CancellationSupport cancellationSupport = new CancellationSupport();
-                try {
-                    URI fileUri = LSPIJUtils.toUri(file);
-                    CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(fileUri.toASCIIString()));
-                    BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
+    protected void doCollect(@NotNull VirtualFile file, @NotNull Project project, @NotNull Editor editor, @NotNull PresentationFactory factory, @NotNull InlayHintsSink inlayHintsSink, @NotNull CancellationSupport cancellationSupport) throws InterruptedException {
+        Document document = editor.getDocument();
+        URI fileUri = LSPIJUtils.toUri(file);
+        CodeLensParams param = new CodeLensParams(new TextDocumentIdentifier(fileUri.toASCIIString()));
+        BlockingDeque<Pair<CodeLens, LanguageServer>> pairs = new LinkedBlockingDeque<>();
 
-                    CompletableFuture<Void> future = collect(file, psiFile.getProject(), param, pairs, cancellationSupport);
-                    List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future, cancellationSupport);
-                    codeLenses.stream()
-                            .collect(Collectors.groupingBy(p -> p.first))
-                            .forEach((offset, list) ->
-                                    inlayHintsSink.addBlockElement(
-                                            offset,
-                                            true,
-                                            true,
-                                            0,
-                                            toPresentation(editor, offset, list, getFactory()))
-                            );
-                } catch (ProcessCanceledException e) {
-                    // Cancel all LSP requests
-                    cancellationSupport.cancel();
-                } catch (InterruptedException e) {
-                    // Cancel all LSP requests
-                    cancellationSupport.cancel();
-                    LOGGER.warn(e.getLocalizedMessage(), e);
-                    Thread.currentThread().interrupt();
-                }
-                return false;
-            }
+        CompletableFuture<Void> future = collect(file, project, param, pairs, cancellationSupport);
+        List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codeLenses = createCodeLenses(document, pairs, future, cancellationSupport);
+        codeLenses.stream()
+                .collect(Collectors.groupingBy(p -> p.first))
+                .forEach((offset, list) ->
+                        inlayHintsSink.addBlockElement(
+                                offset,
+                                true,
+                                true,
+                                0,
+                                toPresentation(editor, offset, list, factory, cancellationSupport))
+                );
+    }
 
-            @NotNull
-            private List<Pair<Integer, Pair<CodeLens, LanguageServer>>> createCodeLenses(Document document, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CompletableFuture<Void> future, CancellationSupport cancellationSupport) throws InterruptedException {
-                List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
-                while (!future.isDone() || !pairs.isEmpty()) {
-                    ProgressManager.checkCanceled();
-                    Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
-                    if (pair != null) {
-                        int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), document);
-                        codelenses.add(Pair.create(offset, pair));
-                    }
-                }
-                return codelenses;
+    @NotNull
+    private List<Pair<Integer, Pair<CodeLens, LanguageServer>>> createCodeLenses(Document document, BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, CompletableFuture<Void> future, CancellationSupport cancellationSupport) throws InterruptedException {
+        List<Pair<Integer, Pair<CodeLens, LanguageServer>>> codelenses = new ArrayList<>();
+        while (!future.isDone() || !pairs.isEmpty()) {
+            ProgressManager.checkCanceled();
+            Pair<CodeLens, LanguageServer> pair = pairs.poll(25, TimeUnit.MILLISECONDS);
+            if (pair != null) {
+                int offset = LSPIJUtils.toOffset(pair.getFirst().getRange().getStart(), document);
+                codelenses.add(Pair.create(offset, pair));
             }
+        }
+        return codelenses;
+    }
 
-            private @NotNull CompletableFuture<Void> collect(@NotNull VirtualFile file, @NotNull Project project, @NotNull CodeLensParams param, @NotNull BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, @NotNull CancellationSupport cancellationSupport) {
-                return LanguageServiceAccessor.getInstance(project)
-                        .getLanguageServers(file, capabilities -> capabilities.getCodeLensProvider() != null)
-                        .thenComposeAsync(languageServers ->
-                                cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
-                                        .map(languageServer ->
-                                                cancellationSupport.execute(languageServer.getServer().getTextDocumentService().codeLens(param))
-                                                        .thenAcceptAsync(codeLenses -> {
-                                                            // textDocument/codeLens may return null
-                                                            if (codeLenses != null) {
-                                                                codeLenses.stream()
-                                                                        .filter(Objects::nonNull)
-                                                                        .forEach(codeLens -> {
-                                                                            if (getCodeLensContent(codeLens) != null) {
-                                                                                // The codelens content is filled, display it
-                                                                                pairs.add(new Pair(codeLens, languageServer.getServer()));
-                                                                            }
-                                                                        });
-                                                            }
-                                                        }))
-                                        .toArray(CompletableFuture[]::new))));
-            }
-        };
+    private @NotNull CompletableFuture<Void> collect(@NotNull VirtualFile file, @NotNull Project project, @NotNull CodeLensParams param, @NotNull BlockingDeque<Pair<CodeLens, LanguageServer>> pairs, @NotNull CancellationSupport cancellationSupport) {
+        return LanguageServiceAccessor.getInstance(project)
+                .getLanguageServers(file, capabilities -> capabilities.getCodeLensProvider() != null)
+                .thenComposeAsync(languageServers ->
+                        cancellationSupport.execute(CompletableFuture.allOf(languageServers.stream()
+                                .map(languageServer ->
+                                        cancellationSupport.execute(languageServer.getServer().getTextDocumentService().codeLens(param))
+                                                .thenAcceptAsync(codeLenses -> {
+                                                    // textDocument/codeLens may return null
+                                                    if (codeLenses != null) {
+                                                        codeLenses.stream()
+                                                                .filter(Objects::nonNull)
+                                                                .forEach(codeLens -> {
+                                                                    if (getCodeLensContent(codeLens) != null) {
+                                                                        // The codelens content is filled, display it
+                                                                        pairs.add(new Pair(codeLens, languageServer.getServer()));
+                                                                    }
+                                                                });
+                                                    }
+                                                }))
+                                .toArray(CompletableFuture[]::new))));
     }
 
     private InlayPresentation toPresentation(
-            Editor editor,
+            @NotNull Editor editor,
             int offset,
-            List<Pair<Integer, Pair<CodeLens, LanguageServer>>> elements,
-            PresentationFactory factory
-    ) {
+            @NotNull List<Pair<Integer, Pair<CodeLens, LanguageServer>>> elements,
+            @NotNull PresentationFactory factory,
+            @NotNull CancellationSupport cancellationSupport) {
         int line = editor.getDocument().getLineNumber(offset);
         int column = offset - editor.getDocument().getLineStartOffset(line);
         List<InlayPresentation> presentations = new ArrayList<>();
         presentations.add(factory.textSpacePlaceholder(column, true));
         elements.forEach(p -> {
+            cancellationSupport.checkCanceled();
             CodeLens codeLens = p.second.first;
             LanguageServer languageServer = p.second.second;
             InlayPresentation text = factory.smallText(getCodeLensContent(codeLens));

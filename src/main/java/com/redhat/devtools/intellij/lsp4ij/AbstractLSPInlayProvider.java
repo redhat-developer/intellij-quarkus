@@ -11,16 +11,13 @@
 package com.redhat.devtools.intellij.lsp4ij;
 
 import com.intellij.codeInsight.hints.*;
+import com.intellij.codeInsight.hints.presentation.PresentationFactory;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.Language;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,22 +26,78 @@ import com.intellij.psi.PsiFile;
 import com.intellij.ui.layout.LCFlags;
 import com.intellij.ui.layout.LayoutKt;
 import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
+import com.redhat.devtools.intellij.lsp4ij.internal.CancellationSupport;
 import org.eclipse.lsp4j.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.swing.JComponent;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 
 public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoSettings> {
 
-    private final Key<InlayHintsSink> sinkKey;
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLSPInlayProvider.class);
 
-    protected AbstractLSPInlayProvider(Key<InlayHintsSink> sinkKey) {
-        this.sinkKey = sinkKey;
+    private final Key<CancellationSupport> cancellationSupportKey;
+
+    protected AbstractLSPInlayProvider(Key<CancellationSupport> cancellationSupportKey) {
+        this.cancellationSupportKey = cancellationSupportKey;
     }
 
     private SettingsKey<NoSettings> key = new SettingsKey<>("LSP.hints");
+
+
+    @Nullable
+    @Override
+    public final InlayHintsCollector getCollectorFor(@NotNull PsiFile psiFile,
+                                                     @NotNull Editor editor,
+                                                     @NotNull NoSettings o,
+                                                     @NotNull InlayHintsSink inlayHintsSink) {
+        CancellationSupport previousCancellationSupport = editor.getUserData(cancellationSupportKey);
+        if (previousCancellationSupport != null) {
+            previousCancellationSupport.cancel();
+        }
+        CancellationSupport cancellationSupport = new CancellationSupport();
+        editor.putUserData(cancellationSupportKey, cancellationSupport);
+
+        return new FactoryInlayHintsCollector(editor) {
+
+            private boolean processed;
+
+            @Override
+            public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
+                if (processed) {
+                    // Before IJ 2023-3, FactoryInlayHintsCollector#collect(PsiElement element.. is called once time with PsiFile as element.
+                    // Since IJ 2023-3, FactoryInlayHintsCollector#collect(PsiElement element.. is called several times for each token of the PsiFile
+                    // which causes the problem of codelens/inlay hint which are not displayed because there are too many call of LSP request codelens/inlayhint which are cancelled.
+                    // With IJ 2023-3 we need to collect LSP CodeLens/InlayHint just for the first call.
+                    return false;
+                }
+                processed = true;
+                VirtualFile file = getFile(psiFile);
+                if (file == null) {
+                    // InlayHint must not be collected
+                    return false;
+                }
+                try {
+                    doCollect(file, psiFile.getProject(), editor, getFactory(), inlayHintsSink, cancellationSupport);
+                    cancellationSupport.checkCanceled();
+                } catch (ProcessCanceledException e) {
+                    // Cancel all LSP requests
+                    cancellationSupport.cancel();
+                } catch (InterruptedException e) {
+                    // Cancel all LSP requests
+                    cancellationSupport.cancel();
+                    LOGGER.warn(e.getLocalizedMessage(), e);
+                    Thread.currentThread().interrupt();
+                }
+                return false;
+            }
+        };
+    }
+
 
     @Override
     public boolean isVisibleInSettings() {
@@ -106,31 +159,20 @@ public abstract class AbstractLSPInlayProvider implements InlayHintsProvider<NoS
         }
     }
 
+    protected abstract void doCollect(@NotNull VirtualFile file, @NotNull Project project, @NotNull Editor editor, @NotNull PresentationFactory factory, @NotNull InlayHintsSink inlayHintsSink, @NotNull CancellationSupport cancellationSupport) throws InterruptedException;
+
     /**
      * Returns the virtual file where inlay hint must be added and null otherwise.
      *
-     * @param psiFile        the psi file.
-     * @param editor         the editor.
-     * @param inlayHintsSink the inlay hints sink.
+     * @param psiFile the psi file.
      * @return the virtual file where inlay hint must be added and null otherwise.
      */
-    protected @Nullable VirtualFile getFile(@NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
+    private @Nullable VirtualFile getFile(@NotNull PsiFile psiFile) {
         Project project = psiFile.getProject();
         if (project.isDisposed()) {
             // The project has been closed, don't collect inlay hints.
             return null;
         }
-        // Before IJ 2023-3, FactoryInlayHintsCollector#collect(PsiElement element.. is called once time with PsiFile as element.
-        // Since IJ 2023-3, FactoryInlayHintsCollector#collect(PsiElement element.. is called several times for each tokens of the PsiFile
-        // which causes the problem of codelens/inlay hint which are not displayed because there are too many call of LSP request codelens/inlayhint which are cancelled.
-        // With IJ 2023-3 we need to collect LSP CodeLens/InlayHint just for the first call. To implement this idea, we store the instance InlayHintsSink,
-        // and we forbid the compute of inlay hint if InlayHintsSink is already filled.
-        InlayHintsSink sink = editor.getUserData(sinkKey);
-        if (sink == inlayHintsSink) {
-            // LSP CodeLens/InlayHint has already be done for teh file, ignore it.
-            return null;
-        }
-        editor.putUserData(sinkKey, inlayHintsSink);
         return LSPIJUtils.getFile(psiFile);
     }
 }
