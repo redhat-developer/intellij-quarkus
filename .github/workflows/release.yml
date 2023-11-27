@@ -64,7 +64,11 @@ jobs:
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git commit -sam "chore(skip-release): set version to $PLUGIN_VERSION"
+          if git diff --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -sam "chore(skip-release): set version to $PLUGIN_VERSION"
+          fi
           git tag $PLUGIN_VERSION
           git push origin $PLUGIN_VERSION
 
