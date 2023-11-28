@@ -11,6 +11,9 @@
 
 package io.openliberty.graphql.sample;
 
+import io.smallrye.graphql.api.Subscription;
+
+import java.util.concurrent.Flow;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -93,6 +96,16 @@ public class WeatherService {
 
     @Mutation
     public void myOtherMethod() {
+    }
+
+    @Subscription
+    public String subscriptionReturningNonMulti() {
+        return null;
+    }
+
+    @Query
+    public Flow.Publisher<String> queryReturningMulti() {
+        return null;
     }
 
 }
