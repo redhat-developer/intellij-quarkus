@@ -14,7 +14,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider;
 import com.jetbrains.jsonSchema.extension.SchemaType;
-import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import org.jetbrains.annotations.NotNull;

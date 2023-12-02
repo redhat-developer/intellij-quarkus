@@ -323,6 +323,7 @@
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.java</depends>
   <depends>com.intellij.properties</depends>
+  <depends>com.redhat.devtools.lsp4ij</depends>
   <depends>com.redhat.devtools.intellij.telemetry</depends>
   <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
@@ -580,7 +581,6 @@
     </component>
   </module-components>
 
-  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-quarkus.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-qute.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <actions>

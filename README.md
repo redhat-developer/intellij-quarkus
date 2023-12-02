@@ -14,6 +14,14 @@
 ## Description
 <!-- Plugin description -->
 A plugin aimed at Quarkus based development, providing easy bootstrapping and code assist from [Quarkus](https://quarkus.io/) related assets and [Qute](https://quarkus.io/guides/qute-reference).
+
+To provide those support, the plugin consumes:
+
+ * [MicroProfile Language Server](https://github.com/eclipse/lsp4mp/tree/master/microprofile.ls) 
+ * [Qute Language Server](https://github.com/redhat-developer/quarkus-ls/tree/master/qute.ls) 
+
+by using [LSP4IJ (Language Server Protocol for Intellij)](https://github.com/redhat-developer/lsp4ij).
+
 <!-- Plugin description end -->
 
 ### application.properties support

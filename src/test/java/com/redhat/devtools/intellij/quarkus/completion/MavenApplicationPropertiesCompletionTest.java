@@ -9,7 +9,6 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.completion;
 
-import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.module.Module;
@@ -18,7 +17,6 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenEditorTest;
-import com.redhat.devtools.intellij.lsp4ij.ConnectDocumentToLanguageServerSetupParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 import org.junit.Test;

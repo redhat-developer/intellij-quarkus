@@ -13,7 +13,7 @@ package com.redhat.devtools.intellij.qute.psi.core.command;
 import com.google.gson.JsonPrimitive;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.redhat.devtools.intellij.lsp4ij.commands.CommandExecutor;
+import com.redhat.devtools.lsp4ij.commands.CommandExecutor;
 
 import java.util.List;
 

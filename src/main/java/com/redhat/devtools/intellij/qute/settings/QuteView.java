@@ -17,8 +17,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UI;
-import com.redhat.devtools.intellij.lsp4ij.ui.components.InspectionHyperlink;
+import com.redhat.devtools.lsp4ij.ui.components.InspectionHyperlink;
 import com.redhat.devtools.intellij.qute.QuteBundle;
 
 import javax.swing.*;

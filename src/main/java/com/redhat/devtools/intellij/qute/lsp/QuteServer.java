@@ -11,18 +11,16 @@
 package com.redhat.devtools.intellij.qute.lsp;
 
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
-import com.redhat.devtools.intellij.lsp4ij.server.JavaProcessCommandBuilder;
-import com.redhat.devtools.intellij.lsp4ij.server.ProcessStreamConnectionProvider;
+import com.redhat.devtools.lsp4ij.server.JavaProcessCommandBuilder;
+import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
