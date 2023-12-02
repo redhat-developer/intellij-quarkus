@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.qute.psi.core.command;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import com.redhat.devtools.intellij.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 
 public class QuteOpenURIAction extends QuteAction {
 

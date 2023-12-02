@@ -13,9 +13,8 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
-import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
+import com.redhat.devtools.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
 import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Dummy inspection for unknown properties in Microprofile properties files

@@ -24,7 +24,6 @@ val quarkusVersion = prop("quarkusVersion")
 val lsp4mpVersion = prop("lsp4mpVersion")
 val quarkusLsVersion = prop("lsp4mpVersion")
 val quteLsVersion = prop("quteLsVersion")
-
 // Configure project's dependencies
 repositories {
     mavenLocal()
@@ -64,10 +63,11 @@ sourceSets {
 }
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
+
 dependencies {
     implementation("org.zeroturnaround:zt-zip:1.14")
-    implementation("com.kotcrab.remark:remark:1.2.0")
-    implementation("org.jsoup:jsoup:1.14.2")
+    implementation("com.kotcrab.remark:remark:1.2.0") //FIXME use lsp4ij's flexmark instead
+    implementation("org.jsoup:jsoup:1.14.2") //FIXME use lsp4ij's jsoup instead
     implementation("io.quarkus:quarkus-core:$quarkusVersion") {
         isTransitive = false
     }
@@ -86,18 +86,20 @@ dependencies {
     implementation("io.quarkus:quarkus-arc:$quarkusVersion") {
         isTransitive = false
     }
-    implementation("org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:$lsp4mpVersion")
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.15.0")
-    // Required by lsp4j as the version from IJ is incompatible
-    implementation("com.google.code.gson:gson:2.8.9")
-    implementation("com.vladsch.flexmark:flexmark:0.62.2")
+
+    implementation("org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:$lsp4mpVersion") {
+        exclude("org.eclipse.lsp4j")
+    }
+    // Exclude all lsp4j dependencies to use LSP4J from LSP4IJ
+    implementation("com.redhat.microprofile:com.redhat.qute.ls:$quteLsVersion") {
+        exclude("org.eclipse.lsp4j")
+    }
     lsp("org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls:$lsp4mpVersion:uber") {
         isTransitive = false
     }
     lsp("com.redhat.microprofile:com.redhat.quarkus.ls:$quarkusLsVersion") {
         isTransitive = false
     }
-    implementation("com.redhat.microprofile:com.redhat.qute.ls:$quteLsVersion")
     lsp("com.redhat.microprofile:com.redhat.qute.ls:$quteLsVersion:uber") {
         isTransitive = false
     }
@@ -107,7 +109,6 @@ dependencies {
 
     testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0")
     testImplementation("org.assertj:assertj-core:3.19.0")
-
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
@@ -124,8 +125,23 @@ intellij {
     version = properties("platformVersion")
     type = properties("platformType")
     updateSinceUntilBuild = false
+
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-    plugins = properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
+    val platformPlugins =  ArrayList<Any>()
+    //Need to manually run ./gradlew updateLsp4ijDistribution before building,
+    //I can't figure out how to ensure it's run automatically before intellij plugin is configured
+    val localLsp4ij = file(layout.buildDirectory.dir("LSP4IJ"))
+    if (localLsp4ij.isDirectory) {
+        platformPlugins.add(file(localLsp4ij))
+    } else {
+        if (!environment("CI").isPresent && file("../lsp4ij").exists()) {
+            println("Run './gradlew updateLsp4ijDistribution' to use locally built LSP4IJ")
+        }
+        platformPlugins.add("com.redhat.devtools.lsp4ij:0.0.1-20231206-143458@nightly")
+    }
+    platformPlugins.addAll(properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }.get())
+    println("platformPlugins: $platformPlugins")
+    plugins = platformPlugins
 }
 
 configurations {
@@ -182,6 +198,25 @@ tasks.register<Test>("integrationTest") {
     classpath = sourceSets["integrationTest"].runtimeClasspath
     outputs.upToDateWhen { false }
     mustRunAfter(tasks["test"])
+}
+
+tasks.register<Copy>("updateLsp4ijDistribution") {
+    val buildDir = layout.buildDirectory
+    val zipFileTree = project.fileTree("../lsp4ij/build/distributions/") {
+        include("LSP4IJ-*.zip")
+    }
+    val matchingZipFiles = zipFileTree.files.sortedByDescending { it.lastModified() }
+    if (matchingZipFiles.isNotEmpty()) {
+        val destinationDir = buildDir.dir("LSP4IJ/lib").get().asFile
+        destinationDir.deleteRecursively()
+        val latestZipFile = matchingZipFiles.first()
+        from(zipTree(latestZipFile))
+        into(buildDir)
+        doLast {
+            val numFilesCopied = destinationDir.listFiles()?.size ?: 0
+            logger.quiet("Copied $numFilesCopied JARs from LSP4IJ distribution to ${destinationDir}.")
+        }
+    }
 }
 
 tasks.register<Copy>("copyDeps") {

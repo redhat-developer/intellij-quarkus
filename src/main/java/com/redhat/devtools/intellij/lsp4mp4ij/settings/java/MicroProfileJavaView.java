@@ -19,7 +19,6 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UI;
-import com.redhat.devtools.intellij.lsp4ij.LanguageServersRegistry;
 import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
 
 import javax.swing.*;

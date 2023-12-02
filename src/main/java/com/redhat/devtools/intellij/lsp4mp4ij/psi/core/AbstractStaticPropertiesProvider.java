@@ -6,7 +6,6 @@ import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesCollector.MergingStrategy;
 import org.eclipse.lsp4mp.commons.metadata.ConfigurationMetadata;
-import org.eclipse.lsp4j.jsonrpc.json.adapters.EnumTypeAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,6 +117,8 @@ public abstract class AbstractStaticPropertiesProvider extends AbstractPropertie
 	}
 
 	private static Gson createGson() {
+		// EnumTypeAdapter from LSP4J should be used, but we cannot use EnumTypeAdapter from LSP4J
+		// coming from LSP4IJ to avoid classpath issues we use a copy of EnumTypeAdapter
 		return new GsonBuilder().registerTypeAdapterFactory(new EnumTypeAdapter.Factory()).create();
 	}
 

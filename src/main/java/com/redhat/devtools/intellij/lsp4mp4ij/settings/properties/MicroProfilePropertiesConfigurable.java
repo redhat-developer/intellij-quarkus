@@ -17,7 +17,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.NlsContexts;
-import com.redhat.devtools.intellij.lsp4ij.settings.UserDefinedLanguageServerSettings;
 import com.redhat.devtools.intellij.lsp4mp4ij.MicroProfileBundle;
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 

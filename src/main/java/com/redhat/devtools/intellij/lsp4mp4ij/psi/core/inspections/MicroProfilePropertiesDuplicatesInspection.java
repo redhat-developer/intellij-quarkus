@@ -13,7 +13,7 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections;
 
-import com.redhat.devtools.intellij.lsp4ij.inspections.AbstractDelegateInspection;
+import com.redhat.devtools.lsp4ij.inspections.AbstractDelegateInspection;
 
 /**
  * Dummy inspection for duplicate properties in Microprofile properties files

@@ -20,7 +20,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import com.redhat.devtools.intellij.lsp4ij.internal.StringUtils;
+import com.redhat.devtools.lsp4ij.internal.StringUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
