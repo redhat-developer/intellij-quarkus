@@ -68,6 +68,7 @@ dependencies {
     implementation("org.zeroturnaround:zt-zip:1.14")
     implementation("com.kotcrab.remark:remark:1.2.0") //FIXME use lsp4ij's flexmark instead
     implementation("org.jsoup:jsoup:1.14.2") //FIXME use lsp4ij's jsoup instead
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("io.quarkus:quarkus-core:$quarkusVersion") {
         isTransitive = false
     }
