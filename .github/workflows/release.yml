@@ -28,6 +28,10 @@ jobs:
       # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
+      
+      # Validate Wrapper before running build
+      - name: validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4 #v1.1.0
 
       # Set up Java environment for the next steps
       - name: Setup Java

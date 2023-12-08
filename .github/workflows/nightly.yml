@@ -27,6 +27,9 @@ jobs:
         uses: actions/checkout@v4
       - run: |
           git rev-parse HEAD >> lastCommit
+            # Validate Wrapper before running build
+      - name: validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4 #v1.1.0
       - name: Check New Changes
         id: cache-last-commit
         uses: actions/cache@v3
