@@ -14,14 +14,14 @@ import com.google.gson.JsonObject;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.redhat.devtools.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.lsp4ij.commands.CommandExecutor;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Location;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -35,8 +35,7 @@ public class QuteJavaDefinitionAction extends QuteAction {
     private static System.Logger LOGGER = System.getLogger(QuteJavaDefinitionAction.class.getName());
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
-        Command command = e.getData(CommandExecutor.LSP_COMMAND);
+    protected void commandPerformed(@NotNull Command command, @NotNull AnActionEvent e) {
         QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command.getArguments());
         if (params != null) {
             Project project = e.getProject();
