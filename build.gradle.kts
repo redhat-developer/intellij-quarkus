@@ -127,22 +127,23 @@ intellij {
     type = properties("platformType")
     updateSinceUntilBuild = false
 
-    // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
     val platformPlugins =  ArrayList<Any>()
-    //Need to manually run ./gradlew updateLsp4ijDistribution before building,
-    //I can't figure out how to ensure it's run automatically before intellij plugin is configured
-    val localLsp4ij = file(layout.buildDirectory.dir("LSP4IJ"))
+    val localLsp4ij = file("../lsp4ij/build/idea-sandbox/plugins/LSP4IJ").absoluteFile
     if (localLsp4ij.isDirectory) {
-        platformPlugins.add(file(localLsp4ij))
+        // In case Gradle fails to build because it can't find some missing jar, try deleting
+        // ~/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/unzipped.com.jetbrains.plugins/com.redhat.devtools.lsp4ij*
+       platformPlugins.add(localLsp4ij)
     } else {
-        if (!environment("CI").isPresent && file("../lsp4ij").exists()) {
-            println("Run './gradlew updateLsp4ijDistribution' to use locally built LSP4IJ")
-        }
-        platformPlugins.add("com.redhat.devtools.lsp4ij:0.0.1-20231206-143458@nightly")
+        // When running on CI or when there's no local lsp4ij
+        //TODO automatically fetch the latest nightly build version
+        platformPlugins.add("com.redhat.devtools.lsp4ij:0.0.1-20231211-102151@nightly")
     }
+    //Uses `platformPlugins` property from the gradle.properties file.
     platformPlugins.addAll(properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }.get())
     println("platformPlugins: $platformPlugins")
     plugins = platformPlugins
+
+
 }
 
 configurations {
@@ -199,25 +200,6 @@ tasks.register<Test>("integrationTest") {
     classpath = sourceSets["integrationTest"].runtimeClasspath
     outputs.upToDateWhen { false }
     mustRunAfter(tasks["test"])
-}
-
-tasks.register<Copy>("updateLsp4ijDistribution") {
-    val buildDir = layout.buildDirectory
-    val zipFileTree = project.fileTree("../lsp4ij/build/distributions/") {
-        include("LSP4IJ-*.zip")
-    }
-    val matchingZipFiles = zipFileTree.files.sortedByDescending { it.lastModified() }
-    if (matchingZipFiles.isNotEmpty()) {
-        val destinationDir = buildDir.dir("LSP4IJ/lib").get().asFile
-        destinationDir.deleteRecursively()
-        val latestZipFile = matchingZipFiles.first()
-        from(zipTree(latestZipFile))
-        into(buildDir)
-        doLast {
-            val numFilesCopied = destinationDir.listFiles()?.size ?: 0
-            logger.quiet("Copied $numFilesCopied JARs from LSP4IJ distribution to ${destinationDir}.")
-        }
-    }
 }
 
 tasks.register<Copy>("copyDeps") {
