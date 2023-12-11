@@ -14,13 +14,14 @@ import com.google.gson.JsonPrimitive;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.redhat.devtools.lsp4ij.commands.CommandExecutor;
+import com.redhat.devtools.lsp4ij.commands.LSPCommandAction;
 
 import java.util.List;
 
-public abstract class QuteAction extends AnAction {
-    protected String getURL(AnActionEvent e) {
+public abstract class QuteAction extends LSPCommandAction {
+
+    protected String getURL(List<Object> arguments) {
         String url = null;
-        List<Object> arguments = e.getData(CommandExecutor.LSP_COMMAND).getArguments();
         if (!arguments.isEmpty()) {
             Object arg = arguments.get(0);
             if (arg instanceof JsonPrimitive) {

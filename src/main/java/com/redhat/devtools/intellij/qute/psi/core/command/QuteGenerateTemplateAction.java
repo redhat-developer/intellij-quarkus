@@ -22,6 +22,7 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.services.LanguageServer;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URI;
@@ -43,9 +44,9 @@ public class QuteGenerateTemplateAction extends QuteAction {
         return servers.isEmpty()?null:servers.get(0);
     }
 
+
     @Override
-    public void actionPerformed(AnActionEvent e) {
-        Command command = e.getData(CommandExecutor.LSP_COMMAND);
+    protected void commandPerformed(@NotNull Command command, @NotNull AnActionEvent e) {
         LanguageServer server = getFirstServer(e);
         try {
             if (server != null) {

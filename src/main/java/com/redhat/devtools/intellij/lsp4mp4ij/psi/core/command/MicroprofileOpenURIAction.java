@@ -2,25 +2,25 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command;
 
 import com.google.gson.JsonPrimitive;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.redhat.devtools.lsp4ij.commands.CommandExecutor;
+import com.redhat.devtools.lsp4ij.commands.LSPCommandAction;
+import org.eclipse.lsp4j.Command;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class MicroprofileOpenURIAction extends AnAction {
+public class MicroprofileOpenURIAction extends LSPCommandAction {
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
-        String url = getURL(e);
+    protected void commandPerformed(@NotNull Command command, @NotNull AnActionEvent anActionEvent) {
+        String url = getURL(command.getArguments());
         if (url != null) {
             BrowserUtil.browse(url);
         }
     }
 
-    private String getURL(AnActionEvent e) {
+    private String getURL(List<Object> arguments) {
         String url = null;
-        List<Object> arguments = e.getData(CommandExecutor.LSP_COMMAND).getArguments();
         if (!arguments.isEmpty()) {
             Object arg = arguments.get(0);
             if (arg instanceof JsonPrimitive) {
