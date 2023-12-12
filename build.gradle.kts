@@ -1,7 +1,14 @@
 import com.adarshr.gradle.testlogger.theme.ThemeType
 import org.jetbrains.changelog.markdownToHTML
-import org.jetbrains.intellij.tasks.RunPluginVerifierTask.VerificationReportsFormats.*
 import org.jetbrains.intellij.tasks.RunPluginVerifierTask.FailureLevel.*
+import org.jetbrains.intellij.tasks.RunPluginVerifierTask.VerificationReportsFormats.*
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
+import java.time.temporal.ChronoUnit
+import java.util.regex.Pattern
 
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
@@ -132,18 +139,16 @@ intellij {
     if (localLsp4ij.isDirectory) {
         // In case Gradle fails to build because it can't find some missing jar, try deleting
         // ~/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/unzipped.com.jetbrains.plugins/com.redhat.devtools.lsp4ij*
-       platformPlugins.add(localLsp4ij)
+        platformPlugins.add(localLsp4ij)
     } else {
         // When running on CI or when there's no local lsp4ij
-        //TODO automatically fetch the latest nightly build version
-        platformPlugins.add("com.redhat.devtools.lsp4ij:0.0.1-20231211-102151@nightly")
+        val latestLsp4ijNightlyVersion = fetchLatestLsp4ijNightlyVersion()
+        platformPlugins.add("com.redhat.devtools.lsp4ij:$latestLsp4ijNightlyVersion@nightly")
     }
     //Uses `platformPlugins` property from the gradle.properties file.
     platformPlugins.addAll(properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }.get())
     println("platformPlugins: $platformPlugins")
     plugins = platformPlugins
-
-
 }
 
 configurations {
@@ -285,4 +290,28 @@ tasks {
     check {
         dependsOn(jacocoTestReport)
     }
+}
+
+fun fetchLatestLsp4ijNightlyVersion(): String {
+    val client = HttpClient.newBuilder().build();
+    var onlineVersion = ""
+    try {
+        val request: HttpRequest = HttpRequest.newBuilder()
+            .uri(URI("https://plugins.jetbrains.com/api/plugins/23257/updates?channel=nightly&size=1"))
+            .GET()
+            .timeout(Duration.of(10, ChronoUnit.SECONDS))
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        val pattern = Pattern.compile("\"version\":\"([^\"]+)\"")
+        val matcher = pattern.matcher(response.body())
+        if (matcher.find()) {
+            onlineVersion = matcher.group(1)
+            println("Latest approved nightly build: $onlineVersion")
+        }
+    } catch (e:Exception) {
+        println("Failed to fetch LSP4IJ nightly build version: ${e.message}")
+    }
+
+    val minVersion = "0.0.1-20231213-012910"
+    return if (minVersion < onlineVersion) onlineVersion else minVersion
 }
