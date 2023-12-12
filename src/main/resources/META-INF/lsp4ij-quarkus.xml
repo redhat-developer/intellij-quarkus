@@ -4,10 +4,7 @@
     <server id="microprofile"
             label="Tools for MicroProfile"
             icon="com.redhat.devtools.intellij.microprofile.lang.MicroProfileIcons.MicroProfile"
-            class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer"
-            clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient"
-            serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"
-            scope="project">
+            factoryClass="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageServerFactory">
       <description><![CDATA[
         The <a href="https://github.com/eclipse/lsp4mp">MicroProfile language server</a> provides <a href="https://microprofile.io/">MicroProfile</a> support in:
         <ul>
