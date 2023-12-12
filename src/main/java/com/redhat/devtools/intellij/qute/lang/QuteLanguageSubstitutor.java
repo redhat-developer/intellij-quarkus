@@ -58,17 +58,6 @@ public class QuteLanguageSubstitutor extends LanguageSubstitutor {
                 libraryOrderEntry.getLibraryName().contains("io.quarkus.qute:qute-core:");
     }
 
-    private Module findModule(VirtualFile file) {
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            for (Module module : ModuleManager.getInstance(project).getModules()) {
-                if (ModuleUtilCore.moduleContainsFile(module, file, false)) {
-                    return module;
-                }
-            }
-        }
-        return null;
-    }
-
     @Override
     public @Nullable Language getLanguage(@NotNull VirtualFile file, @NotNull Project project) {
         Module module = LSPIJUtils.getModule(file, project);

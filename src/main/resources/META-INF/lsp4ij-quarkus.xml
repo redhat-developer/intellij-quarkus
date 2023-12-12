@@ -3,6 +3,7 @@
     <!-- Quarkus LSP -->
     <server id="microprofile"
             label="Tools for MicroProfile"
+            icon="com.redhat.devtools.intellij.microprofile.lang.MicroProfileIcons.MicroProfile"
             class="com.redhat.devtools.intellij.quarkus.lsp.QuarkusServer"
             clientImpl="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageClient"
             serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"
@@ -23,7 +24,6 @@
     <languageMapping language="JAVA"
                      serverId="microprofile"
                      documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForJavaFile"/>
-    <serverIconProvider serverId="microprofile" class="com.redhat.devtools.intellij.microprofile.lang.MicroProfileServerIconProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
