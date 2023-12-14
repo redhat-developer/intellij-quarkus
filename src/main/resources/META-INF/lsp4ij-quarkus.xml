@@ -61,10 +61,7 @@
     <!-- Quarkus -->
     <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
     <lang.documentationProvider id="LSPTextHoverJAVA" language="JAVA" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
-    <codeInsight.inlayProvider language="JAVA" implementationClass="com.redhat.devtools.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
-    <codeInsight.inlayProvider language="Properties"
-                               implementationClass="com.redhat.devtools.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
-    
+
     <localInspection
             language="Properties"
             bundle="messages.MicroProfileBundle"

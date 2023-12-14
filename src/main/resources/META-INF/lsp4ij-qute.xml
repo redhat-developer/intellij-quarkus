@@ -39,16 +39,6 @@
     <lang.documentationProvider id="LSPTextHoverYAML" language="yaml" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
     <lang.documentationProvider id="LSPTextHoverJSON" language="JSON" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
     <lang.documentationProvider id="LSPTextHoverTEXT" language="TEXT" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
-    <codeInsight.inlayProvider language="Qute_" implementationClass="com.redhat.devtools.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
-    <codeInsight.inlayProvider language="Qute_" implementationClass="com.redhat.devtools.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
-    <codeInsight.inlayProvider language="HTML" implementationClass="com.redhat.devtools.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
-    <codeInsight.inlayProvider language="HTML" implementationClass="com.redhat.devtools.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
-    <codeInsight.inlayProvider language="yaml" implementationClass="com.redhat.devtools.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
-    <codeInsight.inlayProvider language="yaml" implementationClass="com.redhat.devtools.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
-    <codeInsight.inlayProvider language="JSON" implementationClass="com.redhat.devtools.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
-    <codeInsight.inlayProvider language="JSON" implementationClass="com.redhat.devtools.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
-    <codeInsight.inlayProvider language="TEXT" implementationClass="com.redhat.devtools.lsp4ij.operations.codelens.LSPCodelensInlayProvider"/>
-    <codeInsight.inlayProvider language="TEXT" implementationClass="com.redhat.devtools.lsp4ij.operations.inlayhint.LSPInlayHintInlayProvider"/>
 
     <completion.confidence  language="HTML" order="before htmlText" implementationClass="com.redhat.devtools.lsp4ij.operations.completion.LSPCompletionConfidence" />
 
