@@ -1,11 +1,12 @@
 <idea-plugin>
-  <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
-    <!-- Quarkus LSP -->
-    <server id="microprofile"
-            label="Tools for MicroProfile"
-            icon="com.redhat.devtools.intellij.microprofile.lang.MicroProfileIcons.MicroProfile"
-            factoryClass="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageServerFactory">
-      <description><![CDATA[
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+
+        <!-- Quarkus LSP -->
+        <server id="microprofile"
+                label="Tools for MicroProfile"
+                icon="com.redhat.devtools.intellij.microprofile.lang.MicroProfileIcons.MicroProfile"
+                factoryClass="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageServerFactory">
+            <description><![CDATA[
         The <a href="https://github.com/eclipse/lsp4mp">MicroProfile language server</a> provides <a href="https://microprofile.io/">MicroProfile</a> support in:
         <ul>
           <li><b>Java</b> files.</li>
@@ -13,126 +14,141 @@
         </ul>
         This language server is extended with <a href="https://github.com/redhat-developer/quarkus-ls" >Quarkus extension</a> to provide <a href="https://quarkus.io/">Quarkus</a> support in <b>application.properties</b> file.
         ]]>
-      </description>
-    </server>
-    <languageMapping language="Properties"
-                     serverId="microprofile"
-                     documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForPropertiesFile" />
-    <languageMapping language="JAVA"
-                     serverId="microprofile"
-                     documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForJavaFile"/>
-  </extensions>
+            </description>
+        </server>
+        <languageMapping language="Properties"
+                         serverId="microprofile"
+                         documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForPropertiesFile"/>
+        <languageMapping language="JAVA"
+                         serverId="microprofile"
+                         documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForJavaFile"/>
+    </extensions>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <!-- MicroProfile settings -->
-    <projectConfigurable groupId="language"
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- MicroProfile settings -->
+        <projectConfigurable groupId="language"
                              id="MicroProfile"
                              bundle="messages.MicroProfileBundle"
                              key="microprofile"
                              instance="com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileConfigurable"/>
-    <projectConfigurable parentId="MicroProfile"
+        <projectConfigurable parentId="MicroProfile"
                              id="MicroProfileProperties"
                              bundle="messages.MicroProfileBundle"
                              key="microprofile.properties"
                              instance="com.redhat.devtools.intellij.lsp4mp4ij.settings.properties.MicroProfilePropertiesConfigurable"/>
-    <projectConfigurable parentId="MicroProfile"
+        <projectConfigurable parentId="MicroProfile"
                              bundle="messages.MicroProfileBundle"
                              key="microprofile.java"
                              id="MicroProfileJava"
                              instance="com.redhat.devtools.intellij.lsp4mp4ij.settings.java.MicroProfileJavaConfigurable"/>
 
-    <projectService id="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"
+        <projectService id="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"
                         serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings"/>
 
-    <!-- Quarkus settings -->
-    <projectConfigurable groupId="language"
-                         id="Quarkus"
-                         bundle="messages.QuarkusBundle"
-                         key="quarkus"
-                         instance="com.redhat.devtools.intellij.quarkus.settings.QuarkusConfigurable"/>
-    <projectService id="com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettingss"
-                    serviceImplementation="com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettings"/>
+        <!-- Quarkus settings -->
+        <projectConfigurable groupId="language"
+                             id="Quarkus"
+                             bundle="messages.QuarkusBundle"
+                             key="quarkus"
+                             instance="com.redhat.devtools.intellij.quarkus.settings.QuarkusConfigurable"/>
+        <projectService id="com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettingss"
+                        serviceImplementation="com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettings"/>
 
-    <implicitUsageProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JavaEEImplicitUsageProvider"/>
-    <implicitUsageProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.QuarkusBuildImplicitUsageProvider"/>
-    <implicitUsageProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.ScheduledImplicitUsageProvider"/>
-    <implicitUsageProvider implementation="com.redhat.microprofile.psi.internal.quarkus.route.java.ReactiveRouteImplicitUsageProvider"/>
+        <implicitUsageProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JavaEEImplicitUsageProvider"/>
+        <implicitUsageProvider
+                implementation="com.redhat.devtools.intellij.quarkus.psi.internal.QuarkusBuildImplicitUsageProvider"/>
+        <implicitUsageProvider
+                implementation="com.redhat.devtools.intellij.quarkus.psi.internal.ScheduledImplicitUsageProvider"/>
+        <implicitUsageProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.route.java.ReactiveRouteImplicitUsageProvider"/>
 
-    <!-- Quarkus -->
-    <lang.documentationProvider id="LSPTextHoverProperties" language="Properties" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
-    <lang.documentationProvider id="LSPTextHoverJAVA" language="JAVA" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
+        <!-- Quarkus -->
 
-    <localInspection
-            language="Properties"
-            bundle="messages.MicroProfileBundle"
-            key="microprofile.properties.validation"
-            groupKey="microprofile.inspection.group.name"
-            enabledByDefault="true"
-            level="INFORMATION"
-            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesGlobalInspection"/>
-    <localInspection
-            language="Properties"
-            bundle="messages.MicroProfileBundle"
-            key="microprofile.properties.validation.syntax"
-            groupPathKey="microprofile.inspection.group.name"
-            groupKey="microprofile.properties.inspection.group.name"
-            enabledByDefault="true"
-            level="ERROR"
-            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesSyntaxInspection"/>
-    <localInspection
-            language="Properties"
-            bundle="messages.MicroProfileBundle"
-            key="microprofile.properties.validation.unknown"
-            groupPathKey="microprofile.inspection.group.name"
-            groupKey="microprofile.properties.inspection.group.name"
-            enabledByDefault="true"
-            level="WARNING"
-            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnknownInspection"/>
-    <localInspection
-            language="Properties"
-            bundle="messages.MicroProfileBundle"
-            key="microprofile.properties.validation.duplicate"
-            groupPathKey="microprofile.inspection.group.name"
-            groupKey="microprofile.properties.inspection.group.name"
-            enabledByDefault="true"
-            level="WARNING"
-            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesDuplicatesInspection"/>
-    <localInspection
-            language="Properties"
-            bundle="messages.MicroProfileBundle"
-            key="microprofile.properties.validation.value"
-            groupPathKey="microprofile.inspection.group.name"
-            groupKey="microprofile.properties.inspection.group.name"
-            enabledByDefault="true"
-            level="ERROR"
-            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesValueInspection"/>
-    <localInspection
-            language="Properties"
-            bundle="messages.MicroProfileBundle"
-            key="microprofile.properties.validation.required"
-            groupPathKey="microprofile.inspection.group.name"
-            groupKey="microprofile.properties.inspection.group.name"
-            enabledByDefault="false"
-            level="INFORMATION"
-            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesRequiredInspection"/>
-    <localInspection
-            language="Properties"
-            bundle="messages.MicroProfileBundle"
-            key="microprofile.properties.validation.expression"
-            groupPathKey="microprofile.inspection.group.name"
-            groupKey="microprofile.properties.inspection.group.name"
-            enabledByDefault="true"
-            level="ERROR"
-            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesExpressionsInspection"/>
-    <localInspection
-            language="JAVA"
-            bundle="messages.MicroProfileBundle"
-            key="microprofile.properties.validation.unassigned"
-            groupPathKey="microprofile.inspection.group.name"
-            groupKey="microprofile.java.inspection.group.name"
-            enabledByDefault="true"
-            level="WARNING"
-            implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnassignedInspection"/>
-  </extensions>
+        <!-- As IJ provides the com.intellij.lang.properties.PropertiesDocumentationProvider which manages hover for properties file,
+             we define the LSPDocumentationProvider at the first order -->
+        <lang.documentationProvider
+                language="Properties"
+                implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider"
+                order="first"/>
+        <!-- As IJ provides the com.intellij.lang.java.JavaDocumentationProvider which manages hover for Java file,
+             we define the LSPDocumentationProvider at the first order -->
+        <lang.documentationProvider
+                language="JAVA"
+                implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider"
+                order="first"/>
+
+        <localInspection
+                language="Properties"
+                bundle="messages.MicroProfileBundle"
+                key="microprofile.properties.validation"
+                groupKey="microprofile.inspection.group.name"
+                enabledByDefault="true"
+                level="INFORMATION"
+                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesGlobalInspection"/>
+        <localInspection
+                language="Properties"
+                bundle="messages.MicroProfileBundle"
+                key="microprofile.properties.validation.syntax"
+                groupPathKey="microprofile.inspection.group.name"
+                groupKey="microprofile.properties.inspection.group.name"
+                enabledByDefault="true"
+                level="ERROR"
+                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesSyntaxInspection"/>
+        <localInspection
+                language="Properties"
+                bundle="messages.MicroProfileBundle"
+                key="microprofile.properties.validation.unknown"
+                groupPathKey="microprofile.inspection.group.name"
+                groupKey="microprofile.properties.inspection.group.name"
+                enabledByDefault="true"
+                level="WARNING"
+                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnknownInspection"/>
+        <localInspection
+                language="Properties"
+                bundle="messages.MicroProfileBundle"
+                key="microprofile.properties.validation.duplicate"
+                groupPathKey="microprofile.inspection.group.name"
+                groupKey="microprofile.properties.inspection.group.name"
+                enabledByDefault="true"
+                level="WARNING"
+                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesDuplicatesInspection"/>
+        <localInspection
+                language="Properties"
+                bundle="messages.MicroProfileBundle"
+                key="microprofile.properties.validation.value"
+                groupPathKey="microprofile.inspection.group.name"
+                groupKey="microprofile.properties.inspection.group.name"
+                enabledByDefault="true"
+                level="ERROR"
+                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesValueInspection"/>
+        <localInspection
+                language="Properties"
+                bundle="messages.MicroProfileBundle"
+                key="microprofile.properties.validation.required"
+                groupPathKey="microprofile.inspection.group.name"
+                groupKey="microprofile.properties.inspection.group.name"
+                enabledByDefault="false"
+                level="INFORMATION"
+                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesRequiredInspection"/>
+        <localInspection
+                language="Properties"
+                bundle="messages.MicroProfileBundle"
+                key="microprofile.properties.validation.expression"
+                groupPathKey="microprofile.inspection.group.name"
+                groupKey="microprofile.properties.inspection.group.name"
+                enabledByDefault="true"
+                level="ERROR"
+                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesExpressionsInspection"/>
+        <localInspection
+                language="JAVA"
+                bundle="messages.MicroProfileBundle"
+                key="microprofile.properties.validation.unassigned"
+                groupPathKey="microprofile.inspection.group.name"
+                groupKey="microprofile.java.inspection.group.name"
+                enabledByDefault="true"
+                level="WARNING"
+                implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.MicroProfilePropertiesUnassignedInspection"/>
+    </extensions>
 
 </idea-plugin>

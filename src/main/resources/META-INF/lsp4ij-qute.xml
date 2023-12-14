@@ -1,86 +1,97 @@
 <idea-plugin>
 
-  <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
-    <!-- Qute LSP -->
-    <server id="qute"
-            label="Qute support"
-            icon="com.redhat.devtools.intellij.quarkus.lang.QuarkusIcons.Quarkus"
-            factoryClass="com.redhat.devtools.intellij.qute.lsp.QuteLanguageServerFactory" >
-      <description><![CDATA[
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <!-- Qute LSP -->
+        <server id="qute"
+                label="Qute support"
+                icon="com.redhat.devtools.intellij.quarkus.lang.QuarkusIcons.Quarkus"
+                factoryClass="com.redhat.devtools.intellij.qute.lsp.QuteLanguageServerFactory">
+            <description><![CDATA[
         The <a href="https://github.com/redhat-developer/quarkus-ls">Qute language server</a> provides <a href="https://quarkus.io/guides/qute-reference">Qute</a> support in:
         <ul>
           <li><b>Java</b> files.</li>
           <li>and <b>*.html,*.txt,*.yml,*.json</b> Qute template files.</li>
         </ul>
         ]]>
-      </description>
-    </server>
-    <languageMapping language="Qute_"
-                     serverId="qute"
-                     documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
-    <languageMapping language="JSON"
-                     serverId="qute"
-                     documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
-    <languageMapping language="yaml"
-                     serverId="qute"
-                     documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
-    <languageMapping language="TEXT"
-                     serverId="qute"
-                     documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
-    <languageMapping language="JAVA"
-                     serverId="qute"
-                     documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForJavaFile"/>
-  </extensions>
+            </description>
+        </server>
 
-  <extensions defaultExtensionNs="com.intellij">
-  	<!-- Qute -->
-    <lang.documentationProvider id="LSPTextHoverQute" language="Qute_" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
-    <lang.documentationProvider id="LSPTextHoverHTML" language="HTML" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
-    <lang.documentationProvider id="LSPTextHoverYAML" language="yaml" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
-    <lang.documentationProvider id="LSPTextHoverJSON" language="JSON" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
-    <lang.documentationProvider id="LSPTextHoverTEXT" language="TEXT" implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider" order="first"/>
+        <languageMapping language="Qute_"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
+        <languageMapping language="JSON"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
+        <languageMapping language="yaml"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
+        <languageMapping language="TEXT"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
+        <languageMapping language="JAVA"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForJavaFile"/>
+    </extensions>
 
-    <completion.confidence  language="HTML" order="before htmlText" implementationClass="com.redhat.devtools.lsp4ij.operations.completion.LSPCompletionConfidence" />
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Qute -->
 
-    <implicitUsageProvider implementation="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeImplicitUsageProvider"/>
-    <projectService id="com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings"
-                    serviceImplementation="com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings"/>
+        <!-- As IJ provides the org.jetbrains.yaml.meta.impl.YamlDocumentationProviderBase which manages hover for yaml file,
+             we define the LSPDocumentationProvider at the first order -->
+        <lang.documentationProvider
+                language="yaml"
+                implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider"
+                order="first"/>
+        <!-- As IJ provides the com.jetbrains.jsonSchema.imp.JsonSchemaDocumentationProvider which manages hover for json file,
+             we define the LSPDocumentationProvider at the first order -->
+        <lang.documentationProvider
+                language="JSON"
+                implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider"
+                order="first"/>
 
-    <projectConfigurable groupId="language"
-                         id="QuteSupport"
-                         bundle="messages.QuteBundle"
-                         key="qute.settings.title"
-                         instance="com.redhat.devtools.intellij.qute.settings.QuteConfigurable"/>
+        <completion.confidence language="HTML" order="before htmlText"
+                               implementationClass="com.redhat.devtools.lsp4ij.operations.completion.LSPCompletionConfidence"/>
 
-    <localInspection
-            unfair="true"
-            language="Qute_"
-            bundle="messages.QuteBundle"
-            key="qute.templates.inspection"
-            groupKey="qute.inspection.group.name"
-            enabledByDefault="true"
-            level="INFORMATION"
-            implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteGlobalInspection"/>
+        <implicitUsageProvider
+                implementation="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeImplicitUsageProvider"/>
+        <projectService id="com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings"
+                        serviceImplementation="com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings"/>
 
-    <localInspection
-            unfair="true"
-            language="Qute_"
-            bundle="messages.QuteBundle"
-            key="qute.templates.validation.undefinedObject"
-            groupPathKey="qute.inspection.group.name"
-            groupKey="qute.templates.inspection.group.name"
-            enabledByDefault="true"
-            level="WARNING"
-            implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedObjectInspection"/>
-    <localInspection
-            language="Qute_"
-            bundle="messages.QuteBundle"
-            key="qute.templates.validation.undefinedNamespace"
-            groupPathKey="qute.inspection.group.name"
-            groupKey="qute.templates.inspection.group.name"
-            enabledByDefault="true"
-            level="WARNING"
-            implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedNamespaceInspection"/>
-  </extensions>
+        <projectConfigurable groupId="language"
+                             id="QuteSupport"
+                             bundle="messages.QuteBundle"
+                             key="qute.settings.title"
+                             instance="com.redhat.devtools.intellij.qute.settings.QuteConfigurable"/>
+
+        <localInspection
+                unfair="true"
+                language="Qute_"
+                bundle="messages.QuteBundle"
+                key="qute.templates.inspection"
+                groupKey="qute.inspection.group.name"
+                enabledByDefault="true"
+                level="INFORMATION"
+                implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteGlobalInspection"/>
+
+        <localInspection
+                unfair="true"
+                language="Qute_"
+                bundle="messages.QuteBundle"
+                key="qute.templates.validation.undefinedObject"
+                groupPathKey="qute.inspection.group.name"
+                groupKey="qute.templates.inspection.group.name"
+                enabledByDefault="true"
+                level="WARNING"
+                implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedObjectInspection"/>
+        <localInspection
+                language="Qute_"
+                bundle="messages.QuteBundle"
+                key="qute.templates.validation.undefinedNamespace"
+                groupPathKey="qute.inspection.group.name"
+                groupKey="qute.templates.inspection.group.name"
+                enabledByDefault="true"
+                level="WARNING"
+                implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedNamespaceInspection"/>
+    </extensions>
 
 </idea-plugin>
