@@ -34,6 +34,4 @@ mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/or
 cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation/TargetVersions.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation
 mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/
 cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/VersionMatcher.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util
-mkdir -p intellij-community/plugins/gradle/src/org/jetbrains/plugins/gradle/util
-cp -p intellij-community-tmp/plugins/gradle/src/org/jetbrains/plugins/gradle/util/GradleJvmSupportMatricies.kt intellij-community/plugins/gradle/src/org/jetbrains/plugins/gradle/util
 echo "Done!"
