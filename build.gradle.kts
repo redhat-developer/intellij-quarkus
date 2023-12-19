@@ -73,9 +73,11 @@ sourceSets {
 
 dependencies {
     implementation("org.zeroturnaround:zt-zip:1.14")
-    implementation("com.kotcrab.remark:remark:1.2.0") //FIXME use lsp4ij's flexmark instead
-    implementation("org.jsoup:jsoup:1.14.2") //FIXME use lsp4ij's jsoup instead
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.jsoup:jsoup:1.17.1")
+    implementation("com.vladsch.flexmark:flexmark-html2md-converter:0.64.8") {
+        exclude(group="com.vladsch.flexmark", module= "flexmark-jira-converter")
+    }
+    implementation("com.google.code.gson:gson:2.10.1") //Need to ensure we don't get telemetry's old gson version
     implementation("io.quarkus:quarkus-core:$quarkusVersion") {
         isTransitive = false
     }

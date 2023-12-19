@@ -12,13 +12,13 @@ package com.redhat.devtools.intellij.quarkus.javadoc;
 
 
 import java.io.Reader;
-import java.lang.reflect.Field;
-
-import org.jsoup.safety.Cleaner;
-import org.jsoup.safety.Safelist;
-import com.overzealous.remark.Options;
-import com.overzealous.remark.Options.Tables;
-import com.overzealous.remark.Remark;
+import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
+import com.vladsch.flexmark.parser.PegdownExtensions;
+import com.vladsch.flexmark.util.data.DataKey;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,34 +30,29 @@ import org.slf4j.LoggerFactory;
 public class JavaDoc2MarkdownConverter extends AbstractJavaDocConverter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaDoc2MarkdownConverter.class);
 
-    private static Remark remark;
+    private static final String LINE_SEPARATOR = "\n";
 
-    static {
-        Options options = new Options();
-        options.tables = Tables.MULTI_MARKDOWN;
-        options.hardwraps = true;
-        options.inlineLinks = true;
-        options.autoLinks = true;
-        options.reverseHtmlSmartPunctuation = true;
-        remark = new Remark(options);
-        //Stop remark from stripping file and jdt protocols in an href
-        try {
-            Field cleanerField = Remark.class.getDeclaredField("cleaner");
-            cleanerField.setAccessible(true);
-
-            Cleaner c = (Cleaner) cleanerField.get(remark);
-
-            Field safelistField = Cleaner.class.getDeclaredField("safelist");
-            safelistField.setAccessible(true);
-
-            Safelist s = (Safelist) safelistField.get(c);
-
-            s.addProtocols("a", "href", "file", "jdt");
-            s.addProtocols("img", "src", "file");
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            LOGGER.error("Unable to modify jsoup to include file and jdt protocols", e);
-        }
-    }
+    final static public DataKey<Integer> HTML_EXTENSIONS = new DataKey<>("HTML_EXTENSIONS", 0
+            //| Extensions.ABBREVIATIONS
+            //| Extensions.EXTANCHORLINKS /*| Extensions.EXTANCHORLINKS_WRAP*/
+            //| Extensions.AUTOLINKS
+            //| Extensions.DEFINITIONS
+            | PegdownExtensions.FENCED_CODE_BLOCKS
+            //| Extensions.FORCELISTITEMPARA
+            //| Extensions.HARDWRAPS
+            //| Extensions.ATXHEADERSPACE
+            //| Extensions.QUOTES
+            //| Extensions.SMARTS
+            //| Extensions.RELAXEDHRULES
+            //| Extensions.STRIKETHROUGH
+            //| Extensions.SUPPRESS_HTML_BLOCKS
+            //| Extensions.SUPPRESS_INLINE_HTML
+            //| Extensions.TABLES
+            //| Extensions.TASKLISTITEMS
+            //| Extensions.WIKILINKS
+            //| Extensions.TRACE_PARSER
+    );
+    private static final FlexmarkHtmlConverter CONVERTER = FlexmarkHtmlConverter.builder().build();
 
     public JavaDoc2MarkdownConverter(Reader reader) {
         super(reader);
@@ -68,7 +63,53 @@ public class JavaDoc2MarkdownConverter extends AbstractJavaDocConverter {
     }
 
     @Override
-    String convert(String rawHtml) {
-        return remark.convert(rawHtml);
+    public String convert(String html) {
+        Document document = Jsoup.parse(html);
+        //Add missing table headers if necessary, else most Markdown renderers will crap out
+        document.select("table").forEach(JavaDoc2MarkdownConverter::addMissingTableHeaders);
+
+        String markdown = CONVERTER.convert(document);
+        if (markdown.endsWith(LINE_SEPARATOR)) {// FlexmarkHtmlConverter keeps adding an extra line
+            markdown = markdown.substring(0, markdown.length() - LINE_SEPARATOR.length());
+        }
+
+        return markdown;
+    }
+
+    /**
+     * Adds a new row header if the given table doesn't have any.
+     *
+     * @param table
+     *            the HTML table to check for a header
+     */
+    private static void addMissingTableHeaders(Element table) {
+        int numCols = 0;
+        for (Element child : table.children()) {
+            if ("thead".equals(child.nodeName())) {
+                // Table already has a header, nothing else to do
+                return;
+            }
+            if ("tbody".equals(child.nodeName())) {
+                Elements rows = child.getElementsByTag("tr");
+                if (!rows.isEmpty()) {
+                    for (Element row : rows) {
+                        int colSize = row.getElementsByTag("td").size();
+                        //Keep the biggest column size
+                        if (colSize > numCols) {
+                            numCols = colSize;
+                        }
+                    }
+                }
+            }
+        }
+        if (numCols > 0) {
+            //Create a new header row based on the number of columns already found
+            Element newHeader = new Element("tr");
+            for (int i = 0; i < numCols; i++) {
+                newHeader.appendChild(new Element("th"));
+            }
+            //Insert header row in 1st position in the table
+            table.insertChildren(0, newHeader);
+        }
     }
 }
