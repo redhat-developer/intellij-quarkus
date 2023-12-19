@@ -13,14 +13,15 @@ package com.redhat.devtools.intellij.qute.psi.core.command;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.lsp4ij.commands.LSPCommand;
 import org.eclipse.lsp4j.Command;
 import org.jetbrains.annotations.NotNull;
 
 public class QuteOpenURIAction extends QuteAction {
 
     @Override
-    protected void commandPerformed(@NotNull Command command, @NotNull AnActionEvent e) {
-        String url = getURL(command.getArguments());
+    protected void commandPerformed(@NotNull LSPCommand command, @NotNull AnActionEvent e) {
+        String url = getURL(command);
         Project project = e.getProject();
         if (url != null && project != null) {
             LSPIJUtils.openInEditor(url, null, project);
