@@ -14,23 +14,22 @@ import com.google.gson.JsonPrimitive;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.redhat.devtools.lsp4ij.commands.CommandExecutor;
+import com.redhat.devtools.lsp4ij.commands.LSPCommand;
 import com.redhat.devtools.lsp4ij.commands.LSPCommandAction;
 
 import java.util.List;
 
 public abstract class QuteAction extends LSPCommandAction {
 
-    protected String getURL(List<Object> arguments) {
-        String url = null;
-        if (!arguments.isEmpty()) {
-            Object arg = arguments.get(0);
-            if (arg instanceof JsonPrimitive) {
-                url = ((JsonPrimitive) arg).getAsString();
-            } else if (arg instanceof String) {
-                url = (String) arg;
-            }
+    protected String getURL(LSPCommand command) {
+        Object arg = command.getArgumentAt(0);
+        if (arg instanceof JsonPrimitive) {
+            return ((JsonPrimitive) arg).getAsString();
         }
-        return url;
+        if (arg instanceof String) {
+            return (String) arg;
+        }
+        return null;
     }
 
 }

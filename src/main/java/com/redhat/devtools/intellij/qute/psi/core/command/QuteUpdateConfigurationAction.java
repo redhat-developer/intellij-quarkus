@@ -31,6 +31,7 @@ import com.intellij.psi.impl.FakePsiElement;
 import com.redhat.devtools.intellij.qute.psi.core.inspections.QuteGlobalInspection;
 import com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedObjectInspection;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.lsp4ij.commands.LSPCommand;
 import com.redhat.devtools.lsp4ij.commands.LSPCommandAction;
 import com.redhat.devtools.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
 import com.redhat.devtools.lsp4ij.operations.diagnostics.SeverityMapping;
@@ -55,7 +56,7 @@ public class QuteUpdateConfigurationAction extends LSPCommandAction {
     }
 
     @Override
-    protected void commandPerformed(@NotNull Command command, @NotNull AnActionEvent e) {
+    protected void commandPerformed(@NotNull LSPCommand command, @NotNull AnActionEvent e) {
         JsonObject configUpdate = getConfigUpdate(command);
         if (configUpdate != null && e.getProject() != null) {
             String section = configUpdate.get("section").getAsString();
@@ -67,13 +68,10 @@ public class QuteUpdateConfigurationAction extends LSPCommandAction {
         }
     }
 
-    private @Nullable JsonObject getConfigUpdate(@NotNull Command command) {
-        List<Object> arguments = command.getArguments();
-        if (arguments != null && !arguments.isEmpty()) {
-            Object arg = arguments.get(0);
-            if (arg instanceof JsonObject) {
-                return (JsonObject) arg;
-            }
+    private @Nullable JsonObject getConfigUpdate(@NotNull LSPCommand command) {
+        Object arg = command.getArgumentAt(0);
+        if (arg instanceof JsonObject) {
+            return (JsonObject) arg;
         }
         return null;
     }

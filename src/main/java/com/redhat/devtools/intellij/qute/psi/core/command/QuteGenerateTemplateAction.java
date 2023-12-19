@@ -18,6 +18,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.lsp4ij.LanguageServiceAccessor;
 import com.redhat.devtools.lsp4ij.commands.CommandExecutor;
+import com.redhat.devtools.lsp4ij.commands.LSPCommand;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.ExecuteCommandParams;
@@ -41,45 +42,51 @@ public class QuteGenerateTemplateAction extends QuteAction {
             ExecuteCommandOptions provider = cap.getExecuteCommandProvider();
             return provider != null && provider.getCommands().contains(QUTE_COMMAND_GENERATE_TEMPLATE_CONTENT);
         });
-        return servers.isEmpty()?null:servers.get(0);
+        return servers.isEmpty() ? null : servers.get(0);
     }
 
-
     @Override
-    protected void commandPerformed(@NotNull Command command, @NotNull AnActionEvent e) {
+    protected void commandPerformed(@NotNull LSPCommand command, @NotNull AnActionEvent e) {
         LanguageServer server = getFirstServer(e);
         try {
             if (server != null) {
-                URI uri = getURI(command.getArguments());
+                URI uri = getURI(command);
                 ExecuteCommandParams params = new ExecuteCommandParams();
                 params.setCommand(QUTE_COMMAND_GENERATE_TEMPLATE_CONTENT);
-                params.setArguments(command.getArguments());
-                server.getWorkspaceService().executeCommand(params).thenApply(content -> {
-                    try {
-                        Path path = Path.of(uri);
-                        Files.createDirectories(path.getParent());
-                        Files.createFile(path);
-                        Files.writeString(path, content.toString());
-                        VirtualFile f = VfsUtil.findFile(path, true);
-                        if (f != null) {
-                            ApplicationManager.getApplication().invokeLater(() -> FileEditorManager.getInstance(e.getProject()).openFile(f, true));
-                        }
-                    } catch (IOException ex) {
-                        LOGGER.log(System.Logger.Level.WARNING, ex.getLocalizedMessage(), ex);
-                    }
-                    return content;
-                });
+                params.setArguments(command.getOriginalArguments());
+                server.getWorkspaceService()
+                        .executeCommand(params)
+                        .thenApply(content -> {
+                            try {
+                                Path path = Path.of(uri);
+                                Files.createDirectories(path.getParent());
+                                Files.createFile(path);
+                                Files.writeString(path, content.toString());
+                                VirtualFile f = VfsUtil.findFile(path, true);
+                                if (f != null) {
+                                    ApplicationManager.getApplication().invokeLater(() -> FileEditorManager.getInstance(e.getProject()).openFile(f, true));
+                                }
+                            } catch (IOException ex) {
+                                LOGGER.log(System.Logger.Level.WARNING, ex.getLocalizedMessage(), ex);
+                            }
+                            return content;
+                        }).exceptionally(ex -> {
+                            LOGGER.log(System.Logger.Level.WARNING, "Error while generating Qute template", ex);
+                          return ex;
+                        });
             }
         } catch (URISyntaxException ex) {
             LOGGER.log(System.Logger.Level.WARNING, ex.getLocalizedMessage(), ex);
         }
     }
 
-    private URI getURI(List<Object> arguments) throws URISyntaxException {
-        URI uri = null;
-        if (!arguments.isEmpty() && arguments.get(0) instanceof JsonObject && ((JsonObject) arguments.get(0)).has(TEMPLATE_FILE_URI)) {
-            uri = new URI(((JsonObject) arguments.get(0)).get(TEMPLATE_FILE_URI).getAsString());
+    private URI getURI(LSPCommand command) throws URISyntaxException {
+        Object arg = command.getArgumentAt(0);
+        if (arg instanceof JsonObject jsonObject) {
+            if (jsonObject.has(TEMPLATE_FILE_URI)) {
+                return new URI(jsonObject.get(TEMPLATE_FILE_URI).getAsString());
+            }
         }
-        return uri;
+        return null;
     }
 }

@@ -18,6 +18,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.lsp4ij.commands.LSPCommand;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Location;
@@ -35,8 +36,8 @@ public class QuteJavaDefinitionAction extends QuteAction {
     private static System.Logger LOGGER = System.getLogger(QuteJavaDefinitionAction.class.getName());
 
     @Override
-    protected void commandPerformed(@NotNull Command command, @NotNull AnActionEvent e) {
-        QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command.getArguments());
+    protected void commandPerformed(@NotNull LSPCommand command, @NotNull AnActionEvent e) {
+        QuteJavaDefinitionParams params = getQuteJavaDefinitionParams(command);
         if (params != null) {
             Project project = e.getProject();
             IPsiUtils utils = PsiUtilsLSImpl.getInstance(project);
@@ -53,9 +54,9 @@ public class QuteJavaDefinitionAction extends QuteAction {
         return obj.has(name) ? obj.get(name).getAsBoolean() : false;
     }
 
-    private QuteJavaDefinitionParams getQuteJavaDefinitionParams(List<Object> arguments) {
-        if (!arguments.isEmpty() && arguments.get(0) instanceof JsonObject) {
-            JsonObject obj = ((JsonObject) arguments.get(0));
+    private QuteJavaDefinitionParams getQuteJavaDefinitionParams(@NotNull LSPCommand command) {
+        Object arg = command.getArgumentAt(0);
+        if (arg instanceof JsonObject obj) {
             String templateFileUri = getString(PROJECT_URI_ATTR, obj);
             String sourceType = getString(SOURCE_TYPE_ATTR, obj);
             QuteJavaDefinitionParams params = new QuteJavaDefinitionParams(sourceType, templateFileUri);
