@@ -41,7 +41,7 @@ public class TemplateGetJavadocTest extends QuteMavenModuleImportingTestCase {
 				DocumentFormat.Markdown);
 
 		String actual = QuteSupportForTemplate.getInstance().getJavadoc(params, getJDTUtils(), new EmptyProgressIndicator());
-		String expected = " The name of the item ";
+		String expected = "The name of the item";
 		assertEquals(expected, actual);
 	}
 	
@@ -57,9 +57,11 @@ public class TemplateGetJavadocTest extends QuteMavenModuleImportingTestCase {
 				DocumentFormat.Markdown);
 
 		String actual = QuteSupportForTemplate.getInstance().getJavadoc(params, getJDTUtils(), new EmptyProgressIndicator());
-		String expected = " Returns the derived items. \n" +
-				" * Returns:\n" +
-				"   - the derived items";
+		String expected = """
+				Returns the derived items.
+				
+				* **Returns:**
+				  * the derived items""";
 		assertEquals(expected, actual);
 	}
 	

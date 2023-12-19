@@ -37,15 +37,18 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
 
                 // io.dekorate.kubernetes.annotation.KubernetesApplication
                 p(null, "kubernetes.name", "java.lang.String",
-                        "The name of the application. This value will be used for naming Kubernetes resources like: - Deployment - Service and so on ... If no value is specified it will attempt to determine the name using the following rules: If its a maven/gradle project use the artifact id. Else if its a bazel project use the name. Else if the system property app.name is present it will be used. Else find the project root folder and use its name (root folder detection is done by moving to the parent folder until .git is found)."
-                                + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
-                                + "    " + System.lineSeparator() + "     *  The specified application name.",
+                        """
+                                The name of the application. This value will be used for naming Kubernetes resources like: - Deployment - Service and so on ... If no value is specified it will attempt to determine the name using the following rules: If its a maven/gradle project use the artifact id. Else if its a bazel project use the name. Else if the system property app.name is present it will be used. Else find the project root folder and use its name (root folder detection is done by moving to the parent folder until .git is found).
+
+                                * **Returns:**
+                                  * The specified application name.""",
                         true, "io.dekorate.kubernetes.annotation.KubernetesApplication", null, "name()Ljava/lang/String;", 0, null),
 
-                p(null, "kubernetes.readiness-probe.initial-delay-seconds", "int", "The amount of time to wait in seconds before starting to probe." + //
-                                System.lineSeparator() + "" + System.lineSeparator() + //
-                                " *  **Returns:**" + System.lineSeparator() + //
-                                "    " + System.lineSeparator() + "     *  The initial delay.",
+                p(null, "kubernetes.readiness-probe.initial-delay-seconds", "int", """
+                                The amount of time to wait in seconds before starting to probe.
+
+                                * **Returns:**
+                                  * The initial delay.""",
                         true, "io.dekorate.kubernetes.annotation.Probe", null, "initialDelaySeconds()I", 0, "0"),
 
                 p(null, "kubernetes.annotations[*].key", "java.lang.String", null, true,
@@ -56,10 +59,10 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
                         "protocol()Lio/dekorate/kubernetes/annotation/Protocol;", 0, "TCP"),
 
                 p(null, "kubernetes.deployment.target", "java.lang.String",
-                        "To enable the generation of OpenShift resources, you need to include OpenShift in the target platforms: `kubernetes.deployment.target=openshift`."
-                                + System.lineSeparator() + ""
-                                + "If you need to generate resources for both platforms (vanilla Kubernetes and OpenShift), then you need to include both (coma separated)."
-                                + System.lineSeparator() + "" + "`kubernetes.deployment.target=kubernetes, openshift`.",
+                        """
+                                To enable the generation of OpenShift resources, you need to include OpenShift in the target platforms: `kubernetes.deployment.target=openshift`.
+                                If you need to generate resources for both platforms (vanilla Kubernetes and OpenShift), then you need to include both (comma-separated).
+                                `kubernetes.deployment.target=kubernetes, openshift`.""",
                         true, null, null, null, 0, "kubernetes"),
                 p(null, "kubernetes.registry", "java.lang.String", "Specify the docker registry.", true, null, null, null, 0,
                         null));
@@ -82,18 +85,20 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
         assertProperties(info,
-
                 // io.dekorate.openshift.annotation.OpenshiftApplication
                 p(null, "openshift.name", "java.lang.String",
-                        "The name of the application. This value will be used for naming Kubernetes resources like: - Deployment - Service and so on ... If no value is specified it will attempt to determine the name using the following rules: If its a maven/gradle project use the artifact id. Else if its a bazel project use the name. Else if the system property app.name is present it will be used. Else find the project root folder and use its name (root folder detection is done by moving to the parent folder until .git is found)."
-                                + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
-                                + "    " + System.lineSeparator() + "     *  The specified application name.",
+                        """
+                                The name of the application. This value will be used for naming Kubernetes resources like: - Deployment - Service and so on ... If no value is specified it will attempt to determine the name using the following rules: If its a maven/gradle project use the artifact id. Else if its a bazel project use the name. Else if the system property app.name is present it will be used. Else find the project root folder and use its name (root folder detection is done by moving to the parent folder until .git is found).
+
+                                * **Returns:**
+                                  * The specified application name.""",
                         true, "io.dekorate.openshift.annotation.OpenshiftApplication", null, "name()Ljava/lang/String;", 0, null),
 
-                p(null, "openshift.readiness-probe.initial-delay-seconds", "int", "The amount of time to wait in seconds before starting to probe." + //
-                                System.lineSeparator() + "" + System.lineSeparator() + //
-                                " *  **Returns:**" + System.lineSeparator() + //
-                                "    " + System.lineSeparator() + "     *  The initial delay.", true,
+                p(null, "openshift.readiness-probe.initial-delay-seconds", "int", """
+                                The amount of time to wait in seconds before starting to probe.
+
+                                * **Returns:**
+                                  * The initial delay.""", true,
                         "io.dekorate.kubernetes.annotation.Probe", null, "initialDelaySeconds()I", 0, "0"),
 
                 p(null, "openshift.annotations[*].key", "java.lang.String", null, true,
@@ -109,7 +114,6 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
         assertPropertiesDuplicate(info);
 
         assertHints(info,
-
                 h("io.dekorate.kubernetes.annotation.Protocol", null, true, "io.dekorate.kubernetes.annotation.Protocol",
                         vh("TCP", null, null), //
                         vh("UDP", null, null)));
@@ -124,28 +128,27 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
         assertProperties(info,
-
                 // io.dekorate.s2i.annotation.S2iBuild
-                p(null, "s2i.docker-file", "java.lang.String", "The relative path of the Dockerfile, from the module root." + //
-                                System.lineSeparator() + "" + System.lineSeparator() + //
-                                " *  **Returns:**" + //
-                                System.lineSeparator() + //
-                                "    " + //
-                                System.lineSeparator() + //
-                                "     *  The relative path.", true, "io.dekorate.s2i.annotation.S2iBuild", null,
+                p(null, "s2i.docker-file", "java.lang.String", """
+                                The relative path of the Dockerfile, from the module root.
+
+                                * **Returns:**
+                                  * The relative path.""", true, "io.dekorate.s2i.annotation.S2iBuild", null,
                         "dockerFile()Ljava/lang/String;", 0, "Dockerfile"),
 
                 p(null, "s2i.group", "java.lang.String",
-                        "The group of the application. This value will be use as image user."
-                                + System.lineSeparator() + "" + System.lineSeparator() + " *  **Returns:**" + System.lineSeparator()
-                                + "    " + System.lineSeparator() + "     *  The specified group name.",
+                        """
+                                The group of the application. This value will be use as image user.
+
+                                * **Returns:**
+                                  * The specified group name.""",
                         true, "io.dekorate.s2i.annotation.S2iBuild", null, "group()Ljava/lang/String;", 0,
                         null),
 
                 p("quarkus-container-image-s2i", "quarkus.s2i.jar-directory", "java.lang.String",
-                        "The directory where the jar is added during the assemble phase." + //
-                                "\n" + //
-                                "This is dependent on the S2I image and should be supplied if a non default image is used.",
+                        """
+                                The directory where the jar is added during the assemble phase.
+                                This is dependent on the S2I image and should be supplied if a non default image is used.""",
                         true, "io.quarkus.container.image.s2i.deployment.S2iConfig", "jarDirectory", null, 1,
                         "/deployments/"));
 
@@ -159,17 +162,15 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
     public void testDocker() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.kubernetes, true);
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
+        String description = """
+                            The relative path of the Dockerfile, from the module root.
 
+                            * **Returns:**
+                              * The relative path.""";
         assertProperties(info,
 
                 // io.dekorate.docker.annotation.DockerBuild
-                p(null, "docker.docker-file", "java.lang.String", "The relative path of the Dockerfile, from the module root." + //
-                                System.lineSeparator() + "" + System.lineSeparator() + //
-                                " *  **Returns:**" + //
-                                System.lineSeparator() + //
-                                "    " + //
-                                System.lineSeparator() + //
-                                "     *  The relative path.", true, "io.dekorate.docker.annotation.DockerBuild", null,
+                p(null, "docker.docker-file", "java.lang.String", description, true, "io.dekorate.docker.annotation.DockerBuild", null,
                         "dockerFile()Ljava/lang/String;", 0, "Dockerfile"));
 
         assertPropertiesDuplicate(info);

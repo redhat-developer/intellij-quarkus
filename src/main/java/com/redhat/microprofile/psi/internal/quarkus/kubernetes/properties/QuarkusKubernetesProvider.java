@@ -89,10 +89,10 @@ public class QuarkusKubernetesProvider extends AbstractTypeDeclarationProperties
 				// see
 				// https://github.com/quarkusio/quarkus/blob/44e5e2e3a642d1fa7af9ddea44b6ff8d37e862b8/extensions/kubernetes/deployment/src/main/java/io/quarkus/kubernetes/deployment/KubernetesProcessor.java#L94
 				super.addItemMetadata(collector, "kubernetes.deployment.target", "java.lang.String", //
-						"To enable the generation of OpenShift resources, you need to include OpenShift in the target platforms: `kubernetes.deployment.target=openshift`."
-								+ System.lineSeparator()
-								+ "If you need to generate resources for both platforms (vanilla Kubernetes and OpenShift), then you need to include both (coma separated)."
-								+ System.lineSeparator() + "`kubernetes.deployment.target=kubernetes, openshift`.",
+                        """
+                        To enable the generation of OpenShift resources, you need to include OpenShift in the target platforms: `kubernetes.deployment.target=openshift`.
+                        If you need to generate resources for both platforms (vanilla Kubernetes and OpenShift), then you need to include both (comma-separated).
+                        `kubernetes.deployment.target=kubernetes, openshift`.""",
 						null, null, null, KUBERNETES_PREFIX, null, true);
 				// kubernetes.registry
 				// see
