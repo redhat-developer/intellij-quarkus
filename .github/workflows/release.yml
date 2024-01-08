@@ -14,6 +14,11 @@ on:
           - 'true'
           - 'false'
         default: 'false'
+      branch:
+        description: 'Branch to release from'
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
   # Prepare and publish the plugin to JetBrains Marketplace repository
@@ -28,6 +33,8 @@ jobs:
       # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
       
       # Validate Wrapper before running build
       - name: validate Gradle Wrapper
@@ -84,7 +91,7 @@ jobs:
           NEW_VERSION=$(./increment_version.sh)
           echo "Set $NEW_VERSION in gradle.properties"
           git commit -sam "chore(skip-release): set version to $NEW_VERSION"
-          git push origin main
+          git push origin ${{ inputs.branch }}
 
       - name: Simple conventional changelog
         uses: lstocchi/simple-conventional-changelog@13071c09073f5deddf03d44d9af6a8b0f81ef227 #0.0.11
