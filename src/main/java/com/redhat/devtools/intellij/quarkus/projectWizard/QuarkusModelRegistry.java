@@ -22,6 +22,7 @@ import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.RequestBuilder;
+import com.redhat.qute.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeroturnaround.zip.ZipUtil;
@@ -42,6 +43,20 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.*;
  * Quarkus model registry fetching and caching data for Quarkus stream versions and extensions.
  */
 public class QuarkusModelRegistry {
+
+    public static class CreateQuarkusProjectRequest {
+        public String endpoint;
+        public String tool;
+        public String groupId;
+        public String artifactId;
+        public String version;
+        public String className;
+        public String path;
+        public int javaVersion;
+        public QuarkusExtensionsModel model;
+        public File output;
+        public boolean codeStarts;
+    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModelRegistry.class);
     /**
@@ -127,7 +142,7 @@ public class QuarkusModelRegistry {
                 request.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
             }).connect(request -> {
                 try (Reader reader = request.getReader(indicator)) {
-                    List<QuarkusExtension> extensions = mapper.readValue(reader, new TypeReference<List<QuarkusExtension>>() {
+                    List<QuarkusExtension> extensions = mapper.readValue(reader, new TypeReference<>() {
                     });
                     QuarkusExtensionsModel newModel = new QuarkusExtensionsModel(key, extensions);
                     long elapsed = System.currentTimeMillis() - start;
@@ -139,10 +154,9 @@ public class QuarkusModelRegistry {
         });
     }
 
-    public static void zip(String endpoint, String tool, String groupId, String artifactId, String version,
-                           String className, String path, QuarkusExtensionsModel model, File output, boolean codeStarts) throws IOException {
-        Url url = Urls.newFromEncoded(normalizeURL(endpoint) + "/api/download");
-        String body = buildParameters(tool, groupId, artifactId, version, className, path, model, codeStarts);
+    public static void zip(CreateQuarkusProjectRequest createQuarkusProjectRequest) throws IOException {
+        Url url = Urls.newFromEncoded(normalizeURL(createQuarkusProjectRequest.endpoint) + "/api/download");
+        String body = buildParameters(createQuarkusProjectRequest);
         RequestBuilder builder = HttpRequests.post(url.toString(), HttpRequests.JSON_CONTENT_TYPE).userAgent(QuarkusModelRegistry.USER_AGENT).tuner(connection -> {
             connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_NAME_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_NAME_HEADER_VALUE);
             connection.setRequestProperty(CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_NAME, CODE_QUARKUS_IO_CLIENT_CONTACT_EMAIL_HEADER_VALUE);
@@ -150,7 +164,7 @@ public class QuarkusModelRegistry {
         try {
             if (ApplicationManager.getApplication().executeOnPooledThread(() -> builder.connect(request -> {
                 request.write(body);
-                ZipUtil.unpack(request.getInputStream(), output, name -> {
+                ZipUtil.unpack(request.getInputStream(), createQuarkusProjectRequest.output, name -> {
                     int index = name.indexOf('/');
                     return name.substring(index);
                 });
@@ -163,26 +177,31 @@ public class QuarkusModelRegistry {
         }
     }
 
-    private static String buildParameters(String tool, String groupId, String artifactId, String version,
-                                          String className, String path, QuarkusExtensionsModel model,
-                                          boolean codeStarts) {
+    private static String buildParameters(CreateQuarkusProjectRequest createQuarkusProjectRequest) {
         JsonObject json = new JsonObject();
 
-        json.addProperty(CODE_TOOL_PARAMETER_NAME, tool);
-        json.addProperty(CODE_GROUP_ID_PARAMETER_NAME, groupId);
-        json.addProperty(CODE_ARTIFACT_ID_PARAMETER_NAME, artifactId);
-        json.addProperty(CODE_VERSION_PARAMETER_NAME, version);
-        json.addProperty(CODE_CLASSNAME_PARAMETER_NAME, className);
-        json.addProperty(CODE_PATH_PARAMETER_NAME, path);
-        if (!codeStarts) {
+        json.addProperty(CODE_TOOL_PARAMETER_NAME, createQuarkusProjectRequest.tool);
+        json.addProperty(CODE_GROUP_ID_PARAMETER_NAME, createQuarkusProjectRequest.groupId);
+        json.addProperty(CODE_ARTIFACT_ID_PARAMETER_NAME, createQuarkusProjectRequest.artifactId);
+        json.addProperty(CODE_VERSION_PARAMETER_NAME, createQuarkusProjectRequest.version);
+        if (!StringUtils.isEmpty(createQuarkusProjectRequest.className)) {
+            json.addProperty(CODE_CLASSNAME_PARAMETER_NAME, createQuarkusProjectRequest.className);
+        }
+        if (!StringUtils.isEmpty(createQuarkusProjectRequest.path)) {
+            json.addProperty(CODE_PATH_PARAMETER_NAME, createQuarkusProjectRequest.path);
+        }
+        if (createQuarkusProjectRequest.javaVersion > 0) {
+            json.addProperty(CODE_JAVA_VERSION_PARAMETER_NAME, createQuarkusProjectRequest.javaVersion);
+        }
+        if (!createQuarkusProjectRequest.codeStarts) {
             json.addProperty(CODE_NO_EXAMPLES_NAME, CODE_NO_EXAMPLES_DEFAULT);
         }
         JsonArray extensions = new JsonArray();
-        model.getCategories().stream().flatMap(category -> category.getExtensions().stream()).
+        createQuarkusProjectRequest.model.getCategories().stream().flatMap(category -> category.getExtensions().stream()).
                 filter(extension -> extension.isSelected() || extension.isDefaultExtension()).
                 forEach(extension -> extensions.add(extension.getId()));
         json.add(CODE_EXTENSIONS_PARAMETER_NAME, extensions);
-        json.addProperty(CODE_STREAM_PARAMETER_NAME, model.getKey());
+        json.addProperty(CODE_STREAM_PARAMETER_NAME, createQuarkusProjectRequest.model.getKey());
         return json.toString();
     }
 

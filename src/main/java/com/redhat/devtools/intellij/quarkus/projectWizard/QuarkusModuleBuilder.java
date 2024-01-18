@@ -101,16 +101,19 @@ public class QuarkusModuleBuilder extends JavaModuleBuilder {
 
     private void processDownload() throws IOException {
         File moduleFile = new File(getContentEntryPath());
-        QuarkusModelRegistry.zip(wizardContext.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY),
-                wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).asParameter(),
-                wizardContext.getUserData(QuarkusConstants.WIZARD_GROUPID_KEY),
-                wizardContext.getUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY),
-                wizardContext.getUserData(QuarkusConstants.WIZARD_VERSION_KEY),
-                wizardContext.getUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY),
-                wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY),
-                wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY),
-                moduleFile,
-                wizardContext.getUserData(QuarkusConstants.WIZARD_EXAMPLE_KEY));
+        var createQuarkusProjectRequest = new QuarkusModelRegistry.CreateQuarkusProjectRequest();
+        createQuarkusProjectRequest.endpoint = wizardContext.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY);
+        createQuarkusProjectRequest.tool = wizardContext.getUserData(QuarkusConstants.WIZARD_TOOL_KEY).asParameter();
+        createQuarkusProjectRequest.groupId = wizardContext.getUserData(QuarkusConstants.WIZARD_GROUPID_KEY);
+        createQuarkusProjectRequest.artifactId = wizardContext.getUserData(QuarkusConstants.WIZARD_ARTIFACTID_KEY);
+        createQuarkusProjectRequest.version = wizardContext.getUserData(QuarkusConstants.WIZARD_VERSION_KEY);
+        createQuarkusProjectRequest.className = wizardContext.getUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY);
+        createQuarkusProjectRequest.path = wizardContext.getUserData(QuarkusConstants.WIZARD_PATH_KEY);
+        createQuarkusProjectRequest.model = wizardContext.getUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY);
+        createQuarkusProjectRequest.javaVersion = wizardContext.getUserData(QuarkusConstants.WIZARD_JAVA_VERSION_KEY);
+        createQuarkusProjectRequest.output = moduleFile;
+        createQuarkusProjectRequest.codeStarts = wizardContext.getUserData(QuarkusConstants.WIZARD_EXAMPLE_KEY);
+        QuarkusModelRegistry.zip(createQuarkusProjectRequest);
         updateWrapperPermissions(moduleFile);
         VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
         RefreshQueue.getInstance().refresh(true, true, (Runnable) null, new VirtualFile[]{vf});
