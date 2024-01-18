@@ -14,6 +14,7 @@ import com.intellij.openapi.util.Key;
 import com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusExtensionsModel;
 import com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModel;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
+import org.jetbrains.jps.model.java.JdkVersionDetector;
 
 public class QuarkusConstants {
     public final static Key<BuildToolDelegate> WIZARD_TOOL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".tool");
@@ -24,8 +25,10 @@ public class QuarkusConstants {
     public final static Key<String> WIZARD_CLASSNAME_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".className");
     public final static Key<String> WIZARD_PATH_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".path");
     public final static Key<QuarkusExtensionsModel> WIZARD_EXTENSIONS_MODEL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".model");
+    public final static Key<Integer> WIZARD_JAVA_VERSION_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".javaVersion");
     public final static Key<String> WIZARD_ENDPOINT_URL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".endpointURL");
     public final static Key<QuarkusModel> WIZARD_QUARKUS_STREAMS = Key.create(QuarkusConstants.class.getPackage().getName() + ".streams");
+    public final static Key<JdkVersionDetector.JdkVersionInfo> WIZARD_JDK_INFO_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".jdkVersionInfo");
 
     public static final String CONFIG_ROOT_ANNOTATION = "io.quarkus.runtime.annotations.ConfigRoot";
     public static final String CONFIG_GROUP_ANNOTATION = "io.quarkus.runtime.annotations.ConfigGroup";
@@ -101,6 +104,8 @@ public class QuarkusConstants {
     public static final String CODE_VERSION_PARAMETER_NAME = "version";
 
     public static final String CODE_CLASSNAME_PARAMETER_NAME = "className";
+
+    public static final String CODE_JAVA_VERSION_PARAMETER_NAME = "javaVersion";
 
     public static final String CODE_PATH_PARAMETER_NAME = "path";
 

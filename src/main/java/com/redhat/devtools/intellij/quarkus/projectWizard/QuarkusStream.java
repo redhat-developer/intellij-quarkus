@@ -15,6 +15,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class QuarkusStream {
+    public static record JavaCompatibility(String[] versions, String recommended) {
+    }
+
     @JsonProperty("key")
     private String key;
 
@@ -27,6 +30,8 @@ public class QuarkusStream {
     @JsonProperty("status")
     private String status;
 
+    @JsonProperty("javaCompatibility")
+    private JavaCompatibility javaCompatibility;
 
     public String getKey() {
         return key;
@@ -68,5 +73,13 @@ public class QuarkusStream {
     public String getPlatformVersion() {
         String key = getKey();
         return key.substring(key.indexOf(':') + 1);
+    }
+
+    public JavaCompatibility getJavaCompatibility() {
+        return javaCompatibility;
+    }
+
+    public void setJavaCompatibility(JavaCompatibility javaCompatibility) {
+        this.javaCompatibility = javaCompatibility;
     }
 }

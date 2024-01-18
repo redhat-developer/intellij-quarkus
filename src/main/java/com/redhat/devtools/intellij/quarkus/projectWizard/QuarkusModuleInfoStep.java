@@ -18,13 +18,13 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.projectRoots.impl.SdkVersionUtil;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.ComponentValidator;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTextField;
@@ -35,19 +35,26 @@ import com.redhat.devtools.intellij.quarkus.QuarkusBundle;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.java.JdkVersionDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
-import java.util.Arrays;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
+import static com.intellij.ide.starters.shared.ValidationFunctions.*;
+import static com.intellij.ui.SimpleTextAttributes.*;
 import static com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModelRegistry.DEFAULT_TIMEOUT_IN_SEC;
+import static com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusValidationFunctions.CHECK_CLASS_NAME;
 import static com.redhat.devtools.intellij.quarkus.projectWizard.RequestHelper.waitFor;
 
 /**
@@ -61,6 +68,8 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
     private ComboBox<QuarkusStream> streamComboBox;
 
     private ComboBox<BuildToolDelegate> toolComboBox;
+
+    private ComboBox<String> javaVersionsComboBox;
 
     private JBCheckBox exampleField;
 
@@ -87,6 +96,8 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
     private EmptyProgressIndicator indicator;
 
     private boolean isInitialized = false;
+    private JdkVersionDetector.JdkVersionInfo jdkVersionInfo;
+    private final List<JComponent> componentsToValidate = new ArrayList<>();
 
     public QuarkusModuleInfoStep(WizardContext context) {
         Disposer.register(context.getDisposable(), this);
@@ -108,6 +119,9 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
         context.putUserData(QuarkusConstants.WIZARD_CLASSNAME_KEY, classNameField.getText());
         context.putUserData(QuarkusConstants.WIZARD_PATH_KEY, pathField.getText());
         context.putUserData(QuarkusConstants.WIZARD_EXTENSIONS_MODEL_KEY, extensionsModel);
+        String selectedJava = (String) javaVersionsComboBox.getModel().getSelectedItem();
+        Integer javaVersion = selectedJava == null? null: Integer.valueOf(selectedJava);
+        context.putUserData(QuarkusConstants.WIZARD_JAVA_VERSION_KEY, javaVersion);
     }
     @Override
     public void dispose() {
@@ -123,6 +137,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
     @Override
     public void _init() {
+        jdkVersionInfo = SdkVersionUtil.getJdkVersionInfo(context.getProjectJdk().getHomePath());
         if (isInitialized) {
             return;
         }
@@ -149,19 +164,17 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
             @Override
             public void contentsChanged(ListDataEvent e) {
+                updateJavaVersions();
                 loadExtensionsModel(streamModel, indicator);
             }
         });
 
         streamComboBox = new ComboBox<>(streamModel);
-        streamComboBox.setRenderer(new ColoredListCellRenderer<QuarkusStream>() {
+        streamComboBox.setRenderer(new ColoredListCellRenderer<>() {
             @Override
             protected void customizeCellRenderer(@NotNull JList<? extends QuarkusStream> list, QuarkusStream stream, int index, boolean selected, boolean hasFocus) {
-                if (stream.isRecommended()) {
-                    this.append(stream.getPlatformVersion(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, true);
-                } else {
-                    this.append(stream.getPlatformVersion(), SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
-                }
+                SimpleTextAttributes textAttributes = getComboItemStyle(stream.isRecommended(), false);
+                this.append(stream.getPlatformVersion(), textAttributes, true);
                 if (stream.getStatus() != null) {
                     this.append(" ").append(stream.getStatus());
                 }
@@ -177,34 +190,156 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
         final CollectionComboBoxModel<BuildToolDelegate> toolModel = new CollectionComboBoxModel<>(Arrays.asList(BuildToolDelegate.getDelegates()));
         toolComboBox = new ComboBox<>(toolModel);
-        toolComboBox.setRenderer(new ColoredListCellRenderer<BuildToolDelegate>() {
+        toolComboBox.setRenderer(new ColoredListCellRenderer<>() {
             @Override
             protected void customizeCellRenderer(@NotNull JList<? extends BuildToolDelegate> list, BuildToolDelegate toolDelegate, int index, boolean selected, boolean hasFocus) {
                 this.append(toolDelegate.getDisplay());
             }
         });
         formBuilder.addLabeledComponent("Tool:", toolComboBox);
-        exampleField = new JBCheckBox("If selected, project will contain sample code from extensions that suppport codestarts.", true);
+
+        javaVersionsComboBox = new ComboBox<>();
+        javaVersionsComboBox.setRenderer(new ColoredListCellRenderer<>() {
+            @Override
+            protected void customizeCellRenderer(@NotNull JList<? extends String> list, String version, int index, boolean selected, boolean hasFocus) {
+                QuarkusStream stream = getSelectedQuarkusStream();
+                if (stream != null) {
+                    String recommendedVersion = stream.getJavaCompatibility().recommended();
+                    SimpleTextAttributes textAttribute = getComboItemStyle(Objects.equals(version, recommendedVersion), !isValidJava(version, jdkVersionInfo));
+                    this.append(version, textAttribute, true);
+                }
+            }
+        });
+        formBuilder.addLabeledComponent("Java version:", javaVersionsComboBox);
+        addValidator(javaVersionsComboBox, () -> {
+            if (!isValidJava(javaVersionsComboBox.getModel().getSelectedItem().toString(), jdkVersionInfo)) {
+                return new ValidationInfo(QuarkusBundle.message("quarkus.wizard.error.incompatible.jdk", jdkVersionInfo.displayVersionString()), javaVersionsComboBox);
+            }
+            return null;
+        });
+
+        exampleField = new JBCheckBox("If selected, project will contain sample code from extensions that support codestarts.", true);
         formBuilder.addLabeledComponent("Example code:", exampleField);
+
         groupIdField = new JBTextField("org.acme");
         formBuilder.addLabeledComponent("Group:", groupIdField);
+        TextFieldValidator groupIdValidator = new TextFieldValidator(groupIdField, CHECK_NOT_EMPTY, CHECK_NO_WHITESPACES, CHECK_GROUP_FORMAT, CHECK_NO_RESERVED_WORDS);
+        addValidator(groupIdField, groupIdValidator::validate);
+
         artifactIdField = new JBTextField("code-with-quarkus");
         formBuilder.addLabeledComponent("Artifact:", artifactIdField);
+        TextFieldValidator artifactIdValidator = new TextFieldValidator(artifactIdField, CHECK_NOT_EMPTY, CHECK_NO_WHITESPACES, CHECK_ARTIFACT_SIMPLE_FORMAT, CHECK_NO_RESERVED_WORDS);
+        addValidator(artifactIdField, artifactIdValidator::validate);
+
         versionField = new JBTextField("1.0.0-SNAPSHOT");
         formBuilder.addLabeledComponent("Version:", versionField);
+        TextFieldValidator versionValidator = new TextFieldValidator(versionField, CHECK_NOT_EMPTY, CHECK_NO_WHITESPACES);
+        addValidator(versionField, versionValidator::validate);
+
         classNameField = new JBTextField("org.acme.ExampleResource");
         formBuilder.addLabeledComponent("Class name:", classNameField);
+        TextFieldValidator classNameValidator = new TextFieldValidator(classNameField, CHECK_NO_WHITESPACES, CHECK_CLASS_NAME);
+        addValidator(classNameField, classNameValidator::validate);
+
         pathField = new JBTextField("/hello");
         formBuilder.addLabeledComponent("Path:", pathField);
+        TextFieldValidator pathValidator = new TextFieldValidator(pathField, CHECK_NO_WHITESPACES);
+        addValidator(pathField, pathValidator::validate);
         panel.add(ScrollPaneFactory.createScrollPane(formBuilder.getPanel(), true), "North");
         hideSpinner();
         extensionsModelRequest = loadExtensionsModel(streamModel, indicator);
+        updateJavaVersions();
         isInitialized = true;
+    }
+
+    void addValidator(JComponent component, Supplier<ValidationInfo> validator) {
+        new ComponentValidator(context.getDisposable())
+                .withValidator(validator)
+                .installOn(component);
+        componentsToValidate.add(component);
+        if (component instanceof JBTextField textField) {
+            textField.getDocument().addDocumentListener(new DocumentAdapter() {
+                @Override
+                protected void textChanged(@NotNull DocumentEvent e) {
+                    validate(textField);
+                }
+            });
+        } else if (component instanceof ComboBox<?> combo) {
+            combo.addItemListener(e -> {
+                validate(combo);
+            });
+        }
+
+    }
+
+    private List<ValidationInfo> validateComponents(boolean requestFocus) {
+        List<ValidationInfo> validations = new ArrayList<>(componentsToValidate.size());
+        componentsToValidate.forEach(c -> validate(c).ifPresent(validations::add));
+        if (requestFocus && !validations.isEmpty()) {
+            var firstComponent = validations.get(0).component;
+            if (firstComponent != null) {
+                firstComponent.requestFocusInWindow();
+            }
+        }
+        return validations;
+    }
+
+    private Optional<ValidationInfo> validate(@NotNull JComponent component) {
+       return ComponentValidator.getInstance(component).map(v -> {
+            v.revalidate();
+            return v.getValidationInfo();
+        });
+    }
+
+    /**
+     * Checks is the Java version is compatible with the selected SDK version
+     *
+     * @param version       the Java version
+     * @param jdkVersionInfo the version information of the selected JDK
+     * @return <code>true</code> if the Java version is compatible with the selected SDK version, <code>false</code> otherwise.
+     */
+    private boolean isValidJava(String version, JdkVersionDetector.JdkVersionInfo jdkVersionInfo) {
+        return jdkVersionInfo.version.isAtLeast(Integer.valueOf(version));
+    }
+
+    private QuarkusStream getSelectedQuarkusStream() {
+        return (QuarkusStream)streamComboBox.getModel().getSelectedItem();
+    }
+
+    SimpleTextAttributes getComboItemStyle(boolean recommended, boolean invalid) {
+        var style = recommended ? REGULAR_BOLD_ATTRIBUTES : REGULAR_ATTRIBUTES;
+        if (invalid) {
+            style = SimpleTextAttributes.merge(ERROR_ATTRIBUTES, style);
+        }
+        return style;
+    }
+
+    private static final List<String> defaultJavaVersions = List.of("17", "11");
+
+    private void updateJavaVersions() {
+        QuarkusStream stream = getSelectedQuarkusStream();
+        QuarkusStream.JavaCompatibility javaCompatibility = stream.getJavaCompatibility();
+        List<String> javaVersions;
+        String recommended;
+        if (javaCompatibility != null) {
+            javaVersions = Arrays.stream(javaCompatibility.versions()).sorted(Comparator.reverseOrder()).toList();
+            recommended = javaCompatibility.recommended();
+        } else {
+            javaVersions = defaultJavaVersions;
+            recommended = defaultJavaVersions.get(0);
+        }
+        ComboBoxModel<String> javaVersionsModel = new CollectionComboBoxModel<>(javaVersions);
+        javaVersionsComboBox.setModel(javaVersionsModel);
+        javaVersionsModel.setSelectedItem(recommended);
     }
 
     @Override
     public JComponent getPreferredFocusedComponent() {
-        return toolComboBox;
+        var errors = validateComponents(false);
+        if (errors.isEmpty()) {
+            return toolComboBox;
+        }
+        return errors.get(0).component;
     }
 
     private Future<QuarkusExtensionsModel> loadExtensionsModel(CollectionComboBoxModel<QuarkusStream> streamModel, ProgressIndicator indicator) {
@@ -219,9 +354,9 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
                 return model.loadExtensionsModel(key, indicator);
             } catch (Exception e) {
                 if (getComponent().isShowing()) {
-                    ApplicationManager.getApplication().invokeLater(() -> {
-                        Messages.showErrorDialog(QuarkusBundle.message("quarkus.wizard.error.extensions.loading.message", key, e.getMessage()), QuarkusBundle.message("quarkus.wizard.error.extensions.loading"));
-                    },  modalityState);
+                    ApplicationManager.getApplication().invokeLater(() ->
+                        Messages.showErrorDialog(QuarkusBundle.message("quarkus.wizard.error.extensions.loading.message", key, e.getMessage()), QuarkusBundle.message("quarkus.wizard.error.extensions.loading"))
+                    ,  modalityState);
                 }
             } finally {
                 if (getComponent().isShowing()) {
@@ -238,14 +373,9 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
 
     @Override
     public boolean validate() throws ConfigurationException {
-        if (groupIdField.getText().isEmpty()) {
-            throw new ConfigurationException("Group must be specified");
-        }
-        if (artifactIdField.getText().isEmpty()) {
-            throw new ConfigurationException("Artifact must be specified");
-        }
-        if (versionField.getText().isEmpty()) {
-            throw new ConfigurationException("Version must be specified");
+        var validations = validateComponents(true);
+        if (!validations.isEmpty()) {
+            return false;
         }
         try {
             boolean requestComplete = checkRequestComplete();

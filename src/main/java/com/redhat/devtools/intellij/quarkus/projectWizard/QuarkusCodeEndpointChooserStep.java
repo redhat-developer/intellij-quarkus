@@ -245,6 +245,7 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep implements 
     @Override
     public void updateDataModel() {
         String endpointURL = getSelectedEndpointUrl();
+
         if (!Comparing.strEqual(this.wizardContext.getUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY), endpointURL)) {
             this.endpointURL.addCurrentTextToHistory();
             this.wizardContext.putUserData(QuarkusConstants.WIZARD_ENDPOINT_URL_KEY, endpointURL);
