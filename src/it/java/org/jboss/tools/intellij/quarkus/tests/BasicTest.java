@@ -30,6 +30,7 @@ import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
+import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectThirdPage;
 import org.jboss.tools.intellij.quarkus.utils.BuildTool;
 import org.jboss.tools.intellij.quarkus.utils.EndpointURLType;
 import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
@@ -101,6 +102,7 @@ public class BasicTest extends AbstractQuarkusTest {
         QuarkusNewProjectSecondPage quarkusNewProjectSecondPage = newProjectDialogWizard.find(QuarkusNewProjectSecondPage.class, Duration.ofSeconds(10));
         quarkusNewProjectSecondPage.setBuildTool(buildTool);
         newProjectDialogWizard.next();
+        newProjectDialogWizard.find(QuarkusNewProjectThirdPage.class, Duration.ofSeconds(10)); // wait for third page to be loaded
         newProjectDialogWizard.next();
         try {
             Thread.sleep(1000L);
