@@ -41,11 +41,13 @@ public class JaxRsApplicationPathCodeLensTest extends LSP4MPMavenModuleImporting
         params.setUri(javaFileUri);
         params.setUrlCodeLensEnabled(true);
 
-        saveFile("org/acme/MyApplication.java", "package org.acme;\r\n" + //
-                "import javax.ws.rs.ApplicationPath;\r\n" + //
-                "import javax.ws.rs.core.Application;\r\n" + //
-                "@ApplicationPath(\"/api\")\r\n" + //
-                "public class MyApplication extends Application {}\r\n", javaProject, true);
+        saveFile("org/acme/MyApplication.java", """
+                package org.acme;
+                import javax.ws.rs.ApplicationPath;
+                import javax.ws.rs.core.Application;
+                @ApplicationPath("/api")
+                public class MyApplication extends Application {}
+                """, javaProject, true);
 
         // Default port
         assertCodeLenses(8080, params, utils, "/api/path", r(12, 4, 4));
@@ -62,11 +64,13 @@ public class JaxRsApplicationPathCodeLensTest extends LSP4MPMavenModuleImporting
         params.setUri(javaFileUri);
         params.setUrlCodeLensEnabled(true);
 
-        saveFile("org/acme/MyApplication.java", "package org.acme;\r\n" + //
-                "import javax.ws.rs.ApplicationPath;\r\n" + //
-                "import javax.ws.rs.core.Application;\r\n" + //
-                "@ApplicationPath(\"api\")\r\n" + //
-                "public class MyApplication extends Application {}\r\n", javaProject, true);
+        saveFile("org/acme/MyApplication.java", """
+                package org.acme;
+                import javax.ws.rs.ApplicationPath;
+                import javax.ws.rs.core.Application;
+                @ApplicationPath("api")
+                public class MyApplication extends Application {}
+                """, javaProject, true);
 
         // Default port
         assertCodeLenses(8080, params, utils, "/api/path", r(12, 4, 4));
@@ -83,20 +87,24 @@ public class JaxRsApplicationPathCodeLensTest extends LSP4MPMavenModuleImporting
         params.setUri(javaFileUri);
         params.setUrlCodeLensEnabled(true);
 
-        saveFile("org/acme/MyApplication.java", "package org.acme;\r\n" + //
-                "import javax.ws.rs.ApplicationPath;\r\n" + //
-                "import javax.ws.rs.core.Application;\r\n" + //
-                "@ApplicationPath(\"/api\")\r\n" + //
-                "public class MyApplication extends Application {}\r\n", javaProject, true);
+        saveFile("org/acme/MyApplication.java", """
+                package org.acme;
+                import javax.ws.rs.ApplicationPath;
+                import javax.ws.rs.core.Application;
+                @ApplicationPath("/api")
+                public class MyApplication extends Application {}
+                """, javaProject, true);
 
         // Default port
         assertCodeLenses(8080, params, utils, "/api/path", r(12, 4, 4));
 
-        saveFile("org/acme/MyApplication.java", "package org.acme;\r\n" + //
-                "import javax.ws.rs.ApplicationPath;\r\n" + //
-                "import javax.ws.rs.core.Application;\r\n" + //
-                "@ApplicationPath(\"/ipa\")\r\n" + //
-                "public class MyApplication extends Application {}\r\n", javaProject, true);
+        saveFile("org/acme/MyApplication.java", """
+                package org.acme;
+                import javax.ws.rs.ApplicationPath;
+                import javax.ws.rs.core.Application;
+                @ApplicationPath("/ipa")
+                public class MyApplication extends Application {}
+                """, javaProject, true);
 
         assertCodeLenses(8080, params, utils, "/ipa/path", r(12, 4, 4));
     }

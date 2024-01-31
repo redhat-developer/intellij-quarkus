@@ -18,6 +18,7 @@ import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
+import org.intellij.lang.annotations.Language;
 import org.junit.Test;
 
 import java.io.File;
@@ -31,27 +32,26 @@ import static org.eclipse.lsp4mp.commons.metadata.ItemMetadata.CONFIG_PHASE_BUIL
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerTest.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.test/src/main/java/com/redhat/microprofile/jdt/core/PropertiesManagerTest.java</a>
  */
 public class GradlePropertiesManagerTest extends GradleTestCase {
+    @Language("Groovy")
     private static final String CONFIG =
-            "plugins {\n" +
-                    "    id 'java'\n" +
-                    "}\n" +
-
-                    "repositories {\n" +
-                    "    mavenLocal()\n" +
-                    "    mavenCentral()\n" +
-                    "}\n" +
-
-                    "dependencies {\n" +
-                    "    implementation 'io.quarkus:quarkus-core-deployment:1.0.1.Final'\n" +
-                    "}\n" +
-
-                    "group 'org.acme'\n" +
-                    "version '1.0.0-SNAPSHOT'\n" +
-
-                    "java {\n" +
-                    "    sourceCompatibility = JavaVersion.VERSION_1_8\n" +
-                    "    targetCompatibility = JavaVersion.VERSION_1_8\n" +
-                    "}";
+        """
+        plugins {
+            id 'java'
+        }
+        repositories {
+            mavenLocal()
+            mavenCentral()
+        }
+        dependencies {
+            implementation 'io.quarkus:quarkus-core-deployment:1.0.1.Final'
+        }
+        group 'org.acme'
+        version '1.0.0-SNAPSHOT'
+        java {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = JavaVersion.VERSION_1_8
+        }
+        """;
 
     @Test
     public void testQuarkusCoreDeploymentProperties() throws IOException {

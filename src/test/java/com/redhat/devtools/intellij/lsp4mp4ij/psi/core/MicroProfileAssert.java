@@ -11,17 +11,20 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
+import org.eclipse.lsp4mp.commons.metadata.ItemBase;
 import org.eclipse.lsp4mp.commons.metadata.ItemHint;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import org.eclipse.lsp4mp.commons.metadata.ValueHint;
@@ -79,7 +82,7 @@ public class MicroProfileAssert {
     private static void assertProperty(MicroProfileProjectInfo info, ItemMetadata expected) {
         List<ItemMetadata> matches = info.getProperties().stream().filter(completion -> {
             return expected.getName().equals(completion.getName());
-        }).collect(Collectors.toList());
+        }).toList();
 
         assertEquals(
                 "'" + expected.getName() + "'" + " should exist exactly once: Actual: "
@@ -146,7 +149,7 @@ public class MicroProfileAssert {
         Map<String, Long> propertiesCount = info.getProperties().stream()
                 .collect(Collectors.groupingBy(ItemMetadata::getName, Collectors.counting()));
         List<Entry<String, Long>> result = propertiesCount.entrySet().stream().filter(entry -> entry.getValue() > 1)
-                .collect(Collectors.toList());
+                .toList();
         assertEquals(
                 result.stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(",")),
                 0, result.size());
@@ -189,11 +192,11 @@ public class MicroProfileAssert {
     private static void assertHint(MicroProfileProjectInfo info, ItemHint expected) {
         List<ItemHint> matches = info.getHints().stream().filter(completion -> {
             return expected.getName().equals(completion.getName());
-        }).collect(Collectors.toList());
+        }).toList();
 
         assertEquals(
                 expected.getName() + " should only exist once: Actual: "
-                        + info.getHints().stream().map(c -> c.getName()).collect(Collectors.joining(",")),
+                        + info.getHints().stream().map(ItemBase::getName).collect(Collectors.joining(",")),
                 1, matches.size());
 
         ItemHint actual = matches.get(0);
@@ -251,7 +254,7 @@ public class MicroProfileAssert {
         Map<String, Long> hintsCount = info.getHints().stream()
                 .collect(Collectors.groupingBy(ItemHint::getName, Collectors.counting()));
         List<Entry<String, Long>> result = hintsCount.entrySet().stream().filter(entry -> entry.getValue() > 1)
-                .collect(Collectors.toList());
+                .toList();
         assertEquals(
                 result.stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(",")),
                 0, result.size());
@@ -271,8 +274,7 @@ public class MicroProfileAssert {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        Application application = ApplicationManager.getApplication();
-        application.invokeAndWait(() -> application.runWriteAction(() -> {
+        WriteAction.runAndWait(() -> {
             try {
                 VirtualFile folder = null;
                 if (!inSource) {
@@ -292,6 +294,7 @@ public class MicroProfileAssert {
                         folder = ModuleRootManager.getInstance(javaProject).getSourceRoots()[0];
                     }
                 }
+                assert folder != null;
                 VirtualFile file = folder.findFileByRelativePath(name);
                 if (file == null) {
                     String[] comps = name.split("/");
@@ -301,9 +304,11 @@ public class MicroProfileAssert {
                     file = folder.findOrCreateChildData(MicroProfileAssert.class, comps[comps.length - 1]);
                 }
                 file.setBinaryContent(content.getBytes(file.getCharset()));
-            } catch (IOException e) {
+
+                PsiDocumentManager.getInstance(javaProject.getProject()).commitAllDocuments();
+            } catch (IOException ignored) {
             }
-        }));
+        });
     }
 
     public static void deleteFile(String name, Module javaProject) throws IOException {

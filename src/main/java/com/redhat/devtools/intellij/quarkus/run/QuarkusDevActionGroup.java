@@ -11,6 +11,7 @@
 package com.redhat.devtools.intellij.quarkus.run;
 
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.util.IconLoader;
@@ -37,4 +38,10 @@ public class QuarkusDevActionGroup extends ActionGroup {
     public AnAction[] getChildren(@Nullable AnActionEvent e) {
         return new AnAction[] { OPEN_DEV_UI_ACTION, OPEN_APP_ACTION};
     }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
+
 }

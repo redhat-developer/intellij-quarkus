@@ -238,7 +238,7 @@ When editing `application.properties` files, you have access to:
 
 ## Requirements
 
-  * Intellij IDEA 2022.2 or more recent (we **try** to support the last 4 major IDEA releases)
+  * Intellij IDEA 2022.3 or more recent (we **try** to support the last 4 major IDEA releases)
   * Java JDK (or JRE) 17 or more recent
 
     ​    
