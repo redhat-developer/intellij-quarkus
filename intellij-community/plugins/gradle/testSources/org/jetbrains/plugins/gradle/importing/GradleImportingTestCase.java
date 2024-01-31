@@ -24,6 +24,8 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ui.configuration.UnknownSdkResolver;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
+import com.intellij.openapi.util.Couple;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -55,7 +57,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSystemSettings;
 import org.jetbrains.plugins.gradle.tooling.VersionMatcherRule;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-import org.jetbrains.plugins.gradle.util.GradleJvmSupportMatriciesKt;
+import org.jetbrains.plugins.gradle.util.GradleJvmSupportMatrices;
 import org.jetbrains.plugins.gradle.util.GradleUtil;
 import org.junit.Assume;
 import org.junit.Rule;
@@ -99,6 +101,8 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
 
   private final List<Sdk> removedSdks = new SmartList<>();
   private PathAssembler.LocalDistribution myDistribution;
+
+  private final Ref<Couple<String>> deprecationError = Ref.create();
 
   @Override
   public void setUp() throws Exception {
@@ -183,6 +187,10 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
     return GradleVersion.version(gradleVersion).getBaseVersion();
   }
 
+  public @NotNull VirtualFile getProjectRoot() {
+    return myProjectRoot;
+  }
+
   protected void assumeTestJavaRuntime(@NotNull JavaVersion javaRuntimeVersion) {
     int javaVer = javaRuntimeVersion.feature;
     GradleVersion gradleBaseVersion = getCurrentGradleBaseVersion();
@@ -210,7 +218,7 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
 
   public static @NotNull String requireJdkHome(@NotNull GradleVersion gradleVersion) {
     JavaVersion javaRuntimeVersion = JavaVersion.current();
-    if (GradleJvmSupportMatriciesKt.isSupported(gradleVersion, javaRuntimeVersion)) {
+    if (GradleJvmSupportMatrices.isSupported(gradleVersion, javaRuntimeVersion)) {
       return IdeaTestUtil.requireRealJdkHome();
     }
     // fix exception of FJP at JavaHomeFinder.suggestHomePaths => ... => EnvironmentUtil.getEnvironmentMap => CompletableFuture.<clinit>
@@ -220,12 +228,12 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
       if (JdkUtil.checkForJdk(path)) {
         JdkVersionDetector.JdkVersionInfo jdkVersionInfo = JdkVersionDetector.getInstance().detectJdkVersionInfo(path);
         if (jdkVersionInfo == null) continue;
-        if (GradleJvmSupportMatriciesKt.isSupported(gradleVersion, jdkVersionInfo.version)) {
+        if (GradleJvmSupportMatrices.isSupported(gradleVersion, jdkVersionInfo.version)) {
           return path;
         }
       }
     }
-    fail("Cannot find JDK for Gradle, checked paths: " + paths);
+    fail("Cannot find JDK for Gradle " + gradleVersion.getVersion() + ", checked paths: " + paths);
     return null;
   }
 
@@ -255,6 +263,12 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
       () -> {
         TestDialogManager.setTestDialog(TestDialog.DEFAULT);
         CompilerTestUtil.deleteBuildSystemDirectory(myProject);
+      },
+      () -> {
+        deprecationError.set(null);
+        if (isGradleNewerOrSameAs("7.0")) {
+          GradleSystemSettings.getInstance().setGradleVmOptions("");
+        }
       },
       super::tearDown
     ).run();
@@ -330,10 +344,27 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
   @Override
   protected void importProject(@NonNls @Language("Groovy") String config, Boolean skipIndexing) throws IOException {
     config = injectRepo(config);
+    if (isGradleNewerOrSameAs("7.0")) {
+      GradleSystemSettings.getInstance().setGradleVmOptions("-Dorg.gradle.warning.mode=fail");
+    }
     super.importProject(config, skipIndexing);
+    handleDeprecationError(deprecationError.get());
   }
 
-  protected void importProject(@NonNls @Language("Groovy") String config) throws IOException {
+  protected void handleDeprecationError(Couple<String> errorInfo) {
+    if (errorInfo == null) return;
+    handleImportFailure(errorInfo.first, errorInfo.second);
+  }
+
+  @Override
+  protected void printOutput(@NotNull String text, boolean stdOut) {
+    if (text.contains("This is scheduled to be removed in Gradle")) {
+      deprecationError.set(Couple.of("Deprecation warning from Gradle", text));
+    }
+    super.printOutput(text, stdOut);
+  }
+
+  public void importProject(@NonNls @Language("Groovy") String config) throws IOException {
     importProject(config, null);
   }
 
@@ -342,8 +373,10 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
       .addPrefix(MAVEN_REPOSITORY_PATCH_PLACE, "");
   }
 
-  protected @NotNull String script(@NotNull Consumer<TestGradleBuildScriptBuilder> configure) {
-    return TestGradleBuildScriptBuilder.Companion.buildscript(this, configure);
+  public @NotNull String script(@NotNull Consumer<TestGradleBuildScriptBuilder> configure) {
+    var builder = createBuildScriptBuilder();
+    configure.accept(builder);
+    return builder.generate();
   }
 
   protected @NotNull String getJUnitTestAnnotationClass() {
@@ -362,14 +395,16 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
 
   @NotNull
   protected String injectRepo(@NonNls @Language("Groovy") String config) {
-    String mavenRepositoryPatch =
-      "allprojects {\n" +
-      "    repositories {\n" +
-      "        maven {\n" +
-      "            url 'https://repo.labs.intellij.net/repo1'\n" +
-      "        }\n" +
-      "    }\n" +
-      "}\n";
+    String mavenRepositoryPatch = // language=groovy
+      """
+        allprojects {
+            repositories {
+                maven {
+                    url 'https://repo.labs.intellij.net/repo1'
+                }
+            }
+        }
+        """;
     if (config.contains(MAVEN_REPOSITORY_PATCH_PLACE)) {
       return config.replace(MAVEN_REPOSITORY_PATCH_PLACE, mavenRepositoryPatch);
     }

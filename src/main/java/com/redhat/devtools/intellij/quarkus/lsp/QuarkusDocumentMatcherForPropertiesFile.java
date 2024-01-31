@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.quarkus.lsp;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Quarkus document matcher for application.properties, microprofile-config.properties
@@ -21,7 +22,7 @@ import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 public class QuarkusDocumentMatcherForPropertiesFile extends AbstractQuarkusDocumentMatcher {
 
     @Override
-    public boolean match(VirtualFile file, Project fileProject) {
+    public boolean match(@NotNull VirtualFile file, @NotNull Project fileProject) {
         if (!matchFile(file, fileProject)) {
             return false;
         }

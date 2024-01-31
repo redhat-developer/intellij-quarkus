@@ -3,10 +3,10 @@
 annotations = "24.0.1"
 
 # plugins
-testlogger = "3.2.0"
+testlogger = "4.0.0"
 kotlin = "1.9.10"
 changelog = "2.2.0"
-gradleIntelliJPlugin = "1.16.1"
+gradleIntelliJPlugin = "1.17.2"
 
 
 [libraries]

@@ -1,5 +1,5 @@
 # Check version to clone from https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html#intellij-platform-based-products-of-recent-ide-versions
-IDEA_VERSION=$(grep '^pluginSinceBuild' gradle.properties | cut -d '=' -f 2 | tr -d ' ') # 222 = 2022.2
+IDEA_VERSION=$(grep '^pluginSinceBuild' gradle.properties | cut -d '=' -f 2 | tr -d ' ') # 223 = 2022.3
 rm -rf intellij-community-tmp 2>/dev/null
 git clone --single-branch --depth 1 --branch $IDEA_VERSION https://github.com/JetBrains/intellij-community intellij-community-tmp
 rm -rf intellij-community 2>/dev/null
@@ -34,6 +34,4 @@ mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/or
 cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation/TargetVersions.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation
 mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/
 cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/VersionMatcher.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util
-mkdir -p intellij-community/plugins/gradle/src/org/jetbrains/plugins/gradle/util
-cp -p intellij-community-tmp/plugins/gradle/src/org/jetbrains/plugins/gradle/util/GradleJvmSupportMatricies.kt intellij-community/plugins/gradle/src/org/jetbrains/plugins/gradle/util
 echo "Done!"

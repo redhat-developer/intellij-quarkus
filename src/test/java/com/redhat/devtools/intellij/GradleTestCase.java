@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.util.Couple;
 import com.redhat.devtools.intellij.quarkus.buildtool.gradle.AbstractGradleToolDelegate;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -70,10 +71,15 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
 
     @Parameterized.Parameters(name = "{index}: with Gradle-{0}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{{"8.4"}});
+        return Arrays.asList(new Object[][]{{"8.6"}});
     }
 
     protected String getJavaFileUri(String path, Module module) {
         return new File(ModuleUtilCore.getModuleDirPath(module), path).toURI().toString();
+    }
+
+    @Override
+    protected void handleDeprecationError(Couple<String> errorInfo) {
+        //Don't fail the test -yet- if Gradle is complaining about deprecated features
     }
 }
