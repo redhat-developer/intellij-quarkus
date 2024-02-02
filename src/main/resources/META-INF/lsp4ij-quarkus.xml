@@ -1,21 +1,15 @@
 <idea-plugin>
+
     <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
 
         <!-- Quarkus LSP -->
         <server id="microprofile"
-                label="Tools for MicroProfile"
+                bundle="messages.MicroProfileBundle"
+                labelKey="microprofile.server.label"
+                descriptionKey="microprofile.server.description"
                 icon="com.redhat.devtools.intellij.microprofile.lang.MicroProfileIcons.MicroProfile"
-                factoryClass="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageServerFactory">
-            <description><![CDATA[
-        The <a href="https://github.com/eclipse/lsp4mp">MicroProfile language server</a> provides <a href="https://microprofile.io/">MicroProfile</a> support in:
-        <ul>
-          <li><b>Java</b> files.</li>
-          <li>and <b>microprofile-config.properties</b> files.</li>
-        </ul>
-        This language server is extended with <a href="https://github.com/redhat-developer/quarkus-ls" >Quarkus extension</a> to provide <a href="https://quarkus.io/">Quarkus</a> support in <b>application.properties</b> file.
-        ]]>
-            </description>
-        </server>
+                factoryClass="com.redhat.devtools.intellij.quarkus.lsp.QuarkusLanguageServerFactory"/>
+
         <languageMapping language="Properties"
                          serverId="microprofile"
                          documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForPropertiesFile"/>
