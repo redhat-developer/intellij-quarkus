@@ -47,23 +47,33 @@ public class MicroProfileGraphQLValidationTest extends LSP4MPMavenModuleImportin
         diagnosticsParams.setUris(Collections.singletonList(javaFileUri));
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
-        Diagnostic d1 = d(38, 4, 15,
+        Diagnostic d1 = d(41, 4, 15,
                 "Directive 'io.openliberty.graphql.sample.Optimistic' is not allowed on element type 'FIELD_DEFINITION'",
                 DiagnosticSeverity.Error, MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
                 MicroProfileGraphQLErrorCode.WRONG_DIRECTIVE_PLACEMENT);
 
-        Diagnostic d2 = d(48, 50, 61,
+        Diagnostic d2 = d(51, 50, 61,
                 "Directive 'io.openliberty.graphql.sample.Optimistic' is not allowed on element type 'ARGUMENT_DEFINITION'",
                 DiagnosticSeverity.Error, MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
                 MicroProfileGraphQLErrorCode.WRONG_DIRECTIVE_PLACEMENT);
 
-        Diagnostic d3 = d(72, 59, 70,
+        Diagnostic d3 = d(75, 59, 70,
                 "Directive 'io.openliberty.graphql.sample.Optimistic' is not allowed on element type 'ARGUMENT_DEFINITION'",
                 DiagnosticSeverity.Error, MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
                 MicroProfileGraphQLErrorCode.WRONG_DIRECTIVE_PLACEMENT);
+
+        Diagnostic d4 = d(101, 11, 17,
+                "Methods annotated with `@Subscription` have to return either `io.smallrye.mutiny.Multi` or `java.util.concurrent.Flow.Publisher`.",
+                DiagnosticSeverity.Error, MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
+                MicroProfileGraphQLErrorCode.SUBSCRIPTION_MUST_RETURN_MULTI);
+
+        Diagnostic d5 = d(106, 11, 33,
+                "Methods annotated with `@Query` or `@Mutation` cannot return `io.smallrye.mutiny.Multi` or `java.util.concurrent.Flow.Publisher`.",
+                DiagnosticSeverity.Error, MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
+                MicroProfileGraphQLErrorCode.SINGLE_RESULT_OPERATION_MUST_NOT_RETURN_MULTI);
 
         assertJavaDiagnostics(diagnosticsParams, utils,
-                d1, d2, d3);
+                d1, d2, d3, d4, d5);
     }
 
 }

@@ -23,10 +23,12 @@ public class MicroProfileGraphQLConstants {
 
     public static final String QUERY_ANNOTATION = "org.eclipse.microprofile.graphql.Query";
     public static final String MUTATION_ANNOTATION = "org.eclipse.microprofile.graphql.Mutation";
-    public static final String SUBSCRIPTION_ANNOTATION = "org.eclipse.microprofile.graphql.Subscription";
+    public static final String SUBSCRIPTION_ANNOTATION = "io.smallrye.graphql.api.Subscription";
     public static final String GRAPHQL_API_ANNOTATION = "org.eclipse.microprofile.graphql.GraphQLApi";
     public static final String UNION_ANNOTATION = "io.smallrye.graphql.api.Union";
     public static final String DIRECTIVE_ANNOTATION = "io.smallrye.graphql.api.Directive";
     public static final String DIAGNOSTIC_SOURCE = "microprofile-graphql";
+    public static final String MULTI = "io.smallrye.mutiny.Multi";
+    public static final String FLOW_PUBLISHER = "java.util.concurrent.Flow.Publisher";
 
 }

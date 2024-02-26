@@ -58,6 +58,8 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
     private static final String NO_VOID_MESSAGE = "Methods annotated with microprofile-graphql's `@Query` cannot have 'void' as a return type.";
     private static final String NO_VOID_MUTATION_MESSAGE = "Methods annotated with microprofile-graphql's `@Mutation` cannot have 'void' as a return type.";
     private static final String WRONG_DIRECTIVE_PLACEMENT = "Directive ''{0}'' is not allowed on element type ''{1}''";
+    private static final String SUBSCRIPTION_MUST_RETURN_MULTI = "Methods annotated with `@Subscription` have to return either `io.smallrye.mutiny.Multi` or `java.util.concurrent.Flow.Publisher`.";
+    private static final String SINGLE_RESULT_OPERATION_MUST_NOT_RETURN_MULTI = "Methods annotated with `@Query` or `@Mutation` cannot return `io.smallrye.mutiny.Multi` or `java.util.concurrent.Flow.Publisher`.";
 
     boolean allowsVoidReturnFromOperations = true;
 
@@ -84,6 +86,8 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
         if(!allowsVoidReturnFromOperations) {
             validateNoVoidReturnedFromOperations(node);
         }
+        validateMultiReturnTypeFromSubscriptions(node);
+        validateNoMultiReturnTypeFromQueriesAndMutations(node);
         super.visitMethod(node);
     }
 
@@ -212,6 +216,65 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
                         node.getReturnTypeElement(), //
                         MicroProfileGraphQLErrorCode.NO_VOID_MUTATIONS, //
                         DiagnosticSeverity.Error);
+            }
+        }
+    }
+
+    /**
+     * A method annotated with `@Subscription` must return a `Multi` or `Flow.Publisher`.
+     */
+    private void validateMultiReturnTypeFromSubscriptions(PsiMethod node) {
+        if(node.getReturnType() == null) {
+            return;
+        }
+        for (PsiAnnotation annotation : node.getAnnotations()) {
+            if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.SUBSCRIPTION_ANNOTATION)) {
+                if(node.getReturnType().equals(PsiType.VOID)) {
+                    super.addDiagnostic(SUBSCRIPTION_MUST_RETURN_MULTI,
+                            MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
+                            node.getReturnTypeElement(),
+                            MicroProfileGraphQLErrorCode.SUBSCRIPTION_MUST_RETURN_MULTI,
+                            DiagnosticSeverity.Error);
+                    return;
+                }
+                if (node.getReturnType() instanceof PsiClassReferenceType) {
+                    String returnTypeName = ((PsiClassReferenceType) node.getReturnType()).getReference().getQualifiedName();
+                    if (!returnTypeName.equals(MicroProfileGraphQLConstants.MULTI)
+                            && !returnTypeName.equals(MicroProfileGraphQLConstants.FLOW_PUBLISHER)) {
+                        super.addDiagnostic(SUBSCRIPTION_MUST_RETURN_MULTI,
+                                MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
+                                node.getReturnTypeElement(),
+                                MicroProfileGraphQLErrorCode.SUBSCRIPTION_MUST_RETURN_MULTI,
+                                DiagnosticSeverity.Error);
+                    }
+
+                }
+            }
+        }
+    }
+
+    /**
+     * Methods annotated with `@Query` or `@Mutation` must NOT return
+     * a `Multi` or `Flow.Publisher` type.
+     */
+    private void validateNoMultiReturnTypeFromQueriesAndMutations(PsiMethod node) {
+        if(node.getReturnType() == null) {
+            return;
+        }
+        for (PsiAnnotation annotation : node.getAnnotations()) {
+            if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.QUERY_ANNOTATION)
+                    || isMatchAnnotation(annotation, MicroProfileGraphQLConstants.MUTATION_ANNOTATION)) {
+                if (node.getReturnType() instanceof PsiClassReferenceType) {
+                    String returnTypeName = ((PsiClassReferenceType) node.getReturnType()).getReference().getQualifiedName();
+                    if (returnTypeName.equals(MicroProfileGraphQLConstants.MULTI)
+                            || returnTypeName.equals(MicroProfileGraphQLConstants.FLOW_PUBLISHER)) {
+                        super.addDiagnostic(SINGLE_RESULT_OPERATION_MUST_NOT_RETURN_MULTI,
+                                MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
+                                node.getReturnTypeElement(),
+                                MicroProfileGraphQLErrorCode.SINGLE_RESULT_OPERATION_MUST_NOT_RETURN_MULTI,
+                                DiagnosticSeverity.Error);
+                    }
+                }
             }
         }
     }
