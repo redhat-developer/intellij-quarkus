@@ -118,6 +118,15 @@ dependencies {
     })
 
     testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0")
+
+    // And now for some serious HACK!!!
+    // Starting with 2023.1, all gradle tests fail importing projects with a:
+    // com.intellij.openapi.externalSystem.model.ExternalSystemException: Unable to load class 'org.codehaus.plexus.logging.Logger'
+    // Hence adding a jar containing the missing class, to the test classpath
+    // The version matches the jar found in the IJ version used to compile the project
+    // This is so wrong/ridiculous!
+    testImplementation("org.eclipse.sisu:org.eclipse.sisu.plexus:0.3.4")
+
     testImplementation("org.assertj:assertj-core:3.19.0")
 }
 

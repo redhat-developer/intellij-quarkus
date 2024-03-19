@@ -30,6 +30,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.platform.testFramework.io.ExternalResourcesChecker;
 import com.intellij.testFramework.ExtensionTestUtil;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.RunAll;
@@ -47,6 +48,7 @@ import org.gradle.wrapper.WrapperConfiguration;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JdkVersionDetector;
 import org.jetbrains.plugins.gradle.frameworkSupport.buildscript.GradleBuildScriptBuilderUtil;
 import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType;
@@ -73,10 +75,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -88,7 +87,7 @@ import static org.junit.Assume.assumeThat;
 @RunWith(Parameterized.class)
 public abstract class GradleImportingTestCase extends JavaExternalSystemImportingTestCase {
   public static final String BASE_GRADLE_VERSION = VersionMatcherRule.BASE_GRADLE_VERSION;
-  protected static final String GRADLE_JDK_NAME = "Gradle JDK";
+  public static final String GRADLE_JDK_NAME = "Gradle JDK";
   private static final int GRADLE_DAEMON_TTL_MS = 10000;
 
   @Rule public TestName name = new TestName();
@@ -103,6 +102,8 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
   private PathAssembler.LocalDistribution myDistribution;
 
   private final Ref<Couple<String>> deprecationError = Ref.create();
+  private final StringBuilder deprecationTextBuilder = new StringBuilder();
+  private int deprecationTextLineCount = 0;
 
   @Override
   public void setUp() throws Exception {
@@ -111,7 +112,7 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
 
     super.setUp();
 
-    WriteAction.runAndWait(this::configureJDKTable);
+    WriteAction.runAndWait(this::configureJdkTable);
     System.setProperty(ExternalSystemExecutionSettings.REMOTE_PROCESS_IDLE_TTL_IN_MS_KEY, String.valueOf(GRADLE_DAEMON_TTL_MS));
 
     ExtensionTestUtil.maskExtensions(UnknownSdkResolver.EP_NAME, List.of(TestUnknownSdkResolver.INSTANCE), getTestRootDisposable());
@@ -121,19 +122,34 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
     cleanScriptsCacheIfNeeded();
   }
 
-  private void configureJDKTable() throws Exception {
+  protected void configureJdkTable() {
+    cleanJdkTable();
+    ArrayList<Sdk> jdks = new ArrayList<>(Arrays.asList(createJdkFromJavaHome()));
+    populateJdkTable(jdks);
+  }
+
+  protected void cleanJdkTable() {
     removedSdks.clear();
     for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
       ProjectJdkTable.getInstance().removeJdk(sdk);
       if (GRADLE_JDK_NAME.equals(sdk.getName())) continue;
       removedSdks.add(sdk);
     }
+  }
+
+  protected void populateJdkTable(@NotNull List<Sdk> jdks) {
+    for (Sdk jdk : jdks) {
+      ProjectJdkTable.getInstance().addJdk(jdk);
+    }
+  }
+
+  private Sdk createJdkFromJavaHome() {
     VirtualFile jdkHomeDir = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(new File(myJdkHome));
     JavaSdk javaSdk = JavaSdk.getInstance();
     SdkType javaSdkType = javaSdk == null ? SimpleJavaSdkType.getInstance() : javaSdk;
     Sdk jdk = SdkConfigurationUtil.setupSdk(new Sdk[0], jdkHomeDir, javaSdkType, true, null, GRADLE_JDK_NAME);
     assertNotNull("Cannot create JDK for " + myJdkHome, jdk);
-    ProjectJdkTable.getInstance().addJdk(jdk);
+    return jdk;
   }
 
   @Override
@@ -359,9 +375,26 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
   @Override
   protected void printOutput(@NotNull String text, boolean stdOut) {
     if (text.contains("This is scheduled to be removed in Gradle")) {
-      deprecationError.set(Couple.of("Deprecation warning from Gradle", text));
+      deprecationTextLineCount = 15;
+    }
+    if (deprecationTextLineCount > 0) {
+      deprecationTextBuilder.append(text);
+      deprecationTextLineCount--;
+      if (deprecationTextLineCount == 0) {
+        deprecationError.set(Couple.of("Deprecation warning from Gradle", deprecationTextBuilder.toString()));
+        deprecationTextBuilder.setLength(0);
+      }
     }
     super.printOutput(text, stdOut);
+  }
+
+  @Override
+  protected void handleImportFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+    var combinedMessage = errorMessage + "\n" + errorDetails;
+    if (combinedMessage.contains("org.gradle.wrapper.Download.download") && combinedMessage.contains("java.net.SocketException")) {
+      ExternalResourcesChecker.reportUnavailability("Gradle distribution service", null);
+    }
+    super.handleImportFailure(errorMessage, errorDetails);
   }
 
   public void importProject(@NonNls @Language("Groovy") String config) throws IOException {
@@ -395,7 +428,7 @@ public abstract class GradleImportingTestCase extends JavaExternalSystemImportin
 
   @NotNull
   protected String injectRepo(@NonNls @Language("Groovy") String config) {
-    String mavenRepositoryPatch = // language=groovy
+    String mavenRepositoryPatch =
       """
         allprojects {
             repositories {
