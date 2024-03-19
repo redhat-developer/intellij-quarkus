@@ -18,7 +18,7 @@ import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.redhat.devtools.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
-import com.redhat.devtools.lsp4ij.operations.diagnostics.SeverityMapping;
+import com.redhat.devtools.lsp4ij.features.diagnostics.SeverityMapping;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.inspections.*;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 

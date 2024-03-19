@@ -34,7 +34,7 @@ import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.lsp4ij.commands.LSPCommand;
 import com.redhat.devtools.lsp4ij.commands.LSPCommandAction;
 import com.redhat.devtools.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
-import com.redhat.devtools.lsp4ij.operations.diagnostics.SeverityMapping;
+import com.redhat.devtools.lsp4ij.features.diagnostics.SeverityMapping;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.jetbrains.annotations.NotNull;
