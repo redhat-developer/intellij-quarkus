@@ -17,7 +17,7 @@ import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
-import com.redhat.devtools.lsp4ij.operations.diagnostics.SeverityMapping;
+import com.redhat.devtools.lsp4ij.features.diagnostics.SeverityMapping;
 import com.redhat.devtools.lsp4ij.inspections.AbstractDelegateInspectionWithExclusions;
 import com.redhat.devtools.intellij.qute.psi.core.inspections.QuteGlobalInspection;
 import com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedNamespaceInspection;

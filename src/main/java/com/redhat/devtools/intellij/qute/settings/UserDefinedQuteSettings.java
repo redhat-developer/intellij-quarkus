@@ -19,7 +19,7 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.annotations.Tag;
-import com.redhat.devtools.lsp4ij.operations.diagnostics.SeverityMapping;
+import com.redhat.devtools.lsp4ij.features.diagnostics.SeverityMapping;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

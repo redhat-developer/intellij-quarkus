@@ -3,7 +3,7 @@
     <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
         <!-- Qute LSP -->
         <server id="qute"
-                label="Qute support"
+                name="Qute support"
                 icon="com.redhat.devtools.intellij.quarkus.lang.QuarkusIcons.Quarkus"
                 factoryClass="com.redhat.devtools.intellij.qute.lsp.QuteLanguageServerFactory">
             <description><![CDATA[
@@ -40,17 +40,17 @@
              we define the LSPDocumentationProvider at the first order -->
         <lang.documentationProvider
                 language="yaml"
-                implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider"
+                implementationClass="com.redhat.devtools.lsp4ij.features.documentation.LSPDocumentationProvider"
                 order="first"/>
         <!-- As IJ provides the com.jetbrains.jsonSchema.imp.JsonSchemaDocumentationProvider which manages hover for json file,
              we define the LSPDocumentationProvider at the first order -->
         <lang.documentationProvider
                 language="JSON"
-                implementationClass="com.redhat.devtools.lsp4ij.operations.documentation.LSPDocumentationProvider"
+                implementationClass="com.redhat.devtools.lsp4ij.features.documentation.LSPDocumentationProvider"
                 order="first"/>
 
         <completion.confidence language="HTML" order="before htmlText"
-                               implementationClass="com.redhat.devtools.lsp4ij.operations.completion.LSPCompletionConfidence"/>
+                               implementationClass="com.redhat.devtools.lsp4ij.features.completion.LSPCompletionConfidence"/>
 
         <implicitUsageProvider
                 implementation="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeImplicitUsageProvider"/>
