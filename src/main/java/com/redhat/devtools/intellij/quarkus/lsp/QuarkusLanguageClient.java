@@ -17,6 +17,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.ProfileChangeAdapter;
@@ -32,6 +33,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.settings.MicroProfileInspectionsIn
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.QuarkusPluginDisposable;
 import com.redhat.devtools.lsp4ij.JSONUtils;
 import com.redhat.devtools.lsp4ij.client.CoalesceByKey;
 import com.redhat.devtools.lsp4ij.client.IndexAwareLanguageClient;
@@ -59,10 +61,11 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     public QuarkusLanguageClient(Project project) {
         super(project);
-        // Call Quarkus deployment support here to react on library changed (to evict quarkus deploiement cache) before
+        // Call Quarkus deployment support here to react on library changed (to evict quarkus deployment cache) before
         // sending an LSP microprofile/propertiesChanged notifications
+        Disposer.register(QuarkusPluginDisposable.getInstance(project), this);
         QuarkusDeploymentSupport.getInstance(project);
-        connection = project.getMessageBus().connect(project);
+        connection = project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project));
         connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
         inspectionsInfo = MicroProfileInspectionsInfo.getMicroProfileInspectionInfo(project);
         connection.subscribe(ProfileChangeAdapter.TOPIC, this);

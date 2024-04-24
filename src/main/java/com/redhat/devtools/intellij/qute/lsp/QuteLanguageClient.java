@@ -17,10 +17,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.ProfileChangeAdapter;
 import com.intellij.util.messages.MessageBusConnection;
+import com.redhat.devtools.intellij.quarkus.QuarkusPluginDisposable;
 import com.redhat.devtools.lsp4ij.client.CoalesceByKey;
 import com.redhat.devtools.lsp4ij.client.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
@@ -54,7 +56,8 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
 
     public QuteLanguageClient(Project project) {
         super(project);
-        connection = project.getMessageBus().connect(project);
+        Disposer.register(QuarkusPluginDisposable.getInstance(project), this);
+        connection = project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project));
         connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
         inspectionsInfo = QuteInspectionsInfo.getQuteInspectionsInfo(project);
         connection.subscribe(ProfileChangeAdapter.TOPIC, this);

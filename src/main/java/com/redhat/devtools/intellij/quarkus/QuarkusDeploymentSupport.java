@@ -64,7 +64,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
 
     public QuarkusDeploymentSupport(Project project) {
         this.project = project;
-        connection = project.getMessageBus().connect(project);
+        connection = project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project));
         connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
     }
 

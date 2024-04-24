@@ -17,12 +17,11 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.dashboard.RunDashboardManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.concurrency.NonUrgentExecutor;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.QuarkusPluginDisposable;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.quarkus.buildtool.ProjectImportListener;
 import com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettings;
@@ -92,7 +91,7 @@ public class QuarkusRunConfigurationManager implements Disposable {
 
     @NotNull
     private MessageBusConnection addProjectImportListener(Project project) {
-        MessageBusConnection connection = project.getMessageBus().connect();
+        MessageBusConnection connection = project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project));
         ProjectImportListener listener = new ProjectImportListener() {
 
             @Override
