@@ -52,7 +52,7 @@ public class QuarkusProjectService implements ClasspathResourceChangedManager.Li
     private final MessageBusConnection connection;
 
     public QuarkusProjectService(Project project) {
-        connection = project.getMessageBus().connect();
+        connection = project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project));
         connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
     }
 

@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import com.redhat.devtools.intellij.quarkus.QuarkusPluginDisposable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -35,7 +36,7 @@ import java.util.Set;
  *
  * <code>
  * ClasspathResourceChangeManager.Listener myListener = ...
- * project.getMessageBus().connect(project).subscribe(ClasspathResourceChangeManager.TOPIC, myListener);
+ * project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project)).subscribe(ClasspathResourceChangeManager.TOPIC, myListener);
  * </code>
  *
  *
@@ -72,7 +73,7 @@ public class ClasspathResourceChangedManager implements Disposable {
 		// Send source files changed in debounce mode
 		this.resourceChangedNotifier = new ClasspathResourceChangedNotifier(project);
 		listener = new ClasspathResourceChangedListener(this);
-		projectConnection = project.getMessageBus().connect();
+		projectConnection = project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project));
 		// Track end of Java libraries update
 		LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(listener);
 		// Track update of Psi Java, properties files
@@ -80,7 +81,7 @@ public class ClasspathResourceChangedManager implements Disposable {
 		// Track modules changes
 		projectConnection.subscribe(ProjectTopics.MODULES, listener);
 		// Track delete, create, update of file
-		appConnection = ApplicationManager.getApplication().getMessageBus().connect(project);
+		appConnection = ApplicationManager.getApplication().getMessageBus().connect(QuarkusPluginDisposable.getInstance());
 		appConnection.subscribe(VirtualFileManager.VFS_CHANGES, listener);
 	}
 
