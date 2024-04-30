@@ -68,9 +68,8 @@ public class QuarkusSchedulerASTVisitor extends JavaASTValidator {
 	private void validateScheduledAnnotation(PsiMethod node, PsiAnnotation annotation) {
 		PsiAnnotationMemberValue cronExpr = getAnnotationMemberValueExpression(annotation,
 				QuarkusConstants.SCHEDULED_ANNOTATION_CRON);
-		if (cronExpr != null && cronExpr instanceof PsiLiteral && ((PsiLiteral) cronExpr).getValue() instanceof String) {
-			String cronValue = (String) ((PsiLiteral) cronExpr).getValue();
-			if (!malformedEnvDiagnostic(cronExpr, cronValue)) {
+		if (cronExpr instanceof PsiLiteral cronExprLit && cronExprLit.getValue() instanceof String cronValue) {
+			if (!checkedEnvDiagnostic(cronExpr, cronValue, SchedulerUtils.ValidationType.cron)) {
 				SchedulerErrorCodes cronPartFault = SchedulerUtils.validateCronPattern(cronValue);
 				if (cronPartFault != null) {
 					super.addDiagnostic(cronPartFault.getErrorMessage(), QuarkusConstants.QUARKUS_PREFIX, cronExpr,
@@ -80,12 +79,12 @@ public class QuarkusSchedulerASTVisitor extends JavaASTValidator {
 		}
 		PsiAnnotationMemberValue everyExpr = getAnnotationMemberValueExpression(annotation,
 				QuarkusConstants.SCHEDULED_ANNOTATION_EVERY);
-		if (everyExpr != null && everyExpr instanceof PsiLiteral && ((PsiLiteral) everyExpr).getValue() instanceof String) {
+		if (everyExpr instanceof PsiLiteral everyExprLit && everyExprLit.getValue() instanceof String) {
 			durationParseDiagnostics(everyExpr);
 		}
 		PsiAnnotationMemberValue delayedExpr = getAnnotationMemberValueExpression(annotation,
 				QuarkusConstants.SCHEDULED_ANNOTATION_DELAYED);
-		if (delayedExpr != null && delayedExpr instanceof PsiLiteral && ((PsiLiteral) delayedExpr).getValue() instanceof String) {
+		if (delayedExpr instanceof PsiLiteral delayedExprLit && delayedExprLit.getValue() instanceof String) {
 			durationParseDiagnostics(delayedExpr);
 		}
 	}
@@ -97,7 +96,7 @@ public class QuarkusSchedulerASTVisitor extends JavaASTValidator {
 	 */
 	private void durationParseDiagnostics(PsiAnnotationMemberValue expr) {
 		String value = (String) ((PsiLiteral) expr).getValue();
-		if (!malformedEnvDiagnostic(expr, value)) {
+		if (!checkedEnvDiagnostic(expr, value, SchedulerUtils.ValidationType.duration)) {
 			SchedulerErrorCodes memberFault = SchedulerUtils.validateDurationParse(value);
 			if (memberFault != null) {
 				super.addDiagnostic(memberFault.getErrorMessage(), QuarkusConstants.QUARKUS_PREFIX, expr, memberFault,
@@ -109,13 +108,14 @@ public class QuarkusSchedulerASTVisitor extends JavaASTValidator {
 	/**
 	 * Retrieve the SchedulerErrorCodes for env member value check
 	 *
-	 * @param expr        The expression retrieved from the annotation
-	 * @param memberValue The member value from expression
+	 * @param expr           The expression retrieved from the annotation
+	 * @param memberValue    The member value from expression
+	 * @param validationType
 	 */
-	private boolean malformedEnvDiagnostic(PsiAnnotationMemberValue expr, String memberValue) {
-		SchedulerErrorCodes malformedEnvFault = SchedulerUtils.matchEnvMember(memberValue);
+	private boolean checkedEnvDiagnostic(PsiAnnotationMemberValue expr, String memberValue, SchedulerUtils.ValidationType validationType) {
+		SchedulerErrorCodes malformedEnvFault = SchedulerUtils.matchEnvMember(memberValue, validationType);
 		if (malformedEnvFault != null) {
-			if (malformedEnvFault == SchedulerErrorCodes.INVALID_CHAR_IN_EXPRESSION) {
+			if (!SchedulerErrorCodes.VALID_EXPRESSION.equals(malformedEnvFault)) {
 				super.addDiagnostic(malformedEnvFault.getErrorMessage(), QuarkusConstants.QUARKUS_PREFIX, expr,
 						malformedEnvFault, DiagnosticSeverity.Warning);
 			}

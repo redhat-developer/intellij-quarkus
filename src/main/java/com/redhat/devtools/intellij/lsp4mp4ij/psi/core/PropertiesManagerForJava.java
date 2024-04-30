@@ -232,7 +232,7 @@ public class PropertiesManagerForJava {
                             hyperlinkedElement, hyperlinkedPosition);
                     List<IJavaDefinitionParticipant> definitions = IJavaDefinitionParticipant.EP_NAME.extensions()
                             .filter(definition -> definition.isAdaptedForDefinition(context))
-                            .collect(Collectors.toList());
+                            .toList();
                     if (definitions.isEmpty()) {
                         return;
                     }
@@ -290,7 +290,7 @@ public class PropertiesManagerForJava {
                 JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, module, documentFormat, settings);
                 List<IJavaDiagnosticsParticipant> definitions = IJavaDiagnosticsParticipant.EP_NAME.extensions()
                         .filter(definition -> definition.isAdaptedForDiagnostics(context))
-                        .collect(Collectors.toList());
+                        .toList();
                 if (definitions.isEmpty()) {
                     return;
                 }
