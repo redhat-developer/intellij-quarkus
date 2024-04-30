@@ -30,6 +30,7 @@ public class MicroProfileHealthConstants {
 	public static final String HEALTH_ANNOTATION = "org.eclipse.microprofile.health.Health";
 	public static final String READINESS_ANNOTATION = "org.eclipse.microprofile.health.Readiness";
 	public static final String LIVENESS_ANNOTATION = "org.eclipse.microprofile.health.Liveness";
+	public static final String STARTUP_ANNOTATION = "org.eclipse.microprofile.health.Startup";
 
 	public static final String HEALTH_CHECK_INTERFACE_NAME = "HealthCheck";
 
