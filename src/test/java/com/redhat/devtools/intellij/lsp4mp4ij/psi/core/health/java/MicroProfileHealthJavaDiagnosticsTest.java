@@ -50,7 +50,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
         Diagnostic d = d(9, 13, 37,
-                "The class `org.acme.health.DontImplementHealthCheck` using the @Liveness, @Readiness, or @Health annotation should implement the HealthCheck interface.",
+                "The class `org.acme.health.DontImplementHealthCheck` using the @Liveness, @Readiness or @Health annotation should implement the HealthCheck interface.",
                 DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
                 MicroProfileHealthErrorCode.ImplementHealthCheck);
         assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
@@ -78,7 +78,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
         Diagnostic d = d(5, 13, 33,
-                "The class `org.acme.health.ImplementHealthCheck` implementing the HealthCheck interface should use the @Liveness, @Readiness, or @Health annotation.",
+                "The class `org.acme.health.ImplementHealthCheck` implementing the HealthCheck interface should use the @Liveness, @Readiness or @Health annotation.",
                 DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
                 MicroProfileHealthErrorCode.HealthAnnotationMissing);
         assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
@@ -118,7 +118,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
         Diagnostic d = d(5, 13, 28,
-                "The class `org.acme.MyLivenessCheck` implementing the HealthCheck interface should use the @Liveness or @Readiness annotation.",
+                "The class `org.acme.MyLivenessCheck` implementing the HealthCheck interface should use the @Liveness, @Readiness or @Startup annotation.",
                 DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
                 MicroProfileHealthErrorCode.HealthAnnotationMissing);
         assertJavaDiagnostics(diagnosticsParams, utils, //
@@ -130,7 +130,9 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
                 ca(uri, "Insert @Liveness", MicroProfileCodeActionId.InsertMissingHealthAnnotation, d, //
                         te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Liveness;\n\n@Liveness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")), //
                 ca(uri, "Insert @Readiness", MicroProfileCodeActionId.InsertMissingHealthAnnotation, d, //
-                        te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n"))
+                        te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Readiness;\n\n@Readiness\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n")),//
+                ca(uri, "Insert @Startup", MicroProfileCodeActionId.InsertMissingHealthAnnotation, d, //
+                        te(0, 0, 13, 0, "package org.acme;\n\nimport org.eclipse.microprofile.health.HealthCheck;\nimport org.eclipse.microprofile.health.HealthCheckResponse;\nimport org.eclipse.microprofile.health.Startup;\n\n@Startup\npublic class MyLivenessCheck implements HealthCheck {\n\n    @Override\n    public HealthCheckResponse call() {\n        return HealthCheckResponse.up(\"alive\");\n    }\n\n}\n"))
         );
     }
 }

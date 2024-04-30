@@ -40,7 +40,7 @@ import java.util.List;
 public class HealthAnnotationMissingQuickFix extends InsertAnnotationMissingQuickFix {
 
 	public HealthAnnotationMissingQuickFix() {
-		super(MicroProfileHealthConstants.LIVENESS_ANNOTATION, MicroProfileHealthConstants.READINESS_ANNOTATION,
+		super(MicroProfileHealthConstants.LIVENESS_ANNOTATION, MicroProfileHealthConstants.READINESS_ANNOTATION,MicroProfileHealthConstants.STARTUP_ANNOTATION,
 				MicroProfileHealthConstants.HEALTH_ANNOTATION);
 	}
 

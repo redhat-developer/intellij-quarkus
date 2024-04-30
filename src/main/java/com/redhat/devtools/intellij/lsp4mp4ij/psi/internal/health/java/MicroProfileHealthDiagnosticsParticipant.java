@@ -25,16 +25,13 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHe
 import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Range;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.HEALTH_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.HEALTH_CHECK_INTERFACE;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.HEALTH_CHECK_INTERFACE_NAME;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.LIVENESS_ANNOTATION;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.READINESS_ANNOTATION;
+import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroProfileHealthConstants.*;
 
 /**
  *
@@ -42,10 +39,10 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.MicroPr
  * 
  * <ul>
  * <li>Diagnostic 1:display Health annotation diagnostic message if
- * Health/Liveness/Readiness annotation exists but HealthCheck interface is not
+ * Health/Liveness/Readiness/Startup annotation exists but HealthCheck interface is not
  * implemented</li>
  * <li>Diagnostic 2: display HealthCheck diagnostic message if HealthCheck
- * interface is implemented but Health/Liveness/Readiness annotation does not
+ * interface is implemented but Health/Liveness/Readiness/Startup annotation does not
  * exist</li>
  * 
  * </ul>
@@ -83,12 +80,10 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 	private static void collectDiagnostics(PsiElement[] elements, List<Diagnostic> diagnostics,
 										   JavaDiagnosticsContext context) {
 		for (PsiElement element : elements) {
-			if (element instanceof PsiClass) {
-				PsiClass type = (PsiClass) element;
+			if (element instanceof PsiClass type) {
 				if (!type.isInterface()) {
 					validateClassType(type, diagnostics, context);
 				}
-				continue;
 			}
 		}
 	}
@@ -100,9 +95,9 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 		PsiClass[] interfaces = findImplementedInterfaces(classType);
 		boolean implementsHealthCheck = Stream.of(interfaces)
 				.anyMatch(interfaceType -> HEALTH_CHECK_INTERFACE_NAME.equals(interfaceType.getName()));
-		boolean hasOneOfHealthAnnotation = AnnotationUtils.hasAnyAnnotation(classType, LIVENESS_ANNOTATION, READINESS_ANNOTATION, HEALTH_ANNOTATION);
+		boolean hasOneOfHealthAnnotation = AnnotationUtils.hasAnyAnnotation(classType, LIVENESS_ANNOTATION, READINESS_ANNOTATION, STARTUP_ANNOTATION, HEALTH_ANNOTATION);
 		// Diagnostic 1:display Health annotation diagnostic message if
-		// Health/Liveness/Readiness annotation exists but HealthCheck interface is not
+		// Health/Liveness/Readiness/Startup annotation exists but HealthCheck interface is not
 		// implemented
 		if (hasOneOfHealthAnnotation && !implementsHealthCheck) {
 			Range healthCheckInterfaceRange = PositionUtils.toNameRange(classType, utils);
@@ -113,7 +108,7 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 		}
 
 		// Diagnostic 2: display HealthCheck diagnostic message if HealthCheck interface
-		// is implemented but Health/Liveness/Readiness annotation does not exist
+		// is implemented but Health/Liveness/Readiness/Startup annotation does not exist
 		if (implementsHealthCheck && !hasOneOfHealthAnnotation) {
 			Range healthCheckInterfaceRange = PositionUtils.toNameRange(classType, utils);
 			Diagnostic d = context.createDiagnostic(uri, createDiagnostic2Message(classType, documentFormat),
@@ -124,52 +119,52 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 	}
 
 	private static String createDiagnostic1Message(PsiClass classType, DocumentFormat documentFormat) {
-		StringBuilder message = new StringBuilder("The class ");
-		if (DocumentFormat.Markdown.equals(documentFormat)) {
-			message.append("`");
-		}
-		message.append(classType.getQualifiedName());
-		if (DocumentFormat.Markdown.equals(documentFormat)) {
-			message.append("`");
-		}
-		message.append(" using the @Liveness");
-		boolean hasHealth = PsiTypeUtils.findType(classType.getManager(), HEALTH_ANNOTATION) != null;
-		if (!hasHealth) {
-			message.append(" or ");
-		} else {
-			message.append(", ");
-		}
-		message.append("@Readiness");
-		if (hasHealth) {
-			message.append(", or @Health");
-		}
+		StringBuilder message = getMessage(classType, documentFormat);
+		message.append(" using the ");
+		listAvailableAnnotations(classType, message);
 		message.append(" annotation should implement the HealthCheck interface.");
 		return message.toString();
 	}
 
 	private static String createDiagnostic2Message(PsiClass classType, DocumentFormat documentFormat) {
-		StringBuilder message = new StringBuilder("The class ");
-		if (DocumentFormat.Markdown.equals(documentFormat)) {
-			message.append("`");
-		}
-		message.append(classType.getQualifiedName());
-		if (DocumentFormat.Markdown.equals(documentFormat)) {
-			message.append("`");
-		}
-		message.append(
-				" implementing the HealthCheck interface should use the @Liveness");
-		boolean hasHealth = PsiTypeUtils.findType(classType.getManager(), HEALTH_ANNOTATION) != null;
-		if (!hasHealth) {
-			message.append(" or ");
-		} else {
-			message.append(", ");
-		}
-		message.append("@Readiness");
-		if (hasHealth) {
-			message.append(", or @Health");
-		}
+		StringBuilder message = getMessage(classType, documentFormat);
+		message.append(" implementing the HealthCheck interface should use the ");
+		listAvailableAnnotations(classType, message);
 		message.append(" annotation.");
 		return message.toString();
+	}
+
+	private static @NotNull StringBuilder getMessage(PsiClass classType, DocumentFormat documentFormat) {
+		StringBuilder message = new StringBuilder("The class ");
+		String backtick = (documentFormat == DocumentFormat.Markdown) ? "`" : "";
+		message.append(backtick)
+				.append(classType.getQualifiedName())
+				.append(backtick);
+		return message;
+	}
+
+	private static void listAvailableAnnotations(PsiClass classType, StringBuilder message) {
+		List<String> annotations = new ArrayList<>(4);
+		annotations.add("@Liveness");
+		annotations.add("@Readiness");
+		if (PsiTypeUtils.findType(classType.getManager(), STARTUP_ANNOTATION) != null) {
+			annotations.add("@Startup");
+		}
+		;
+		if (PsiTypeUtils.findType(classType.getManager(), HEALTH_ANNOTATION) != null) {
+			annotations.add("@Health");
+		}
+		;
+		int size = annotations.size();
+		int secondLast = size - 2;
+		for(int i = 0; i < size; i++) {
+			message.append(annotations.get(i));
+			if (i == secondLast) {
+				message.append(" or ");
+			} else if (i < secondLast){
+				message.append(", ");
+			}
+		}
 	}
 
 	private static PsiClass[] findImplementedInterfaces(PsiClass type) {
