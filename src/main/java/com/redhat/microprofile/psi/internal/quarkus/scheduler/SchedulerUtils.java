@@ -15,6 +15,7 @@ package com.redhat.microprofile.psi.internal.quarkus.scheduler;
 
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -22,6 +23,10 @@ import java.util.regex.Pattern;
  *
  */
 public class SchedulerUtils {
+
+	public static enum ValidationType {
+		cron, duration
+	}
 
 	// Patterns for each cron part of the cron member expression in order of
 	// SchedulerErrorCode enum ordinal
@@ -57,7 +62,8 @@ public class SchedulerUtils {
 
 	private static final Pattern TIME_PERIOD_PATTERN = Pattern.compile("\\d+[smhSMH]$");
 
-	private static final Pattern ENV_PATTERN = Pattern.compile("^\\$?\\{[0-9a-zA-Z.:]*\\}$");
+	// Define the regex pattern for environment variables with optional default values (allowing spaces in default values) and optional prefix
+	private static final Pattern ENV_PATTERN = Pattern.compile("^\\$?\\{([^\\{\\}:\\s=]+)(?:\\:([^\\{\\}=]*))?\\}$");
 
 	private static final Pattern LOOSE_ENV_PATTERN = Pattern.compile("^.*\\$?\\{.*\\}.*$");
 
@@ -69,7 +75,7 @@ public class SchedulerUtils {
 	 * error message if necessary
 	 *
 	 * @param cronString the cron member value
-	 * @return the error fault for the cron string validation and null if valid
+	 * @return the error fault for the cron string validation and <code>null</code> if valid
 	 */
 	public static SchedulerErrorCodes validateCronPattern(String cronString) {
 
@@ -93,7 +99,7 @@ public class SchedulerUtils {
 	 * unit
 	 *
 	 * @param timePattern the member value for the time pattern
-	 * @return the INVALID_DURATION_PARSE_PATTERN error code if invalid and null if
+	 * @return the INVALID_DURATION_PARSE_PATTERN error code if invalid and <code>null</code> if
 	 *         valid
 	 */
 //	\\d+[smhSMH]
@@ -112,21 +118,38 @@ public class SchedulerUtils {
 	 * Check if the member value env variable pattern is well formed
 	 *
 	 * @param memberValue the member value from expression
-	 * @return INVALID_CHAR_IN_EXPRESSION if the env variable is malformed
+	 * @param validationType the type of validation to perform on the default value
+	 * @return a SchedulerErrorCodes if memberValue is invalid,
+	 * <code>null</code> otherwise.
 	 */
-	public static SchedulerErrorCodes matchEnvMember(String memberValue) {
-		return checkLooseEnvPattern(memberValue) ? (checkEnvPattern(memberValue) ? SchedulerErrorCodes.VALID_EXPRESSION
-				: SchedulerErrorCodes.INVALID_CHAR_IN_EXPRESSION) : null;
+	public static SchedulerErrorCodes matchEnvMember(String memberValue, ValidationType validationType) {
+		return checkLooseEnvPattern(memberValue) ? checkEnvPattern(memberValue, validationType) : null;
 	}
 
 	/**
 	 * Match the member to an env variable pattern
 	 *
 	 * @param memberValue the member value from expression
-	 * @return true if pattern is well-formed env variable, false otherwise
+	 * @param validationType the type of validation to perform on the default value
+	 * @return SchedulerErrorCodes if the variable is invalid or the default value is not a valid cron expression,
+	 * <code>SchedulerErrorCodes.VALID_EXPRESSION</code> otherwise.
 	 */
-	private static boolean checkEnvPattern(String memberValue) {
-		return ENV_PATTERN.matcher(memberValue).matches();
+	private static SchedulerErrorCodes checkEnvPattern(String memberValue, ValidationType validationType) {
+		Matcher matcher = ENV_PATTERN.matcher(memberValue);
+		if (matcher.matches()) {
+			String defaultValue = matcher.group(2);
+			if (defaultValue == null) {
+				return SchedulerErrorCodes.VALID_EXPRESSION;
+			}
+			SchedulerErrorCodes defaultValueValidation;
+			if (validationType == ValidationType.cron) {
+				defaultValueValidation = validateCronPattern(defaultValue);
+			} else {
+				defaultValueValidation = validateDurationParse(defaultValue);
+			}
+			return defaultValueValidation == null? SchedulerErrorCodes.VALID_EXPRESSION: defaultValueValidation;
+		}
+		return SchedulerErrorCodes.INVALID_CHAR_IN_EXPRESSION;
 	}
 
 	/**

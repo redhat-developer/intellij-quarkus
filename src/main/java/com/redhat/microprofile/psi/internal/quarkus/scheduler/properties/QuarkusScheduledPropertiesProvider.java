@@ -38,7 +38,7 @@ public class QuarkusScheduledPropertiesProvider extends AbstractAnnotationTypeRe
 
 	private static final String[] ANNOTATION_NAMES = { QuarkusConstants.SCHEDULED_ANNOTATION };
 
-	private static Pattern PROP_PATTERN = Pattern.compile("\\{(.*)\\}");
+	private static final Pattern PROP_PATTERN = Pattern.compile("\\{(.*)\\}");
 
 	@Override
 	protected String[] getAnnotationNames() {
@@ -62,6 +62,10 @@ public class QuarkusScheduledPropertiesProvider extends AbstractAnnotationTypeRe
 					Matcher m = PROP_PATTERN.matcher(name);
 					if (m.matches()) {
 						name = m.group(1);
+						int colonIdx = name.indexOf(":");
+						if (colonIdx > -1) {//remove default value
+							name = name.substring(0,colonIdx);
+						}
 						addItemMetadata(collector, name, "java.lang.String", description, sourceType, null, sourceMethod, null,
 								extensionName, binary);
 					}

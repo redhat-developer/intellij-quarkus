@@ -33,7 +33,8 @@ public enum SchedulerErrorCodes implements IJavaErrorCode {
 	INVALID_CRON_YEAR("Year must be in the range [1970, 2099]"),
 	INVALID_CRON_LENGTH("The cron expression must contain 6-7 parts, delimited by whitespace."),
 	INVALID_DURATION_PARSE_PATTERN("Text cannot be parsed to a Duration."),
-	INVALID_CHAR_IN_EXPRESSION("Invalid char(s) in expression."), VALID_EXPRESSION("Expression is valid.");
+	INVALID_CHAR_IN_EXPRESSION("Invalid char(s) in expression."),
+	VALID_EXPRESSION("Expression is valid.");
 
 	private final String errorMessage;
 
