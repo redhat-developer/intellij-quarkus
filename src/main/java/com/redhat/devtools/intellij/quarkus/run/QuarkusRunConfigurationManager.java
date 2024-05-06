@@ -114,34 +114,8 @@ public class QuarkusRunConfigurationManager implements Disposable {
             return;
         }
 
-        boolean runConfigurationCreated = false;
         for (Module module : modules) {
-            if (tryToCreateRunConfiguration(module)) {
-                runConfigurationCreated = true;
-            }
-        }
-        if (runConfigurationCreated) {
-            if (!addQuarkusRunConfigurationTypeInServicesViewIfNeeded(true)) {
-                // The Services view is not updated correctly (when Ultimate is used and it tries to update the services view insame time) because of this error
-                // java.util.ConcurrentModificationException
-                //	at java.base/java.util.HashMap$HashIterator.nextNode(HashMap.java:1597)
-                //	at java.base/java.util.HashMap$KeyIterator.next(HashMap.java:1620)
-                //	at com.google.common.collect.Sets$3$1.computeNext(Sets.java:907)
-                //	at com.google.common.collect.AbstractIterator.tryToComputeNext(AbstractIterator.java:145)
-                //	at com.google.common.collect.AbstractIterator.hasNext(AbstractIterator.java:140)
-                //	at java.base/java.util.AbstractCollection.addAll(AbstractCollection.java:335)
-                //	at java.base/java.util.HashSet.<init>(HashSet.java:121)
-                //	at com.intellij.execution.dashboard.RunDashboardManagerImpl.setTypes(RunDashboardManagerImpl.java:295)
-                //	at
-
-                // We retry 5 times to update it
-                for (int i = 0; i < 5; i++) {
-                    if (addQuarkusRunConfigurationTypeInServicesViewIfNeeded(i == 4)) {
-                        // The update is done correctly
-                        break;
-                    }
-                }
-            }
+            tryToCreateRunConfiguration(module);
         }
     }
 

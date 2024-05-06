@@ -11,7 +11,11 @@ public abstract class TemplateDataVisitor extends JavaElementVisitor {
 
 	@Override
 	public void visitMethodCallExpression(PsiMethodCallExpression node) {
-		String methodName = node.resolveMethod().getName();
+		var resolvedMethod = node.resolveMethod();
+		if (resolvedMethod == null) {
+			return;
+		}
+		String methodName = resolvedMethod.getName();
 		if (DATA_METHOD.equals(methodName)) {
 			// collect the first data method
 			// ex : hello.data("height", 1.50, "weight", 50L);
