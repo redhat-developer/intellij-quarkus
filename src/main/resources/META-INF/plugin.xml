@@ -1,10 +1,11 @@
 <idea-plugin>
-  <id>com.redhat.devtools.intellij.quarkus</id>
-  <name>Quarkus Tools</name>
-  <version>1.0</version>
-  <vendor email="developers@redhat.com" url="https://github.com/redhat-developer/intellij-quarkus/issues">Red-Hat</vendor>
+    <id>com.redhat.devtools.intellij.quarkus</id>
+    <name>Quarkus Tools</name>
+    <version>1.0</version>
+    <vendor email="developers@redhat.com" url="https://github.com/redhat-developer/intellij-quarkus/issues">Red-Hat
+    </vendor>
 
-  <change-notes><![CDATA[
+    <change-notes><![CDATA[
     <h3>1.30.0</h3>
     <ul>
       <li>Create "Quarkus Dev Mode" run configuration on project import</li>
@@ -313,291 +314,384 @@
       <li>application.properties code assist through the quarkus-ls LSP language server</li>
     </ul>
   ]]>
-  </change-notes>
+    </change-notes>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="231"/>
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="231"/>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products -->
-  <depends>com.intellij.modules.lang</depends>
-  <depends>com.intellij.modules.java</depends>
-  <depends>com.intellij.properties</depends>
-  <depends>com.redhat.devtools.lsp4ij</depends>
-  <depends>com.redhat.devtools.intellij.telemetry</depends>
-  <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
-  <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
-  <depends optional="true" config-file="plugin-json.xml">com.intellij.modules.json</depends>
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.properties</depends>
+    <depends>com.redhat.devtools.lsp4ij</depends>
+    <depends>com.redhat.devtools.intellij.telemetry</depends>
+    <depends optional="true" config-file="plugin-maven.xml">org.jetbrains.idea.maven</depends>
+    <depends optional="true" config-file="plugin-gradle.xml">org.jetbrains.plugins.gradle</depends>
+    <depends optional="true" config-file="plugin-json.xml">com.intellij.modules.json</depends>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>
-    <!-- Add your extensions here -->
-    <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
-    <framework.detector implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkDetector"/>
-    <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModuleBuilder"/>
-    <iconProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusIconProvider"/>
-    <completion.contributor
-            language="Properties"
-            order="before javaClassReference"
-            implementationClass="com.redhat.devtools.intellij.quarkus.lang.QuarkusPropertyClassNameCompletionRemover"/>
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>
+        <!-- Add your extensions here -->
+        <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
+        <framework.detector implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkDetector"/>
+        <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModuleBuilder"/>
+        <iconProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusIconProvider"/>
+        <completion.contributor
+                language="Properties"
+                order="before javaClassReference"
+                implementationClass="com.redhat.devtools.intellij.quarkus.lang.QuarkusPropertyClassNameCompletionRemover"/>
 
-    <properties.implicitPropertyUsageProvider implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
-    <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusProjectService"/>
-    <projectService serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager"/>
-    <projectService serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager"/>
-    <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport"/>
+        <properties.implicitPropertyUsageProvider
+                implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
+        <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusProjectService"/>
+        <projectService
+                serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager"/>
+        <projectService
+                serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager"/>
+        <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport"/>
 
-    <!--Quarkus run config -->
-    <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationManager" />
-    <configurationType implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationType"/>
-    <consoleActionsPostProcessor implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConsolePostProcessor"/>
-    <runDashboardCustomizer implementation="com.redhat.devtools.intellij.quarkus.run.dashboard.QuarkusRunDashboardCustomizer"/>
+        <!--Quarkus run config -->
+        <projectService
+                serviceImplementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationManager"/>
+        <configurationType implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationType"/>
+        <consoleActionsPostProcessor
+                implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConsolePostProcessor"/>
+        <runDashboardCustomizer
+                implementation="com.redhat.devtools.intellij.quarkus.run.dashboard.QuarkusRunDashboardCustomizer"/>
+        <runDashboardDefaultTypesProvider
+                implementation="com.redhat.devtools.intellij.quarkus.run.dashboard.QuarkusRunDashboardDefaultTypesProvider"/>
 
-    <!-- Qute -->
-    <facetType implementation="com.redhat.devtools.intellij.qute.facet.QuteFacetType"/>
-    <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
-    <fileType name="Qute_"
-              language="Qute_"
-              instance="QUTE"
-              extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml"
-              implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileType"/>
-    <lang.fileViewProviderFactory language="Qute_"
-                                  implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileViewProviderFactory"/>
-    <lang.formatter language="Qute_"
-                    implementationClass="com.redhat.devtools.intellij.qute.lang.format.QuteHtmlFormattingModelBuilder"/>
-    <braceMatcher filetype="Qute_" implementationClass="com.redhat.devtools.intellij.qute.editor.QuteBraceMatcher"/>
-    <lang.parserDefinition language="Qute_" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteParserDefinition"/>
-    <!-- Disabled as it causes https://github.com/redhat-developer/intellij-quarkus/issues/944
-    <pom.declarationSearcher implementation="com.redhat.devtools.intellij.qute.lang.QuteDeclarationSearcher"/>
-    -->
-    <fileIndentOptionsProvider implementation="com.redhat.devtools.intellij.qute.lang.format.QuteFileIndentOptionsProvider"/>
-    <editorHighlighterProvider filetype="Qute_"
-                               implementationClass="com.redhat.devtools.intellij.qute.lang.highlighter.QuteEditorHighlighterProvider" />
-    <colorSettingsPage implementation="com.redhat.devtools.intellij.qute.lang.highlighter.QuteColorsPage"/>
-    <lang.ast.factory language="Qute_" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteASTFactory"/>
-    <lang.substitutor language="HTML" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
-    <lang.substitutor language="TEXT" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
-    <lang.substitutor language="JSON" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
-    <lang.substitutor language="yaml" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
-    <typedHandler implementation="com.redhat.devtools.intellij.qute.editor.QuteTypedHandler"/>
-  </extensions>
+        <!-- Qute -->
+        <facetType implementation="com.redhat.devtools.intellij.qute.facet.QuteFacetType"/>
+        <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
+        <fileType name="Qute_"
+                  language="Qute_"
+                  instance="QUTE"
+                  extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml"
+                  implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileType"/>
+        <lang.fileViewProviderFactory language="Qute_"
+                                      implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileViewProviderFactory"/>
+        <lang.formatter language="Qute_"
+                        implementationClass="com.redhat.devtools.intellij.qute.lang.format.QuteHtmlFormattingModelBuilder"/>
+        <braceMatcher filetype="Qute_" implementationClass="com.redhat.devtools.intellij.qute.editor.QuteBraceMatcher"/>
+        <lang.parserDefinition language="Qute_"
+                               implementationClass="com.redhat.devtools.intellij.qute.lang.QuteParserDefinition"/>
+        <!-- Disabled as it causes https://github.com/redhat-developer/intellij-quarkus/issues/944
+        <pom.declarationSearcher implementation="com.redhat.devtools.intellij.qute.lang.QuteDeclarationSearcher"/>
+        -->
+        <fileIndentOptionsProvider
+                implementation="com.redhat.devtools.intellij.qute.lang.format.QuteFileIndentOptionsProvider"/>
+        <editorHighlighterProvider filetype="Qute_"
+                                   implementationClass="com.redhat.devtools.intellij.qute.lang.highlighter.QuteEditorHighlighterProvider"/>
+        <colorSettingsPage implementation="com.redhat.devtools.intellij.qute.lang.highlighter.QuteColorsPage"/>
+        <lang.ast.factory language="Qute_" implementationClass="com.redhat.devtools.intellij.qute.lang.QuteASTFactory"/>
+        <lang.substitutor language="HTML"
+                          implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+        <lang.substitutor language="TEXT"
+                          implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+        <lang.substitutor language="JSON"
+                          implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+        <lang.substitutor language="yaml"
+                          implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+        <typedHandler implementation="com.redhat.devtools.intellij.qute.editor.QuteTypedHandler"/>
+    </extensions>
 
-  <extensionPoints>
-    <extensionPoint name="toolDelegate" interface="com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate"/>
-    <extensionPoint name="propertiesProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesProvider"/>
-    <extensionPoint name="staticPropertyProvider" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.StaticPropertyProviderExtensionPointBean"/>
-    <extensionPoint name="javaHoverParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.IJavaHoverParticipant"/>
-    <extensionPoint name="javaDiagnosticsParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaDiagnosticsParticipant"/>
-    <extensionPoint name="projectLabelProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IProjectLabelProvider"/>
-    <extensionPoint name="javaDefinitionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.IJavaDefinitionParticipant"/>
-    <extensionPoint name="javaCompletionParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
-    <extensionPoint name="javaCodeLensParticipant" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant"/>
-    <extensionPoint name="configSourceProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider"/>
-    <extensionPoint name="javaASTValidator.validator" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidatorExtensionPointBean">
-      <with attribute="implementation" implements="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator"/>
-    </extensionPoint>
-    <extensionPoint name="javaASTValidator.annotationValidator" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationRuleExtensionPointBean"/>
-    <extensionPoint name="javaCodeActionParticipant" beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.JavaCodeActionDefinition">
-      <with attribute="implementationClass" implements="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant"/>
-    </extensionPoint>
-    <extensionPoint name="jaxRsInfoProvider" interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.IJaxRsInfoProvider"/>
+    <extensionPoints>
+        <extensionPoint name="toolDelegate"
+                        interface="com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate"/>
+        <extensionPoint name="propertiesProvider"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesProvider"/>
+        <extensionPoint name="staticPropertyProvider"
+                        beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.StaticPropertyProviderExtensionPointBean"/>
+        <extensionPoint name="javaHoverParticipant"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.IJavaHoverParticipant"/>
+        <extensionPoint name="javaDiagnosticsParticipant"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaDiagnosticsParticipant"/>
+        <extensionPoint name="projectLabelProvider"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IProjectLabelProvider"/>
+        <extensionPoint name="javaDefinitionParticipant"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.IJavaDefinitionParticipant"/>
+        <extensionPoint name="javaCompletionParticipant"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
+        <extensionPoint name="javaCodeLensParticipant"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant"/>
+        <extensionPoint name="configSourceProvider"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider"/>
+        <extensionPoint name="javaASTValidator.validator"
+                        beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidatorExtensionPointBean">
+            <with attribute="implementation"
+                  implements="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator"/>
+        </extensionPoint>
+        <extensionPoint name="javaASTValidator.annotationValidator"
+                        beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationRuleExtensionPointBean"/>
+        <extensionPoint name="javaCodeActionParticipant"
+                        beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.JavaCodeActionDefinition">
+            <with attribute="implementationClass"
+                  implements="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codeaction.IJavaCodeActionParticipant"/>
+        </extensionPoint>
+        <extensionPoint name="jaxRsInfoProvider"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.IJaxRsInfoProvider"/>
 
-    <!-- Qute -->
-    <extensionPoint name="qute.dataModelProvider" beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean">
-      <with attribute="implementationClass" implements="com.redhat.devtools.intellij.qute.psi.template.datamodel.IDataModelProvider"/>
-    </extensionPoint>
-    <extensionPoint name="qute.resolvedJavaTypeFactories" beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.ResolvedJavaTypeFactoryRegistry$ResolvedJavaTypeFactoryBean">
-      <with attribute="implementationClass" implements="com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.IResolvedJavaTypeFactory"/>
-    </extensionPoint>
-  </extensionPoints>
+        <!-- Qute -->
+        <extensionPoint name="qute.dataModelProvider"
+                        beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean">
+            <with attribute="implementationClass"
+                  implements="com.redhat.devtools.intellij.qute.psi.template.datamodel.IDataModelProvider"/>
+        </extensionPoint>
+        <extensionPoint name="qute.resolvedJavaTypeFactories"
+                        beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.ResolvedJavaTypeFactoryRegistry$ResolvedJavaTypeFactoryBean">
+            <with attribute="implementationClass"
+                  implements="com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.IResolvedJavaTypeFactory"/>
+        </extensionPoint>
+    </extensionPoints>
 
-  <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
-    <!--LSP4MP-->
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertyProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertiesProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.properties.MicroProfileRegisterRestClientProvider"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider"/>
-    <staticPropertyProvider resource="/static-properties/mp-context-propagation-metadata.json" type="org.eclipse.microprofile.context.ThreadContext"/>
-    <staticPropertyProvider resource="/static-properties/mp-lra-metadata.json" type="org.eclipse.microprofile.lra.annotation.ws.rs.LRA"/>
-    <staticPropertyProvider resource="/static-properties/mp-metrics-metadata.json" type="org.eclipse.microprofile.metrics.MetricID"/>
-    <staticPropertyProvider resource="/static-properties/mp-openapi-metadata.json" type="org.eclipse.microprofile.openapi.OASConfig"/>
-    <staticPropertyProvider resource="/static-properties/mp-opentracing-metadata.json" type="org.eclipse.microprofile.opentracing.Traced"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.properties.MicroProfileReactiveMessagingProvider"/>
-    <staticPropertyProvider resource="/static-properties/mp-graphql-metadata.json" type="org.eclipse.microprofile.graphql.Name"/>
-    <staticPropertyProvider resource="/static-properties/mp-health-metadata.json" type="org.eclipse.microprofile.health.Liveness"/>
-    <staticPropertyProvider resource="/static-properties/mp-jwt-metadata.json" type="org.eclipse.microprofile.jwt.Claim"/>
-    <staticPropertyProvider resource="/static-properties/jul-metadata.json"/>
-    <propertiesProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jul.properties.JBossLogManagerPropertyProvider"/>
+    <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
+        <!--LSP4MP-->
+        <propertiesProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertyProvider"/>
+        <propertiesProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.properties.MicroProfileConfigPropertiesProvider"/>
+        <propertiesProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.properties.MicroProfileRegisterRestClientProvider"/>
+        <propertiesProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.properties.MicroProfileFaultToleranceProvider"/>
+        <staticPropertyProvider resource="/static-properties/mp-context-propagation-metadata.json"
+                                type="org.eclipse.microprofile.context.ThreadContext"/>
+        <staticPropertyProvider resource="/static-properties/mp-lra-metadata.json"
+                                type="org.eclipse.microprofile.lra.annotation.ws.rs.LRA"/>
+        <staticPropertyProvider resource="/static-properties/mp-metrics-metadata.json"
+                                type="org.eclipse.microprofile.metrics.MetricID"/>
+        <staticPropertyProvider resource="/static-properties/mp-openapi-metadata.json"
+                                type="org.eclipse.microprofile.openapi.OASConfig"/>
+        <staticPropertyProvider resource="/static-properties/mp-opentracing-metadata.json"
+                                type="org.eclipse.microprofile.opentracing.Traced"/>
+        <propertiesProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.properties.MicroProfileReactiveMessagingProvider"/>
+        <staticPropertyProvider resource="/static-properties/mp-graphql-metadata.json"
+                                type="org.eclipse.microprofile.graphql.Name"/>
+        <staticPropertyProvider resource="/static-properties/mp-health-metadata.json"
+                                type="org.eclipse.microprofile.health.Liveness"/>
+        <staticPropertyProvider resource="/static-properties/mp-jwt-metadata.json"
+                                type="org.eclipse.microprofile.jwt.Claim"/>
+        <staticPropertyProvider resource="/static-properties/jul-metadata.json"/>
+        <propertiesProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jul.properties.JBossLogManagerPropertyProvider"/>
 
-    <javaHoverParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigHoverParticipant"/>
+        <javaHoverParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigHoverParticipant"/>
 
-    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.validators.JavaASTDiagnosticsParticipant"/>
-    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.MicroProfileHealthDiagnosticsParticipant"/>
-    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant"/>
-    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.java.MicroProfileMetricsDiagnosticsParticipant"/>
-    <javaDiagnosticsParticipant implementation="com.redhat.devtools.intellij.quarkus.psi.internal.validators.QuarkusBuildItemDiagnosticsParticipant"/>
+        <javaDiagnosticsParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.validators.JavaASTDiagnosticsParticipant"/>
+        <javaDiagnosticsParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.MicroProfileHealthDiagnosticsParticipant"/>
+        <javaDiagnosticsParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.MicroProfileRestClientDiagnosticsParticipant"/>
+        <javaDiagnosticsParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.java.MicroProfileMetricsDiagnosticsParticipant"/>
+        <javaDiagnosticsParticipant
+                implementation="com.redhat.devtools.intellij.quarkus.psi.internal.validators.QuarkusBuildItemDiagnosticsParticipant"/>
 
-    <projectLabelProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileProjectLabelProvider"/>
+        <projectLabelProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileProjectLabelProvider"/>
 
-    <javaDefinitionParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigDefinitionParticipant"/>
-    <javaDefinitionParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceDefinitionParticipant"/>
+        <javaDefinitionParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigDefinitionParticipant"/>
+        <javaDefinitionParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceDefinitionParticipant"/>
 
-    <javaCompletionParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceCompletionParticipant"/>
+        <javaCompletionParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceCompletionParticipant"/>
 
-    <javaCodeLensParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java.JaxRsCodeLensParticipant"/>
-    <javaCodeLensParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.MicroProfileRestClientCodeLensParticipant"/>
+        <javaCodeLensParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java.JaxRsCodeLensParticipant"/>
+        <javaCodeLensParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.MicroProfileRestClientCodeLensParticipant"/>
 
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-config#NO_VALUE_ASSIGNED_TO_PROPERTY"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.NoValueAssignedToPropertyQuickFix"/>
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-config#NO_VALUE_ASSIGNED_TO_PROPERTY"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.InsertDefaultValueAnnotationAttributeQuickFix"/>
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-health#ImplementHealthCheck"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.ImplementHealthCheckQuickFix"/>
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-health#HealthAnnotationMissing"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.HealthAnnotationMissingQuickFix"/>
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-metrics#ApplicationScopedAnnotationMissing"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.java.ApplicationScopedAnnotationMissingQuickFix"/>
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-restclient#InjectAnnotationMissing"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.InjectAnnotationMissingQuickFix"/>
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-restclient#RestClientAnnotationMissing"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.RestClientAnnotationMissingQuickFix"/>
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-restclient#InjectAndRestClientAnnotationMissing"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.InjectAndRestClientAnnotationMissingQuickFix"/>
-    <javaCodeActionParticipant kind="quickfix"
-                               targetDiagnostic="microprofile-restclient#RegisterRestClientAnnotationMissing"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.RegisterRestClientAnnotationMissingQuickFix"/>
-    <javaCodeActionParticipant kind="source"
-                               implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.java.MicroProfileGenerateOpenAPIOperation"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-config#NO_VALUE_ASSIGNED_TO_PROPERTY"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.NoValueAssignedToPropertyQuickFix"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-config#NO_VALUE_ASSIGNED_TO_PROPERTY"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.InsertDefaultValueAnnotationAttributeQuickFix"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-health#ImplementHealthCheck"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.ImplementHealthCheckQuickFix"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-health#HealthAnnotationMissing"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.health.java.HealthAnnotationMissingQuickFix"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-metrics#ApplicationScopedAnnotationMissing"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.java.ApplicationScopedAnnotationMissingQuickFix"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-restclient#InjectAnnotationMissing"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.InjectAnnotationMissingQuickFix"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-restclient#RestClientAnnotationMissing"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.RestClientAnnotationMissingQuickFix"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-restclient#InjectAndRestClientAnnotationMissing"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.InjectAndRestClientAnnotationMissingQuickFix"/>
+        <javaCodeActionParticipant kind="quickfix"
+                                   targetDiagnostic="microprofile-restclient#RegisterRestClientAnnotationMissing"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.RegisterRestClientAnnotationMissingQuickFix"/>
+        <javaCodeActionParticipant kind="source"
+                                   implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.java.MicroProfileGenerateOpenAPIOperation"/>
 
-    <!-- Microprofile Config Static Property support -->
-    <staticPropertyProvider resource="/static-properties/mp-config-metadata.json" type="org.eclipse.microprofile.config.Config"/>
+        <!-- Microprofile Config Static Property support -->
+        <staticPropertyProvider resource="/static-properties/mp-config-metadata.json"
+                                type="org.eclipse.microprofile.config.Config"/>
 
-    <!--quarkus-ls-->
-    <configSourceProvider implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
-    <projectLabelProvider implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
-    <jaxRsInfoProvider
-            implementation="com.redhat.microprofile.psi.internal.quarkus.renarde.java.RenardeJaxRsInfoProvider" />
-    <jaxRsInfoProvider
-            implementation="com.redhat.microprofile.psi.internal.quarkus.route.java.ReactiveRouteJaxRsInfoProvider" />
+        <!--quarkus-ls-->
+        <configSourceProvider
+                implementation="com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider"/>
+        <projectLabelProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.providers.QuarkusProjectLabelProvider"/>
+        <jaxRsInfoProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.renarde.java.RenardeJaxRsInfoProvider"/>
+        <jaxRsInfoProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.route.java.ReactiveRouteJaxRsInfoProvider"/>
 
-    <!-- Quarkus Core support -->
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusCoreProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigRootProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigPropertiesProvider"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigMappingProvider"/>
+        <!-- Quarkus Core support -->
+        <propertiesProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusCoreProvider"/>
+        <propertiesProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigRootProvider"/>
+        <propertiesProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigPropertiesProvider"/>
+        <propertiesProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.core.properties.QuarkusConfigMappingProvider"/>
 
-    <javaASTValidator.validator implementation="com.redhat.microprofile.psi.internal.quarkus.core.java.QuarkusConfigMappingASTVisitor"/>
+        <javaASTValidator.validator
+                implementation="com.redhat.microprofile.psi.internal.quarkus.core.java.QuarkusConfigMappingASTVisitor"/>
 
-    <!-- Quarkus JAX-RS support -->
-    <javaCodeLensParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
+        <!-- Quarkus JAX-RS support -->
+        <javaCodeLensParticipant
+                implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
 
-    <!-- Quarkus @Scheduled annotation support -->
-    <javaDefinitionParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusScheduledDefinitionParticipant"/>
-    <javaHoverParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusScheduledHoverParticipant"/>
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.properties.QuarkusScheduledPropertiesProvider"/>
+        <!-- Quarkus @Scheduled annotation support -->
+        <javaDefinitionParticipant
+                implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusScheduledDefinitionParticipant"/>
+        <javaHoverParticipant
+                implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusScheduledHoverParticipant"/>
+        <propertiesProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.properties.QuarkusScheduledPropertiesProvider"/>
 
-    <!-- Quarkus Kubernetes support -->
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.kubernetes.properties.QuarkusKubernetesProvider"/>
+        <!-- Quarkus Kubernetes support -->
+        <propertiesProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.kubernetes.properties.QuarkusKubernetesProvider"/>
 
-    <!-- Quarkus Hibernate support -->
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.hibernate.properties.QuarkusHibernateORMProvider"/>
+        <!-- Quarkus Hibernate support -->
+        <propertiesProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.hibernate.properties.QuarkusHibernateORMProvider"/>
 
-    <!-- Quarkus Cache support -->
-    <propertiesProvider implementation="com.redhat.microprofile.psi.internal.quarkus.cache.properties.QuarkusCacheResultProvider"/>
+        <!-- Quarkus Cache support -->
+        <propertiesProvider
+                implementation="com.redhat.microprofile.psi.internal.quarkus.cache.properties.QuarkusCacheResultProvider"/>
 
-    <!-- Quarkus Scheduled annotation -->
-    <javaASTValidator.validator implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusSchedulerASTVisitor"/>
-    <javaASTValidator.annotationValidator annotation="io.quarkus.scheduler.Scheduled" source="quarkus">
-      <attribute name="delay" range="0" /> <!-- x >=0 -->
-    </javaASTValidator.annotationValidator>
+        <!-- Quarkus Scheduled annotation -->
+        <javaASTValidator.validator
+                implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusSchedulerASTVisitor"/>
+        <javaASTValidator.annotationValidator annotation="io.quarkus.scheduler.Scheduled" source="quarkus">
+            <attribute name="delay" range="0"/> <!-- x >=0 -->
+        </javaASTValidator.annotationValidator>
 
-    <configSourceProvider implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider"/>
+        <configSourceProvider
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider"/>
 
-    <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator"/>
-    <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceASTValidator"/>
-    <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java.MicroProfileGraphQLASTValidator"/>
+        <javaASTValidator.validator
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator"/>
+        <javaASTValidator.validator
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceASTValidator"/>
+        <javaASTValidator.validator
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java.MicroProfileGraphQLASTValidator"/>
 
-    <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.CircuitBreaker" source="microprofile-faulttolerance">
-      <attribute name="delay" range="0"/>
-      <attribute name="requestVolumeThreshold" range="1"/>
-      <attribute name="failureRatio" range="[0,1]"/>
-      <attribute name="successThreshold" range="1"/>
-    </javaASTValidator.annotationValidator>
-    <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.Bulkhead"
-                       	       source="microprofile-faulttolerance" >
-      <attribute name="value" range="0" /> <!-- x >=0 -->
-      <attribute name="waitingTaskQueue" range="0" /> <!-- x >=0 -->
-    </javaASTValidator.annotationValidator>
-    <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.Timeout"
-                              source="microprofile-faulttolerance" >
-      <attribute name="value" range="0" /> <!-- x >=0 -->
-    </javaASTValidator.annotationValidator>
-    <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.Retry"
-                               source="microprofile-faulttolerance" >
-             <attribute name="delay" range="0" /> <!-- x >=0 -->
-             <attribute name="maxDuration" range="0" /> <!-- x >=0 -->
-             <attribute name="jitter" range="0" /> <!-- x >=0 -->
-             <attribute name="maxRetries" range="-1" /> <!-- x >=0 -->
-    </javaASTValidator.annotationValidator>
-    <javaASTValidator.validator implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.java.MicroProfileReactiveMessagingASTValidator"/>
+        <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.CircuitBreaker"
+                                              source="microprofile-faulttolerance">
+            <attribute name="delay" range="0"/>
+            <attribute name="requestVolumeThreshold" range="1"/>
+            <attribute name="failureRatio" range="[0,1]"/>
+            <attribute name="successThreshold" range="1"/>
+        </javaASTValidator.annotationValidator>
+        <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.Bulkhead"
+                                              source="microprofile-faulttolerance">
+            <attribute name="value" range="0"/> <!-- x >=0 -->
+            <attribute name="waitingTaskQueue" range="0"/> <!-- x >=0 -->
+        </javaASTValidator.annotationValidator>
+        <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.Timeout"
+                                              source="microprofile-faulttolerance">
+            <attribute name="value" range="0"/> <!-- x >=0 -->
+        </javaASTValidator.annotationValidator>
+        <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.Retry"
+                                              source="microprofile-faulttolerance">
+            <attribute name="delay" range="0"/> <!-- x >=0 -->
+            <attribute name="maxDuration" range="0"/> <!-- x >=0 -->
+            <attribute name="jitter" range="0"/> <!-- x >=0 -->
+            <attribute name="maxRetries" range="-1"/> <!-- x >=0 -->
+        </javaASTValidator.annotationValidator>
+        <javaASTValidator.validator
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.java.MicroProfileReactiveMessagingASTValidator"/>
 
-    <!-- Qute -->
-    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport"/>
-    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateExtensionAnnotationSupport"/>
-    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateFieldSupport"/>
-    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateDataAnnotationSupport"/>
-    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateEnumAnnotationSupport"/>
-    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateGlobalAnnotationSupport"/>
-    <qute.dataModelProvider implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TypeSafeMessageBundlesSupport"/>
+        <!-- Qute -->
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport"/>
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateExtensionAnnotationSupport"/>
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateFieldSupport"/>
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateDataAnnotationSupport"/>
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateEnumAnnotationSupport"/>
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateGlobalAnnotationSupport"/>
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TypeSafeMessageBundlesSupport"/>
 
-    <qute.dataModelProvider namespaces="inject,cdi"
-                            description="A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces."
-                            url="https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates"
-                            implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.quarkus.InjectNamespaceResolverSupport"/>
+        <qute.dataModelProvider namespaces="inject,cdi"
+                                description="A CDI bean annotated with `@Named` can be referenced in any template through `cdi` and/or `inject` namespaces."
+                                url="https://quarkus.io/guides/qute-reference#injecting-beans-directly-in-templates"
+                                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.quarkus.InjectNamespaceResolverSupport"/>
 
-    <!-- Data model providers for Quarkus Renarde -->
-    <qute.dataModelProvider namespaces="uri,uriabs"
-                            description="In order to generate the URI to an endpoint, in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
-                            url="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views"
-                            implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.UriNamespaceResolverSupport" />
+        <!-- Data model providers for Quarkus Renarde -->
+        <qute.dataModelProvider namespaces="uri,uriabs"
+                                description="In order to generate the URI to an endpoint, in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
+                                url="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views"
+                                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.UriNamespaceResolverSupport"/>
 
-    <!-- Resolved Java Type Factories for Quarkus Renarde -->
-    <qute.resolvedJavaTypeFactories implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeResolvedJavaTypeFactory" />
-  </extensions>
+        <!-- Resolved Java Type Factories for Quarkus Renarde -->
+        <qute.resolvedJavaTypeFactories
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeResolvedJavaTypeFactory"/>
+    </extensions>
 
-  <application-components>
-  </application-components>
-  <module-components>
-    <component>
-      <implementation-class>com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent</implementation-class>
-    </component>
-  </module-components>
+    <application-components>
+    </application-components>
+    <module-components>
+        <component>
+            <implementation-class>com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent
+            </implementation-class>
+        </component>
+    </module-components>
 
-  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-quarkus.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-qute.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <actions>
-    <action id="microprofile.command.open.uri"
-            class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileOpenURIAction"
-            text="MicroprofileOpenURIAction"/>
-    <action id="microprofile.command.configuration.update"
-            class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileUpdateConfigurationAction"
-            text="MicroprofileUpdateConfigurationAction"/>
-    <action id="qute.command.open.uri"
-            class="com.redhat.devtools.intellij.qute.psi.core.command.QuteOpenURIAction"/>
-    <action id="qute.command.generate.template.file"
-            class="com.redhat.devtools.intellij.qute.psi.core.command.QuteGenerateTemplateAction"/>
-    <action id="qute.command.java.definition"
-            class="com.redhat.devtools.intellij.qute.psi.core.command.QuteJavaDefinitionAction"/>
-    <action id="qute.command.configuration.update"
-            class="com.redhat.devtools.intellij.qute.psi.core.command.QuteUpdateConfigurationAction"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-quarkus.xml"
+                xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-qute.xml"
+                xpointer="xpointer(/idea-plugin/*)"/>
+    <actions>
+        <action id="microprofile.command.open.uri"
+                class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileOpenURIAction"
+                text="MicroprofileOpenURIAction"/>
+        <action id="microprofile.command.configuration.update"
+                class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileUpdateConfigurationAction"
+                text="MicroprofileUpdateConfigurationAction"/>
+        <action id="qute.command.open.uri"
+                class="com.redhat.devtools.intellij.qute.psi.core.command.QuteOpenURIAction"/>
+        <action id="qute.command.generate.template.file"
+                class="com.redhat.devtools.intellij.qute.psi.core.command.QuteGenerateTemplateAction"/>
+        <action id="qute.command.java.definition"
+                class="com.redhat.devtools.intellij.qute.psi.core.command.QuteJavaDefinitionAction"/>
+        <action id="qute.command.configuration.update"
+                class="com.redhat.devtools.intellij.qute.psi.core.command.QuteUpdateConfigurationAction"/>
 
-  </actions>
+    </actions>
 </idea-plugin>
