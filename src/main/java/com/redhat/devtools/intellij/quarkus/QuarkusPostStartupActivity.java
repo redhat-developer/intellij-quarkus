@@ -12,15 +12,21 @@ package com.redhat.devtools.intellij.quarkus;
 
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.ProjectActivity;
 import com.intellij.openapi.startup.StartupActivity;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationManager;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class QuarkusPostStartupActivity implements StartupActivity, DumbAware {
+public class QuarkusPostStartupActivity implements ProjectActivity, DumbAware {
+
+    @Nullable
     @Override
-    public void runActivity(@NotNull Project project) {
+    public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
         QuarkusRunConfigurationManager.getInstance(project);
         ClasspathResourceChangedManager.getInstance(project);
         // Force the instantiation of the manager to be sure that classpath listener
@@ -31,5 +37,6 @@ public class QuarkusPostStartupActivity implements StartupActivity, DumbAware {
         // As java validation requires the properties cache, it needs that cache must be updated before.
         PsiMicroProfileProjectManager.getInstance(project);
         QuarkusProjectService.getInstance(project);
+        return null;
     }
 }
