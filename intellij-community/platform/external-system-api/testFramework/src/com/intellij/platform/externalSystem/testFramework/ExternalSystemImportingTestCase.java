@@ -6,7 +6,6 @@ import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesManager;
 import com.intellij.find.findUsages.FindUsagesOptions;
 import com.intellij.find.impl.FindManagerImpl;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.importing.ImportSpec;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -41,10 +40,10 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.utils.module.ModuleAssertions;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.CommonProcessors;
 import com.intellij.util.containers.ContainerUtil;
+import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,7 +80,11 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
   }
 
   protected void assertModules(String... expectedNames) {
-    ModuleAssertions.assertModules(myProject, expectedNames);
+    Module[] actualModules = ModuleManager.getInstance(myProject).getModules();
+
+    Assertions.assertThat(actualModules)
+      .extracting("name")
+      .containsExactlyInAnyOrder(expectedNames);
   }
 
   protected void assertContentRoots(String moduleName, String... expectedRoots) {
@@ -414,7 +417,7 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
     for (DataNode<?> node : nodes) {
       node.visit(dataNode -> dataNode.setIgnored(ignored));
     }
-    ApplicationManager.getApplication().getService(ProjectDataManager.class).importData(projectDataNode, myProject);
+    ProjectDataManager.getInstance().importData(projectDataNode, myProject);
   }
 
   protected void importProject(@NonNls String config, Boolean skipIndexing) throws IOException {
@@ -454,7 +457,7 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
             return;
           }
           try {
-            ApplicationManager.getApplication().getService(ProjectDataManager.class).importData(externalProject, myProject);
+            ProjectDataManager.getInstance().importData(externalProject, myProject);
           } catch (Throwable ex) {
             ex.printStackTrace(System.err);
             error.set(Couple.of("Exception occurred in `ProjectDataManager.importData` (see output for the details)", null));
@@ -469,8 +472,7 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
       }).build();
     }
 
-    ExternalSystemProgressNotificationManager notificationManager =
-      ApplicationManager.getApplication().getService(ExternalSystemProgressNotificationManager.class);
+    ExternalSystemProgressNotificationManager notificationManager = ExternalSystemProgressNotificationManager.getInstance();
     ExternalSystemTaskNotificationListenerAdapter listener = new ExternalSystemTaskNotificationListenerAdapter() {
       @Override
       public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
