@@ -65,19 +65,6 @@
 
         <!-- Quarkus -->
 
-        <!-- As IJ provides the com.intellij.lang.properties.PropertiesDocumentationProvider which manages hover for properties file,
-             we define the LSPDocumentationProvider at the first order -->
-        <lang.documentationProvider
-                language="Properties"
-                implementationClass="com.redhat.devtools.lsp4ij.features.documentation.LSPDocumentationProvider"
-                order="first"/>
-        <!-- As IJ provides the com.intellij.lang.java.JavaDocumentationProvider which manages hover for Java file,
-             we define the LSPDocumentationProvider at the first order -->
-        <lang.documentationProvider
-                language="JAVA"
-                implementationClass="com.redhat.devtools.lsp4ij.features.documentation.LSPDocumentationProvider"
-                order="first"/>
-
         <localInspection
                 language="Properties"
                 bundle="messages.MicroProfileBundle"
