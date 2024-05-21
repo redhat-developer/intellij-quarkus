@@ -36,19 +36,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- Qute -->
 
-        <!-- As IJ provides the org.jetbrains.yaml.meta.impl.YamlDocumentationProviderBase which manages hover for yaml file,
-             we define the LSPDocumentationProvider at the first order -->
-        <lang.documentationProvider
-                language="yaml"
-                implementationClass="com.redhat.devtools.lsp4ij.features.documentation.LSPDocumentationProvider"
-                order="first"/>
-        <!-- As IJ provides the com.jetbrains.jsonSchema.imp.JsonSchemaDocumentationProvider which manages hover for json file,
-             we define the LSPDocumentationProvider at the first order -->
-        <lang.documentationProvider
-                language="JSON"
-                implementationClass="com.redhat.devtools.lsp4ij.features.documentation.LSPDocumentationProvider"
-                order="first"/>
-
         <completion.confidence language="HTML" order="before htmlText"
                                implementationClass="com.redhat.devtools.lsp4ij.features.completion.LSPCompletionConfidence"/>
 
