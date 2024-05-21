@@ -20,10 +20,15 @@ mkdir -p intellij-community/platform/external-system-impl/testSrc/com/intellij/o
 cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/service/execution/TestUnknownSdkResolver.kt intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/service/execution
 mkdir -p intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test
 cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test/JavaExternalSystemImportingTestCase.java intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test
+cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test/JavaCompileTestUtil.kt intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test
+mkdir -p intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/util
+cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/util/ExternalSystemFileTestUtil.kt intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/util
 mkdir -p intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenImportingTestCase.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenTestCase.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/NullMavenConsole.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
+mkdir -p intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils
+cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils/MavenImportingTestCase.kt intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils
 mkdir -p intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
 cp -p intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing/TestGradleBuildScriptBuilder.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
 cp -p intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing/GradleImportingTestCase.java intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing

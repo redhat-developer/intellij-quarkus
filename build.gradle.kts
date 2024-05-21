@@ -202,6 +202,7 @@ tasks.withType<Test> {
     systemProperty("idea.log.leaked.projects.in.tests", "false")
     systemProperty( "idea.maven.test.mirror", "https://repo1.maven.org/maven2")
     systemProperty( "com.redhat.devtools.intellij.telemetry.mode", "disabled")
+    systemProperty("java.awt.headless","true")
 }
 
 tasks.withType<Copy> {
