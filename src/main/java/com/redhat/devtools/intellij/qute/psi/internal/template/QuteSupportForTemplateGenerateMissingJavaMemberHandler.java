@@ -101,7 +101,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		PsiClass javaType;
 		try {
 			javaType = utils.findClass(project, params.getJavaType());
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			return null;
@@ -135,7 +139,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		Document jdtTextEdit;
 		try {
 			jdtTextEdit = cu.getViewProvider().getDocument();
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			return null;
@@ -174,7 +182,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		Document jdtTextEdit;
 		try {
 			jdtTextEdit = cu.getViewProvider().getDocument();
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			return null;
@@ -190,7 +202,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		PsiClass javaType;
 		try {
 			javaType = utils.findClass(project, params.getJavaType());
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			return null;
@@ -224,7 +240,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		Document jdtTextEdit;
 		try {
 			jdtTextEdit = cu.getViewProvider().getDocument();
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			return null;
@@ -242,7 +262,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		PsiClass type = null;
 		try {
 			type = utils.findClass(project, params.getTemplateClass());
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
@@ -290,7 +314,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		Document jdtTextEdit;
 		try {
 			jdtTextEdit = cu.getViewProvider().getDocument();
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			return null;
@@ -325,7 +353,11 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		try {
 			addContentEdit = createNewTemplateExtensionsContent(cu, name, params.getMissingProperty(),
 					params.getJavaType(), fixBrokenUri(destPackage.getUrl() + "/" + name + ".java"), utils);
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException("Failure while constructing new Java file content", e);

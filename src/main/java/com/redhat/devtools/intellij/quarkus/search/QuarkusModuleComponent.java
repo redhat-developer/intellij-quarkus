@@ -49,7 +49,7 @@ public class QuarkusModuleComponent implements ModuleComponent, PersistentStateC
         this.module = module;
     }
 
-    @Override
+    //@Override
     public void moduleAdded() {
     }
 

@@ -181,7 +181,11 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
             templatePathInfo = new TemplatePathInfo(templateUri, templatePathInfo.getFragmentId());
             collectTemplateLink(basePath, fieldOrMethod, locationAnnotation, type, className, fieldOrMethodName, location,
                     templateFile, templatePathInfo);
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Error while creating Qute CodeLens for Java file.", e);

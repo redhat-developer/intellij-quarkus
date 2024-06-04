@@ -20,6 +20,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.OrderEntryUtil;
@@ -165,7 +166,11 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
                         long elapsed = System.currentTimeMillis() - start;
                         LOGGER.info("Ensured QuarkusLibrary in {} ms", elapsed);
                         future.complete(null);
-                    } catch (CancellationException | ProcessCanceledException e) {
+                    } catch (ProcessCanceledException e) {
+                        //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+                        //TODO delete block when minimum required version is 2024.2
+                        future.cancel(true);
+                    } catch (CancellationException e) {
                         future.cancel(true);
                     } catch (Exception e) {
                         LOGGER.error("Error while adding Quarkus deployment dependencies to classpath in '" + module.getName() + "'", e);

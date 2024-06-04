@@ -46,7 +46,11 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 		for (JavaRecursiveElementVisitor visitor : visitors) {
 			try {
 				visitor.visitAnnotation(node);
-			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			} catch (ProcessCanceledException e) {
+				//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+				//TODO delete block when minimum required version is 2024.2
+				throw e;
+			} catch (IndexNotReadyException | CancellationException e) {
 				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
@@ -59,7 +63,11 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 		for (JavaRecursiveElementVisitor visitor : visitors) {
 			try {
 				visitor.visitClass(node);
-			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			} catch (ProcessCanceledException e) {
+				//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+				//TODO delete block when minimum required version is 2024.2
+				throw e;
+			} catch (IndexNotReadyException | CancellationException e) {
 				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
@@ -72,7 +80,11 @@ public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 		for (JavaRecursiveElementVisitor visitor : visitors) {
 			try {
 				visitor.visitMethod(node);
-			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			} catch (ProcessCanceledException e) {
+				//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+				//TODO delete block when minimum required version is 2024.2
+				throw e;
+			} catch (IndexNotReadyException | CancellationException e) {
 				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while visiting node with " + visitor.getClass().getName(), e);
