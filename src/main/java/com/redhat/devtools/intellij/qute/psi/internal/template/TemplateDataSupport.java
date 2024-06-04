@@ -52,7 +52,11 @@ public class TemplateDataSupport {
                                                                  DataModelBaseTemplate<DataModelParameter> template, ProgressIndicator monitor) {
         try {
             search(fieldOrMethod, new TemplateDataCollector(template, monitor), monitor);
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.WARNING,
@@ -103,7 +107,11 @@ public class TemplateDataSupport {
             TemplateDataLocation dataLocation = new TemplateDataLocation(parameterName, utils);
             search(fieldOrMethod, dataLocation, monitor);
             return dataLocation.getLocation();
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.WARNING,

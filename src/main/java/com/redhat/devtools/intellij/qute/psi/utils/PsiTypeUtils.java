@@ -199,7 +199,11 @@ public class PsiTypeUtils {
                 // ex : if className = String we should find type of java.lang.String
                 return JavaPsiFacade.getInstance(javaProject.getProject()).findClass("java.lang." + className, javaProject.getModuleWithDependenciesAndLibrariesScope(true));
             }
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Error while finding type for '" + className + "'.", e);

@@ -104,7 +104,11 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 				// class
 				addDummyResolverForTemplateExtensionsClass(type, resolvers);
 			}
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getName() + "'.", e);
@@ -131,7 +135,11 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 		try {
 			return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
 					&& !PsiTypeUtils.isVoidReturnType(method);
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting method information of '" + method.getName() + "'.", e);
@@ -165,7 +173,11 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
 			if (StringUtils.isNotEmpty(matchName)) {
 				resolver.setMatchName(matchName);
 			}
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (RuntimeException e) {
 			LOGGER.log(Level.WARNING,

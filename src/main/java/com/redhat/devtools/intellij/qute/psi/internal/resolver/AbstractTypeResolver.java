@@ -64,7 +64,11 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 					typeName.append(">");
 				}
 				return typeName.toString();
-			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			} catch (ProcessCanceledException e) {
+				//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+				//TODO delete block when minimum required version is 2024.2
+				throw e;
+			} catch (IndexNotReadyException | CancellationException e) {
 				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while collecting Java Types for Java type '" + typeName + "'.", e);
@@ -94,7 +98,11 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 			if (primaryType.isInterface() && !extendedTypes.contains("java.lang.Object")) {
 				extendedTypes.add("java.lang.Object");
 			}
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while resolving super class Java Types for Java type '"
@@ -110,7 +118,11 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		signature.append(" : ");
 		try {
 			signature.append(PsiTypeUtils.resolveSignature(field.getType(), false));
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while resolving field type '" + field.getName() + "'", e);
@@ -137,7 +149,11 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 							varargs && i == parameters.length - 1));
 				}
 			}
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING,
@@ -148,7 +164,11 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 			String returnType = PsiTypeUtils.resolveSignature(method.getReturnType(), false);
 			signature.append(" : ");
 			signature.append(returnType);
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while resolving method return type of '" + method.getName() + "'",

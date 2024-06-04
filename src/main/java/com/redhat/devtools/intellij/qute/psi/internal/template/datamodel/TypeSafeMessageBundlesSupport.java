@@ -102,7 +102,11 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
     private static PsiAnnotation getMessageBundleAnnotation(PsiClass type) {
         try {
             return AnnotationUtils.getAnnotation(type, MESSAGE_BUNDLE_ANNOTATION);
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while getting @MessageBundle annotation value.", e);
@@ -116,7 +120,11 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
             if (messageBundleAnnotation != null) {
                 namespace = AnnotationUtils.getAnnotationMemberValue(messageBundleAnnotation, VALUE_ANNOTATION_NAME);
             }
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while getting @MessageBundle#value annotation value.", e);
@@ -131,7 +139,11 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
                 return AnnotationUtils.getAnnotationMemberValue(messageBundleAnnotation,
                         MESSAGE_BUNDLE_ANNOTATION_LOCALE);
             }
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while getting @MessageBundle#locale annotation value.", e);
@@ -143,7 +155,11 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
     private static String getMessageContent(PsiAnnotation messageAnnotation) {
         try {
             return AnnotationUtils.getAnnotationMemberValue(messageAnnotation, VALUE_ANNOTATION_NAME);
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while getting @Message#value annotation value.", e);

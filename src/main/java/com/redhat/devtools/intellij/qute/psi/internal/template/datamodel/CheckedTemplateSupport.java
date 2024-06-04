@@ -105,7 +105,11 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                     ignoreFragment = AnnotationUtils.getValueAsBoolean(pair);
                 }
             }
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             // Do nothing
@@ -130,7 +134,11 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                     basePath = pair.getLiteralValue();
                 }
             }
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             // Do nothing
@@ -230,7 +238,11 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                 }
             }
 
-        } catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.log(Level.WARNING,

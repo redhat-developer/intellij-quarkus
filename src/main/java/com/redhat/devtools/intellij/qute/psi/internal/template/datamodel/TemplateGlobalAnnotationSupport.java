@@ -115,7 +115,11 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 					collectResolversForTemplateGlobal(method, templateGlobal, resolvers, typeResolver, monitor);
 				}
 			}
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting methods of '" + type.getQualifiedName() + "'.", e);
@@ -135,7 +139,11 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			try {
 				resolver.setNamed(
 					AnnotationUtils.getAnnotationMemberValue(templateGlobal, TEMPLATE_GLOBAL_ANNOTATION_NAME));
-			} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+			} catch (ProcessCanceledException e) {
+				//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+				//TODO delete block when minimum required version is 2024.2
+				throw e;
+			} catch (IndexNotReadyException | CancellationException e) {
 				throw e;
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error while getting annotation member value of 'name'.", e);
@@ -184,7 +192,11 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 				}
 			}
 			return false;
-		} catch (IndexNotReadyException | ProcessCanceledException | CancellationException e) {
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while getting method information of '" + member.getName() + "'.", e);
