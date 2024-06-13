@@ -14,6 +14,7 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
@@ -60,7 +61,7 @@ public class QuteServer extends ProcessStreamConnectionProvider {
     }
 
     @Override
-    public Object getInitializationOptions(URI rootUri) {
+    public Object getInitializationOptions(VirtualFile rootUri) {
         Map<String, Object> root = new HashMap<>();
         Map<String, Object> settings = UserDefinedQuteSettings.getInstance(project).toSettingsForQuteLS();
         Map<String, Object> extendedClientCapabilities = new HashMap<>();
