@@ -1,0 +1,4 @@
+QUTE_FILE
+  ASTWrapperPsiElement(QuteElementType.QUTE_CONTENT)
+    ASTWrapperPsiElement(QUTE_TEXT)
+      PsiElement(QUTE_TEXT)('foo')

@@ -126,9 +126,6 @@ public class QuarkusIntegrationForQute {
 		}
 	}
 
-	private static final String JDT_SCHEME = "jdt";
-	private static final String CONTENTS_AUTHORITY = "jarentry";
-
 	// see
 	// https://github.com/microsoft/vscode-java-dependency/blob/27c306b770c23b1eba1f9a7c3e70d2793baced68/jdtls.ext/com.microsoft.jdtls.ext.core/src/com/microsoft/jdtls/ext/core/ExtUtils.java#L39
 
