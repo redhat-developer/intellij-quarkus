@@ -39,24 +39,28 @@ public class QuteParsing {
         }
 
         while (!eof()) {
-            final IElementType tt = token();
-            if (tt == QUTE_START_EXPRESSION) {
-                parseExpression();
-            } else if (tt == QUTE_START_TAG_OPEN) {
-                parseStartSection();
-            } else if (isCommentToken(tt)) {
-                parseComment();
-            } else if (tt == QUTE_TEXT) {
-                parseText();
-            } else {
-                advance();
-            }
+            parseContent();
         }
 
         template.done(QUTE_CONTENT);
     }
 
-    private void parseStartSection() {
+    private void parseContent() {
+        final IElementType tt = token();
+        if (tt == QUTE_START_EXPRESSION) {
+            parseExpression();
+        } else if (tt == QUTE_START_TAG_OPEN) {
+            parseSection();
+        } else if (isCommentToken(tt)) {
+            parseComment();
+        } else if (tt == QUTE_TEXT) {
+            parseText();
+        } else {
+            advance();
+        }
+    }
+
+    private void parseSection() {
         final PsiBuilder.Marker startSection = mark();
         advance();
 
@@ -91,16 +95,17 @@ public class QuteParsing {
                 advance();
                 propertyPart.done(QUTE_EXPRESSION_PROPERTY_PART);
                 continue;
-            } else {
-                //final PsiBuilder.Marker error = mark();
+            } else if (tt == QUTE_END_TAG_CLOSE || tt == QUTE_END_TAG_SELF_CLOSE) {
                 advance();
-                // error.error("BAD comments!");
-                continue;
+                break;
+            } else {
+                parseContent();
             }
             break;
         }
         startSection.done(QUTE_START_SECTION);
     }
+
 
     private void parseText() {
         final PsiBuilder.Marker text = mark();

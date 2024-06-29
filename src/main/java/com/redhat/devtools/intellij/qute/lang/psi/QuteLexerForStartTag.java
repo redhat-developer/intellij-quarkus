@@ -36,8 +36,6 @@ public class QuteLexerForStartTag extends AbstractQuteSubLexer {
     private int myLastState;
     private IElementType myLastTokenType;
     private int myLastTokenEnd;
-    private ExpressionScanner expressionScanner;
-
     private AbstractQuteSubLexer currentSubLexer;
 
     public QuteLexerForStartTag(String text, TemplateScanner templateScanner, int startTagOpenOffset) {
