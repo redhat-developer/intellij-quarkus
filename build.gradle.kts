@@ -117,7 +117,7 @@ dependencies {
         builtBy("copyDeps")
     })
 
-    testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0")
+    testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.0")
 
     // And now for some serious HACK!!!
     // Starting with 2023.1, all gradle tests fail importing projects with a:
