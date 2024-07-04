@@ -30,6 +30,7 @@ import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
+import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectThirdPage;
 import org.jboss.tools.intellij.quarkus.utils.BuildTool;
 import org.jboss.tools.intellij.quarkus.utils.EndpointURLType;
 import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
@@ -49,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class BasicTest extends AbstractQuarkusTest {
     private final String NEW_QUARKUS_MAVEN_PROJECT_NAME = "code-with-quarkus-maven";
     private final String NEW_QUARKUS_GRADLE_PROJECT_NAME = "code-with-quarkus-gradle";
+    private final String JAVA_VERSION_FOR_QUARKUS_PROJECT = "17";
 
     @AfterEach
     public void finishTestRun() {
@@ -100,7 +102,9 @@ public class BasicTest extends AbstractQuarkusTest {
 
         QuarkusNewProjectSecondPage quarkusNewProjectSecondPage = newProjectDialogWizard.find(QuarkusNewProjectSecondPage.class, Duration.ofSeconds(10));
         quarkusNewProjectSecondPage.setBuildTool(buildTool);
+        quarkusNewProjectSecondPage.setJavaVersion(JAVA_VERSION_FOR_QUARKUS_PROJECT);
         newProjectDialogWizard.next();
+        newProjectDialogWizard.find(QuarkusNewProjectThirdPage.class, Duration.ofSeconds(10)); // wait for third page to be loaded
         newProjectDialogWizard.next();
         try {
             Thread.sleep(1000L);

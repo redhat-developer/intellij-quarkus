@@ -117,7 +117,7 @@ dependencies {
         builtBy("copyDeps")
     })
 
-    testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.2.0")
+    testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.0")
 
     // And now for some serious HACK!!!
     // Starting with 2023.1, all gradle tests fail importing projects with a:
@@ -270,7 +270,7 @@ tasks {
     // Configure UI tests plugin
     // Read more: https://github.com/JetBrains/intellij-ui-test-robot
     runIdeForUiTests {
-        systemProperty("robot-server.port", "8082")
+        systemProperty("robot-server.port", System.getProperty("robot-server.port"))
         systemProperty("ide.mac.message.dialogs.as.sheets", "false")
         systemProperty("jb.privacy.policy.text", "<!--999.999-->")
         systemProperty("jb.consents.confirmation.enabled", "false")

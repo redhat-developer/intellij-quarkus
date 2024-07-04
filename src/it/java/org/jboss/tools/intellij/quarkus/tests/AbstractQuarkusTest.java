@@ -33,7 +33,7 @@ abstract public class AbstractQuarkusTest {
     @BeforeAll
     protected static void startIntelliJ() {
         if (!intelliJHasStarted) {
-            remoteRobot = UITestRunner.runIde(IntelliJVersion.COMMUNITY_V_2022_1, 8580);
+            remoteRobot = UITestRunner.runIde(IntelliJVersion.COMMUNITY_V_2023_2, 8580);
             intelliJHasStarted = true;
             Runtime.getRuntime().addShutdownHook(new CloseIntelliJBeforeQuit());
 

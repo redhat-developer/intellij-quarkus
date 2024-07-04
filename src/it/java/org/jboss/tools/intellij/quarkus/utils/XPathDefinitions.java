@@ -23,4 +23,5 @@ public class XPathDefinitions {
     public static final String CUSTOM_ENDPOINT_URL_TEXT_FIELD = "//div[@class='BorderlessTextField']";
     public static final String SET_BUILD_TOOL_COMBO_BOX = "//div[@accessiblename='Tool:' and @class='ComboBox']";
     public static final String PROJECT_SETTINGS_COMPONENTS = "//div[@class='NamePathComponent']/*";
+    public static final String JAVA_VERSION_COMBO_BOX = "//div[@accessiblename='Java version:' and @class='ComboBox']";
 }

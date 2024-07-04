@@ -46,4 +46,15 @@ public class QuarkusNewProjectSecondPage extends CommonContainerFixture {
             comboBoxFixture.selectItem(buildTool.toString());
         }
     }
+
+    /**
+     * Set java version
+     */
+    public void setJavaVersion(String javaVersion){
+        ComboBoxFixture comboBoxFixture = comboBox(byXpath(XPathDefinitions.JAVA_VERSION_COMBO_BOX), Duration.ofSeconds(10));
+        if (!comboBoxFixture.selectedText().contains(javaVersion)) {
+            comboBoxFixture.click(); // extra click needed due to an issue - https://github.com/JetBrains/intellij-ui-test-robot/issues/112
+            comboBoxFixture.selectItem(javaVersion);
+        }
+    }
 }
