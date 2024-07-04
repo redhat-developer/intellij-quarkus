@@ -79,7 +79,10 @@ public class CDIUtils {
 					&& !type.getModifierList().hasExplicitModifier(PsiModifier.ABSTRACT)
 					&& !AnnotationUtils.hasAnnotation(javaElement, JAVAX_DECORATOR_ANNOTATION, JAKARTA_DECORATOR_ANNOTATION)
 					&& !AnnotationUtils.hasAnnotation(javaElement, JAVAX_INJECT_VETOED_ANNOTATION, JAKARTA_INJECT_VETOED_ANNOTATION)
-					&& PsiTypeUtils.isClass(type) && hasNoArgConstructor(type));
+					&& PsiTypeUtils.isClass(type)
+					// In Quarkus context, all arguments are injected
+					// See https://github.com/redhat-developer/vscode-quarkus/issues/708
+					/* && hasNoArgConstructor(type)*/  );
 		} catch (Exception e) {
 			return false;
 		}

@@ -90,6 +90,10 @@ public class CDIUtilsTest extends QuteMavenModuleImportingTestCase  {
 		PsiClass bean1 = PsiTypeUtils.findType(javaProject, "org.acme.Bean1");
 		// Empty class is a bean
 		assertTrue(CDIUtils.isValidBean(bean1));
+
+		PsiClass bean3 = PsiTypeUtils.findType(javaProject, "org.acme.Bean3");
+		// Class with constructor is a bean
+		assertTrue(CDIUtils.isValidBean(bean3));
 	}
 
 }
