@@ -73,7 +73,12 @@ public class MicroProfileReactiveMessagingTest extends LSP4MPMavenModuleImportin
                 // mp.messaging.incoming.${connector-name}
                 p(null, "mp.messaging.incoming.${smallrye-kafka}.bootstrap.servers", "java.lang.String",
                         "A comma-separated list of host:port to use for establishing the initial connection to the Kafka cluster.",
-                        true, "io.smallrye.reactive.messaging.kafka.KafkaConnector", null, null, 0, "localhost:9092") //
+                        true, "io.smallrye.reactive.messaging.kafka.KafkaConnector", null, null, 0, "localhost:9092"),
+
+                // mp.messaging.outgoing.quotes.connector
+                p(null, "mp.messaging.outgoing.quotes.connector",
+                        "org.eclipse.microprofile.reactive.messaging.spi.Connector", null, false,
+                        "org.acme.kafka.QuoteResource", "quotes", null, 0, null)
         );
 
         assertPropertiesDuplicate(infoFromClasspath);
