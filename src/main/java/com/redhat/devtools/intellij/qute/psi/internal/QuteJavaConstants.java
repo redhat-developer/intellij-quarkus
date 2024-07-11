@@ -28,6 +28,8 @@ public class QuteJavaConstants {
 
     public static final String TEMPLATE_CLASS = "io.quarkus.qute.Template";
 
+    public static final String TEMPLATE_INSTANCE_INTERFACE = "io.quarkus.qute.TemplateInstance";
+
     public static final String ENGINE_BUILDER_CLASS = "io.quarkus.qute.EngineBuilder";
 
     public static final String VALUE_ANNOTATION_NAME = "value";

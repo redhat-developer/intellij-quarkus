@@ -21,6 +21,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
+import com.intellij.psi.search.searches.DefinitionsScopedSearch;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.MergeQuery;
@@ -120,6 +121,26 @@ public abstract class AbstractDataModelProvider implements IDataModelProvider {
 		PsiClass templateClass = context.getUtils().findClass(context.getJavaProject(), className);
 		if (templateClass != null) {
 			return ReferencesSearch.search(templateClass, context.getJavaProject().getModuleWithDependenciesAndLibrariesScope(false));
+		} else {
+			return new EmptyQuery<>();
+		}
+	}
+
+	/**
+	 * Create a search pattern to retrieve IType which implement the given
+	 * <code>interfaceName</code interface name.
+	 *
+	 * @param context the search context.
+	 * @param interfaceName the interface name to search.
+	 *
+	 * @return a search pattern to retrieve IType which implement the given
+	 *         <code>interfaceName</code interface name.
+	 */
+	protected static Query<PsiElement> createInterfaceImplementationSearchPattern(SearchContext context,
+																				  String interfaceName) {
+		PsiClass interfaceClass = context.getUtils().findClass(context.getJavaProject(), interfaceName);
+		if (interfaceClass != null) {
+			return DefinitionsScopedSearch.search(interfaceClass, context.getJavaProject().getModuleWithDependenciesAndLibrariesScope(false), false);
 		} else {
 			return new EmptyQuery<>();
 		}

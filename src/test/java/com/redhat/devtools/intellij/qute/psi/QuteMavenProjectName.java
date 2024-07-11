@@ -22,5 +22,6 @@ public class QuteMavenProjectName {
 
     public static final String quarkus3 = "quarkus3";
 
-    public static String qute_messages = "qute-messages";
+    public static final String qute_messages = "qute-messages";
+    public static final String qute_record = "qute-record";
 }

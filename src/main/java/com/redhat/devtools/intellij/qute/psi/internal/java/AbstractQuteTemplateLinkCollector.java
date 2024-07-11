@@ -84,6 +84,17 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
         this.relativeTemplatesBaseDir = PsiQuteProjectUtils.getRelativeTemplateBaseDir(utils.getModule(), resourcesDir);
     }
 
+    /**
+     * Support for "Template Fields"
+     *
+     * <p>
+     * private Template items;
+     * </p>
+     *
+     * @see <a href=
+     *      "https://quarkus.io/guides/qute-reference#quarkus_integration">Quarkus
+     *      Integration</a>
+     */
     @Override
     public void visitField(PsiField node) {
         PsiType type = node.getType();
@@ -130,6 +141,27 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 
     @Override
     public void visitClass(PsiClass node) {
+        if (node.isRecord()) {
+            visitRecordType(node);
+        } else {
+            visitClassType(node);
+        }
+    }
+
+    /**
+     * Support for "TypeSafe Templates"
+     *
+     * <p>
+     *
+     * @CheckedTemplate public static class Templates { public static native
+     *                  TemplateInstance book(Book book);
+     *                  </p>
+     *
+     * @see <a href=
+     *      "https://quarkus.io/guides/qute-reference#typesafe_templates">TypeSafe
+     *      Templates</a>
+     */
+    private void visitClassType(PsiClass node) {
         levelTypeDecl++;
         for (PsiAnnotation annotation : node.getAnnotations()) {
             if (AnnotationUtils.isMatchAnnotation(annotation, CHECKED_TEMPLATE_ANNOTATION)
@@ -148,10 +180,21 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
         levelTypeDecl--;
     }
 
+    /**
+     * Support for "Template Records"
+     *
+     * @see <a href=
+     *      "https://quarkus.io/guides/qute-reference#template-records">Template
+     *      Records</a>
+     */
+    private void visitRecordType(PsiClass node) {
+        String recordName = node.getName();
+        collectTemplateLink(null, node, null, node.getContainingClass(), null, recordName, false);
+    }
+
     private static PsiClass getTypeDeclaration(PsiElement node) {
         return PsiTreeUtil.getParentOfType(node, PsiClass.class);
     }
-
 
     private void collectTemplateLink(String basePath, PsiMethod methodDeclaration, PsiClass type, boolean ignoreFragments) {
         String className = null;
