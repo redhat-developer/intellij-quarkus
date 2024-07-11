@@ -634,6 +634,8 @@
 
         <!-- Qute -->
         <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateRecordsSupport"/>
+        <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport"/>
         <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateExtensionAnnotationSupport"/>
