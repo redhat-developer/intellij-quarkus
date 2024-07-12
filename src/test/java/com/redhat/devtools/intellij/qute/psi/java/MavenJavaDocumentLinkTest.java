@@ -280,6 +280,34 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
                         templateFileUri, "Create `src/main/resources/templates/ItemResourceWithFragment/items3.html`")); //
     }
 
+    @Test
+    public void testTemplateRecord() throws Exception {
+
+        // public class HelloResource {
+
+        // record Hello(String name) implements TemplateInstance {}
+
+        // record Bonjour(String name) implements TemplateInstance {}
+
+        // record Status() {}
+        var module = loadMavenProject(QuteMavenProjectName.qute_record);
+        QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/HelloResource.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(2, links.size());
+
+        String templateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/Hello.html").toASCIIString();
+
+        assertDocumentLink(links, //
+                dl(r(14, 11, 14, 16), //
+                        templateFileUri, "Open `src/main/resources/templates/Hello.html`"), //
+                dl(r(16, 11, 16, 18), //
+                        templateFileUri, "Create `src/main/resources/templates/Bonjour.html`"));
+    }
+
 
     public static Range r(int line, int startChar, int endChar) {
         return r(line, startChar, line, endChar);

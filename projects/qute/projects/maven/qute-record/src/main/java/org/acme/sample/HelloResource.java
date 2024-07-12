@@ -14,6 +14,10 @@ public class HelloResource {
 
     record Hello(String name) implements TemplateInstance {}
 
+    record Bonjour(String name) implements TemplateInstance {}
+
+    record Status() {}
+
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public TemplateInstance get(@QueryParam("name") String name) {

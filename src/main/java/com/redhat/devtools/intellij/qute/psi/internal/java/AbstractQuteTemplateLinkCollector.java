@@ -19,7 +19,9 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.AnnotationLocationSupport;
@@ -92,8 +94,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
      * </p>
      *
      * @see <a href=
-     *      "https://quarkus.io/guides/qute-reference#quarkus_integration">Quarkus
-     *      Integration</a>
+     * "https://quarkus.io/guides/qute-reference#quarkus_integration">Quarkus
+     * Integration</a>
      */
     @Override
     public void visitField(PsiField node) {
@@ -154,12 +156,11 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
      * <p>
      *
      * @CheckedTemplate public static class Templates { public static native
-     *                  TemplateInstance book(Book book);
-     *                  </p>
-     *
+     * TemplateInstance book(Book book);
+     * </p>
      * @see <a href=
-     *      "https://quarkus.io/guides/qute-reference#typesafe_templates">TypeSafe
-     *      Templates</a>
+     * "https://quarkus.io/guides/qute-reference#typesafe_templates">TypeSafe
+     * Templates</a>
      */
     private void visitClassType(PsiClass node) {
         levelTypeDecl++;
@@ -184,13 +185,35 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
      * Support for "Template Records"
      *
      * @see <a href=
-     *      "https://quarkus.io/guides/qute-reference#template-records">Template
-     *      Records</a>
+     * "https://quarkus.io/guides/qute-reference#template-records">Template
+     * Records</a>
      */
     private void visitRecordType(PsiClass node) {
-        String recordName = node.getName();
-        collectTemplateLink(null, node, null, node.getContainingClass(), null, recordName, false);
+        if (isImplementTemplateInstance(node)) {
+            String recordName = node.getName();
+            collectTemplateLink(null, node, null, node, null, recordName, false);
+        }
     }
+
+    /**
+     * Returns true if the record implements the "io.quarkus.qute.TemplateInstance"
+     * interface and false otherwise.
+     *
+     * @param node the record node.
+     * @return true if the record implements the "io.quarkus.qute.TemplateInstance"
+     * interface and false otherwise.
+     */
+    private static boolean isImplementTemplateInstance(PsiClass node) {
+        for (var current : node.getImplementsListTypes()) {
+            if (current instanceof PsiClassReferenceType type &&
+                    type.getReference() != null &&
+                    QuteJavaConstants.TEMPLATE_INSTANCE_INTERFACE.equals(type.getReference().getQualifiedName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private static PsiClass getTypeDeclaration(PsiElement node) {
         return PsiTreeUtil.getParentOfType(node, PsiClass.class);
@@ -301,6 +324,11 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
         }
         if (fieldOrMethod instanceof PsiLiteralValue) {
             TextRange tr = fieldOrMethod.getTextRange();
+            return utils.toRange(typeRoot, tr.getStartOffset(), tr.getLength());
+        }
+        if (fieldOrMethod instanceof PsiClass) {
+            // record
+            TextRange tr = ((PsiClass) fieldOrMethod).getNameIdentifier().getTextRange();
             return utils.toRange(typeRoot, tr.getStartOffset(), tr.getLength());
         }
         PsiMethod method = (PsiMethod) fieldOrMethod;

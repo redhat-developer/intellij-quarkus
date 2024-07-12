@@ -304,6 +304,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
                         "qute.command.generate.template.file", Arrays.asList(items3Uri)));
 
     }
+
     @Test
     public void testCheckedTemplateInInnerClassWithFragment() throws Exception {
 
@@ -341,6 +342,36 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
                 cl(r(31, 2, 31, 62), //
                         "Create `src/main/resources/templates/ItemResourceWithFragment/items2$id2.html`", //
                         "qute.command.generate.template.file", Arrays.asList(items2Uri_id2)));
+    }
+
+    @Test
+    public void testTemplateRecord() throws Exception {
+        // public class HelloResource {
+
+        // record Hello(String name) implements TemplateInstance {}
+
+        // record Bonjour(String name) implements TemplateInstance {}
+
+        // record Status() {}
+        var module = loadMavenProject(QuteMavenProjectName.qute_record);
+
+        QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/HelloResource.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+
+        String helloFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/Hello.html").toASCIIString();
+        String bonjourFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/Bonjour.html").toASCIIString();
+
+        assertCodeLens(lenses, //
+                cl(r(14, 4, 14, 60), //
+                        "Open `src/main/resources/templates/Hello.html`", //
+                        "qute.command.open.uri", Arrays.asList(helloFileUri)), //
+                cl(r(16, 4, 16, 62), //
+                        "Create `src/main/resources/templates/Bonjour.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(bonjourFileUri)));
     }
 
     public static Range r(int line, int startChar, int endChar) {
