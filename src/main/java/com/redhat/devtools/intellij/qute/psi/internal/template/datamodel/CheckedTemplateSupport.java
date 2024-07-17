@@ -33,6 +33,7 @@ import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 
+import com.redhat.devtools.intellij.qute.psi.utils.TemplateNameStrategy;
 import com.redhat.devtools.intellij.qute.psi.utils.TemplatePathInfo;
 import com.redhat.qute.commons.datamodel.DataModelBaseTemplate;
 import com.redhat.qute.commons.datamodel.DataModelFragment;
@@ -81,7 +82,8 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
             PsiClass type = (PsiClass) javaElement;
             boolean ignoreFragments = isIgnoreFragments(checkedTemplateAnnotation);
             String basePath = getBasePath(checkedTemplateAnnotation);
-            collectDataModelTemplateForCheckedTemplate(type, context.getRelativeTemplateBaseDir(), basePath, ignoreFragments, context.getTypeResolver(type),
+            TemplateNameStrategy templateNameStrategy = getDefaultName(checkedTemplateAnnotation);
+            collectDataModelTemplateForCheckedTemplate(type, context.getRelativeTemplateBaseDir(), basePath, ignoreFragments, templateNameStrategy, context.getTypeResolver(type),
                     context.getDataModelProject().getTemplates(), monitor);
         }
     }
@@ -119,12 +121,11 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 
     /**
      * Returns the <code>basePath</code> value declared in the @CheckedTemplate annotation, relative to the templates root, to search the templates from.
-     *<code>
-     * @CheckedTemplate(basePath="somewhere")
-     *</code>
+     * <code>
      *
      * @param checkedTemplateAnnotation the CheckedTemplate annotation.
      * @return the <code>basePath</code> value declared in the @CheckedTemplate annotation
+     * @CheckedTemplate(basePath="somewhere") </code>
      */
     public static String getBasePath(PsiAnnotation checkedTemplateAnnotation) {
         String basePath = null;
@@ -147,6 +148,53 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
     }
 
     /**
+     * Returns the <code>defaultName</code> value declared in the @CheckedTemplate annotation.
+     * <code>
+     *
+     * @param checkedTemplateAnnotation the CheckedTemplate annotation.
+     * @return the <code>basePath</code> value declared in the @CheckedTemplate annotation
+     * @CheckedTemplate(defaultName="somewhere") </code>
+     */
+    public static TemplateNameStrategy getDefaultName(PsiAnnotation checkedTemplateAnnotation) {
+        TemplateNameStrategy templateNameStrategy = TemplateNameStrategy.ELEMENT_NAME;
+        try {
+            for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
+                if (CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME.equalsIgnoreCase(pair.getAttributeName())) {
+                    if (pair.getValue() != null
+                            && pair.getValue().getReference() != null
+                            && pair.getValue().getReference().resolve() != null &&
+                            pair.getValue().getReference().resolve() instanceof PsiField field) {
+                        Object value = field.computeConstantValue();
+                        if (value != null) {
+                            templateNameStrategy = getDefaultName(value.toString());
+                        }
+                    }
+                }
+            }
+        } catch (ProcessCanceledException e) {
+            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+            //TODO delete block when minimum required version is 2024.2
+            throw e;
+        } catch (IndexNotReadyException | CancellationException e) {
+            throw e;
+        } catch (Exception e) {
+            // Do nothing
+        }
+        return templateNameStrategy;
+    }
+
+    private static TemplateNameStrategy getDefaultName(String defaultName) {
+        switch (defaultName) {
+            case CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME_HYPHENATED_ELEMENT_NAME:
+                return TemplateNameStrategy.HYPHENATED_ELEMENT_NAME;
+
+            case CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME_UNDERSCORED_ELEMENT_NAME:
+                return TemplateNameStrategy.UNDERSCORED_ELEMENT_NAME;
+        }
+        return TemplateNameStrategy.ELEMENT_NAME;
+    }
+
+    /**
      * Collect data model template from @CheckedTemplate.
      *
      * @param type            the Java type.
@@ -155,8 +203,14 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
      * @param templates       the data model templates to update with collect of template.
      * @param monitor         the progress monitor.
      */
-    private static void collectDataModelTemplateForCheckedTemplate(PsiClass type, String templatesBaseDir, String basePath, boolean ignoreFragments, ITypeResolver typeResolver,
-                                                                   List<DataModelTemplate<DataModelParameter>> templates, ProgressIndicator monitor) {
+    private static void collectDataModelTemplateForCheckedTemplate(PsiClass type,
+                                                                   String templatesBaseDir,
+                                                                   String basePath,
+                                                                   boolean ignoreFragments,
+                                                                   TemplateNameStrategy templateNameStrategy,
+                                                                   ITypeResolver typeResolver,
+                                                                   List<DataModelTemplate<DataModelParameter>> templates,
+                                                                   ProgressIndicator monitor) {
         boolean innerClass = type.getContainingClass() != null;
         String className = !innerClass ? null
                 : PsiTypeUtils.getSimpleClassName(type.getContainingFile().getName());
@@ -166,7 +220,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
         PsiMethod[] methods = type.getMethods();
         for (PsiMethod method : methods) {
             // src/main/resources/templates/${className}/${methodName}.qute.html
-            TemplatePathInfo templatePathInfo = getTemplatePath(templatesBaseDir, basePath, className, method.getName(), ignoreFragments);
+            TemplatePathInfo templatePathInfo = getTemplatePath(templatesBaseDir, basePath, className, method.getName(), ignoreFragments, templateNameStrategy);
 
             // Get or create template
             String templateUri = templatePathInfo.getTemplateUri();
@@ -234,7 +288,11 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                 for (int i = 0; i < parameters.getParametersCount(); i++) {
                     DataModelParameter parameter = createParameterDataModel(parameters.getParameter(i),
                             varargs && i == parameters.getParametersCount() - 1, typeResolver);
-                    templateOrFragment.getParameters().add(parameter);
+                    if (templateOrFragment.getParameter(parameter.getKey()) == null) {
+                        // Add parameter if it doesn't exist
+                        // to avoid parameters duplication
+                        templateOrFragment.getParameters().add(parameter);
+                    }
                 }
             }
 

@@ -374,6 +374,38 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
                         "qute.command.generate.template.file", Arrays.asList(bonjourFileUri)));
     }
 
+    @Test
+    public void testCheckedTemplateWithDefaultName() throws Exception {
+        // @CheckedTemplate(defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+        // static class Templates {
+        // static native TemplateInstance HelloWorld(String name);
+
+        var module = loadMavenProject(QuteMavenProjectName.qute_record);
+
+        QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/ItemResource.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, lenses.size());
+
+        String helloFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResource/HelloWorld.html").toASCIIString();
+        String hello2FileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResource/hello-world.html").toASCIIString();
+        String hello3FileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResource/hello_world.html").toASCIIString();
+
+        assertCodeLens(lenses, //
+                cl(r(19, 2, 19, 57), //
+                        "Create `src/main/resources/templates/ItemResource/HelloWorld.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(helloFileUri)), //
+                cl(r(25, 2, 25, 57), //
+                        "Create `src/main/resources/templates/ItemResource/hello-world.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(hello2FileUri)), //
+                cl(r(31, 2, 31, 57), //
+                        "Create `src/main/resources/templates/ItemResource/hello_world.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(hello3FileUri)));
+    }
+
     public static Range r(int line, int startChar, int endChar) {
         return r(line, startChar, line, endChar);
     }
