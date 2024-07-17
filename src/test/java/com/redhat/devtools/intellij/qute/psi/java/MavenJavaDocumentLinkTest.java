@@ -308,6 +308,34 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
                         templateFileUri, "Create `src/main/resources/templates/Bonjour.html`"));
     }
 
+    @Test
+    public void testCheckedTemplateWithDefaultName() throws Exception {
+
+        // @CheckedTemplate(defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+        // static class Templates {
+        // static native TemplateInstance HelloWorld(String name);
+
+        var module = loadMavenProject(QuteMavenProjectName.qute_record);
+        QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/ItemResource.java").toASCIIString();
+        params.setUri(javaFileUri);
+
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+                new EmptyProgressIndicator());
+        assertEquals(3, links.size());
+
+        String helloFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResource/HelloWorld.html").toASCIIString();
+        String hello2FileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResource/hello-world.html").toASCIIString();
+        String hello3FileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/ItemResource/hello_world.html").toASCIIString();
+
+        assertDocumentLink(links, //
+                dl(r(19, 33, 19, 43), //
+                        helloFileUri, "Create `src/main/resources/templates/ItemResource/HelloWorld.html`"), //
+                dl(r(25, 33, 25, 43), //
+                        hello2FileUri, "Create `src/main/resources/templates/ItemResource/hello-world.html`"), //
+                dl(r(31, 33, 31, 43), //
+                        hello3FileUri, "Create `src/main/resources/templates/ItemResource/hello_world.html`"));
+    }
 
     public static Range r(int line, int startChar, int endChar) {
         return r(line, startChar, line, endChar);

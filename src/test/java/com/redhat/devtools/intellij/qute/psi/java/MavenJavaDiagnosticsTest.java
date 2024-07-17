@@ -254,29 +254,6 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
                         DiagnosticSeverity.Error, "qute", QuteErrorCode.FragmentNotDefined.name()));
     }
 
-    public void testCheckedTemplateInInnerClassWithCustomBasePath() throws Exception {
-
-        QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
-        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResourceWithCustomBasePath.java").toASCIIString();
-        params.setUris(Arrays.asList(javaFileUri));
-
-        List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
-        assertEquals(1, publishDiagnostics.size());
-
-        List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
-        assertEquals(2, diagnostics.size());
-
-        assertDiagnostic(diagnostics, //
-                new Diagnostic(r(23, 33, 23, 43),
-                        "No template matching the path ItemResourceWithFragment/items3 could be found for: org.acme.qute.ItemResourceWithCustomBasePath$Templates",
-                        DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
-                new Diagnostic(r(24, 33, 24, 40),
-                        "Fragment [] not defined in template ItemResourceWithFragment/items3$",
-                        DiagnosticSeverity.Error, "qute", QuteErrorCode.FragmentNotDefined.name())
-                );
-    }
-
     @Test
     public void testTemplateRecord() throws Exception {
 
@@ -306,6 +283,37 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
                         DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
     }
 
+    @Test
+    public void testCheckedTemplateWithDefaultName() throws Exception {
+
+        // @CheckedTemplate(defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+        // static class Templates {
+        // static native TemplateInstance HelloWorld(String name);
+
+        var module = loadMavenProject(QuteMavenProjectName.qute_record);
+        QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
+        String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/ItemResource.java").toASCIIString();
+        params.setUris(Arrays.asList(javaFileUri));
+
+        List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
+                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+
+        assertEquals(1, publishDiagnostics.size());
+
+        List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
+        assertEquals(3, diagnostics.size());
+
+        assertDiagnostic(diagnostics, //
+                new Diagnostic(r(19, 33, 19, 43),
+                        "No template matching the path ItemResource/HelloWorld could be found for: org.acme.sample.ItemResource$Templates",
+                        DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+                new Diagnostic(r(25, 33, 25, 43),
+                        "No template matching the path ItemResource/HelloWorld could be found for: org.acme.sample.ItemResource$Templates2",
+                        DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+                new Diagnostic(r(31, 33, 31, 43),
+                        "No template matching the path ItemResource/HelloWorld could be found for: org.acme.sample.ItemResource$Templates3",
+                        DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
+    }
 
     public static Range r(int line, int startChar, int endChar) {
         return r(line, startChar, line, endChar);

@@ -18,6 +18,7 @@ import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSuppo
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractInterfaceImplementationDataModelProvider;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
+import com.redhat.devtools.intellij.qute.psi.utils.TemplateNameStrategy;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
@@ -81,7 +82,7 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
 
         String recordName = type.getName();
         // src/main/resources/templates/${recordName}.qute.html
-        String templateUri = getTemplatePath(relativeTemplateBaseDir, null, null, recordName, true).getTemplateUri();
+        String templateUri = getTemplatePath(relativeTemplateBaseDir, null, null, recordName, true, TemplateNameStrategy.ELEMENT_NAME).getTemplateUri();
 
         // Create template data model with:
         // - template uri : Qute template file which must be bind with data model.

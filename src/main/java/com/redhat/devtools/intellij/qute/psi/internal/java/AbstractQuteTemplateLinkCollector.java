@@ -22,13 +22,10 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
+import com.redhat.devtools.intellij.qute.psi.utils.*;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.AnnotationLocationSupport;
-import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
-import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
-import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
-import com.redhat.devtools.intellij.qute.psi.utils.TemplatePathInfo;
 import org.eclipse.lsp4j.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,8 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.*;
-import static com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport.getBasePath;
-import static com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport.isIgnoreFragments;
+import static com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.CheckedTemplateSupport.*;
 import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.*;
 
 /**
@@ -122,7 +118,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
                         .getLocationExpressionFromConstructorParameter(node.getName());
             }
             String fieldName = node.getName();
-            collectTemplateLink(null, node, locationExpression, getTypeDeclaration(node), null, fieldName, false);
+            collectTemplateLink(null, node, locationExpression, getTypeDeclaration(node), null, fieldName, false, TemplateNameStrategy.ELEMENT_NAME);
         }
         super.visitField(node);
     }
@@ -172,8 +168,9 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
                 // public static native TemplateInstance book(Book book);
                 boolean ignoreFragments = isIgnoreFragments(annotation);
                 String basePath = getBasePath(annotation);
+                TemplateNameStrategy templateNameStrategy = getDefaultName(annotation);
                 for (PsiMethod method : node.getMethods()) {
-                    collectTemplateLink(basePath, method, node, ignoreFragments);
+                    collectTemplateLink(basePath, method, node, ignoreFragments, templateNameStrategy);
                 }
             }
         }
@@ -191,7 +188,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
     private void visitRecordType(PsiClass node) {
         if (isImplementTemplateInstance(node)) {
             String recordName = node.getName();
-            collectTemplateLink(null, node, null, node, null, recordName, false);
+            collectTemplateLink(null, node, null, node, null, recordName, false, TemplateNameStrategy.ELEMENT_NAME);
         }
     }
 
@@ -219,25 +216,25 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
         return PsiTreeUtil.getParentOfType(node, PsiClass.class);
     }
 
-    private void collectTemplateLink(String basePath, PsiMethod methodDeclaration, PsiClass type, boolean ignoreFragments) {
+    private void collectTemplateLink(String basePath, PsiMethod methodDeclaration, PsiClass type, boolean ignoreFragments, TemplateNameStrategy templateNameStrategy) {
         String className = null;
         boolean innerClass = levelTypeDecl > 1;
         if (innerClass) {
             className = PsiTypeUtils.getSimpleClassName(typeRoot.getName());
         }
         String methodName = methodDeclaration.getName();
-        collectTemplateLink(basePath, methodDeclaration, null, type, className, methodName, ignoreFragments);
+        collectTemplateLink(basePath, methodDeclaration, null, type, className, methodName, ignoreFragments,templateNameStrategy);
     }
 
     private void collectTemplateLink(String basePath, PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className,
-                                     String fieldOrMethodName, boolean ignoreFragment) {
+                                     String fieldOrMethodName, boolean ignoreFragment, TemplateNameStrategy templateNameStrategy) {
         try {
             String location = locationAnnotation != null && locationAnnotation.getValue() instanceof String ? (String) locationAnnotation.getValue() : null;
             Module project = utils.getModule();
 
             TemplatePathInfo templatePathInfo = location != null
-                    ? PsiQuteProjectUtils.getTemplatePath(null, basePath, null, location, ignoreFragment)
-                    : PsiQuteProjectUtils.getTemplatePath(null, basePath, className, fieldOrMethodName, ignoreFragment);
+                    ? PsiQuteProjectUtils.getTemplatePath(null, basePath, null, location, ignoreFragment, templateNameStrategy)
+                    : PsiQuteProjectUtils.getTemplatePath(null, basePath, className, fieldOrMethodName, ignoreFragment, templateNameStrategy);
             String templateUriWithoutBaseDir = templatePathInfo.getTemplateUri();
 
             boolean definedSuffix = location != null;

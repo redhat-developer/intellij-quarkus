@@ -37,6 +37,7 @@ import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractFieldDec
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
 import com.redhat.devtools.intellij.qute.psi.utils.AnnotationUtils;
 
+import com.redhat.devtools.intellij.qute.psi.utils.TemplateNameStrategy;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 
@@ -106,7 +107,10 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
     }
 
     private static void collectDataModelTemplateForTemplateField(PsiField field,
-                                                                 List<DataModelTemplate<DataModelParameter>> templates, String relativeTemplateBaseDir, String location, ProgressIndicator monitor) {
+                                                                 List<DataModelTemplate<DataModelParameter>> templates,
+                                                                 String relativeTemplateBaseDir,
+                                                                 String location,
+                                                                 ProgressIndicator monitor) {
         DataModelTemplate<DataModelParameter> template = createTemplateDataModel(field, relativeTemplateBaseDir, location, monitor);
         templates.add(template);
     }
@@ -117,7 +121,7 @@ public class TemplateFieldSupport extends AbstractFieldDeclarationTypeReferenceD
         String location = locationFromConstructorParameter != null ? locationFromConstructorParameter : getLocation(field);
         String fieldName = field.getName();
         // src/main/resources/templates/${methodName}.qute.html
-        String templateUri = getTemplatePath(relativeTemplateBaseDir, null, null, location != null ? location : fieldName, true).getTemplateUri();
+        String templateUri = getTemplatePath(relativeTemplateBaseDir, null, null, location != null ? location : fieldName, true, TemplateNameStrategy.ELEMENT_NAME).getTemplateUri();
 
         // Create template data model with:
         // - template uri : Qute template file which must be bind with data model.

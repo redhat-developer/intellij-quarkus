@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.qute.commons.ProjectInfo;
+import io.quarkus.runtime.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
@@ -64,7 +65,6 @@ public class PsiQuteProjectUtils {
      * Returns the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
      *
      * @param javaProject the Java module project.
-     *
      * @return the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
      */
     private static String getTemplateBaseDir(Module javaProject) {
@@ -77,10 +77,10 @@ public class PsiQuteProjectUtils {
 
     public static @NotNull String getRelativeTemplateBaseDir(Module module) {
         VirtualFile resourcesDir = findBestResourcesDir(module);
-       return getRelativeTemplateBaseDir(module, resourcesDir);
+        return getRelativeTemplateBaseDir(module, resourcesDir);
     }
 
-    public static @NotNull String getRelativeTemplateBaseDir(Module module,  @Nullable VirtualFile resourcesDir) {
+    public static @NotNull String getRelativeTemplateBaseDir(Module module, @Nullable VirtualFile resourcesDir) {
         String relativeResourcesPath = RESOURCES_BASE_DIR;
         if (resourcesDir != null) {
             for (VirtualFile root : ModuleRootManager.getInstance(module).getContentRoots()) {
@@ -98,7 +98,6 @@ public class PsiQuteProjectUtils {
      * Returns the best 'resources' directory for the given Java module project and null otherwise.
      *
      * @param javaProject the Java module project.
-     *
      * @return the best resources dir for the given Java module project.
      */
     public static @Nullable VirtualFile findBestResourcesDir(@NotNull Module javaProject) {
@@ -163,17 +162,7 @@ public class PsiQuteProjectUtils {
         return PsiTypeUtils.findType(javaProject, QuteJavaConstants.ENGINE_BUILDER_CLASS) != null;
     }
 
-    public static String getTemplatePath(String basePath, String className, String methodOrFieldName) {
-        StringBuilder path = new StringBuilder();
-        if (basePath != null && !DEFAULTED.equals(basePath)) {
-            appendAndSlash(path, basePath);
-        } else if (className != null) {
-            appendAndSlash(path, className);
-        }
-        return path.append(methodOrFieldName).toString();
-    }
-
-    public static TemplatePathInfo getTemplatePath(String templatesBaseDir, String basePath, String className, String methodOrFieldName, boolean ignoreFragments) {
+    public static TemplatePathInfo getTemplatePath(String templatesBaseDir, String basePath, String className, String methodOrFieldName, boolean ignoreFragments, TemplateNameStrategy templateNameStrategy) {
         String fragmentId = null;
         StringBuilder templateUri = new StringBuilder(templatesBaseDir != null ? templatesBaseDir : "");
         if (basePath != null && !DEFAULTED.equals(basePath)) {
@@ -188,8 +177,33 @@ public class PsiQuteProjectUtils {
                 methodOrFieldName = methodOrFieldName.substring(0, fragmentIndex);
             }
         }
-        templateUri.append(methodOrFieldName);
+        templateUri.append(defaultedName(templateNameStrategy, methodOrFieldName));
         return new TemplatePathInfo(templateUri.toString(), fragmentId);
+    }
+
+    /**
+     * @param defaultNameStrategy
+     * @param value
+     * @return
+     * @see <a href=
+     * "https://github.com/quarkusio/quarkus/blob/32392afcd5cbbed86fe119ed90d4c679d4d52123/extensions/qute/deployment/src/main/java/io/quarkus/qute/deployment/QuteProcessor.java#L562C5-L578C6">QuteProcessor#defaultName</a>
+     */
+    private static String defaultedName(TemplateNameStrategy defaultNameStrategy, String value) {
+        switch (defaultNameStrategy) {
+            case ELEMENT_NAME:
+                return value;
+            case HYPHENATED_ELEMENT_NAME:
+                return StringUtil.hyphenate(value);
+            case UNDERSCORED_ELEMENT_NAME:
+                return String.join("_", new Iterable<String>() {
+                    @Override
+                    public Iterator<String> iterator() {
+                        return StringUtil.lowerCase(StringUtil.camelHumpsIterator(value));
+                    }
+                });
+            default:
+                return value;
+        }
     }
 
     /**

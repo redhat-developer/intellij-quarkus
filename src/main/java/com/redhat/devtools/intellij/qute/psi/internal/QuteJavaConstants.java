@@ -52,7 +52,10 @@ public class QuteJavaConstants {
 
     public static final String CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS = "ignoreFragments";
     public static final String CHECKED_TEMPLATE_ANNOTATION_BASE_PATH = "basePath";
-
+    public static final String CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME = "defaultName";
+    public static final String CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME_HYPHENATED_ELEMENT_NAME = "<<hyphenated element name>>";
+    public static final String CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME_UNDERSCORED_ELEMENT_NAME = "<<underscored element name>>";
+    
     // @TemplateExtension
 
     public static final String TEMPLATE_EXTENSION_ANNOTATION = "io.quarkus.qute.TemplateExtension";
