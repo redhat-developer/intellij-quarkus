@@ -267,8 +267,8 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
 
     @Override
     public CompletableFuture<List<SymbolInformation>> getJavaWorkspaceSymbols(String projectUri) {
-        //Workspace symbols not supported yet https://github.com/redhat-developer/intellij-quarkus/issues/808
-        return CompletableFuture.completedFuture(null);
+        var coalesceBy = new CoalesceByKey("microprofile/java/workspaceSymbols", projectUri);
+        return runAsBackground("Computing Java workspace symbols", monitor -> PropertiesManagerForJava.getInstance().workspaceSymbols(projectUri, PsiUtilsLSImpl.getInstance(getProject()), monitor), coalesceBy);
     }
 
     @Override

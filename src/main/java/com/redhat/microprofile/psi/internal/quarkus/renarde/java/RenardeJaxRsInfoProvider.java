@@ -20,6 +20,7 @@ import com.intellij.util.KeyedLazyInstanceEP;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,18 +41,24 @@ public class RenardeJaxRsInfoProvider extends KeyedLazyInstanceEP<IJaxRsInfoProv
 	private static final Logger LOGGER = Logger.getLogger(RenardeJaxRsInfoProvider.class.getName());
 
 	@Override
-	public boolean canProvideJaxRsMethodInfoForClass(PsiFile typeRoot, Module javaProject, ProgressIndicator monitor) {
+	public boolean canProvideJaxRsMethodInfoForClass(@NotNull PsiFile typeRoot,
+													 @NotNull Module javaProject,
+													 @NotNull ProgressIndicator monitor) {
 		return RenardeUtils.isControllerClass(javaProject, typeRoot, monitor);
 	}
 
 	@Override
-	public Set<PsiClass> getAllJaxRsClasses(Module javaProject, ProgressIndicator monitor) {
+	public @NotNull Set<PsiClass> getAllJaxRsClasses(@NotNull Module javaProject,
+											@NotNull IPsiUtils utils,
+											@NotNull ProgressIndicator monitor) {
 		return RenardeUtils.getAllControllerClasses(javaProject, monitor);
 	}
 
 	@Override
-	public List<JaxRsMethodInfo> getJaxRsMethodInfo(PsiFile typeRoot, JaxRsContext jaxrsContext, IPsiUtils utils,
-													ProgressIndicator monitor) {
+	public @NotNull List<JaxRsMethodInfo> getJaxRsMethodInfo(@NotNull PsiFile typeRoot,
+															 @NotNull JaxRsContext jaxrsContext,
+															 @NotNull IPsiUtils utils,
+															 @NotNull ProgressIndicator monitor) {
 		try {
 			PsiClass type = findFirstClass(typeRoot);
 			if (type == null) {

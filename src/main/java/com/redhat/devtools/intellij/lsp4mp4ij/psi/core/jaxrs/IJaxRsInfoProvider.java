@@ -43,15 +43,17 @@ public interface IJaxRsInfoProvider {
 	 * Returns a non-null set of all the classes in the given project that this provider can provide JAX-RS method information for.
 	 *
 	 * @param javaProject the project to check for JAX-RS method information
+	 * @param utils the Psi utilities.
 	 * @param monitor the progress monitor
 	 * @return a non-null set of all the classes in the given project that this provider can provide JAX-RS method information for
 	 */
-	@NotNull Set<PsiClass> getAllJaxRsClasses(@NotNull Module javaProject, @NotNull ProgressIndicator monitor);
+	@NotNull Set<PsiClass> getAllJaxRsClasses(@NotNull Module javaProject, @NotNull IPsiUtils utils, @NotNull ProgressIndicator monitor);
 
 	/**
 	 * Returns a list of all the JAX-RS methods in the given type.
 	 *
 	 * @param type    the type to check for JAX-RS methods
+	 * @param jaxrsContext the JAX-RS context.
 	 * @param monitor the progress monitor
 	 * @return a list of all the JAX-RS methods in the given type
 	 */

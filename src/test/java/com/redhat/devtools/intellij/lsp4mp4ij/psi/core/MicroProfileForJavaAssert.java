@@ -16,6 +16,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaErrorCode;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiMicroProfileUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4mp.commons.*;
@@ -328,5 +329,67 @@ public class MicroProfileForJavaAssert {
         CodeLens codeLens = new CodeLens(range);
         codeLens.setCommand(new Command(title, commandId, Collections.singletonList(title)));
         return codeLens;
+    }
+
+
+    // Assert for WorkspaceSymbol
+
+    /**
+     * Returns a new symbol information.
+     *
+     * @param name  the name of the symbol
+     * @param range the range of the symbol
+     * @return a new symbol information
+     */
+    public static SymbolInformation si(String name, Range range) {
+        SymbolInformation symbolInformation = new SymbolInformation();
+        symbolInformation.setName(name);
+        Location location = new Location("", range);
+        symbolInformation.setLocation(location);
+        return symbolInformation;
+    }
+
+    /**
+     * Asserts that the actual workspace symbols for the given project are the same
+     * as the list of expected workspace symbols.
+     *
+     * @param javaProject the project to check the workspace symbols of
+     * @param utils       the jdt utils
+     * @param expected    the expected workspace symbols
+     */
+    public static void assertWorkspaceSymbols(Module javaProject, IPsiUtils utils, SymbolInformation... expected) {
+        List<SymbolInformation> actual = PropertiesManagerForJava.getInstance()
+                .workspaceSymbols(PsiMicroProfileUtils.getProjectURI(javaProject), utils, new EmptyProgressIndicator());
+        MicroProfileForJavaAssert.assertWorkspaceSymbols(Arrays.asList(expected), actual);
+    }
+
+    /**
+     * Asserts that the given lists of workspace symbols are the same.
+     *
+     * @param expected the expected symbols
+     * @param actual   the actual symbols
+     */
+    public static void assertWorkspaceSymbols(List<SymbolInformation> expected, List<SymbolInformation> actual) {
+        assertEquals(expected.size(), actual.size());
+        Collections.sort(expected, (si1, si2) -> si1.getName().compareTo(si2.getName()));
+        Collections.sort(actual, (si1, si2) -> si1.getName().compareTo(si2.getName()));
+        for (int i = 0; i < expected.size(); i++) {
+            assertSymbolInformation(expected.get(i), actual.get(i));
+        }
+    }
+
+    /**
+     * Asserts that the expected and actual symbol informations' name and range are
+     * the same.
+     *
+     * Doesn't check any of the other properties. For instance, the URI is avoided
+     * since this will change between systems
+     *
+     * @param expected the expected symbol information
+     * @param actual   the actual symbol information
+     */
+    public static void assertSymbolInformation(SymbolInformation expected, SymbolInformation actual) {
+        assertEquals(expected.getName(), actual.getName());
+        assertEquals(expected.getLocation().getRange(), actual.getLocation().getRange());
     }
 }

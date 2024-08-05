@@ -26,7 +26,8 @@ import java.util.List;
  *
  */
 public interface IJavaCodeLensParticipant {
-	public static final ExtensionPointName<IJavaCodeLensParticipant> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaCodeLensParticipant");
+
+	ExtensionPointName<IJavaCodeLensParticipant> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaCodeLensParticipant");
 
 
 	/**

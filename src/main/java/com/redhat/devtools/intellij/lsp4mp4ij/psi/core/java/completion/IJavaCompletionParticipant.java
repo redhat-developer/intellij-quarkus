@@ -24,7 +24,8 @@ import org.eclipse.lsp4j.CompletionItem;
  * @author datho7561
  */
 public interface IJavaCompletionParticipant {
-	public static final ExtensionPointName<IJavaCompletionParticipant> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaCompletionParticipant");
+
+	ExtensionPointName<IJavaCompletionParticipant> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaCompletionParticipant");
 
 	/**
 	 * Returns true if this completion feature should be active in this context, and false otherwise
