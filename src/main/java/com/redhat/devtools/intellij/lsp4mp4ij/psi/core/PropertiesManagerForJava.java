@@ -14,6 +14,7 @@ import com.intellij.lang.jvm.JvmParameter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
@@ -27,21 +28,15 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaComp
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.JavaCompletionContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.IJavaDefinitionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.JavaDefinitionContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.symbols.IJavaWorkspaceSymbolsParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaDiagnosticsParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.JavaHoverContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.CodeActionHandler;
-import org.eclipse.lsp4j.CodeAction;
-import org.eclipse.lsp4j.CodeLens;
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4mp.commons.*;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -637,4 +632,43 @@ public class PropertiesManagerForJava {
         return codeActionHandler.resolveCodeAction(unresolved, utils);
     }
 
+    /**
+     * Returns the workspace symbols for the given java project.
+     *
+     * @param projectUri the uri of the java project
+     * @param utils      the JDT utils
+     * @param monitor    the progress monitor
+     * @return the workspace symbols for the given java project
+     */
+    public List<SymbolInformation> workspaceSymbols(String projectUri, IPsiUtils utils, ProgressIndicator monitor) {
+        List<SymbolInformation> symbols = new ArrayList<>();
+        Module module = getModule(projectUri, utils);
+        if (module != null) {
+            collectWorkspaceSymbols(module, utils, symbols, monitor);
+        }
+        return symbols;
+    }
+
+    private static @Nullable Module getModule(String uri, IPsiUtils utils) {
+        Module[] modules = ModuleManager.getInstance(utils.getProject()).getModules();
+        for (Module module : modules) {
+            if (uri.equals(module.getName())) {
+                return module;
+            }
+        }
+        return null;
+    }
+
+    private void collectWorkspaceSymbols(Module project, IPsiUtils utils, List<SymbolInformation> symbols,
+                                         ProgressIndicator monitor) {
+        if (monitor.isCanceled()) {
+            return;
+        }
+
+        List<IJavaWorkspaceSymbolsParticipant> definitions = IJavaWorkspaceSymbolsParticipant.EP_NAME.getExtensionList();
+        if (definitions.isEmpty()) {
+            return;
+        }
+        definitions.forEach(definition -> definition.collectSymbols(project, utils, symbols, monitor));
+    }
 }

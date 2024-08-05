@@ -62,7 +62,7 @@ public class JaxRsInfoProviderRegistry {
         return null;
     }
 
-    private List<IJaxRsInfoProvider> getProviders() {
+    public List<IJaxRsInfoProvider> getProviders() {
         if (!initialized) {
             providers = loadProviders();
             return providers;

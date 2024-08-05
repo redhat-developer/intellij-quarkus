@@ -23,7 +23,7 @@ import org.eclipse.lsp4j.Hover;
  */
 public interface IJavaHoverParticipant {
 
-	public static final ExtensionPointName<IJavaHoverParticipant> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaHoverParticipant");
+	ExtensionPointName<IJavaHoverParticipant> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaHoverParticipant");
 
 	/**
 	 * Returns true if hover must be collected for the given context and false

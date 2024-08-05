@@ -18,18 +18,20 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
+import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.MergeQuery;
+import com.intellij.util.Query;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CancellationException;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,14 +51,58 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 	private static final Logger LOGGER = Logger.getLogger(DefaultJaxRsInfoProvider.class.getName());
 
 	@Override
-	public boolean canProvideJaxRsMethodInfoForClass(PsiFile typeRoot, Module javaProject, ProgressIndicator monitor) {
+	public boolean canProvideJaxRsMethodInfoForClass(@NotNull PsiFile typeRoot, Module javaProject, ProgressIndicator monitor) {
 		return PsiTypeUtils.findType(javaProject, JAVAX_WS_RS_PATH_ANNOTATION) != null
 				|| PsiTypeUtils.findType(javaProject, JAKARTA_WS_RS_PATH_ANNOTATION) != null;
 	}
 
 	@Override
-	public Set<PsiClass> getAllJaxRsClasses(Module javaProject, ProgressIndicator monitor) {
-		// TODO: implement when LSP4IJ will support workspace symbols
+	public Set<PsiClass> getAllJaxRsClasses(Module javaProject, IPsiUtils utils, ProgressIndicator monitor) {
+		if (monitor.isCanceled()) {
+			return Collections.emptySet();
+		}
+
+		try {
+			SearchScope scope = javaProject.getModuleScope(false);
+
+			Query<PsiModifierListOwner> query = null;
+			for (var httpAnnotation : JaxRsConstants.HTTP_METHOD_ANNOTATIONS) {
+				PsiClass annotationClass = utils.findClass(javaProject, httpAnnotation);
+				if (annotationClass != null) {
+					Query<PsiModifierListOwner> annotationQuery = AnnotatedElementsSearch.searchElements(annotationClass, scope, PsiModifierListOwner.class);
+					if (query == null) {
+						query = annotationQuery;
+					} else {
+						query = new MergeQuery<>(query, annotationQuery);
+					}
+				}
+			}
+			if (query == null) {
+				return Collections.emptySet();
+			}
+
+			Set<PsiClass> jaxRsClasses = new HashSet<>();
+			query.forEach((Consumer<? super PsiModifierListOwner>) item -> {
+				if (item instanceof PsiMember) {
+					PsiClass cl = ((PsiMember) item).getContainingClass();
+					if (cl != null) {
+						jaxRsClasses.add(cl);
+					}
+				}
+			});
+			if (monitor.isCanceled()) {
+				return Collections.emptySet();
+			}
+			return jaxRsClasses;
+		} catch (ProcessCanceledException e) {
+			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+			//TODO delete block when minimum required version is 2024.2
+			throw e;
+		} catch (IndexNotReadyException | CancellationException e) {
+			throw e;
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "While collecting JAX-RS method information for project " + javaProject.getName(), e);
+		}
 		return Collections.emptySet();
 	}
 

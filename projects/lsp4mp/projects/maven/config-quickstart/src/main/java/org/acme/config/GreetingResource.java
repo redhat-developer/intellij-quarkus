@@ -3,6 +3,7 @@ package org.acme.config;
 import java.util.Optional;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -39,5 +40,10 @@ public class GreetingResource {
     @Path("hello4")
     public String hello3() {
         return message + " 4 " + name.orElse("world") + suffix;
+    }
+
+    @PATCH
+    @Path("hello5")
+    public String hello5() {
     }
 }

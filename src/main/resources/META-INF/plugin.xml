@@ -432,7 +432,8 @@
         </extensionPoint>
         <extensionPoint name="jaxRsInfoProvider"
                         interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.IJaxRsInfoProvider"/>
-
+        <extensionPoint name="javaWorkspaceSymbolsParticipant"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.symbols.IJavaWorkspaceSymbolsParticipant"/>
         <!-- Qute -->
         <extensionPoint name="qute.dataModelProvider"
                         beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean">
@@ -537,6 +538,8 @@
                                    implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java.RegisterRestClientAnnotationMissingQuickFix"/>
         <javaCodeActionParticipant kind="source"
                                    implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.java.MicroProfileGenerateOpenAPIOperation"/>
+
+        <javaWorkspaceSymbolsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java.JaxRsWorkspaceSymbolParticipant" />
 
         <!-- Microprofile Config Static Property support -->
         <staticPropertyProvider resource="/static-properties/mp-config-metadata.json"

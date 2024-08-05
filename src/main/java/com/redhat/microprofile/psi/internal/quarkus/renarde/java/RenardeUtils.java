@@ -12,6 +12,8 @@
 package com.redhat.microprofile.psi.internal.quarkus.renarde.java;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.intellij.openapi.module.Module;
@@ -19,6 +21,9 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.search.ProjectScope;
+import com.intellij.psi.search.searches.DefinitionsScopedSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import org.jetbrains.annotations.NotNull;
@@ -87,8 +92,19 @@ public class RenardeUtils {
 	 * <code>Controller</code> class
 	 */
 	public static Set<PsiClass> getAllControllerClasses(Module project, ProgressIndicator monitor) {
-		// TODO: implement when LSP4IJ will support workspace symbols
-		return Collections.emptySet();
+		PsiClass renardeControllerType = PsiTypeUtils.findType(project, RenardeConstants.CONTROLLER_FQN);
+		if (renardeControllerType == null) {
+			return Collections.emptySet();
+		}
+
+		Set<PsiClass> types = new HashSet<>();
+		DefinitionsScopedSearch.search(renardeControllerType, ProjectScope.getAllScope(project.getProject()), true)
+				.forEach(element -> {
+					if (element instanceof PsiClass renardeType) {
+						types.add(renardeType);
+					}
+				});
+		return types;
 	}
 
 }

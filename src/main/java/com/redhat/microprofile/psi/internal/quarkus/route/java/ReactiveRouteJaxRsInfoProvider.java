@@ -21,6 +21,7 @@ import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,12 +45,12 @@ public class ReactiveRouteJaxRsInfoProvider extends KeyedLazyInstanceEP<IJaxRsIn
     private static final Logger LOGGER = Logger.getLogger(ReactiveRouteJaxRsInfoProvider.class.getName());
 
     @Override
-    public boolean canProvideJaxRsMethodInfoForClass(PsiFile typeRoot, Module javaProject, ProgressIndicator monitor) {
+    public boolean canProvideJaxRsMethodInfoForClass(@NotNull PsiFile typeRoot, Module javaProject, ProgressIndicator monitor) {
         return PsiTypeUtils.findType(javaProject, ROUTE_FQN) != null;
     }
 
     @Override
-    public Set<PsiClass> getAllJaxRsClasses(Module javaProject, ProgressIndicator monitor) {
+    public Set<PsiClass> getAllJaxRsClasses(@NotNull Module javaProject, @NotNull IPsiUtils utils, @NotNull ProgressIndicator monitor) {
         // TODO: implement when LSP4IJ will support workspace symbols
         return Collections.emptySet();
     }
