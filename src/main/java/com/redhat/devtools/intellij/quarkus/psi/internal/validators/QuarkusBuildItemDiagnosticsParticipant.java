@@ -33,6 +33,8 @@ import org.eclipse.lsp4mp.commons.DocumentFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.redhat.devtools.intellij.quarkus.psi.internal.builditems.QuarkusBuildItemUtils.isValidBuildItem;
+
 /**
  * Validates <code>io.quarkus.builder.item.BuildItem</code> subclasses.
  * <ul>
@@ -77,9 +79,7 @@ public class QuarkusBuildItemDiagnosticsParticipant implements IJavaDiagnosticsP
     }
 
     private static void validateBuildItem(PsiClass psiClass, List<Diagnostic> diagnostics, JavaDiagnosticsContext context) {
-        if (psiClass.hasModifierProperty(PsiModifier.FINAL)
-        || psiClass.hasModifierProperty(PsiModifier.ABSTRACT)
-        ) {
+        if (isValidBuildItem(psiClass)) {
             return;
         }
         Range range = PositionUtils.toClassDeclarationRange(psiClass, context.getUtils());
@@ -93,7 +93,7 @@ public class QuarkusBuildItemDiagnosticsParticipant implements IJavaDiagnosticsP
     }
 
     private static String createDiagnosticMessage(PsiClass classType, DocumentFormat documentFormat) {
-        String quote = DocumentFormat.Markdown.equals(documentFormat)?"`":"'";
+        String quote = DocumentFormat.Markdown.equals(documentFormat) ? "`" : "'";
         return String.format(INVALID_MODIFIER, classType.getQualifiedName(), quote);
     }
 }

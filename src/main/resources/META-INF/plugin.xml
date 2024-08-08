@@ -540,6 +540,7 @@
                                    implementationClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.openapi.java.MicroProfileGenerateOpenAPIOperation"/>
 
         <javaWorkspaceSymbolsParticipant implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java.JaxRsWorkspaceSymbolParticipant" />
+        <javaWorkspaceSymbolsParticipant implementation="com.redhat.microprofile.psi.internal.quarkus.builditems.java.BuildItemWorkspaceSymbolParticipant" />
 
         <!-- Microprofile Config Static Property support -->
         <staticPropertyProvider resource="/static-properties/mp-config-metadata.json"
