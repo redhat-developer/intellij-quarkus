@@ -31,9 +31,11 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.utils.AntPathMatcher;
 
 import java.text.MessageFormat;
+import java.time.Duration;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.*;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValueExpression;
@@ -274,7 +276,24 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
                     return PsiTypeUtils.findType(javaProject, value) != null;
                 case "java.lang.String":
                     return true;
+                case "java.time.Duration":
+                    try {
+                        Duration.parse(value);
+                        return true;
+                    }
+                    catch(Exception e) {
+                        return false;
+                    }
                 default:
+                    PsiClass type = PsiTypeUtils.findType(javaProject, typeFqn);
+                    if (type != null) {
+                        if (type.isEnum()) {
+                            return Stream.of(type.getFields())
+                                    .anyMatch(e -> e.getName().equals(value));
+
+
+                        }
+                    }
                     return false;
             }
         } catch (NumberFormatException e) {
