@@ -121,7 +121,7 @@ public class JavaTypesSearch {
             }
         } else {
             // Search classes by the name (without the package name)
-            PrefixMatcher matcher = new CamelHumpMatcher(typeName, true, false);
+            PrefixMatcher matcher = new CamelHumpMatcher(typeName, true);
             matcher = new BetterPrefixMatcher(matcher, Integer.MIN_VALUE);
 
             final List<String> existing = new ArrayList<>();

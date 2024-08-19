@@ -37,6 +37,10 @@ public class PsiQuarkusUtils {
         if (location == null) {
             return null;
         }
+        if (location.endsWith("!/")) {
+            // In IJ, location JAR ends with !/
+            location = location.substring(0, location.length() - 2);
+        }
         if (!location.endsWith(".jar")) {
             return null;
         }

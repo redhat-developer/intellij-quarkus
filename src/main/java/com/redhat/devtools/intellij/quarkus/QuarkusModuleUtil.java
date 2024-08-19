@@ -13,17 +13,20 @@ package com.redhat.devtools.intellij.quarkus;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.RootPolicy;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +62,7 @@ public class QuarkusModuleUtil {
      * @return true if module is a Quarkus project and false otherwise.
      */
     public static boolean isQuarkusModule(Module module) {
-       return hasLibrary(module, QuarkusConstants.QUARKUS_CORE_PREFIX);
+        return hasLibrary(module, QuarkusConstants.QUARKUS_CORE_PREFIX);
     }
 
     /**
@@ -148,13 +151,7 @@ public class QuarkusModuleUtil {
         return module != null && (FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null || QuarkusModuleUtil.isQuarkusModule(module));
     }
 
-    public static VirtualFile getModuleDirPath(Module module) {
-        ModuleRootManager manager = ModuleRootManager.getInstance(module);
-        VirtualFile[] roots = manager.getContentRoots();
-        if (roots.length > 0) {
-            return roots[0];
-        } else {
-            return VfsUtil.findFileByIoFile(new File(module.getModuleFilePath()).getParentFile(), true);
-        }
+    public static @Nullable VirtualFile getModuleDirPath(@NotNull Module module) {
+        return LocalFileSystem.getInstance().findFileByPath(ModuleUtilCore.getModuleDirPath(module));
     }
 }

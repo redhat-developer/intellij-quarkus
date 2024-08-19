@@ -17,6 +17,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.qute.commons.ProjectInfo;
@@ -120,7 +121,7 @@ public class PsiQuteProjectUtils {
         if (roots.length > 0) {
             return roots[0];
         }
-        return javaProject.getModuleFile();
+        return QuarkusModuleUtil.getModuleDirPath(javaProject);
     }
 
     /**

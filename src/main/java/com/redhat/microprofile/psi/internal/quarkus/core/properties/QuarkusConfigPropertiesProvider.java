@@ -134,7 +134,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 		PsiClass configPropertiesType = (PsiClass) psiElement;
 		// Location (JAR, src)
 		VirtualFile packageRoot = PsiTypeUtils.getRootDirectory(psiElement);
-		String location = PsiTypeUtils.getLocation(psiElement.getProject(), packageRoot);
+		String location = packageRoot != null ? packageRoot.getUrl() : null;
 		// Quarkus Extension name
 		String extensionName = PsiQuarkusUtils.getExtensionName(location);
 

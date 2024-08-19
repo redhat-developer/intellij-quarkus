@@ -11,34 +11,11 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiAnnotationMethod;
-import com.intellij.psi.PsiArrayType;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiCompiledElement;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiLiteral;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifierListOwner;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiType;
-import com.intellij.psi.PsiTypeParameter;
-import com.intellij.psi.PsiVariable;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -48,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -288,32 +264,13 @@ public class PsiTypeUtils {
         return getRootDirectory(PsiTreeUtil.getParentOfType(element, PsiFile.class));
     }
 
-    public static VirtualFile getRootDirectory(PsiFile file) {
+    public static @Nullable VirtualFile getRootDirectory(PsiFile file) {
         ProjectFileIndex index = ProjectFileIndex.getInstance(file.getProject());
         VirtualFile directory = index.getSourceRootForFile(file.getVirtualFile());
         if (directory == null) {
             directory = index.getClassRootForFile(file.getVirtualFile());
         }
         return directory;
-    }
-
-    public static String getLocation(Project project, VirtualFile directory) {
-        String location = null;
-        Module module = ProjectFileIndex.getInstance(project).getModuleForFile(directory);
-        if (module != null) {
-            VirtualFile moduleRoot = LocalFileSystem.getInstance().findFileByIoFile(new File(module.getModuleFilePath()).getParentFile());
-            String path = VfsUtilCore.getRelativePath(directory, moduleRoot);
-            if (path != null) {
-                location = '/' + module.getName() + '/' + path;
-            }
-        }
-        if (location == null) {
-            location = directory.getPath();
-        }
-        if (location.endsWith("!/")) {
-            location = location.substring(0, location.length() - 2);
-        }
-        return location;
     }
 
     public static boolean overlaps(TextRange typeRange, TextRange methodRange) {
@@ -347,6 +304,6 @@ public class PsiTypeUtils {
      * @return
      */
     public static boolean isVoidReturnType(PsiMethod method) {
-        return PsiType.VOID.equals(method.getReturnType());
+        return PsiTypes.voidType().equals(method.getReturnType());
     }
 }
