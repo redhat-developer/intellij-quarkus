@@ -53,35 +53,6 @@ public class PsiTypeUtils {
     }
 
     /**
-     * Returns the resolved type name of the <code>javaElement</code> and null
-     * otherwise
-     *
-     * @param javaElement the Java element
-     * @return the resolved type name of the <code>javaElement</code> and null
-     * otherwise
-     */
-    public static String getResolvedTypeName(PsiElement javaElement) {
-        if (javaElement instanceof PsiVariable) {
-            return getResolvedTypeName((PsiLocalVariable) javaElement);
-        } else if (javaElement instanceof PsiField) {
-            return getResolvedTypeName((PsiField) javaElement);
-        }
-        return null;
-    }
-
-    /**
-     * Returns the resolved type name of the given <code>localVar</code> and null
-     * otherwise
-     *
-     * @param localVar the local variable
-     * @return the resolved type name of the given <code>localVar</code> and null
-     * otherwise
-     */
-    public static String getResolvedTypeName(PsiLocalVariable localVar) {
-        return localVar.getType().getCanonicalText();
-    }
-
-    /**
      * Returns the resolved type name of the given <code>field</code> and null
      * otherwise
      *
@@ -91,10 +62,6 @@ public class PsiTypeUtils {
      */
     public static String getResolvedTypeName(PsiField field) {
         return field.getType().getCanonicalText();
-    }
-
-    public static String getPropertyType(PsiClass psiClass, String typeName) {
-        return psiClass != null ? psiClass.getQualifiedName() : typeName;
     }
 
     /**
@@ -216,40 +183,40 @@ public class PsiTypeUtils {
      * Return true if member is static, and false otherwise
      *
      * @param member the member to check for static
-     * @return
+     * @return true if member is static, and false otherwise
      */
     public static boolean isStaticMember(PsiMember member) {
-        return member.getModifierList().hasExplicitModifier(PsiModifier.STATIC);
+        return member.getModifierList() != null && member.getModifierList().hasExplicitModifier(PsiModifier.STATIC);
     }
 
     /**
      * Return true if member is private, and false otherwise
      *
      * @param member the member to check for private access modifier
-     * @return
+     * @return true if member is private, and false otherwise
      */
     public static boolean isPrivateMember(PsiMember member) {
-        return member.getModifierList().hasExplicitModifier(PsiModifier.PRIVATE);
+        return member.getModifierList() != null &&  member.getModifierList().hasExplicitModifier(PsiModifier.PRIVATE);
     }
 
     /**
      * Return true if member is public, and false otherwise
      *
      * @param member the member to check for public access modifier
-     * @return
+     * @return true if member is public, and false otherwise
      */
     public static boolean isPublicMember(PsiMember member) {
-        return member.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
+        return member.getModifierList() != null && member.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
     }
 
     /**
      * Return true if method returns `void`, and false otherwise
      *
      * @param method the method to check return value of
-     * @return
+     * @return true if method returns `void`, and false otherwise
      */
     public static boolean isVoidReturnType(PsiMethod method) {
-        return PsiType.VOID.equals(method.getReturnType());
+        return PsiTypes.voidType().equals(method.getReturnType());
     }
 
     /**

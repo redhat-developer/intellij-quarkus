@@ -1,35 +1,21 @@
 /*******************************************************************************
-* Copyright (c) 2023 Red Hat Inc. and others.
-*
-* This program and the accompanying materials are made available under the
-* terms of the Eclipse Public License v. 2.0 which is available at
-* http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
-* which is available at https://www.apache.org/licenses/LICENSE-2.0.
-*
-* SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
-*
-* Contributors:
-*     Red Hat Inc. - initial API and implementation
-*******************************************************************************/
+ * Copyright (c) 2023 Red Hat Inc. and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors:
+ *     Red Hat Inc. - initial API and implementation
+ *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java;
 
 
-import java.text.MessageFormat;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-
 import com.intellij.openapi.module.Module;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiArrayInitializerMemberValue;
-import com.intellij.psi.PsiArrayType;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiEnumConstant;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiJvmModifiersOwner;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator;
@@ -38,18 +24,22 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.MicroProfileG
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.TypeSystemDirectiveLocation;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.jetbrains.annotations.NotNull;
+
+import java.text.MessageFormat;
+import java.util.logging.Logger;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.isMatchAnnotation;
 
 /**
  * Diagnostics for microprofile-graphql.
- *
+ * <p>
  * TODO: We currently don't check directives on input/output objects and their properties, because
  * it's not trivial to determine whether a class is used as an input, or an output, or both. That
  * will possibly require building the whole GraphQL schema on-the-fly, which might be too expensive.
  *
- * @see https://download.eclipse.org/microprofile/microprofile-graphql-1.0/microprofile-graphql.html
+ * @see <a href="https://download.eclipse.org/microprofile/microprofile-graphql-1.0/microprofile-graphql.html">MicroProfile GraphQL</a>
  */
 public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
 
@@ -67,7 +57,7 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
     @Override
     public boolean isAdaptedForDiagnostics(JavaDiagnosticsContext context) {
         Module javaProject = context.getJavaProject();
-        if(PsiTypeUtils.findType(javaProject, MicroProfileGraphQLConstants.QUERY_ANNOTATION) == null) {
+        if (PsiTypeUtils.findType(javaProject, MicroProfileGraphQLConstants.QUERY_ANNOTATION) == null) {
             return false;
         }
         // void GraphQL operations are allowed in Quarkus 3.1 and higher
@@ -81,9 +71,9 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
     }
 
     @Override
-    public void visitMethod(PsiMethod node) {
+    public void visitMethod(@NotNull PsiMethod node) {
         validateDirectivesOnMethod(node);
-        if(!allowsVoidReturnFromOperations) {
+        if (!allowsVoidReturnFromOperations) {
             validateNoVoidReturnedFromOperations(node);
         }
         validateMultiReturnTypeFromSubscriptions(node);
@@ -92,7 +82,7 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
     }
 
     @Override
-    public void visitClass(PsiClass node) {
+    public void visitClass(@NotNull PsiClass node) {
         validateDirectivesOnClass(node);
         super.visitClass(node);
     }
@@ -115,13 +105,13 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
 
     private void validateDirectivesOnClass(PsiClass node) {
         // a class with @GraphQLApi may only have directives allowed on SCHEMA
-        if(getAnnotation(node, MicroProfileGraphQLConstants.GRAPHQL_API_ANNOTATION) != null) {
+        if (getAnnotation(node, MicroProfileGraphQLConstants.GRAPHQL_API_ANNOTATION) != null) {
             validateDirectives(node, TypeSystemDirectiveLocation.SCHEMA);
         }
         // if an interface has a `@Union` annotation, it may only have directives allowed on UNION
         // otherwise it may only have directives allowed on INTERFACE
         if (node.isInterface()) {
-            if(getAnnotation(node, MicroProfileGraphQLConstants.UNION_ANNOTATION) != null) {
+            if (getAnnotation(node, MicroProfileGraphQLConstants.UNION_ANNOTATION) != null) {
                 validateDirectives(node, TypeSystemDirectiveLocation.UNION);
             } else {
                 validateDirectives(node, TypeSystemDirectiveLocation.INTERFACE);
@@ -132,7 +122,7 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
             validateDirectives(node, TypeSystemDirectiveLocation.ENUM);
             // enum values may only have directives allowed on ENUM_VALUE
             for (PsiField field : node.getFields()) {
-                if(field instanceof PsiEnumConstant) {
+                if (field instanceof PsiEnumConstant) {
                     validateDirectives(field, TypeSystemDirectiveLocation.ENUM_VALUE);
                 }
             }
@@ -199,12 +189,11 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
 
     private void validateNoVoidReturnedFromOperations(PsiMethod node) {
         // ignore constructors, and non-void methods for now, it's faster than iterating through all annotations
-        if (node.getReturnTypeElement() == null ||
-                !PsiType.VOID.equals(node.getReturnType())) {
+        if (node.getReturnTypeElement() == null || !PsiTypeUtils.isVoidReturnType(node)) {
             return;
         }
         for (PsiAnnotation annotation : node.getAnnotations()) {
-            if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.QUERY_ANNOTATION) ) {
+            if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.QUERY_ANNOTATION)) {
                 super.addDiagnostic(NO_VOID_MESSAGE, //
                         MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE, //
                         node.getReturnTypeElement(), //
@@ -224,12 +213,12 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
      * A method annotated with `@Subscription` must return a `Multi` or `Flow.Publisher`.
      */
     private void validateMultiReturnTypeFromSubscriptions(PsiMethod node) {
-        if(node.getReturnType() == null) {
+        if (node.getReturnType() == null) {
             return;
         }
         for (PsiAnnotation annotation : node.getAnnotations()) {
             if (isMatchAnnotation(annotation, MicroProfileGraphQLConstants.SUBSCRIPTION_ANNOTATION)) {
-                if(node.getReturnType().equals(PsiType.VOID)) {
+                if (PsiTypeUtils.isVoidReturnType(node)) {
                     super.addDiagnostic(SUBSCRIPTION_MUST_RETURN_MULTI,
                             MicroProfileGraphQLConstants.DIAGNOSTIC_SOURCE,
                             node.getReturnTypeElement(),
@@ -258,7 +247,7 @@ public class MicroProfileGraphQLASTValidator extends JavaASTValidator {
      * a `Multi` or `Flow.Publisher` type.
      */
     private void validateNoMultiReturnTypeFromQueriesAndMutations(PsiMethod node) {
-        if(node.getReturnType() == null) {
+        if (node.getReturnType() == null) {
             return;
         }
         for (PsiAnnotation annotation : node.getAnnotations()) {

@@ -119,7 +119,8 @@ public class PropertiesManagerForJava {
             }
             JavaCodeLensContext context = new JavaCodeLensContext(uri, typeRoot, utils, module, params);
             List<IJavaCodeLensParticipant> definitions = IJavaCodeLensParticipant.EP_NAME.getExtensionList()
-                    .stream().filter(definition -> definition.isAdaptedForCodeLens(context, monitor))
+                    .stream()
+                    .filter(definition -> definition.isAdaptedForCodeLens(context, monitor))
                     .collect(Collectors.toList());
             if (definitions.isEmpty()) {
                 return;
@@ -166,7 +167,8 @@ public class PropertiesManagerForJava {
             List<CompletionItem> completionItems = new ArrayList<>();
             JavaCompletionContext completionContext = new JavaCompletionContext(uri, typeRoot, utils, module, completionOffset);
 
-            List<IJavaCompletionParticipant> completions = IJavaCompletionParticipant.EP_NAME.extensions()
+            List<IJavaCompletionParticipant> completions = IJavaCompletionParticipant.EP_NAME.getExtensionList()
+                    .stream()
                     .filter(completion -> completion.isAdaptedForCompletion(completionContext))
                     .collect(Collectors.toList());
 
@@ -225,7 +227,8 @@ public class PropertiesManagerForJava {
                     // Collect all adapted definition participant
                     JavaDefinitionContext context = new JavaDefinitionContext(uri, typeRoot, utils, module,
                             hyperlinkedElement, hyperlinkedPosition);
-                    List<IJavaDefinitionParticipant> definitions = IJavaDefinitionParticipant.EP_NAME.extensions()
+                    List<IJavaDefinitionParticipant> definitions = IJavaDefinitionParticipant.EP_NAME.getExtensionList()
+                            .stream()
                             .filter(definition -> definition.isAdaptedForDefinition(context))
                             .toList();
                     if (definitions.isEmpty()) {
@@ -283,7 +286,8 @@ public class PropertiesManagerForJava {
             Module module = utils.getModule(uri);
                 // Collect all adapted diagnostics participant
                 JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, module, documentFormat, settings);
-                List<IJavaDiagnosticsParticipant> definitions = IJavaDiagnosticsParticipant.EP_NAME.extensions()
+                List<IJavaDiagnosticsParticipant> definitions = IJavaDiagnosticsParticipant.EP_NAME.getExtensionList()
+                        .stream()
                         .filter(definition -> definition.isAdaptedForDiagnostics(context))
                         .toList();
                 if (definitions.isEmpty()) {
@@ -575,7 +579,8 @@ public class PropertiesManagerForJava {
                     // Collect all adapted hover participant
                     JavaHoverContext context = new JavaHoverContext(uri, typeRoot, utils, module, hoverElement, hoverPosition,
                             documentFormat, surroundEqualsWithSpaces);
-                    List<IJavaHoverParticipant> definitions = IJavaHoverParticipant.EP_NAME.extensions()
+                    List<IJavaHoverParticipant> definitions = IJavaHoverParticipant.EP_NAME.getExtensionList()
+                            .stream()
                             .filter(definition -> definition.isAdaptedForHover(context)).collect(Collectors.toList());
                     if (definitions.isEmpty()) {
                         return;

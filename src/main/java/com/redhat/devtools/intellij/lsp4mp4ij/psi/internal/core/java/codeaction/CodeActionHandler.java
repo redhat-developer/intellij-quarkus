@@ -93,7 +93,8 @@ public class CodeActionHandler {
 			// Loop for each code action kinds to process the proper code actions
 			for (String codeActionKind : codeActionKinds) {
 				// Get list of code action definition for the given kind
-				List<JavaCodeActionDefinition> codeActionDefinitions = JavaCodeActionDefinition.EP.extensions()
+				List<JavaCodeActionDefinition> codeActionDefinitions = JavaCodeActionDefinition.EP.getExtensionList()
+						.stream()
 						.filter(definition -> definition.isAdaptedForCodeAction(context))
 						.filter(definition -> codeActionKind.equals(definition.getKind()))
 						.collect(Collectors.toList());
@@ -198,7 +199,8 @@ public class CodeActionHandler {
 					start, end - start, utils, params, unresolved);
 			context.setASTRoot(getASTRoot(unit));
 
-			IJavaCodeActionParticipant participant = JavaCodeActionDefinition.EP.extensions()
+			IJavaCodeActionParticipant participant = JavaCodeActionDefinition.EP.getExtensionList()
+					.stream()
 					.filter(definition -> unresolved.getKind().startsWith(definition.getKind()))
 					.filter(definition -> participantId.equals(definition.getParticipantId()))
 					.findFirst().orElse(null);
