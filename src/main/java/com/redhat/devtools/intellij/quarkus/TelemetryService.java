@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus;
 
+import com.intellij.ide.plugins.PluginManager;
 import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuilder;
 import com.redhat.devtools.intellij.telemetry.core.util.Lazy;
 
@@ -24,7 +25,9 @@ public class TelemetryService {
 
     private static final TelemetryService INSTANCE = new TelemetryService();
 
-    private final Lazy<TelemetryMessageBuilder> builder = new Lazy<>(() -> new TelemetryMessageBuilder(TelemetryService.class.getClassLoader()));
+    private final Lazy<TelemetryMessageBuilder> builder = new Lazy<>(() ->
+        new TelemetryMessageBuilder(PluginManager.getPluginByClass(this.getClass()))
+    );
 
     public static TelemetryMessageBuilder instance() {
         return INSTANCE.builder.get();
