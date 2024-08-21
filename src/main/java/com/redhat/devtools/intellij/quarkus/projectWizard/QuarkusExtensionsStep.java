@@ -147,7 +147,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             panel.add(filter);
 
             JCheckBox platformCheckbox = new JCheckBox();
-            platformCheckbox.setSelected(true);
+            platformCheckbox.setSelected(false);
             platformCheckbox.setText("Platform only extensions");
             panel.add(platformCheckbox);
 
