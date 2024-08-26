@@ -29,7 +29,7 @@ version = prop("pluginVersion")
 
 val quarkusVersion = prop("quarkusVersion")
 val lsp4mpVersion = prop("lsp4mpVersion")
-val quarkusLsVersion = prop("lsp4mpVersion")
+val quarkusLsVersion = prop("quarkusLsVersion")
 val quteLsVersion = prop("quteLsVersion")
 // Configure project's dependencies
 repositories {
