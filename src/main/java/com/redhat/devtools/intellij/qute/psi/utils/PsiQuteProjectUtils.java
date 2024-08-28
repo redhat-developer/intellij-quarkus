@@ -44,7 +44,6 @@ public class PsiQuteProjectUtils {
      * Value for Qute annotations indicating behaviour should be using the default
      */
     private static final String DEFAULTED = "<<defaulted>>";
-    private static final Comparator<VirtualFile> ROOT_COMPARATOR = Comparator.comparingInt(r -> r.getPath().length());
 
     private PsiQuteProjectUtils() {
     }
@@ -104,7 +103,7 @@ public class PsiQuteProjectUtils {
     public static @Nullable VirtualFile findBestResourcesDir(@NotNull Module javaProject) {
         List<VirtualFile> resourcesDirs = ModuleRootManager.getInstance(javaProject).getSourceRoots(JavaResourceRootType.RESOURCE);
         if (!resourcesDirs.isEmpty()) {
-            Collections.sort(resourcesDirs, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
+            QuarkusModuleUtil.sortRoot(resourcesDirs); // put root with smallest path first (eliminates generated sources roots)
             // The module configure 'Resources folder'
             // 1) loop for each configured resources dir and returns the first which contains 'templates' folder.
             for (var dir : resourcesDirs) {
@@ -117,10 +116,6 @@ public class PsiQuteProjectUtils {
             return resourcesDirs.get(0);
         }
         // Corner usecase, the module doesn't configure 'Resources folder', use the first content roots
-        VirtualFile[] roots = getContentRoots(javaProject);
-        if (roots.length > 0) {
-            return roots[0];
-        }
         return QuarkusModuleUtil.getModuleDirPath(javaProject);
     }
 
@@ -131,12 +126,7 @@ public class PsiQuteProjectUtils {
      * @return the array of content roots.
      */
     public static VirtualFile[] getContentRoots(Module module) {
-        VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
-        if (roots.length <= 1) {
-            return roots;
-        }
-        Arrays.sort(roots, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
-        return roots;
+        return QuarkusModuleUtil.getContentRoots(module);
     }
 
     /**
