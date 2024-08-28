@@ -98,7 +98,11 @@ public class TemplateRecordsSupport extends AbstractInterfaceImplementationDataM
             DataModelParameter parameter = new DataModelParameter();
             parameter.setKey(field.getName());
             parameter.setSourceType(PsiTypeUtils.resolveSignature(field.getType(), field.isVarArgs()));
-            template.getParameters().add(parameter);
+            if (template.getParameter(parameter.getKey()) == null) {
+                // Add parameter if it doesn't exist
+                // to avoid parameters duplication
+                template.addParameter(parameter);
+            }
         }
 
         // Collect data parameters for the given template

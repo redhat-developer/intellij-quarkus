@@ -291,7 +291,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                     if (templateOrFragment.getParameter(parameter.getKey()) == null) {
                         // Add parameter if it doesn't exist
                         // to avoid parameters duplication
-                        templateOrFragment.getParameters().add(parameter);
+                        templateOrFragment.addParameter(parameter);
                     }
                 }
             }
