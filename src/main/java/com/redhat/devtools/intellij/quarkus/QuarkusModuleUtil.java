@@ -31,10 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,6 +49,7 @@ public class QuarkusModuleUtil {
 
     public static final Pattern APPLICATION_YAML = Pattern.compile("application(-.+)?\\.ya?ml");
 
+    private static final Comparator<VirtualFile> ROOT_COMPARATOR = Comparator.comparingInt(r -> r.getPath().length());
 
     /**
      * Check if the module is a Quarkus project. Should check if some class if present
@@ -152,6 +150,34 @@ public class QuarkusModuleUtil {
     }
 
     public static @Nullable VirtualFile getModuleDirPath(@NotNull Module module) {
-        return LocalFileSystem.getInstance().findFileByPath(ModuleUtilCore.getModuleDirPath(module));
+        VirtualFile[] roots = getContentRoots(module);
+        if (roots.length > 0) {
+            return roots[0];
+        }
+        return VfsUtil.findFileByIoFile(new File(ModuleUtilCore.getModuleDirPath(module)), true);
+    }
+
+    /**
+     * Returns an array of content roots of the given module sorted with smallest path first (to eliminate generated sources roots) from all content entries.
+     *
+     * @param module the module
+     * @return the array of content roots.
+     */
+    public static VirtualFile[] getContentRoots(Module module) {
+        VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
+        if (roots.length <= 1) {
+            return roots;
+        }
+        // put root with smallest path first (eliminates generated sources roots)
+        sortRoot(roots);
+        return roots;
+    }
+
+    public static void sortRoot(List<VirtualFile> roots) {
+        Collections.sort(roots, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
+    }
+
+    public static void sortRoot(VirtualFile[] roots) {
+        Arrays.sort(roots, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
     }
 }
