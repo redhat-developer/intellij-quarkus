@@ -353,6 +353,10 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         // record Bonjour(String name) implements TemplateInstance {}
 
         // record Status() {}
+
+        // @CheckedTemplate(basePath="Foo", defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+        // record HelloWorld(String name) implements TemplateInstance {}
+
         var module = loadMavenProject(QuteMavenProjectName.qute_record);
 
         QuteJavaCodeLensParams params = new QuteJavaCodeLensParams();
@@ -362,16 +366,20 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
 
-        String helloFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/Hello.html").toASCIIString();
-        String bonjourFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/Bonjour.html").toASCIIString();
+        String helloFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/HelloResource/Hello.html").toASCIIString();
+        String bonjourFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/HelloResource/Bonjour.html").toASCIIString();
+        String helloWorldFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/Foo/hello-world.html").toASCIIString();
 
         assertCodeLens(lenses, //
-                cl(r(14, 4, 14, 60), //
-                        "Open `src/main/resources/templates/Hello.html`", //
+                cl(r(15, 4, 15, 60), //
+                        "Open `src/main/resources/templates/HelloResource/Hello.html`", //
                         "qute.command.open.uri", Arrays.asList(helloFileUri)), //
-                cl(r(16, 4, 16, 62), //
-                        "Create `src/main/resources/templates/Bonjour.html`", //
-                        "qute.command.generate.template.file", Arrays.asList(bonjourFileUri)));
+                cl(r(17, 4, 17, 62), //
+                        "Create `src/main/resources/templates/HelloResource/Bonjour.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(bonjourFileUri)), //
+                cl(r(21, 4, 22, 65), //
+                        "Create `src/main/resources/templates/Foo/hello-world.html`", //
+                        "qute.command.generate.template.file", Arrays.asList(helloWorldFileUri)));
     }
 
     @Test

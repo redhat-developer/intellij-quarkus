@@ -6,6 +6,11 @@
     </vendor>
 
     <change-notes><![CDATA[
+    <h3>2.0.2</h3>
+    <ul>
+      <li>Fixed incorrect behavior for nested Qute template records</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/47?closed=1">changelog</a>.
     <h3>2.0.1</h3>
     <ul>
       <li>Fixed gradle-powered project failing to 'Run Dev'</li>

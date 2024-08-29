@@ -160,18 +160,16 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
      */
     private void visitClassType(PsiClass node) {
         levelTypeDecl++;
-        for (PsiAnnotation annotation : node.getAnnotations()) {
-            if (AnnotationUtils.isMatchAnnotation(annotation, CHECKED_TEMPLATE_ANNOTATION)
-                    || AnnotationUtils.isMatchAnnotation(annotation, OLD_CHECKED_TEMPLATE_ANNOTATION)) {
-                // @CheckedTemplate
-                // public static class Templates {
-                // public static native TemplateInstance book(Book book);
-                boolean ignoreFragments = isIgnoreFragments(annotation);
-                String basePath = getBasePath(annotation);
-                TemplateNameStrategy templateNameStrategy = getDefaultName(annotation);
-                for (PsiMethod method : node.getMethods()) {
-                    collectTemplateLink(basePath, method, node, ignoreFragments, templateNameStrategy);
-                }
+        PsiAnnotation checkedAnnotation = getCheckedAnnotation(node);
+        if (checkedAnnotation != null) {
+            // @CheckedTemplate
+            // public static class Templates {
+            // public static native TemplateInstance book(Book book);
+            boolean ignoreFragments = isIgnoreFragments(checkedAnnotation);
+            String basePath = getBasePath(checkedAnnotation);
+            TemplateNameStrategy templateNameStrategy = getDefaultName(checkedAnnotation);
+            for (PsiMethod method : node.getMethods()) {
+                collectTemplateLinkForMethodOrRecord(basePath, method, method.getName(), node, ignoreFragments, templateNameStrategy);
             }
         }
         super.visitClass(node);
@@ -187,8 +185,16 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
      */
     private void visitRecordType(PsiClass node) {
         if (isImplementTemplateInstance(node)) {
+
+            // public class HelloResource {
+            // record Hello(String name) implements TemplateInstance {}
             String recordName = node.getName();
-            collectTemplateLink(null, node, null, node, null, recordName, false, TemplateNameStrategy.ELEMENT_NAME);
+            PsiAnnotation checkedAnnotation = getCheckedAnnotation(node);
+            boolean ignoreFragments = isIgnoreFragments(checkedAnnotation);
+            String basePath = getBasePath(checkedAnnotation);
+            TemplateNameStrategy templateNameStrategy = getDefaultName(checkedAnnotation);
+            collectTemplateLinkForMethodOrRecord(basePath, node, recordName, node, ignoreFragments,
+                    templateNameStrategy);
         }
     }
 
@@ -216,14 +222,18 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
         return PsiTreeUtil.getParentOfType(node, PsiClass.class);
     }
 
-    private void collectTemplateLink(String basePath, PsiMethod methodDeclaration, PsiClass type, boolean ignoreFragments, TemplateNameStrategy templateNameStrategy) {
+    private void collectTemplateLinkForMethodOrRecord(String basePath,
+                                                      PsiElement methodOrRecord,
+                                                      String methodOrRecordName,
+                                                      PsiClass type,
+                                                      boolean ignoreFragments,
+                                                      TemplateNameStrategy templateNameStrategy) {
         String className = null;
-        boolean innerClass = levelTypeDecl > 1;
+        boolean innerClass = methodOrRecord instanceof PsiClass ? levelTypeDecl >= 1 : levelTypeDecl > 1;
         if (innerClass) {
             className = PsiTypeUtils.getSimpleClassName(typeRoot.getName());
         }
-        String methodName = methodDeclaration.getName();
-        collectTemplateLink(basePath, methodDeclaration, null, type, className, methodName, ignoreFragments,templateNameStrategy);
+        collectTemplateLink(basePath, methodOrRecord, null, type, className, methodOrRecordName, ignoreFragments, templateNameStrategy);
     }
 
     private void collectTemplateLink(String basePath, PsiElement fieldOrMethod, PsiLiteralValue locationAnnotation, PsiClass type, String className,

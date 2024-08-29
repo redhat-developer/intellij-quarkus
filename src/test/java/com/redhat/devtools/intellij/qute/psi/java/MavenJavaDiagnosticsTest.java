@@ -265,6 +265,9 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
 
         // record Status() {}
 
+        // @CheckedTemplate(basePath="Foo", defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+        // record HelloWorld(String name) implements TemplateInstance {}
+
         var module = loadMavenProject(QuteMavenProjectName.qute_record);
         QuteJavaDiagnosticsParams params = new QuteJavaDiagnosticsParams();
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/HelloResource.java").toASCIIString();
@@ -275,11 +278,14 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         assertEquals(1, publishDiagnostics.size());
 
         List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
-        assertEquals(1, diagnostics.size());
+        assertEquals(2, diagnostics.size());
 
         assertDiagnostic(diagnostics, //
-                new Diagnostic(r(16, 11, 16, 18),
-                        "No template matching the path Bonjour could be found for: org.acme.sample.HelloResource$Bonjour",
+                new Diagnostic(r(17, 11, 17, 18),
+                        "No template matching the path HelloResource/Bonjour could be found for: org.acme.sample.HelloResource$Bonjour",
+                        DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()), //
+                new Diagnostic(r(22, 11, 22, 21),
+                        "No template matching the path Foo/HelloWorld could be found for: org.acme.sample.HelloResource$HelloWorld",
                         DiagnosticSeverity.Error, "qute", QuteErrorCode.NoMatchingTemplate.name()));
     }
 
