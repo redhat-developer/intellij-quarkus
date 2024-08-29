@@ -39,6 +39,7 @@ import com.redhat.qute.commons.datamodel.DataModelBaseTemplate;
 import com.redhat.qute.commons.datamodel.DataModelFragment;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * CheckedTemplate support for template files:
@@ -78,14 +79,23 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
     @Override
     protected void processAnnotation(PsiElement javaElement, PsiAnnotation checkedTemplateAnnotation, String annotationName,
                                      SearchContext context, ProgressIndicator monitor) {
-        if (javaElement instanceof PsiClass) {
-            PsiClass type = (PsiClass) javaElement;
+        if (javaElement instanceof PsiClass type && !type.isRecord()) {
             boolean ignoreFragments = isIgnoreFragments(checkedTemplateAnnotation);
             String basePath = getBasePath(checkedTemplateAnnotation);
             TemplateNameStrategy templateNameStrategy = getDefaultName(checkedTemplateAnnotation);
             collectDataModelTemplateForCheckedTemplate(type, context.getRelativeTemplateBaseDir(), basePath, ignoreFragments, templateNameStrategy, context.getTypeResolver(type),
                     context.getDataModelProject().getTemplates(), monitor);
         }
+    }
+
+    public static PsiAnnotation getCheckedAnnotation(PsiJvmModifiersOwner node) {
+        for (PsiAnnotation annotation : node.getAnnotations()) {
+            if (AnnotationUtils.isMatchAnnotation(annotation, CHECKED_TEMPLATE_ANNOTATION)
+                    || AnnotationUtils.isMatchAnnotation(annotation, OLD_CHECKED_TEMPLATE_ANNOTATION)) {
+                return annotation;
+            }
+        }
+        return null;
     }
 
     /**
@@ -99,22 +109,24 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
      * ignored and false otherwise.
      * @CheckedTemplate(ignoreFragments=true) </code>
      */
-    public static boolean isIgnoreFragments(PsiAnnotation checkedTemplateAnnotation) {
+    public static boolean isIgnoreFragments(@Nullable PsiAnnotation checkedTemplateAnnotation) {
         Boolean ignoreFragment = null;
-        try {
-            for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
-                if (CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS.equalsIgnoreCase(pair.getAttributeName())) {
-                    ignoreFragment = AnnotationUtils.getValueAsBoolean(pair);
+        if (checkedTemplateAnnotation != null) {
+            try {
+                for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
+                    if (CHECKED_TEMPLATE_ANNOTATION_IGNORE_FRAGMENTS.equalsIgnoreCase(pair.getAttributeName())) {
+                        ignoreFragment = AnnotationUtils.getValueAsBoolean(pair);
+                    }
                 }
+            } catch (ProcessCanceledException e) {
+                //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+                //TODO delete block when minimum required version is 2024.2
+                throw e;
+            } catch (IndexNotReadyException | CancellationException e) {
+                throw e;
+            } catch (Exception e) {
+                // Do nothing
             }
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
-        } catch (IndexNotReadyException | CancellationException e) {
-            throw e;
-        } catch (Exception e) {
-            // Do nothing
         }
         return ignoreFragment != null ? ignoreFragment.booleanValue() : false;
     }
@@ -127,22 +139,24 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
      * @return the <code>basePath</code> value declared in the @CheckedTemplate annotation
      * @CheckedTemplate(basePath="somewhere") </code>
      */
-    public static String getBasePath(PsiAnnotation checkedTemplateAnnotation) {
+    public static String getBasePath(@Nullable PsiAnnotation checkedTemplateAnnotation) {
         String basePath = null;
-        try {
-            for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
-                if (CHECKED_TEMPLATE_ANNOTATION_BASE_PATH.equalsIgnoreCase(pair.getAttributeName())) {
-                    basePath = pair.getLiteralValue();
+        if (checkedTemplateAnnotation != null) {
+            try {
+                for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
+                    if (CHECKED_TEMPLATE_ANNOTATION_BASE_PATH.equalsIgnoreCase(pair.getAttributeName())) {
+                        basePath = pair.getLiteralValue();
+                    }
                 }
+            } catch (ProcessCanceledException e) {
+                //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+                //TODO delete block when minimum required version is 2024.2
+                throw e;
+            } catch (IndexNotReadyException | CancellationException e) {
+                throw e;
+            } catch (Exception e) {
+                // Do nothing
             }
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
-        } catch (IndexNotReadyException | CancellationException e) {
-            throw e;
-        } catch (Exception e) {
-            // Do nothing
         }
         return basePath;
     }
@@ -157,28 +171,30 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
      */
     public static TemplateNameStrategy getDefaultName(PsiAnnotation checkedTemplateAnnotation) {
         TemplateNameStrategy templateNameStrategy = TemplateNameStrategy.ELEMENT_NAME;
-        try {
-            for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
-                if (CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME.equalsIgnoreCase(pair.getAttributeName())) {
-                    if (pair.getValue() != null
-                            && pair.getValue().getReference() != null
-                            && pair.getValue().getReference().resolve() != null &&
-                            pair.getValue().getReference().resolve() instanceof PsiField field) {
-                        Object value = field.computeConstantValue();
-                        if (value != null) {
-                            templateNameStrategy = getDefaultName(value.toString());
+        if (checkedTemplateAnnotation != null) {
+            try {
+                for (PsiNameValuePair pair : checkedTemplateAnnotation.getParameterList().getAttributes()) {
+                    if (CHECKED_TEMPLATE_ANNOTATION_DEFAULT_NAME.equalsIgnoreCase(pair.getAttributeName())) {
+                        if (pair.getValue() != null
+                                && pair.getValue().getReference() != null
+                                && pair.getValue().getReference().resolve() != null &&
+                                pair.getValue().getReference().resolve() instanceof PsiField field) {
+                            Object value = field.computeConstantValue();
+                            if (value != null) {
+                                templateNameStrategy = getDefaultName(value.toString());
+                            }
                         }
                     }
                 }
+            } catch (ProcessCanceledException e) {
+                //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
+                //TODO delete block when minimum required version is 2024.2
+                throw e;
+            } catch (IndexNotReadyException | CancellationException e) {
+                throw e;
+            } catch (Exception e) {
+                // Do nothing
             }
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
-        } catch (IndexNotReadyException | CancellationException e) {
-            throw e;
-        } catch (Exception e) {
-            // Do nothing
         }
         return templateNameStrategy;
     }
@@ -211,9 +227,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                                                                    ITypeResolver typeResolver,
                                                                    List<DataModelTemplate<DataModelParameter>> templates,
                                                                    ProgressIndicator monitor) {
-        boolean innerClass = type.getContainingClass() != null;
-        String className = !innerClass ? null
-                : PsiTypeUtils.getSimpleClassName(type.getContainingFile().getName());
+        String className = getParentClassName(type);
 
         // Loop for each method (book, book) and create a template data model per
         // method.
@@ -252,6 +266,14 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                 collectParameters(method, typeResolver, template, monitor);
             }
         }
+    }
+
+    public static @Nullable String getParentClassName(PsiClass type) {
+        if (type.getContainingClass() != null) {
+            // Inner class
+            return PsiTypeUtils.getSimpleClassName(type.getContainingFile().getName());
+        }
+        return null;
     }
 
     private static DataModelTemplate<DataModelParameter> createTemplateDataModel(String templateUri, PsiMethod method, PsiClass type) {

@@ -290,6 +290,10 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         // record Bonjour(String name) implements TemplateInstance {}
 
         // record Status() {}
+
+        // @CheckedTemplate(basePath="Foo", defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+        // record HelloWorld(String name) implements TemplateInstance {}
+
         var module = loadMavenProject(QuteMavenProjectName.qute_record);
         QuteJavaDocumentLinkParams params = new QuteJavaDocumentLinkParams();
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/HelloResource.java").toASCIIString();
@@ -297,15 +301,19 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
 
         List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
                 new EmptyProgressIndicator());
-        assertEquals(2, links.size());
+        assertEquals(3, links.size());
 
-        String templateFileUri = LSPIJUtils.toUri(module).resolve("src/main/resources/templates/Hello.html").toASCIIString();
+        String helloFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/HelloResource/Hello.html").toASCIIString();
+        String bonjourFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/HelloResource/Bonjour.html").toASCIIString();
+        String helloWorldFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/Foo/hello-world.html").toASCIIString();
 
         assertDocumentLink(links, //
-                dl(r(14, 11, 14, 16), //
-                        templateFileUri, "Open `src/main/resources/templates/Hello.html`"), //
-                dl(r(16, 11, 16, 18), //
-                        templateFileUri, "Create `src/main/resources/templates/Bonjour.html`"));
+                dl(r(15, 11, 15, 16), //
+                        helloFileUri, "Open `src/main/resources/templates/HelloResource/Hello.html`"), //
+                dl(r(17, 11, 17, 18), //
+                        bonjourFileUri, "Create `src/main/resources/templates/HelloResource/Bonjour.html`"),
+                dl(r(22, 11, 22, 21), //
+                        helloWorldFileUri, "Create `src/main/resources/templates/Foo/hello-world.html`"));
     }
 
     @Test

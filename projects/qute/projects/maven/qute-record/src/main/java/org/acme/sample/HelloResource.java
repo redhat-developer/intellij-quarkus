@@ -1,5 +1,6 @@
 package org.acme.sample;
 
+import io.quarkus.qute.CheckedTemplate;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -17,6 +18,9 @@ public class HelloResource {
     record Bonjour(String name) implements TemplateInstance {}
 
     record Status() {}
+
+    @CheckedTemplate(basePath="Foo", defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
+    record HelloWorld(String name) implements TemplateInstance {}
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)

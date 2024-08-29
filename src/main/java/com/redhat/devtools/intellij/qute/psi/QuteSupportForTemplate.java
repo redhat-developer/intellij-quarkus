@@ -207,12 +207,16 @@ public class QuteSupportForTemplate {
                         monitor);
             } else {
                 // Search field of the record
-                for (var recordField : type.getRecordComponents()) {
-                    if (parameterName.equals(recordField.getName())) {
-                        // returns the record field location
-                        return utils.toLocation(recordField);
+                if (parameterName != null) {
+                    for (var recordField : type.getRecordComponents()) {
+                        if (parameterName.equals(recordField.getName())) {
+                            // returns the record field location
+                            return utils.toLocation(recordField);
+                        }
                     }
                 }
+                // returns the record location
+                return utils.toLocation(type);
             }
         } else {
             // The source type is a class
