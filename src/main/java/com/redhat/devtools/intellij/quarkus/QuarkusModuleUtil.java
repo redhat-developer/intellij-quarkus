@@ -22,6 +22,7 @@ import com.intellij.openapi.roots.RootPolicy;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
@@ -37,6 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class QuarkusModuleUtil {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleUtil.class);
 
     private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
@@ -179,5 +181,37 @@ public class QuarkusModuleUtil {
 
     public static void sortRoot(VirtualFile[] roots) {
         Arrays.sort(roots, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
+    }
+
+    public static String getApplicationUrl(@NotNull PsiMicroProfileProject mpProject) {
+        int port = getPort(mpProject);
+        String path = mpProject.getProperty("quarkus.http.root-path", "/");
+        return "http://localhost:" + port + normalize(path);
+    }
+
+    public static String getDevUIUrl(@NotNull PsiMicroProfileProject mpProject) {
+        int port = getPort(mpProject);
+        String path = mpProject.getProperty("quarkus.http.non-application-root-path", "q");
+        if (!path.startsWith("/")) {
+            String rootPath = mpProject.getProperty("quarkus.http.root-path", "/");
+            path = normalize(rootPath) + path;
+        }
+        return "http://localhost:" + port + normalize(path) + "dev";
+    }
+
+    private static String normalize(String path) {
+        StringBuilder builder = new StringBuilder(path);
+        if (builder.isEmpty() || builder.charAt(0) != '/') {
+            builder.insert(0, '/');
+        }
+        if (builder.charAt(builder.length() - 1) != '/') {
+            builder.append('/');
+        }
+        return builder.toString();
+    }
+
+    private static int getPort(@NotNull PsiMicroProfileProject mpProject) {
+        int port = mpProject.getPropertyAsInteger("quarkus.http.port", 8080);
+        return mpProject.getPropertyAsInteger("%dev.quarkus.http.port", port);
     }
 }

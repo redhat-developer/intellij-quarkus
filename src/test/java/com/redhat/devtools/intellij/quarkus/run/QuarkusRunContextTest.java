@@ -15,6 +15,9 @@ package com.redhat.devtools.intellij.quarkus.run;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.psi.internal.providers.QuarkusConfigSourceProvider;
 import com.redhat.microprofile.psi.quarkus.QuarkusMavenModuleImportingTestCase;
 import com.redhat.microprofile.psi.quarkus.QuarkusMavenProjectName;
@@ -35,37 +38,37 @@ public class QuarkusRunContextTest extends QuarkusMavenModuleImportingTestCase {
 	public void testDevUIURL() throws Exception {
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.microprofile_applicationpath);
 
-		QuarkusRunContext context = new QuarkusRunContext(javaProject);
+		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject()).getMicroProfileProject(javaProject);
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
-		assertEquals("http://localhost:8080/q/dev", context.getDevUIURL());
+		assertEquals("http://localhost:8080/q/dev", QuarkusModuleUtil.getDevUIUrl(mpProject));
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.root-path=/root", javaProject);
-		assertEquals("http://localhost:8080/root/q/dev", context.getDevUIURL());
+		assertEquals("http://localhost:8080/root/q/dev", QuarkusModuleUtil.getDevUIUrl(mpProject));
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.non-application-root-path=/nonroot", javaProject);
-		assertEquals("http://localhost:8080/nonroot/dev", context.getDevUIURL());
+		assertEquals("http://localhost:8080/nonroot/dev", QuarkusModuleUtil.getDevUIUrl(mpProject));
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.non-application-root-path=nonroot", javaProject);
-		assertEquals("http://localhost:8080/nonroot/dev", context.getDevUIURL());
+		assertEquals("http://localhost:8080/nonroot/dev", QuarkusModuleUtil.getDevUIUrl(mpProject));
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port=8081", javaProject);
-		assertEquals("http://localhost:8081/q/dev", context.getDevUIURL());
+		assertEquals("http://localhost:8081/q/dev", QuarkusModuleUtil.getDevUIUrl(mpProject));
 	}
 
 	@Test
 	public void testApplicationURL() throws Exception {
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.microprofile_applicationpath);
 
-		QuarkusRunContext context = new QuarkusRunContext(javaProject);
+		PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject()).getMicroProfileProject(javaProject);
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "", javaProject);
-		assertEquals("http://localhost:8080/", context.getApplicationURL());
+		assertEquals("http://localhost:8080/", QuarkusModuleUtil.getApplicationUrl(mpProject));
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.root-path=/root", javaProject);
-		assertEquals("http://localhost:8080/root/", context.getApplicationURL());
+		assertEquals("http://localhost:8080/root/", QuarkusModuleUtil.getApplicationUrl(mpProject));
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "quarkus.http.port=8081", javaProject);
-		assertEquals("http://localhost:8081/", context.getApplicationURL());
+		assertEquals("http://localhost:8081/", QuarkusModuleUtil.getApplicationUrl(mpProject));
 	}
 }

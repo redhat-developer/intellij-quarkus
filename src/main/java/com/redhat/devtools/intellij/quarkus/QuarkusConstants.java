@@ -131,5 +131,5 @@ public class QuarkusConstants {
 
     public static final String QUARKUS_RUNTIME_CLASS_NAME = "io.quarkus.runtime.LaunchMode";
     public static final String QUARKUS_BUILD_ITEM_CLASS_NAME = "io.quarkus.builder.item.BuildItem";
-    public static final String QUARKUS_RUN_CONTEXT_KEY = QuarkusConstants.class.getName() + ".quarkusContext";
+
 }
