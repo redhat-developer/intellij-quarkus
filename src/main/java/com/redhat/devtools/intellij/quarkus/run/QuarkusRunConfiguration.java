@@ -23,7 +23,6 @@ import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -33,7 +32,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
@@ -134,8 +132,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
             RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(getModule(), this);
             if (settings != null) {
                 long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
-                state = doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId, null,
-                        desc -> desc.getComponent().putClientProperty(QuarkusConstants.QUARKUS_RUN_CONTEXT_KEY, new QuarkusRunContext(getModule())));
+                state = doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId, null);
             }
         } else {
             telemetry.property("tool", "not found");
@@ -212,8 +209,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
                                                       @NotNull Executor executor,
                                                       @Nullable ExecutionTarget targetOrNullForDefault,
                                                       @Nullable Long executionId,
-                                                      @Nullable DataContext dataContext,
-                                                      ProgramRunner.Callback callback) throws ExecutionException {
+                                                      @Nullable DataContext dataContext) throws ExecutionException {
         ExecutionEnvironmentBuilder builder = createEnvironment(executor, configuration);
         if (builder == null) {
             return null;
@@ -229,7 +225,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         if (dataContext != null) {
             builder.dataContext(dataContext);
         }
-        return configuration.getConfiguration().getState(executor, builder.build(callback));
+        return configuration.getConfiguration().getState(executor, builder.build());
     }
 
 }

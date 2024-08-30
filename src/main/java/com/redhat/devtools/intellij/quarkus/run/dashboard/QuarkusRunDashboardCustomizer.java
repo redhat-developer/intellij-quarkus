@@ -16,11 +16,14 @@ import com.intellij.execution.dashboard.RunDashboardRunConfigurationNode;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.projectView.PresentationData;
+import com.intellij.openapi.module.Module;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
-import com.redhat.devtools.intellij.quarkus.run.QuarkusRunContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,30 +53,47 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
         node.putUserData(RunDashboardCustomizer.NODE_LINKS, null);
         RunContentDescriptor descriptor = node.getDescriptor();
         if (descriptor != null) {
-            ProcessHandler processHandler =  descriptor.getProcessHandler();
+            ProcessHandler processHandler = descriptor.getProcessHandler();
             if (processHandler != null && !processHandler.isProcessTerminated()) {
                 // The Quarkus run configuration is running
                 QuarkusRunConfiguration quarkusRunConfiguration = (QuarkusRunConfiguration) node.getConfigurationSettings().getConfiguration();
-                if (QuarkusModuleUtil.isQuarkusWebAppModule(quarkusRunConfiguration.getModule())) {
+                Module module = quarkusRunConfiguration.getModule();
+                if (QuarkusModuleUtil.isQuarkusWebAppModule(module)) {
+                    PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(module.getProject()).getMicroProfileProject(module);
+
                     // It is a Web application, add links for:
                     // - Opening quarkus application in a browser
                     // - Opening DevUI in a browser
-                    QuarkusRunContext runContext = new QuarkusRunContext(quarkusRunConfiguration.getModule());
                     // Add application Url as hyperlink
-                    String applicationUrl = runContext.getApplicationURL();
-                    String applicationLabel = applicationUrl;
+                    String applicationUrl = QuarkusModuleUtil.getApplicationUrl(mpProject);
                     presentation.addText(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
-                    presentation.addText(applicationLabel, SimpleTextAttributes.LINK_ATTRIBUTES);
+                    presentation.addText(applicationUrl, SimpleTextAttributes.LINK_ATTRIBUTES);
 
                     // Add DevUI Url as hyperlink
-                    String devUIUrl = runContext.getDevUIURL();
+                    String devUIUrl = QuarkusModuleUtil.getDevUIUrl(mpProject);
                     String devUILabel = "Dev UI";
                     presentation.addText(" - ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
                     presentation.addText(devUILabel, SimpleTextAttributes.LINK_ATTRIBUTES);
 
                     Map<Object, Object> links = new HashMap<>();
-                    links.put(applicationLabel, new SimpleColoredComponent.BrowserLauncherTag(applicationUrl));
-                    links.put(devUILabel, new SimpleColoredComponent.BrowserLauncherTag(devUIUrl));
+                    links.put(applicationUrl, new SimpleColoredComponent.BrowserLauncherTag(applicationUrl) {
+                        @Override
+                        public void run() {
+                            // Open Quarkus application in a Web Browser
+                            super.run();
+                            // Send event with telemetry
+                            TelemetryService.instance().action(TelemetryService.UI_PREFIX + "openApplication").send();
+                        }
+                    });
+                    links.put(devUILabel, new SimpleColoredComponent.BrowserLauncherTag(devUIUrl) {
+                        @Override
+                        public void run() {
+                            // Open DevUI in a Web Browser
+                            super.run();
+                            // Send event with telemetry
+                            TelemetryService.instance().action(TelemetryService.UI_PREFIX + "openDevUI").send();
+                        }
+                    });
                     node.putUserData(RunDashboardCustomizer.NODE_LINKS, links);
                 }
             }
