@@ -33,9 +33,9 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
-import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
-import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuilder;
+import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
+import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -47,6 +47,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.intellij.execution.runners.ExecutionUtil.createEnvironment;
@@ -121,24 +122,29 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     @Nullable
     @Override
     public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
-        TelemetryMessageBuilder.ActionMessage telemetry = TelemetryService.instance().action(TelemetryService.RUN_PREFIX + "run");
-        telemetry.property("kind", executor.getId());
-        BuildToolDelegate toolDelegate = BuildToolDelegate.getDelegate(getModule());
+        Module module = getModule();
+
+        Map<String, String> telemetryData = new HashMap<>();
+        telemetryData.put("kind", executor.getId());
+
+        BuildToolDelegate toolDelegate = BuildToolDelegate.getDelegate(module);
         allocateLocalPort();
         RunProfileState state = null;
         if (toolDelegate != null) {
-            telemetry.property("tool", toolDelegate.getDisplay());
+            telemetryData.put("tool", toolDelegate.getDisplay());
             // Create a Gradle or Maven run configuration in memory
-            RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(getModule(), this);
+            RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(module, this);
             if (settings != null) {
                 long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
                 state = doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId, null);
             }
         } else {
-            telemetry.property("tool", "not found");
+            telemetryData.put("tool", "not found");
         }
-        telemetry.send();
-        if (executor.getId() == DefaultDebugExecutor.EXECUTOR_ID) {
+        // Send "run-run" telemetry event
+        TelemetryManager.instance().send(TelemetryEventName.RUN_RUN, telemetryData);
+
+        if (executor.getId().equals(DefaultDebugExecutor.EXECUTOR_ID)) {
             ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), QUARKUS_CONFIGURATION, false) {
                 @Override
                 public void run(@NotNull ProgressIndicator indicator) {

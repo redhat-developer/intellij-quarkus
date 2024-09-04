@@ -20,7 +20,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.OrderEntryUtil;
@@ -35,6 +34,8 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
+import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
+import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -110,22 +111,20 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
                         Library library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         while (library != null) {
                             table.removeLibrary(library);
-                            try {
-                                TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "removeLibrary");
-                            } catch (Exception e) {
 
-                            }
+                            // Send "model-removeLibrary" telemetry event
+                            TelemetryManager.instance().send(TelemetryEventName.MODEL_REMOVE_LIBRARY);
+
                             library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                         }
                         progressIndicator.checkCanceled();
                         progressIndicator.setText("Adding in ''" + module.getName() + "'' Quarkus deployment dependencies to classpath...");
                         List<VirtualFile>[] files = toolDelegate.getDeploymentFiles(module, progressIndicator);
                         LOGGER.info("Adding library to " + module.getName() + " previousHash=" + previousHash + " newHash=" + actualHash);
-                        try {
-                            TelemetryService.instance().action(TelemetryService.MODEL_PREFIX + "addLibrary").send();
-                        } catch (Exception e) {
 
-                        }
+                        // Send "model-addLibrary" telemetry event
+                        TelemetryManager.instance().send(TelemetryEventName.MODEL_ADD_LIBRARY);
+
                         addLibrary(model, files);
                     });
                     component.setHash(actualHash);

@@ -203,7 +203,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
                     }
                 }
             }
-        } catch (MavenProcessCanceledException | RuntimeException e) {
+        } catch (Exception e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
         return deploymentArtifacts;

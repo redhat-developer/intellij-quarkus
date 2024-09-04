@@ -17,13 +17,15 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
-import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
+import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
+import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,8 +83,8 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
                         public void run() {
                             // Open Quarkus application in a Web Browser
                             super.run();
-                            // Send event with telemetry
-                            TelemetryService.instance().action(TelemetryService.UI_PREFIX + "openApplication").send();
+                            // Send "ui-openApplication" telemetry event
+                            TelemetryManager.instance().send(TelemetryEventName.UI_OPEN_APPLICATION);
                         }
                     });
                     links.put(devUILabel, new SimpleColoredComponent.BrowserLauncherTag(devUIUrl) {
@@ -90,8 +92,8 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
                         public void run() {
                             // Open DevUI in a Web Browser
                             super.run();
-                            // Send event with telemetry
-                            TelemetryService.instance().action(TelemetryService.UI_PREFIX + "openDevUI").send();
+                            // Send "ui-openDevUI" telemetry event
+                            TelemetryManager.instance().send(TelemetryEventName.UI_OPEN_DEV_UI);
                         }
                     });
                     node.putUserData(RunDashboardCustomizer.NODE_LINKS, links);
