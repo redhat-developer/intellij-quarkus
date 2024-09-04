@@ -15,14 +15,14 @@ import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
+import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import com.redhat.devtools.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
-import com.redhat.devtools.intellij.quarkus.TelemetryService;
 import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,12 +52,8 @@ public class QuteServer extends ProcessStreamConnectionProvider {
         commands.add("-DrunAsync=true");
         super.setCommands(commands);
 
-        try {
-            TelemetryService.instance().action(TelemetryService.LSP_PREFIX + "startQute").send();
-        }
-        catch(Exception e) {
-            LOGGER.error("Error while consuming telemetry service", e);
-        }
+        // Send "ls-startQute" telemetry event
+        TelemetryManager.instance().send(TelemetryEventName.LSP_START_QUTE_SERVER);
     }
 
     @Override

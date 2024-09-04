@@ -353,7 +353,10 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>
-        <!-- Add your extensions here -->
+        <!-- Telemetry manager singleton -->
+        <applicationService
+                serviceImplementation="com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager"/>
+
         <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
         <framework.detector implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkDetector"/>
         <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModuleBuilder"/>
