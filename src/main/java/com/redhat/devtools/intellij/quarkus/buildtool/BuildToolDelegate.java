@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.buildtool;
 
+import com.intellij.execution.Executor;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
@@ -21,13 +22,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.model.MavenId;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,18 +62,20 @@ public interface BuildToolDelegate {
             if (quarkusFile.exists()) {
                 try (Reader r = new FileReader(quarkusFile)) {
                     result = getQuarkusExtension(r);
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                }
             }
         } else {
             try {
                 JarFile jarFile = new JarFile(file);
                 JarEntry entry = jarFile.getJarEntry(QUARKUS_EXTENSION_PROPERTIES);
                 if (entry != null) {
-                    try (Reader r = new InputStreamReader(jarFile.getInputStream(entry),"UTF-8")) {
+                    try (Reader r = new InputStreamReader(jarFile.getInputStream(entry), "UTF-8")) {
                         result = getQuarkusExtension(r);
                     }
                 }
-            } catch (IOException e) {}
+            } catch (IOException e) {
+            }
         }
         return result;
     }
@@ -91,7 +91,7 @@ public interface BuildToolDelegate {
     }
 
     public static BuildToolDelegate getDelegate(Module module) {
-        for(BuildToolDelegate toolDelegate : getDelegates()) {
+        for (BuildToolDelegate toolDelegate : getDelegates()) {
             if (toolDelegate.isValid(module)) {
                 return toolDelegate;
             }
@@ -160,7 +160,7 @@ public interface BuildToolDelegate {
 
     default VirtualFile getJarFile(File file) {
         VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-        return virtualFile != null? JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile):null;
+        return virtualFile != null ? JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile) : null;
     }
 
     static final ExtensionPointName<BuildToolDelegate> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.toolDelegate");
@@ -175,18 +175,40 @@ public interface BuildToolDelegate {
 
     public static BuildToolDelegate[] getDelegates() {
         BuildToolDelegate[] delegates = EP_NAME.getExtensions();
-        Arrays.sort(delegates, (a,b) -> a.getOrder() - b.getOrder());
+        Arrays.sort(delegates, (a, b) -> a.getOrder() - b.getOrder());
         return delegates;
     }
 
-    RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration);
+    /**
+     * Returns the configuration delegate (Gradle, Maven) according the given the module and quarkus configuration
+     * and null otherwise.
+     *
+     * @param module        the module.
+     * @param configuration the quarkus configuration.
+     * @param debugPort     the debug port tu use if Quarkus application must be debugged and null otherwise.
+     * @return the configuration delegate (Gradle,Maven).
+     */
+    @Nullable
+    RunnerAndConfigurationSettings getConfigurationDelegate(@NotNull Module module,
+                                                            @NotNull QuarkusRunConfiguration configuration,
+                                                            @Nullable Integer debugPort);
 
     /**
      * Add project import listener.
      *
-     * @param project the project.
+     * @param project    the project.
      * @param connection the project connection used to subscribe maven, gradle listener which tracks project import.
-     * @param listener the project import listener.
+     * @param listener   the project import listener.
      */
-    void addProjectImportListener(@NotNull Project project,  @NotNull MessageBusConnection connection, @NotNull ProjectImportListener listener);
+    void addProjectImportListener(@NotNull Project project, @NotNull MessageBusConnection connection, @NotNull ProjectImportListener listener);
+
+    /**
+     * Returns the override executor and null otherwise.
+     *
+     * @return the override executor and null otherwise.
+     */
+    @Nullable
+    default Executor getOverridedExecutor() {
+        return null;
+    }
 }

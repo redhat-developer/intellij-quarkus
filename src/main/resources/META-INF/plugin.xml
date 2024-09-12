@@ -376,6 +376,9 @@
         <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport"/>
 
         <!--Quarkus run config -->
+        <programRunner implementation="com.redhat.devtools.intellij.quarkus.buildtool.gradle.GradleRunAndDebugProgramRunner"/>
+        <programRunner implementation="com.redhat.devtools.intellij.quarkus.buildtool.maven.QuarkusMavenRunProgramRunner"/>
+        <programRunner implementation="com.redhat.devtools.intellij.quarkus.buildtool.maven.QuarkusMavenDebugProgramRunner"/>
         <projectService
                 serviceImplementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationManager"/>
         <configurationType implementation="com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationType"/>

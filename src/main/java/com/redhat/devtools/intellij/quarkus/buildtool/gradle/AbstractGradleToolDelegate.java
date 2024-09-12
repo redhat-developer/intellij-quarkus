@@ -10,6 +10,8 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.buildtool.gradle;
 
+import com.intellij.execution.Executor;
+import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
@@ -38,6 +40,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.projectImport.ProjectImportBuilder;
 import com.intellij.projectImport.ProjectImportProvider;
 import com.intellij.util.concurrency.NonUrgentExecutor;
@@ -358,12 +361,14 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     }
 
     @Override
-    public RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration) {
+    public RunnerAndConfigurationSettings getConfigurationDelegate(@NotNull Module module,
+                                                                   @NotNull QuarkusRunConfiguration configuration,
+                                                                   @Nullable Integer debugPort) {
         RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Gradle)", GradleExternalTaskConfigurationType.class);
         GradleRunConfiguration gradleConfiguration = (GradleRunConfiguration) settings.getConfiguration();
         gradleConfiguration.getSettings().getTaskNames().add("quarkusDev");
         gradleConfiguration.getSettings().setEnv(configuration.getEnv());
-        String parameters = "-Ddebug=" + configuration.getPort();
+        String parameters = debugPort != null ? ("-Ddebug=" + Integer.toString(debugPort)) : "";
         if (StringUtils.isNotBlank(configuration.getProfile())) {
             parameters += " -Dquarkus.profile=" + configuration.getProfile();
         }
@@ -406,5 +411,13 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         // - $projectName.test
         String name = module.getName();
         return !(name.endsWith(".integrationTest") || name.endsWith(".native-test") || name.endsWith(".test"));
+    }
+
+    @Override
+    public @Nullable Executor getOverridedExecutor() {
+        // The run and debug gradle must be started with the DefaultRunExecutor
+        // and not with the DefaultDebugExecutor in debug case otherwise
+        // stop action doesn't kill the Quarkus application process.
+        return ExecutorRegistry.getInstance().getExecutorById(ToolWindowId.RUN);
     }
 }

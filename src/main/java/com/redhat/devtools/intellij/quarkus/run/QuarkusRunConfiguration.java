@@ -11,20 +11,20 @@
 package com.redhat.devtools.intellij.quarkus.run;
 
 import com.intellij.execution.*;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunConfigurationModule;
-import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunnableState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -32,6 +32,9 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.util.net.NetUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
@@ -52,13 +55,17 @@ import java.util.Map;
 
 import static com.intellij.execution.runners.ExecutionUtil.createEnvironment;
 
-public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigurationModule, QuarkusRunConfigurationOptions> {
+/**
+ * Quarkus run configration which wraps Maven / Gradle configuration.
+ */
+public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigurationModule, QuarkusRunConfigurationOptions>
+        implements RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
+
     private final static Logger LOGGER = LoggerFactory.getLogger(QuarkusRunConfiguration.class);
-    private static final String QUARKUS_CONFIGURATION = "Quarkus Configuration";
 
-    private int port = 5005;
+    static final String QUARKUS_CONFIGURATION = "Quarkus Configuration";
 
-    private static final String JWDP_HANDSHAKE = "JDWP-Handshake";
+    private static final int DEFAULT_PORT = 5005 ;
 
     public QuarkusRunConfiguration(Project project, ConfigurationFactory factory, String name) {
         super(name, getRunConfigurationModule(project), factory);
@@ -111,12 +118,14 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         return new QuarkusRunSettingsEditor(getProject());
     }
 
-    private void allocateLocalPort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            port = socket.getLocalPort();
-        } catch (IOException e) {
-            LOGGER.warn("Can't allocate a local port for this configuration", e);
-        }
+    private int allocateLocalPort() {
+            try {
+                return NetUtils.findAvailableSocketPort();
+            }
+            catch (IOException e) {
+                LOGGER.warn("Unexpected I/O exception occurred on attempt to find a free port to use for external system task debugging", e);
+            }
+        return DEFAULT_PORT;
     }
 
     @Nullable
@@ -128,13 +137,21 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         telemetryData.put("kind", executor.getId());
 
         BuildToolDelegate toolDelegate = BuildToolDelegate.getDelegate(module);
-        allocateLocalPort();
         RunProfileState state = null;
         if (toolDelegate != null) {
             telemetryData.put("tool", toolDelegate.getDisplay());
+            boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
+            Integer debugPort = debug ? allocateLocalPort() : null;
+            // The parameter (run/debug) executor is filled according the run/debug action
+            // but in the case of Gradle, the executor must be only the run executor
+            // otherwise for some reason, the stop button will stop the task without stopping the Quarkus application process.
+            // Here we need to override the executor if Gradle is started in debug mode.
+            Executor overridedExecutor = toolDelegate.getOverridedExecutor();
+            executor = overridedExecutor != null ? overridedExecutor : executor;
             // Create a Gradle or Maven run configuration in memory
-            RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(module, this);
+            RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(module, this, debugPort);
             if (settings != null) {
+                QuarkusRunConfigurationManager.getInstance(module.getProject()); // to be sure that Quarkus execution listener is registered
                 long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
                 state = doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId, null);
             }
@@ -143,47 +160,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         }
         // Send "run-run" telemetry event
         TelemetryManager.instance().send(TelemetryEventName.RUN_RUN, telemetryData);
-
-        if (executor.getId().equals(DefaultDebugExecutor.EXECUTOR_ID)) {
-            ProgressManager.getInstance().run(new Task.Backgroundable(getProject(), QUARKUS_CONFIGURATION, false) {
-                @Override
-                public void run(@NotNull ProgressIndicator indicator) {
-                    createRemoteConfiguration(indicator);
-                }
-            });
-        }
         return state;
-    }
-
-    private void waitForPortAvailable(int port, ProgressIndicator monitor) throws IOException {
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 60_000 && !monitor.isCanceled()) {
-            try (Socket socket = new Socket("localhost", port)) {
-                socket.getOutputStream().write(JWDP_HANDSHAKE.getBytes(StandardCharsets.US_ASCII));
-                return;
-            } catch (ConnectException e) {
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e1) {
-                    throw new IOException(e1);
-                }
-            }
-        }
-        throw new IOException("Can't connect remote debuger to port " + port);
-    }
-
-    private void createRemoteConfiguration(ProgressIndicator indicator) {
-        indicator.setText("Connecting Java debugger to port " + getPort());
-        try {
-            waitForPortAvailable(getPort(), indicator);
-            RunnerAndConfigurationSettings settings = RunManager.getInstance(getProject()).createConfiguration(getName() + " (Remote)", RemoteConfigurationType.class);
-            RemoteConfiguration remoteConfiguration = (RemoteConfiguration) settings.getConfiguration();
-            remoteConfiguration.PORT = Integer.toString(getPort());
-            long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
-            ExecutionUtil.runConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance(), DefaultExecutionTarget.INSTANCE, groupId);
-        } catch (IOException e) {
-            ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog("Can' t connector to port " + getPort(), "Quarkus"));
-        }
     }
 
     public String getProfile() {
@@ -205,10 +182,6 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
 
     public void setEnv(Map<String, String> env) {
         getOptions().setEnv(env);
-    }
-
-    public int getPort() {
-        return port;
     }
 
     private static RunProfileState doRunConfiguration(@NotNull RunnerAndConfigurationSettings configuration,
