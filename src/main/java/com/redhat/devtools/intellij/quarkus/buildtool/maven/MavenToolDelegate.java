@@ -28,6 +28,7 @@ import com.redhat.devtools.intellij.quarkus.buildtool.ProjectImportListener;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.execution.MavenRunConfiguration;
 import org.jetbrains.idea.maven.execution.MavenRunConfigurationType;
 import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
@@ -39,7 +40,6 @@ import org.jetbrains.idea.maven.project.MavenImportListener;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
-import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -260,7 +260,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
     }
 
     @Override
-    public RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration) {
+    public RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration, @Nullable Integer debugPort) {
         RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Maven)", MavenRunConfigurationType.class);
         MavenRunConfiguration mavenConfiguration = (MavenRunConfiguration) settings.getConfiguration();
         mavenConfiguration.getRunnerParameters().setResolveToWorkspace(true);
@@ -271,7 +271,9 @@ public class MavenToolDelegate implements BuildToolDelegate {
         if (StringUtils.isNotBlank(configuration.getProfile())) {
             mavenConfiguration.getRunnerSettings().getMavenProperties().put("quarkus.profile", configuration.getProfile());
         }
-        mavenConfiguration.getRunnerSettings().getMavenProperties().put("debug", Integer.toString(configuration.getPort()));
+        if (debugPort != null) {
+            mavenConfiguration.getRunnerSettings().getMavenProperties().put("debug", Integer.toString(debugPort));
+        }
         mavenConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
     }

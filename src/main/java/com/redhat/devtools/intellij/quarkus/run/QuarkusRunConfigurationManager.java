@@ -13,6 +13,7 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.run;
 
+import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.dashboard.RunDashboardManager;
@@ -56,6 +57,7 @@ public class QuarkusRunConfigurationManager implements Disposable {
     public QuarkusRunConfigurationManager(Project project) {
         this.project = project;
         connection = addProjectImportListener(project);
+        connection.subscribe(ExecutionManager.EXECUTION_TOPIC, new AttachDebuggerExecutionListener(project));
     }
 
     public @Nullable RunnerAndConfigurationSettings findExistingConfigurationFor(@NotNull Module module) {
