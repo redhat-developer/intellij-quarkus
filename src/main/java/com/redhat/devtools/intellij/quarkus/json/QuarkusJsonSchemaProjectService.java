@@ -8,7 +8,7 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.quarkus;
+package com.redhat.devtools.intellij.quarkus.json;
 
 import com.intellij.json.JsonFileType;
 import com.intellij.openapi.Disposable;
@@ -25,6 +25,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.quarkus.QuarkusPluginDisposable;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.eclipse.lsp4mp.commons.ClasspathKind;
 import org.eclipse.lsp4mp.commons.DocumentFormat;
@@ -40,22 +41,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class QuarkusProjectService implements ClasspathResourceChangedManager.Listener, Disposable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusProjectService.class);
+public class QuarkusJsonSchemaProjectService implements ClasspathResourceChangedManager.Listener, Disposable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusJsonSchemaProjectService.class);
 
     private final Map<Module, MutablePair<VirtualFile, Boolean>> schemas = new ConcurrentHashMap<>();
 
-    public static QuarkusProjectService getInstance(@NotNull Project project) {
-        return project.getService(QuarkusProjectService.class);
+    public static QuarkusJsonSchemaProjectService getInstance(@NotNull Project project) {
+        return project.getService(QuarkusJsonSchemaProjectService.class);
     }
 
     private final MessageBusConnection connection;
 
-    public QuarkusProjectService(Project project) {
+    public QuarkusJsonSchemaProjectService(Project project) {
         connection = project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project));
         connection.subscribe(ClasspathResourceChangedManager.TOPIC, this);
     }
-
 
     public VirtualFile getSchema(Module module) {
         var schemaEntry = schemas.get(module);

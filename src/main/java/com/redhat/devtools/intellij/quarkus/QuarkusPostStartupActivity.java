@@ -13,7 +13,6 @@ package com.redhat.devtools.intellij.quarkus;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.ProjectActivity;
-import com.intellij.openapi.startup.StartupActivity;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationManager;
@@ -36,7 +35,6 @@ public class QuarkusPostStartupActivity implements ProjectActivity, DumbAware {
         // - and after the QuarkusLanguageClient throws an event to trigger Java validation.
         // As java validation requires the properties cache, it needs that cache must be updated before.
         PsiMicroProfileProjectManager.getInstance(project);
-        QuarkusProjectService.getInstance(project);
         return null;
     }
 }
