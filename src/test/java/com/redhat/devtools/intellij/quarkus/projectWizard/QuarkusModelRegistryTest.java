@@ -18,7 +18,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
-import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
+import com.redhat.devtools.intellij.quarkus.json.QuarkusJsonSchemaProjectService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
@@ -57,7 +57,7 @@ public class QuarkusModelRegistryTest  {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        QuarkusProjectService.getInstance(myFixture.getProject()).dispose();
+        QuarkusJsonSchemaProjectService.getInstance(myFixture.getProject()).dispose();
         PsiMicroProfileProjectManager.getInstance(myFixture.getProject()).dispose();
         ClasspathResourceChangedManager.getInstance(myFixture.getProject()).dispose();
         myFixture.tearDown();

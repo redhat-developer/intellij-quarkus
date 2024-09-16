@@ -16,7 +16,6 @@ import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider;
 import com.jetbrains.jsonSchema.extension.SchemaType;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
-import com.redhat.devtools.intellij.quarkus.QuarkusProjectService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +45,7 @@ public class QuarkusJsonSchemaProvider implements JsonSchemaFileProvider {
     @Nullable
     @Override
     public VirtualFile getSchemaFile() {
-        return QuarkusProjectService.getInstance(module.getProject()).getSchema(module);
+        return QuarkusJsonSchemaProjectService.getInstance(module.getProject()).getSchema(module);
     }
 
     @NotNull
