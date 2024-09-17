@@ -1,23 +1,15 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.redhat.devtools.intellij.quarkus.buildtool.gradle;
 
-import com.intellij.build.BuildView;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.ExecutionManager;
-import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.configurations.RunProfile;
-import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
-import com.intellij.execution.runners.RunContentBuilder;
-import com.intellij.execution.testframework.HistoryTestRunnableState;
-import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunnableState;
+import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.quarkus.buildtool.maven.MavenToolDelegate;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
-import org.jetbrains.concurrency.Promises;
 
 /**
  * Program runner to run/debug a Gradle configuration.
@@ -54,59 +46,7 @@ public class GradleRunAndDebugProgramRunner implements ProgramRunner<RunnerSetti
 
     @Override
     public void execute(ExecutionEnvironment environment) throws ExecutionException {
-        RunProfileState state = environment.getState();
-        if (state == null) {
-            return;
-        }
-        ExecutionManager.getInstance(environment.getProject()).startRunProfile(environment, () -> {
-            try {
-                return Promises.resolvedPromise(doExecute(state, environment));
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    private RunContentDescriptor doExecute(RunProfileState state, ExecutionEnvironment environment) throws ExecutionException {
-        if (!(state instanceof ExternalSystemRunnableState) && !(state instanceof HistoryTestRunnableState)) {
-            return null;
-        }
-
-        RunContentDescriptor runContentDescriptor;
-        ExecutionResult executionResult = state.execute(environment.getExecutor(), this);
-        if (executionResult == null) {
-            return null;
-        }
-        runContentDescriptor = new RunContentBuilder(executionResult, environment).showRunContent(environment.getContentToReuse());
-        if (runContentDescriptor == null) {
-            return null;
-        }
-
-        if (state instanceof HistoryTestRunnableState) {
-            return runContentDescriptor;
-        }
-
-        ((ExternalSystemRunnableState) state).setContentDescriptor(runContentDescriptor);
-
-        if (executionResult.getExecutionConsole() instanceof BuildView) {
-            return runContentDescriptor;
-        }
-
-        RunContentDescriptor descriptor = new RunContentDescriptor(
-                runContentDescriptor.getExecutionConsole(),
-                runContentDescriptor.getProcessHandler(),
-                runContentDescriptor.getComponent(),
-                runContentDescriptor.getDisplayName(),
-                runContentDescriptor.getIcon(),
-                null,
-                runContentDescriptor.getRestartActions()
-        ) {
-            @Override
-            public boolean isHiddenContent() {
-                return true;
-            }
-        };
-        descriptor.setRunnerLayoutUi(runContentDescriptor.getRunnerLayoutUi());
-        return descriptor;
+        // Execute environment with the 'ExternalSystemTaskRunner.RUNNER_ID'
+        ProgramRunner.findRunnerById(ExternalSystemConstants.RUNNER_ID).execute(environment);
     }
 }
