@@ -16,11 +16,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.lsp4ij.LanguageServiceAccessor;
+import com.redhat.devtools.lsp4ij.LanguageServerItem;
+import com.redhat.devtools.lsp4ij.commands.CommandExecutor;
 import com.redhat.devtools.lsp4ij.commands.LSPCommand;
-import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.ExecuteCommandParams;
-import org.eclipse.lsp4j.services.LanguageServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -28,24 +27,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 public class QuteGenerateTemplateAction extends QuteAction {
+
     private static final String TEMPLATE_FILE_URI = "templateFileUri";
     private static final String QUTE_COMMAND_GENERATE_TEMPLATE_CONTENT = "qute.command.generate.template.content";
-    private static System.Logger LOGGER = System.getLogger(QuteGenerateTemplateAction.class.getName());
 
-    private LanguageServer getFirstServer(AnActionEvent e) {
-        List<LanguageServer> servers = LanguageServiceAccessor.getInstance(e.getProject()).getActiveLanguageServers(cap -> {
-            ExecuteCommandOptions provider = cap.getExecuteCommandProvider();
-            return provider != null && provider.getCommands().contains(QUTE_COMMAND_GENERATE_TEMPLATE_CONTENT);
-        });
-        return servers.isEmpty() ? null : servers.get(0);
-    }
+    private static System.Logger LOGGER = System.getLogger(QuteGenerateTemplateAction.class.getName());
 
     @Override
     protected void commandPerformed(@NotNull LSPCommand command, @NotNull AnActionEvent e) {
-        LanguageServer server = getFirstServer(e);
+        LanguageServerItem server = e.getDataContext().getData(CommandExecutor.LSP_COMMAND_LANGUAGE_SERVER);
         try {
             if (server != null) {
                 URI uri = getURI(command);
@@ -70,7 +62,7 @@ public class QuteGenerateTemplateAction extends QuteAction {
                             return content;
                         }).exceptionally(ex -> {
                             LOGGER.log(System.Logger.Level.WARNING, "Error while generating Qute template", ex);
-                          return ex;
+                            return ex;
                         });
             }
         } catch (URISyntaxException ex) {
