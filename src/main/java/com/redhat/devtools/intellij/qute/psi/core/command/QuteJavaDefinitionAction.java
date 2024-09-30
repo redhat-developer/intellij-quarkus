@@ -20,13 +20,11 @@ import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.lsp4ij.commands.LSPCommand;
 import com.redhat.qute.commons.QuteJavaDefinitionParams;
-import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Location;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public class QuteJavaDefinitionAction extends QuteAction {
+
     private static final String PROJECT_URI_ATTR = "projectUri";
     private static final String SOURCE_TYPE_ATTR = "sourceType";
     private static final String SOURCE_FIELD_ATTR = "sourceField";
