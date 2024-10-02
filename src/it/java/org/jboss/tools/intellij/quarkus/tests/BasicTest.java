@@ -115,6 +115,30 @@ public class BasicTest extends AbstractQuarkusTest {
 
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
+
+        System.out.println("===============================================================");
+        System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION);
+
+        System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("===============================================================");
         newProjectDialogWizard.finish();
 
         minimizeProjectImportPopupIfItAppears();
