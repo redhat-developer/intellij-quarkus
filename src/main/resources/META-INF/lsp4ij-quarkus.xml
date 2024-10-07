@@ -18,8 +18,10 @@
         </server>
         <languageMapping language="Properties"
                          serverId="microprofile"
+                         languageId="microprofile-properties"
                          documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForPropertiesFile"/>
         <languageMapping language="JAVA"
+                         languageId="java"
                          serverId="microprofile"
                          documentMatcher="com.redhat.devtools.intellij.quarkus.lsp.QuarkusDocumentMatcherForJavaFile"/>
     </extensions>
