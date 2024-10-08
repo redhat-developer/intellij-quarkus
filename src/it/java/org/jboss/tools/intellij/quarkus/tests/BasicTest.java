@@ -82,9 +82,10 @@ public class BasicTest extends AbstractQuarkusTest {
             flatWelcomeFrame.clearExceptions();
             flatWelcomeFrame.clearWorkspace();
         } catch (Exception e) {
-            ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshot");
+            ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshotError");
             throw new RuntimeException(e);
         }
+        ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshot");
     }
 
     @Test
