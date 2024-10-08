@@ -28,6 +28,7 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwind
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.MavenBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
+import org.apache.commons.io.FileUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -56,8 +58,26 @@ public class BasicTest extends AbstractQuarkusTest {
 
     @AfterEach
     public void finishTestRun() {
+        CreateCloseUtils.closeProject(remoteRobot);
+        ScreenshotUtils.takeScreenshot(remoteRobot, "closeProjectScreenshot");
+
         try {
-            CreateCloseUtils.closeProject(remoteRobot);
+            String pathToDirToMakeEmpty = CreateCloseUtils.PROJECT_LOCATION;
+            FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        ScreenshotUtils.takeScreenshot(remoteRobot, "clearPROJECT_LOCATIONScreenshot");
+
+        try {
+            String pathToDirToMakeEmpty = System.getProperty("user.home") + File.separator + "IdeaProjects";
+            FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        ScreenshotUtils.takeScreenshot(remoteRobot, "clearIdeaProjectsScreenshot");
+
+        try {
             FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
             flatWelcomeFrame.clearExceptions();
             flatWelcomeFrame.clearWorkspace();
@@ -131,7 +151,7 @@ public class BasicTest extends AbstractQuarkusTest {
 //            throw new RuntimeException(e);
 //        }
 
-        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName);
+        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION);
 
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
 //        try {
@@ -150,7 +170,6 @@ public class BasicTest extends AbstractQuarkusTest {
 
         minimizeProjectImportPopupIfItAppears();
 
-        ScreenshotUtils.takeScreenshot(remoteRobot, "IdeStatusBarScreenshot");
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ideStatusBar.waitUntilProjectImportIsComplete();
         MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
