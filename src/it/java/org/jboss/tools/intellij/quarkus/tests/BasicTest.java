@@ -125,7 +125,7 @@ public class BasicTest extends AbstractQuarkusTest {
 //            throw new RuntimeException(e);
 //        }
 
-        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName);
+        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION);
 
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
 //        try {
