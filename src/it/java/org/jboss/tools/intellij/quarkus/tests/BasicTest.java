@@ -37,6 +37,7 @@ import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -124,7 +125,7 @@ public class BasicTest extends AbstractQuarkusTest {
             throw new RuntimeException(e);
         }
 
-        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION);
+        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName);
 
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
         try {
