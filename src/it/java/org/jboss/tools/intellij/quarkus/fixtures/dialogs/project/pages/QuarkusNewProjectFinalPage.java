@@ -46,4 +46,19 @@ public class QuarkusNewProjectFinalPage extends AbstractNewProjectFinalPage {
             super.setProjectName(projectName);
         }
     }
+
+    @Override
+    public String getProjectLocation() {
+        return find(JTextFieldFixture.class, byXpath("//div[@accessiblename='Project location:' and @class='JTextField']")).getText();
+    }
+
+    /**
+     * Set the project location for new project in the 'New Project' Quarkus dialog
+     *
+     * @param projectLocation project location of the new project
+     */
+    @Override
+    public void setProjectLocation(String projectLocation) {
+        find(JTextFieldFixture.class, byXpath("//div[@accessiblename='Project location:' and @class='JTextField']")).setText(projectLocation);
+    }
 }
