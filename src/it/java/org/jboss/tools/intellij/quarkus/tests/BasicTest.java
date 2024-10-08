@@ -119,26 +119,26 @@ public class BasicTest extends AbstractQuarkusTest {
 
         System.out.println("===============================================================");
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(10000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
 
         quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName);
 
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(10000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(10000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         System.out.println("===============================================================");
         newProjectDialogWizard.finish();
 
