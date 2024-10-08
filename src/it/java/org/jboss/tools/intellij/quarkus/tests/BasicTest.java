@@ -151,7 +151,7 @@ public class BasicTest extends AbstractQuarkusTest {
 //            throw new RuntimeException(e);
 //        }
 
-        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION);
+//        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION);
 
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
 //        try {
@@ -166,6 +166,7 @@ public class BasicTest extends AbstractQuarkusTest {
 //            throw new RuntimeException(e);
 //        }
         System.out.println("===============================================================");
+        ScreenshotUtils.takeScreenshot(remoteRobot, "lastProjectScreenshot");
         newProjectDialogWizard.finish();
 
         minimizeProjectImportPopupIfItAppears();
