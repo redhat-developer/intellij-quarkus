@@ -56,12 +56,10 @@ public class BasicTest extends AbstractQuarkusTest {
 
     @AfterEach
     public void finishTestRun() {
-        ScreenshotUtils.takeScreenshot(remoteRobot, "finishTestRunScreenshot");
-        CreateCloseUtils.closeProject(remoteRobot);
-        ScreenshotUtils.takeScreenshot(remoteRobot, "closeProjectScreenshot");
-        FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
-        flatWelcomeFrame.clearExceptions();
         try {
+            CreateCloseUtils.closeProject(remoteRobot);
+            FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
+            flatWelcomeFrame.clearExceptions();
             flatWelcomeFrame.clearWorkspace();
         } catch (Exception e) {
             ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshot");
@@ -133,7 +131,7 @@ public class BasicTest extends AbstractQuarkusTest {
 //            throw new RuntimeException(e);
 //        }
 
-        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION);
+        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName);
 
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
 //        try {
@@ -152,6 +150,7 @@ public class BasicTest extends AbstractQuarkusTest {
 
         minimizeProjectImportPopupIfItAppears();
 
+        ScreenshotUtils.takeScreenshot(remoteRobot, "IdeStatusBarScreenshot");
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ideStatusBar.waitUntilProjectImportIsComplete();
         MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
