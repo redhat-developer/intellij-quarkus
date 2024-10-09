@@ -66,6 +66,9 @@ public class MicroProfileGenerateOpenAPIOperation implements IJavaCodeActionPart
 			if (type instanceof PsiClass) {
 				PsiClass typeDeclaration = (PsiClass) type;
 				String typeName = typeDeclaration.getQualifiedName();
+				if (typeName == null || typeName.isBlank()) {
+					continue;
+				}
 
 				Map<String, Object> extendedData = new HashMap<>();
 				extendedData.put(TYPE_NAME_KEY, typeName);
