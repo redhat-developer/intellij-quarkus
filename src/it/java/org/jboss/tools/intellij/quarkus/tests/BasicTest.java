@@ -41,6 +41,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -59,6 +61,9 @@ public class BasicTest extends AbstractQuarkusTest {
     @AfterEach
     public void finishTestRun() {
         CreateCloseUtils.closeProject(remoteRobot);
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        System.out.println("closeProject_output:");
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
         ScreenshotUtils.takeScreenshot(remoteRobot, "closeProjectScreenshot");
 
         try {
@@ -67,6 +72,8 @@ public class BasicTest extends AbstractQuarkusTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        System.out.println("clearPROJECT_LOCATION_output:");
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
         ScreenshotUtils.takeScreenshot(remoteRobot, "clearPROJECT_LOCATIONScreenshot");
 
         try {
@@ -75,6 +82,8 @@ public class BasicTest extends AbstractQuarkusTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        System.out.println("clearIdeaProjects_output:");
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects")));
         ScreenshotUtils.takeScreenshot(remoteRobot, "clearIdeaProjectsScreenshot");
 
         try {
@@ -85,7 +94,10 @@ public class BasicTest extends AbstractQuarkusTest {
             ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshotError");
             throw new RuntimeException(e);
         }
+        System.out.println("clearWorkspace_output:");
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
         ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshot");
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     }
 
     @Test
