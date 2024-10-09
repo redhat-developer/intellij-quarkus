@@ -111,6 +111,7 @@ public class JaxRsContext {
 	 */
 	public void setApplicationPath(String applicationPath) {
 		this.applicationPath = applicationPath;
+		this.applicationPathLoaded = applicationPath != null;
 	}
 
 	public static JaxRsContext getJaxRsContext(JavaCodeLensContext context) {

@@ -66,7 +66,8 @@ public class JaxRsCodeLensTest extends LSP4MPMavenModuleImportingTestCase {
                 cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(38, 4, 4)), //
                 cl("http://localhost:" + port + rootPath + "/fruits", "", r(48, 4, 4)), //
                 cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(60, 4, 4)), //
-                cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(81, 4, 4)));
+                cl("http://localhost:" + port + rootPath + "/fruits/{id}", "", r(79, 4, 4)), //
+                cl("http://localhost:" + port + rootPath + "/fruits/path_with_java_constant", "", r(92, 4, 4)));
     }
 
 }
