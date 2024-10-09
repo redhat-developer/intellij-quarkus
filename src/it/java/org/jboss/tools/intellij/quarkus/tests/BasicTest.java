@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
@@ -180,31 +181,30 @@ public class BasicTest extends AbstractQuarkusTest {
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
 
+        String QUARKUS_PROJECT_LOCATION = CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName;
+
+
         System.out.println("===============================================================");
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
 
-//        quarkusNewProjectFinalPage.setProjectLocation(CreateCloseUtils.PROJECT_LOCATION);
+        Path quarkusProjectDir = Paths.get(QUARKUS_PROJECT_LOCATION);
+        boolean doesProjectDirExists = Files.exists(quarkusProjectDir);
+        if (!doesProjectDirExists) {
+            System.out.println("Creating project directory: " + QUARKUS_PROJECT_LOCATION);
+            try {
+                Files.createDirectories(quarkusProjectDir);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        quarkusNewProjectFinalPage.setProjectLocation(QUARKUS_PROJECT_LOCATION);
 
         System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-        System.out.println(quarkusNewProjectFinalPage.getProjectLocation());
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
         System.out.println("===============================================================");
         ScreenshotUtils.takeScreenshot(remoteRobot, "lastProjectScreenshot");
         newProjectDialogWizard.finish();
+        ScreenshotUtils.takeScreenshot(remoteRobot, "finishProjectScreenshot");
 
         minimizeProjectImportPopupIfItAppears();
 
