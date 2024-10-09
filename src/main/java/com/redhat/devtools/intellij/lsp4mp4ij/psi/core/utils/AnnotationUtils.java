@@ -10,16 +10,13 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiAnnotationOwner;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.*;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.util.Ranges;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +30,8 @@ import java.util.regex.Pattern;
  *
  */
 public class AnnotationUtils {
+
+	private static final Logger log = LoggerFactory.getLogger(AnnotationUtils.class);
 
 	/**
 	 * Returns checks if the <code>annotatable</code> parameter is annotated with the given annotation.
@@ -173,9 +172,33 @@ public class AnnotationUtils {
 	 * @return the value of the given member name of the given annotation.
 	 */
 	public static String getAnnotationMemberValue(PsiAnnotation annotation, String memberName) {
-		PsiAnnotationMemberValue member = getAnnotationMemberValueExpression(annotation, memberName);
-		String value = member != null && member.getText() != null ? member.getText() : null;
-		if (value != null && value.length() > 1 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
+		PsiElement member = getAnnotationMemberValueExpression(annotation, memberName);
+		if (member == null) {
+			return null;
+		}
+		if (member instanceof PsiReference reference) {
+			// ex: @Path(MY_CONSTANTS) where MY_CONSTANTS is a Java field.
+			member = reference.resolve();
+		}
+		if (member instanceof PsiField field) {
+			// ex: private static final String MY_CONSTANTS = "foo";
+			member = field.getInitializer();
+		}
+		if (member == null) {
+			return null;
+		}
+		String value = null;
+		if (member instanceof PsiLiteralExpression literalExpression) {
+			// ex : @Path("foo") --> foo
+			value = literalExpression.getText();
+		} else {
+			value = member.getText();
+		}
+		if (value == null) {
+			return null;
+		}
+		// Remove double quote if needed.
+		if (value.length() > 1 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
 			value = value.substring(1, value.length() - 1);
 		}
 		return value;

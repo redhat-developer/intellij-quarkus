@@ -75,19 +75,27 @@ public class FruitResource {
     }
 
     @DELETE
+    @Path("{id}")
     @Transactional
-    @Path(
-        "{id}"
-        )
-    public
-    Response
-    delete(@PathParam Integer id) {
+    public Response delete(@PathParam Integer id) {
         Fruit entity = entityManager.getReference(Fruit.class, id);
         if (entity == null) {
             throw new WebApplicationException("Fruit with id of " + id + " does not exist.", 404);
         }
         entityManager.remove(entity);
         return Response.status(204).build();
+    }
+
+    private static final String PATH = "path_with_java_constant";
+
+    @GET
+    @Path(PATH)
+    public Fruit getSingle2(@PathParam Integer id) {
+        Fruit entity = entityManager.find(Fruit.class, id);
+        if (entity == null) {
+            throw new WebApplicationException("Fruit with id of " + id + " does not exist.", 404);
+        }
+        return entity;
     }
 
     @Provider

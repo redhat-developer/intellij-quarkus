@@ -36,6 +36,8 @@ public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant
 	private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
 	private static final String QUARKUS_DEV_HTTP_ROOT_PATH = "%dev.quarkus.http.root-path";
 	private static final String QUARKUS_HTTP_ROOT_PATH = "quarkus.http.root-path";
+	private static final String QUARKUS_REST_PATH = "quarkus.rest.path";
+	private static final String QUARKUS_DEV_REST_PATH = "%dev.quarkus.rest.path";
 
 	@Override
 	public void beginCodeLens(JavaCodeLensContext context, ProgressIndicator monitor) {
@@ -49,9 +51,16 @@ public class QuarkusJaxRsCodeLensParticipant implements IJavaCodeLensParticipant
 		JaxRsContext.getJaxRsContext(context).setServerPort(devServerPort);
 
 		// Retrieve HTTP root path from application.properties
+		// quarkus.http.root-path
 		String httpRootPath = mpProject.getProperty(QUARKUS_HTTP_ROOT_PATH);
 		String devHttpRootPath = mpProject.getProperty(QUARKUS_DEV_HTTP_ROOT_PATH, httpRootPath);
 		JaxRsContext.getJaxRsContext(context).setRootPath(devHttpRootPath);
+
+		// quarkus.rest.path
+		// see https://quarkus.io/guides/rest#declaring-endpoints-uri-mapping
+		String restPath = mpProject.getProperty(QUARKUS_REST_PATH);
+		String devRestPath = mpProject.getProperty(QUARKUS_DEV_REST_PATH, restPath);
+		JaxRsContext.getJaxRsContext(context).setApplicationPath(devRestPath);
 	}
 
 	@Override
