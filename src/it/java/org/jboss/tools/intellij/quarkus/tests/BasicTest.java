@@ -64,6 +64,12 @@ public class BasicTest extends AbstractQuarkusTest {
         System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         System.out.println("closeProject_output:");
         System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
         ScreenshotUtils.takeScreenshot(remoteRobot, "closeProjectScreenshot");
 
         try {
@@ -74,6 +80,12 @@ public class BasicTest extends AbstractQuarkusTest {
         }
         System.out.println("clearPROJECT_LOCATION_output:");
         System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
         ScreenshotUtils.takeScreenshot(remoteRobot, "clearPROJECT_LOCATIONScreenshot");
 
         try {
@@ -84,6 +96,12 @@ public class BasicTest extends AbstractQuarkusTest {
         }
         System.out.println("clearIdeaProjects_output:");
         System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
         ScreenshotUtils.takeScreenshot(remoteRobot, "clearIdeaProjectsScreenshot");
 
         try {
@@ -96,6 +114,12 @@ public class BasicTest extends AbstractQuarkusTest {
         }
         System.out.println("clearWorkspace_output:");
         System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
+        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
+        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
         ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshot");
         System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     }
