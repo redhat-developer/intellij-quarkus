@@ -62,67 +62,67 @@ public class BasicTest extends AbstractQuarkusTest {
     @AfterEach
     public void finishTestRun() {
         CreateCloseUtils.closeProject(remoteRobot);
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        System.out.println("closeProject_output:");
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
-        ScreenshotUtils.takeScreenshot(remoteRobot, "closeProjectScreenshot");
+//        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//        System.out.println("closeProject_output:");
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
+//        ScreenshotUtils.takeScreenshot(remoteRobot, "closeProjectScreenshot");
 
-        try {
-            String pathToDirToMakeEmpty = CreateCloseUtils.PROJECT_LOCATION;
-            FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("clearPROJECT_LOCATION_output:");
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
-        ScreenshotUtils.takeScreenshot(remoteRobot, "clearPROJECT_LOCATIONScreenshot");
+//        try {
+//            String pathToDirToMakeEmpty = CreateCloseUtils.PROJECT_LOCATION;
+//            FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println("clearPROJECT_LOCATION_output:");
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
+//        ScreenshotUtils.takeScreenshot(remoteRobot, "clearPROJECT_LOCATIONScreenshot");
+//
+//        try {
+//            String pathToDirToMakeEmpty = System.getProperty("user.home") + File.separator + "IdeaProjects";
+//            FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println("clearIdeaProjects_output:");
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
+//        ScreenshotUtils.takeScreenshot(remoteRobot, "clearIdeaProjectsScreenshot");
 
-        try {
-            String pathToDirToMakeEmpty = System.getProperty("user.home") + File.separator + "IdeaProjects";
-            FileUtils.cleanDirectory(new File(pathToDirToMakeEmpty));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("clearIdeaProjects_output:");
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
-        ScreenshotUtils.takeScreenshot(remoteRobot, "clearIdeaProjectsScreenshot");
-
-        try {
-            FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
-            flatWelcomeFrame.clearExceptions();
-            flatWelcomeFrame.clearWorkspace();
-        } catch (Exception e) {
-            ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshotError");
-            throw new RuntimeException(e);
-        }
-        System.out.println("clearWorkspace_output:");
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
-        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
-        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
+//        try {
+        FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
+        flatWelcomeFrame.clearExceptions();
+        flatWelcomeFrame.clearWorkspace();
+//        } catch (Exception e) {
+//            ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshotError");
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println("clearWorkspace_output:");
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION)));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-gradle")));
+//        System.out.println(Files.exists(Paths.get(CreateCloseUtils.PROJECT_LOCATION + File.separator + "code-with-quarkus-maven")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-gradle")));
+//        System.out.println(Files.exists(Paths.get(System.getProperty("user.home") + File.separator + "IdeaProjects" + File.separator + "code-with-quarkus-maven")));
         ScreenshotUtils.takeScreenshot(remoteRobot, "clearWorkspaceScreenshot");
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     }
 
     @Test
@@ -204,12 +204,16 @@ public class BasicTest extends AbstractQuarkusTest {
         System.out.println("===============================================================");
         ScreenshotUtils.takeScreenshot(remoteRobot, "lastProjectScreenshot");
         newProjectDialogWizard.finish();
-        ScreenshotUtils.takeScreenshot(remoteRobot, "finishProjectScreenshot");
+        ScreenshotUtils.takeScreenshot(remoteRobot, "finishProjectScreenshot_0");
 
         minimizeProjectImportPopupIfItAppears();
 
+        ScreenshotUtils.takeScreenshot(remoteRobot, "finishProjectScreenshot_1");
+
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ideStatusBar.waitUntilProjectImportIsComplete();
+
+        ScreenshotUtils.takeScreenshot(remoteRobot, "finishProjectScreenshot_2");
         MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
         mainIdeWindow.maximizeIdeWindow();
         ideStatusBar.waitUntilAllBgTasksFinish(500);
