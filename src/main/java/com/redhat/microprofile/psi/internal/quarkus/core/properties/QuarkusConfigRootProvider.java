@@ -30,7 +30,6 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import io.quarkus.runtime.annotations.ConfigItem;
-import io.quarkus.runtime.annotations.ConfigPhase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,8 +57,6 @@ import static io.quarkus.runtime.util.StringUtil.withoutSuffix;
  *
  */
 public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePropertiesProvider {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusConfigRootProvider.class);
 
 	private static final String[] ANNOTATION_NAMES = { QuarkusConstants.CONFIG_ROOT_ANNOTATION };
 
@@ -197,6 +194,10 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 									"Run", "Time", "Config"),
 							"Configuration"),
 					"Config");
+		} else if (configPhase == ConfigPhase.BOOTSTRAP) {
+			trimmedSegments = withoutSuffix(withoutSuffix(
+					withoutSuffix(withoutSuffix(segments, "Bootstrap", "Configuration"), "Bootstrap", "Config"),
+					"Configuration"), "Config");
 		} else {
 			trimmedSegments = withoutSuffix(withoutSuffix(
 					withoutSuffix(withoutSuffix(segments, "Build", "Time", "Configuration"), "Build", "Time", "Config"),

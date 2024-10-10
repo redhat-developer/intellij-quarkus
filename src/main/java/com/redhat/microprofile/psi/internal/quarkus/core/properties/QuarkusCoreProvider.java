@@ -15,10 +15,10 @@ import com.redhat.microprofile.psi.internal.quarkus.providers.AbstractStaticQuar
 
 /**
  * Properties provider that provides static Quarkus properties
- * 
+ *
  * @author Angelo ZERR
- * 
- * @see https://github.com/eclipse/microprofile-health/blob/master/spec/src/main/asciidoc/protocol-wireformat.adoc
+ *
+ * @see <a href="https://github.com/eclipse/microprofile-health/blob/master/spec/src/main/asciidoc/protocol-wireformat.adoc">GitHub</a>
  *
  */
 public class QuarkusCoreProvider extends AbstractStaticQuarkusPropertiesProvider {
