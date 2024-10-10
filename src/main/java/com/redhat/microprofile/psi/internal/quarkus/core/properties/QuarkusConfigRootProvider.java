@@ -197,10 +197,6 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 									"Run", "Time", "Config"),
 							"Configuration"),
 					"Config");
-		} else if (configPhase == ConfigPhase.BOOTSTRAP) {
-			trimmedSegments = withoutSuffix(withoutSuffix(
-					withoutSuffix(withoutSuffix(segments, "Bootstrap", "Configuration"), "Bootstrap", "Config"),
-					"Configuration"), "Config");
 		} else {
 			trimmedSegments = withoutSuffix(withoutSuffix(
 					withoutSuffix(withoutSuffix(segments, "Build", "Time", "Configuration"), "Build", "Time", "Config"),
