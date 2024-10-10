@@ -21,10 +21,12 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesCollector;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.SearchContext;
+import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.microprofile.psi.quarkus.PsiQuarkusUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
@@ -52,8 +54,6 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION_PREFIX;
-import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_NAMING_STRATEGY_SNAKE_CASE;
-import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_NAMING_STRATEGY_VERBATIM;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.WITH_DEFAULT_ANNOTATION;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.WITH_DEFAULT_ANNOTATION_VALUE;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.WITH_NAME_ANNOTATION;
@@ -273,18 +273,13 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
         // ConfigMapping.NamingStrategy.VERBATIM)
         // public interface ServerVerbatimNamingStrategy
         // --> See https://quarkus.io/guides/config-mappings#namingstrategy
-        String namingStrategy = getAnnotationMemberValue(configMappingAnnotation,
-                CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY);
+        NamingStrategy namingStrategy = getNamingStrategy(configMappingAnnotation);
         if (namingStrategy != null) {
-            int index = namingStrategy.lastIndexOf('.');
-            if (index != -1) {
-                namingStrategy = namingStrategy.substring(index + 1);
-            }
             switch (namingStrategy) {
-                case CONFIG_MAPPING_NAMING_STRATEGY_VERBATIM:
+                case VERBATIM:
                     // The method name is used as is to map the configuration property.
                     return name;
-                case CONFIG_MAPPING_NAMING_STRATEGY_SNAKE_CASE:
+                case SNAKE_CASE:
                     // The method name is derived by replacing case changes with an underscore to
                     // map the configuration property.
                     return snake(name);
@@ -298,6 +293,31 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
 
         // None namingStrategy, use KEBAB_CASE as default
         return hyphenate(name);
+    }
+
+    /**
+     * Returns the Quarkus @ConfigRoot(phase=...) value.
+     *
+     * @param configMappingAnnotation
+     * @return the Quarkus @ConfigRoot(phase=...) value.
+     */
+    private static NamingStrategy getNamingStrategy(PsiAnnotation configMappingAnnotation) {
+        // 2) Check if ConfigMapping.NamingStrategy is used
+        // @ConfigMapping(prefix = "server", namingStrategy =
+        // ConfigMapping.NamingStrategy.VERBATIM)
+        // public interface ServerVerbatimNamingStrategy
+        // --> See https://quarkus.io/guides/config-mappings#namingstrategy
+        String namingStrategy = getAnnotationMemberValue(configMappingAnnotation,
+                CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY);
+        if (namingStrategy != null) {
+            try {
+                return NamingStrategy.valueOf(namingStrategy.toUpperCase());
+            }
+            catch(Exception e) {
+
+            }
+        }
+        return null;
     }
 
     /**
