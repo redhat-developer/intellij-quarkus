@@ -177,11 +177,18 @@ public class AnnotationUtils {
 			return null;
 		}
 		if (member instanceof PsiEnumConstant) {
+			// ex : @ConfigRoot(phase = BUILD_AND_RUN_TIME_FIXED)
+			// returns BUILD_AND_RUN_TIME_FIXED
 			return member.getText();
 		}
 		if (member instanceof PsiReference reference) {
 			// ex: @Path(MY_CONSTANTS) where MY_CONSTANTS is a Java field.
 			member = reference.resolve();
+		}
+		if (member instanceof PsiEnumConstant) {
+			// ex : @ConfigRoot(phase = io.quarkus.runtime.annotations.ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
+			// returns BUILD_AND_RUN_TIME_FIXED
+			return member.getText();
 		}
 		if (member instanceof PsiField field) {
 			// ex: private static final String MY_CONSTANTS = "foo";
