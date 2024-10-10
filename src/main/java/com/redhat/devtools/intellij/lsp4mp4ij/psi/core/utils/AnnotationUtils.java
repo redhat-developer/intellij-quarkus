@@ -176,6 +176,9 @@ public class AnnotationUtils {
 		if (member == null) {
 			return null;
 		}
+		if (member instanceof PsiEnumConstant) {
+			return member.getText();
+		}
 		if (member instanceof PsiReference reference) {
 			// ex: @Path(MY_CONSTANTS) where MY_CONSTANTS is a Java field.
 			member = reference.resolve();
