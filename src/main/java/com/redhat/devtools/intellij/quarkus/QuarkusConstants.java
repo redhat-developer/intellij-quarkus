@@ -60,16 +60,6 @@ public class QuarkusConstants {
     public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM = CONFIG_PROPERTIES_ANNOTATION
             + ".NamingStrategy";
 
-    public static final String NAMING_STRATEGY_PREFIX = "NamingStrategy.";
-
-    public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_FROM_CONFIG = NAMING_STRATEGY_PREFIX
-            + "FROM_CONFIG";
-
-    public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_VERBATIM = NAMING_STRATEGY_PREFIX + "VERBATIM";
-
-    public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_KEBAB_CASE = NAMING_STRATEGY_PREFIX
-            + "KEBAB_CASE";
-
     public static final String QUARKUS_ARC_CONFIG_PROPERTIES_DEFAULT_NAMING_STRATEGY = "quarkus.arc.config-properties-default-naming-strategy";
 
     public static final String QUARKUS_DEPLOYMENT_BUILDSTEP_ANNOTATION = "io.quarkus.deployment.annotations.BuildStep";
