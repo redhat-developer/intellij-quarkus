@@ -79,17 +79,6 @@ public class QuarkusConstants {
 
 	public static final String CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY = "namingStrategy";
 
-	// The method name is used as is to map the configuration property.
-	public static final String CONFIG_MAPPING_NAMING_STRATEGY_VERBATIM = "VERBATIM";
-
-	// The method name is derived by replacing case changes with a dash to map the
-	// configuration property.
-	public static final String CONFIG_MAPPING_NAMING_STRATEGY_KEBAB_CASE = "KEBAB_CASE";
-
-	// The method name is derived by replacing case changes with an underscore to
-	// map the configuration property.
-	public static final String CONFIG_MAPPING_NAMING_STRATEGY_SNAKE_CASE = "SNAKE_CASE";
-
 	public static final String WITH_NAME_ANNOTATION = "io.smallrye.config.WithName";
 
 	public static final String WITH_NAME_ANNOTATION_VALUE = "value";
@@ -106,21 +95,6 @@ public class QuarkusConstants {
 	public static final String CONFIG_PROPERTIES_ANNOTATION = "io.quarkus.arc.config.ConfigProperties";
 
 	public static final String CONFIG_PROPERTIES_ANNOTATION_PREFIX = "prefix";
-
-	public static final String CONFIG_PROPERTIES_ANNOTATION_NAMING_STRATEGY = "namingStrategy";
-
-	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM = CONFIG_PROPERTIES_ANNOTATION
-			+ ".NamingStrategy";
-
-	public static final String NAMING_STRATEGY_PREFIX = "NamingStrategy.";
-
-	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_FROM_CONFIG = NAMING_STRATEGY_PREFIX
-			+ "FROM_CONFIG";
-
-	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_VERBATIM = NAMING_STRATEGY_PREFIX + "VERBATIM";
-
-	public static final String CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM_KEBAB_CASE = NAMING_STRATEGY_PREFIX
-			+ "KEBAB_CASE";
 
 	public static final String QUARKUS_ARC_CONFIG_PROPERTIES_DEFAULT_NAMING_STRATEGY = "quarkus.arc.config-properties-default-naming-strategy";
 

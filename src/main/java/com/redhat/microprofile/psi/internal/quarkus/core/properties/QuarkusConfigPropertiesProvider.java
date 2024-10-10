@@ -386,7 +386,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 
 	@Nullable
 	private static ConfigProperties.@Nullable NamingStrategy getNamingStrategy(String namingStrategy) {
-		if (namingStrategy != null) {
+		if (namingStrategy != null && !namingStrategy.isEmpty()) {
 			try {
 				return ConfigProperties.NamingStrategy.valueOf(namingStrategy.toUpperCase());
 			}

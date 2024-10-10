@@ -30,8 +30,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
 import io.quarkus.runtime.annotations.ConfigItem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -120,14 +119,15 @@ public class QuarkusConfigRootProvider extends AbstractAnnotationTypeReferencePr
 	 * @param configRootAnnotation
 	 * @return the Quarkus @ConfigRoot(phase=...) value.
 	 */
+	@NotNull
 	private static ConfigPhase getConfigPhase(PsiAnnotation configRootAnnotation) {
-		String value = AnnotationUtils.getAnnotationMemberValue(configRootAnnotation, QuarkusConstants.CONFIG_ROOT_ANNOTATION_PHASE);
-		if (value != null) {
-			if (value.endsWith(ConfigPhase.RUN_TIME.name())) {
-				return ConfigPhase.RUN_TIME;
+		String phase = AnnotationUtils.getAnnotationMemberValue(configRootAnnotation, QuarkusConstants.CONFIG_ROOT_ANNOTATION_PHASE);
+		if (phase != null) {
+			try {
+				return ConfigPhase.valueOf(phase.toUpperCase());
 			}
-			if (value.endsWith(ConfigPhase.BUILD_AND_RUN_TIME_FIXED.name())) {
-				return ConfigPhase.BUILD_AND_RUN_TIME_FIXED;
+			catch(Exception e) {
+
 			}
 		}
 		return ConfigPhase.BUILD_TIME;
