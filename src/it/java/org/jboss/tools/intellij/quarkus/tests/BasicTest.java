@@ -37,6 +37,12 @@ import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -115,6 +121,20 @@ public class BasicTest extends AbstractQuarkusTest {
 
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
+
+        String QUARKUS_PROJECT_LOCATION = CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName;
+        Path quarkusProjectDir = Paths.get(QUARKUS_PROJECT_LOCATION);
+        boolean doesProjectDirExists = Files.exists(quarkusProjectDir);
+        if (!doesProjectDirExists) {
+            try {
+                Files.createDirectories(quarkusProjectDir); // create project directory with project name to prevent "Do you want Eclipse to create new directory..." popup
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        quarkusNewProjectFinalPage.setProjectLocation(QUARKUS_PROJECT_LOCATION);
+
         newProjectDialogWizard.finish();
 
         minimizeProjectImportPopupIfItAppears();
