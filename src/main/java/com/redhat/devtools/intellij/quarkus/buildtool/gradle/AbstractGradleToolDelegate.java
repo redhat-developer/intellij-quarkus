@@ -14,18 +14,14 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.externalSystem.model.settings.ExternalSystemExecutionSettings;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
-import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager;
-import com.intellij.openapi.externalSystem.service.RemoteExternalSystemFacade;
+import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener;
-import com.intellij.openapi.externalSystem.service.remote.RemoteExternalSystemTaskManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleGrouper;
@@ -161,20 +157,17 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      */
     private void collectDependencies(Module module, Path customBuildFile, Path customSettingsFile, Path outputPath, List<VirtualFile>[] result) throws IOException {
         try {
-            final ExternalSystemFacadeManager manager = ApplicationManager.getApplication().getService(ExternalSystemFacadeManager.class);
-
-            ExternalSystemExecutionSettings settings = ExternalSystemApiUtil.getExecutionSettings(module.getProject(),
-                    getModuleDirPath(module),
-                    GradleConstants.SYSTEM_ID);
-
-            RemoteExternalSystemFacade facade = manager.getFacade(module.getProject(), getModuleDirPath(module), GradleConstants.SYSTEM_ID);
-
-            RemoteExternalSystemTaskManager taskManager = facade.getTaskManager();
-            final List<String> arguments = Arrays.asList("-c", customSettingsFile.toString(), "-q", "--console", "plain");
-            settings
-                    .withArguments(arguments);
-            ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, module.getProject());
-            taskManager.executeTasks(taskId, Arrays.asList("listQuarkusDependencies"), getModuleDirPath(module), settings, null);
+            ExternalSystemTaskExecutionSettings executionSettings = new ExternalSystemTaskExecutionSettings();
+            executionSettings.setExternalSystemIdString(GradleConstants.SYSTEM_ID.toString());
+            executionSettings.setTaskNames(Collections.singletonList("listQuarkusDependencies"));
+            executionSettings.setScriptParameters(String.format("-c %s -q --console plain", customSettingsFile.toString()));
+            executionSettings.setExternalProjectPath(getModuleDirPath(module));
+            ExternalSystemUtil.runTask(
+                    executionSettings,
+                    DefaultRunExecutor.EXECUTOR_ID,
+                    module.getProject(),
+                    GradleConstants.SYSTEM_ID
+            );
             try (BufferedReader reader = Files.newBufferedReader(outputPath)) {
                 String id;
 
