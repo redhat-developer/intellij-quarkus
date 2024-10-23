@@ -76,7 +76,9 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
     @Override
     public void dispose() {
         super.dispose();
-        connection.disconnect();
+        if (connection != null) {
+            connection.disconnect();
+        }
         UserDefinedMicroProfileSettings.getInstance(getProject()).removeChangeHandler(getDidChangeConfigurationListener());
     }
 

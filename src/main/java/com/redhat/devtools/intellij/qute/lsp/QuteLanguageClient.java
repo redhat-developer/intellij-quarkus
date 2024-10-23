@@ -67,7 +67,9 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
     @Override
     public void dispose() {
         super.dispose();
-        connection.disconnect();
+        if (connection != null) {
+            connection.disconnect();
+        }
         UserDefinedQuteSettings.getInstance(getProject()).removeChangeHandler(getDidChangeConfigurationListener());
     }
 

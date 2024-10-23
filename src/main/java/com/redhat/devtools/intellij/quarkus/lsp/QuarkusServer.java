@@ -23,6 +23,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSe
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,9 +50,9 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
         Path quarkusServerPath = pluginPath.resolve("lib/server/com.redhat.quarkus.ls.jar");
 
         List<String> commands = new JavaProcessCommandBuilder(project, "microprofile")
-                .setJar(lsp4mpServerPath.toString())
-                .setCp(quarkusServerPath.toString())
+                .setCp(lsp4mpServerPath.toString() +  File.pathSeparatorChar + quarkusServerPath.toString())
                 .create();
+        commands.add("org.eclipse.lsp4mp.ls.MicroProfileServerLauncher");
         commands.add("-DrunAsync=true");
         super.setCommands(commands);
 
