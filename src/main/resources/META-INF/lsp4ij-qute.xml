@@ -18,19 +18,24 @@
 
         <languageMapping language="Qute_"
                          serverId="qute"
-                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
+                         languageId="qute-html"/>
         <languageMapping language="JSON"
                          serverId="qute"
-                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
+                         languageId="qute-json"/>
         <languageMapping language="yaml"
                          serverId="qute"
-                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
+                         languageId="qute-yaml"/>
         <languageMapping language="TEXT"
                          serverId="qute"
-                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"/>
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
+                         languageId="qute-txt"/>
         <languageMapping language="JAVA"
                          serverId="qute"
-                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForJavaFile"/>
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForJavaFile"
+                         languageId="java"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
