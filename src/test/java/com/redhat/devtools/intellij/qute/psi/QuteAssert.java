@@ -28,18 +28,28 @@ import java.util.Optional;
  */
 public class QuteAssert {
 
-    public static void assertValueResolver(String namespace, String signature, String sourceType,
-                                           List<ValueResolverInfo> resolvers) {
-        assertValueResolver(namespace, signature, sourceType, null, resolvers);
+    public static ValueResolverInfo assertValueResolver(String namespace, String signature, String sourceType,
+                                                        List<ValueResolverInfo> resolvers) {
+        return assertValueResolver(namespace, signature, sourceType, null, null, false, resolvers);
     }
 
-    public static void assertValueResolver(String namespace, String signature, String sourceType, String named,
-                                           List<ValueResolverInfo> resolvers) {
-        assertValueResolver(namespace, signature, sourceType, named, false, resolvers);
+    public static ValueResolverInfo assertValueResolver(String namespace, String signature, String sourceType,
+                                                        String named, List<ValueResolverInfo> resolvers) {
+        return assertValueResolver(namespace, signature, sourceType, named, null, false, resolvers);
     }
 
-    public static ValueResolverInfo assertValueResolver(String namespace, String signature, String sourceType, String named,
-                                                        boolean globalVariable, List<ValueResolverInfo> resolvers) {
+    public static ValueResolverInfo assertValueResolver(String namespace, String signature, String sourceType,
+                                                        List<String> matchNames, List<ValueResolverInfo> resolvers) {
+        return assertValueResolver(namespace, signature, sourceType, null, matchNames, false, resolvers);
+    }
+
+    public static ValueResolverInfo assertValueResolver(String namespace, String signature, String sourceType,
+                                                        String named, boolean globalVariable, List<ValueResolverInfo> resolvers) {
+        return assertValueResolver(namespace, signature, sourceType, named, null, globalVariable, resolvers);
+    }
+
+    public static ValueResolverInfo assertValueResolver(String namespace, String signature, String sourceType,
+                                                        String named, List<String> matchNames, boolean globalVariable, List<ValueResolverInfo> resolvers) {
         Optional<ValueResolverInfo> result = resolvers.stream()
                 .filter(r -> signature.equals(r.getSignature()) && Objects.equals(namespace, r.getNamespace()))
                 .findFirst();
@@ -48,9 +58,16 @@ public class QuteAssert {
         Assert.assertEquals(namespace, resolver.getNamespace());
         Assert.assertEquals(signature, resolver.getSignature());
         Assert.assertEquals(sourceType, resolver.getSourceType());
+        if (matchNames == null) {
+            Assert.assertNull(resolver.getMatchNames());
+        } else {
+            Assert.assertArrayEquals(matchNames.toArray(),
+                    resolver.getMatchNames() != null ? resolver.getMatchNames().toArray() : null);
+        }
         Assert.assertEquals(globalVariable, resolver.isGlobalVariable());
         return resolver;
     }
+
 
     public static void assertNotValueResolver(String namespace, String signature, String sourceType, String named,
                                               List<ValueResolverInfo> resolvers) {

@@ -24,6 +24,7 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.redhat.devtools.intellij.qute.psi.QuteAssert.*;
@@ -216,11 +217,16 @@ public class TemplateGetDataModelProjectTest extends QuteMavenModuleImportingTes
 
         // from io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions
         assertValueResolver("config", "getConfigProperty(propertyName : java.lang.String) : java.lang.Object",
-                "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions", resolvers);
+                "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+                Arrays.asList("*"), resolvers);
+        assertValueResolver("config", "booleanProperty(propertyName : java.lang.String) : java.lang.Object",
+                "io.quarkus.qute.runtime.extensions.ConfigTemplateExtensions",
+                Arrays.asList("boolean"), resolvers);
 
         // from io.quarkus.qute.runtime.extensions.MapTemplateExtensions
         assertValueResolver(null, "map(map : java.util.Map, name : java.lang.String) : java.lang.Object",
-                "io.quarkus.qute.runtime.extensions.MapTemplateExtensions", resolvers);
+                "io.quarkus.qute.runtime.extensions.MapTemplateExtensions",
+                Arrays.asList("*"), resolvers);
         assertValueResolver(null, "get(map : java.util.Map<?,V>, key : java.lang.Object) : V",
                 "io.quarkus.qute.runtime.extensions.MapTemplateExtensions", resolvers);
 

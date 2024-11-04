@@ -36,12 +36,13 @@ import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.is
  * </ul>
  */
 public class QuteLanguageSubstitutor extends LanguageSubstitutor {
-    protected boolean isTemplate(VirtualFile file, Module module) {
-        return isQuteTemplate(file, module) &&
-                ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
+
+    private static boolean isTemplate(VirtualFile file, Module module) {
+        return isQuteTemplate(file, module) /*&&
+                ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file)*/;
     }
 
-    protected boolean isQuteModule(Module module) {
+    private static boolean isQuteModule(Module module) {
         OrderEnumerator libraries = ModuleRootManager.getInstance(module).orderEntries().librariesOnly();
         return libraries.process(new RootPolicy<Boolean>() {
             @Override
