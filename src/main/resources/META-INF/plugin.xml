@@ -459,6 +459,11 @@
         <extensionPoint name="javaWorkspaceSymbolsParticipant"
                         interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.symbols.IJavaWorkspaceSymbolsParticipant"/>
         <!-- Qute -->
+        <extensionPoint name="qute.templateRootPathProvider"
+                        beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.rootpath.TemplateRootPathProviderRegistry$TemplateRootPathProviderBean">
+            <with attribute="implementationClass"
+                  implements="com.redhat.devtools.intellij.qute.psi.template.rootpath.ITemplateRootPathProvider"/>
+        </extensionPoint>
         <extensionPoint name="qute.dataModelProvider"
                         beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.DataModelProviderRegistry$DataModelProviderBean">
             <with attribute="implementationClass"
@@ -660,6 +665,12 @@
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.java.MicroProfileReactiveMessagingASTValidator"/>
 
         <!-- Qute -->
+        <qute.templateRootPathProvider
+            implementationClass="com.redhat.devtools.intellij.qute.psi.template.rootpath.DefaultTemplateRootPathProvider" />
+        <qute.templateRootPathProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.webbundler.WebBundlerTemplateRootPathProvider" />
+        <qute.templateRootPathProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqTemplateRootPathProvider" />
         <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateRecordsSupport"/>
         <qute.dataModelProvider
@@ -687,10 +698,16 @@
                                 description="In order to generate the URI to an endpoint, in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
                                 url="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views"
                                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.UriNamespaceResolverSupport"/>
-
         <!-- Resolved Java Type Factories for Quarkus Renarde -->
         <qute.resolvedJavaTypeFactories
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeResolvedJavaTypeFactory"/>
+
+        <!-- Data model providers for Quarkus Roq -->
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqDataModelProvider"/>
+        <qute.dataModelProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.DataMappingSupport"/>
+
     </extensions>
 
     <application-components>

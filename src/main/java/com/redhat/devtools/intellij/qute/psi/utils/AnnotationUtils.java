@@ -18,7 +18,14 @@ import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiNameValuePair;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Java annotations utilities.
@@ -29,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 public class AnnotationUtils {
 
 	private static final String ATTRIBUTE_VALUE = "value";
+	private static final Logger log = LoggerFactory.getLogger(AnnotationUtils.class);
 
 	public static boolean hasAnnotation(PsiElement annotatable, String... annotationNames) {
 		return getAnnotation(annotatable, annotationNames) != null;
@@ -129,10 +137,37 @@ public class AnnotationUtils {
 	 */
 	public static String getAnnotationMemberValue(PsiAnnotation annotation, String memberName) {
 		PsiAnnotationMemberValue member = annotation.findDeclaredAttributeValue(memberName);
+		if (member == null) {
+			return null;
+		}
 		return getValueAsString(member);
 	}
 
-	private static String getValueAsString(PsiAnnotationMemberValue member) {
+	/**
+	 * Returns the value array of the given member name of the given annotation.
+	 *
+	 * @param annotation the annotation.
+	 * @param memberName the member name.
+	 * @return the value array of the given member name of the given annotation.
+	 */
+	@NotNull
+	public static List<String> getAnnotationMemberValueAsArray(PsiAnnotation annotation, String memberName) {
+		PsiAnnotationMemberValue member = annotation.findDeclaredAttributeValue(memberName);
+		if (member == null) {
+			return Collections.emptyList();
+		}
+		List<String> values = new ArrayList<>();
+		PsiElement[] elements = member.getChildren();
+		for (var element : elements) {
+			String value = getValueAsString(element);
+			if (value != null) {
+				values.add(value);
+			}
+		}
+		return values;
+	}
+
+	private static String getValueAsString(PsiElement member) {
 		String value = member != null && member.getText() != null ? member.getText() : null;
 		if (value != null && value.length() > 1 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
 			value = value.substring(1, value.length() - 1);

@@ -11,6 +11,9 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Qute Java constants.
  *
@@ -29,6 +32,8 @@ public class QuteJavaConstants {
     public static final String TEMPLATE_CLASS = "io.quarkus.qute.Template";
 
     public static final String TEMPLATE_INSTANCE_INTERFACE = "io.quarkus.qute.TemplateInstance";
+
+    public static Collection<String> QUTE_MAVEN_COORDS = List.of("io.quarkus:quarkus-qute", "io.quarkus.qute:qute-core");
 
     public static final String ENGINE_BUILDER_CLASS = "io.quarkus.qute.EngineBuilder";
 
@@ -63,6 +68,8 @@ public class QuteJavaConstants {
     public static final String TEMPLATE_EXTENSION_ANNOTATION_NAMESPACE = "namespace";
 
     public static final String TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAME = "matchName";
+
+    public static final String TEMPLATE_EXTENSION_ANNOTATION_MATCH_NAMES = "matchNames";
 
     // @TemplateData
 

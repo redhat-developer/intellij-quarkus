@@ -11,6 +11,7 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.utils;
 
+import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -18,14 +19,19 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.qute.psi.internal.template.rootpath.TemplateRootPathProviderRegistry;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
+import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.ProjectInfo;
+import com.redhat.qute.commons.TemplateRootPath;
 import io.quarkus.runtime.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,17 +56,33 @@ public class PsiQuteProjectUtils {
 
     public static ProjectInfo getProjectInfo(Module javaProject) {
         String projectUri = getProjectURI(javaProject);
-        String templateBaseDir = getTemplateBaseDir(javaProject);
+        // Project dependencies
         // Project dependencies
         Set<Module> projectDependencies = new HashSet<>();
         ModuleUtilCore.getDependencies(javaProject, projectDependencies);
-        return new ProjectInfo(projectUri, projectDependencies
+        // Template root paths
+        List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
+                .getTemplateRootPaths(javaProject);
+        return new ProjectInfo(projectUri,  projectDependencies
                 .stream()
                 .filter(projectDependency -> !javaProject.equals(projectDependency))
                 .map(LSPIJUtils::getProjectUri)
-                .collect(Collectors.toList()), templateBaseDir);
+                .collect(Collectors.toList()), templateRootPaths);
     }
 
+    /**
+     * Returns the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
+     *
+     * @param javaProject the Java module project.
+     * @return the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
+     */
+    public static String getTemplateBaseDir(Module javaProject, String templateFolderName) {
+        VirtualFile resourcesDir = findBestResourcesDir(javaProject);
+        if (resourcesDir != null) {
+            return LSPIJUtils.toUri(resourcesDir).resolve(templateFolderName).toASCIIString();
+        }
+        return LSPIJUtils.toUri(javaProject).resolve(RESOURCES_BASE_DIR).resolve(templateFolderName).toASCIIString();
+    }
     /**
      * Returns the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
      *
@@ -94,20 +116,24 @@ public class PsiQuteProjectUtils {
         return relativeResourcesPath + "/" + TEMPLATES_FOLDER_NAME + "/";
     }
 
+    public static @Nullable VirtualFile findBestResourcesDir(@NotNull Module javaProject) {
+        return findBestResourcesDir(javaProject, TEMPLATES_FOLDER_NAME);
+    }
+
     /**
      * Returns the best 'resources' directory for the given Java module project and null otherwise.
      *
      * @param javaProject the Java module project.
      * @return the best resources dir for the given Java module project.
      */
-    public static @Nullable VirtualFile findBestResourcesDir(@NotNull Module javaProject) {
+    public static @Nullable VirtualFile findBestResourcesDir(@NotNull Module javaProject, String templatesFolderName) {
         List<VirtualFile> resourcesDirs = ModuleRootManager.getInstance(javaProject).getSourceRoots(JavaResourceRootType.RESOURCE);
         if (!resourcesDirs.isEmpty()) {
             QuarkusModuleUtil.sortRoot(resourcesDirs); // put root with smallest path first (eliminates generated sources roots)
             // The module configure 'Resources folder'
             // 1) loop for each configured resources dir and returns the first which contains 'templates' folder.
             for (var dir : resourcesDirs) {
-                var templatesDir = dir.findChild(TEMPLATES_FOLDER_NAME);
+                var templatesDir = dir.findChild(templatesFolderName);
                 if (templatesDir != null && templatesDir.exists()) {
                     return dir;
                 }
@@ -150,7 +176,7 @@ public class PsiQuteProjectUtils {
     }
 
     public static boolean hasQuteSupport(Module javaProject) {
-        return PsiTypeUtils.findType(javaProject, QuteJavaConstants.ENGINE_BUILDER_CLASS) != null;
+        return JavaLibraryUtil.hasAnyLibraryJar(javaProject, QuteJavaConstants.QUTE_MAVEN_COORDS);
     }
 
     public static TemplatePathInfo getTemplatePath(String templatesBaseDir, String basePath, String className, String methodOrFieldName, boolean ignoreFragments, TemplateNameStrategy templateNameStrategy) {
@@ -211,7 +237,21 @@ public class PsiQuteProjectUtils {
     }
 
     public static boolean isQuteTemplate(VirtualFile file, Module module) {
-        return file.getPath().contains(TEMPLATES_FOLDER_NAME) &&
-                ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file);
+        String templateFileUri = file.getPath();
+        if(file.getPath().contains(TEMPLATES_FOLDER_NAME) &&
+                ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file)) {
+            return true;
+        }
+        ProjectInfo projectInfo =  PsiQuteProjectUtils.getProjectInfo(module);
+        if (projectInfo == null) {
+            return false;
+        }
+        Path templatePath = Paths.get(file.getPath());
+        for (TemplateRootPath rootPath : projectInfo.getTemplateRootPaths()) {
+            if (rootPath.isIncluded(templatePath)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
