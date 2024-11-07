@@ -70,6 +70,8 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 		TEMPLATE_GLOBAL_ANNOTATION
 	};
 
+	private static final String GLOBAL_NAMESPACE = "global";
+
 	@Override
 	protected String[] getAnnotationNames() {
 		return ANNOTATION_NAMES;
@@ -133,6 +135,7 @@ public class TemplateGlobalAnnotationSupport extends AbstractAnnotationTypeRefer
 			ValueResolverInfo resolver = new ValueResolverInfo();
 			resolver.setSourceType(sourceType);
 			resolver.setSignature(typeResolver.resolveSignature(member));
+			resolver.setNamespace(GLOBAL_NAMESPACE);
 			resolver.setKind(ValueResolverKind.TemplateGlobal);
 			// Constant value for {@link #name()} indicating that the field/method name
 			// should be used

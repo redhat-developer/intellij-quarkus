@@ -345,21 +345,21 @@ public class TemplateGetDataModelProjectTest extends QuteMavenModuleImportingTes
         // public class Globals {
 
         // static int age = 40;
-        assertValueResolver(null, "age : int", "org.acme.qute.Globals", null, true, resolvers);
+        assertValueResolver("global", "age : int", "org.acme.qute.Globals", null, true, resolvers);
 
         // static String name;
-        assertValueResolver(null, "name : java.lang.String", "org.acme.qute.Globals", null, true, resolvers);
+        assertValueResolver("global", "name : java.lang.String", "org.acme.qute.Globals", null, true, resolvers);
 
         // static Color[] myColors() {
         // return new Color[] { Color.RED, Color.BLUE };
         // }
-        assertValueResolver(null, "myColors() : org.acme.qute.Color[]", "org.acme.qute.Globals", null, true, resolvers);
+        assertValueResolver("global", "myColors() : org.acme.qute.Color[]", "org.acme.qute.Globals", null, true, resolvers);
 
         // @TemplateGlobal(name = "currentUser")
         // static String user() {
         // return "Mia";
         // }
-        assertValueResolver(null, "user() : java.lang.String", "org.acme.qute.Globals", "currentUser", true, resolvers);
+        assertValueResolver("global", "user() : java.lang.String", "org.acme.qute.Globals", "currentUser", true, resolvers);
         // }
     }
 

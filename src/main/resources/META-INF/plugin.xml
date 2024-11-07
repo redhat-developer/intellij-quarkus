@@ -683,8 +683,10 @@
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateDataAnnotationSupport"/>
         <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateEnumAnnotationSupport"/>
-        <qute.dataModelProvider
-                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateGlobalAnnotationSupport"/>
+        <qute.dataModelProvider namespaces="global,"
+                                description="Global Variables."
+                                url="https://quarkus.io/guides/qute-reference#global_variables"
+                                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TemplateGlobalAnnotationSupport"/>
         <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.template.datamodel.TypeSafeMessageBundlesSupport"/>
 
