@@ -25,8 +25,6 @@ public class WebBundlerJavaConstants {
 	private WebBundlerJavaConstants() {
 	}
 
-	public static final Collection<String> WEB_BUNDLER_MAVEN_COORS = List.of("io.quarkiverse.web-bundler:quarkus-roq-frontmatter");
-
-	public static final String BUNDLE_CLASS = "io.quarkiverse.web.bundler.runtime.Bundle";
+	public static final Collection<String> WEB_BUNDLER_MAVEN_COORS = List.of("io.quarkiverse.web-bundler:quarkus-web-bundler");
 
 }
