@@ -129,7 +129,7 @@ public class MicroProfileConfigPropertyInformation {
 	 * @return the property name with any profile information removed
 	 */
 	public static String getPropertyNameWithoutProfile(String propertyNameWithProfile) {
-		if (propertyNameWithProfile.charAt(0) == '%') {
+		if (propertyNameWithProfile.length() > 0 && propertyNameWithProfile.charAt(0) == '%') {
 			int firstPeriodIndex = propertyNameWithProfile.indexOf('.');
 			return propertyNameWithProfile.substring(firstPeriodIndex + 1);
 		} else {
