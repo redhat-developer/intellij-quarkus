@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2019-2020 Red Hat Inc. and others.
+* Copyright (c) 2019-2025 Red Hat Inc. and others.
 * All rights reserved. This program and the accompanying materials
 * which accompanies this distribution, and is available at
 * https://www.eclipse.org/legal/epl-v20.html
@@ -11,13 +11,10 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
@@ -97,7 +94,7 @@ public class ProjectLabelManager {
 			if (module == null) {
 				return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 			}
-			return DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> getProjectLabelInfo(module, params.getTypes(), utils));
+			return getProjectLabelInfo(module, params.getTypes(), utils);
 		} catch (IOException e) {
 			return ProjectLabelInfoEntry.EMPTY_PROJECT_INFO;
 		}
