@@ -10,10 +10,8 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -220,21 +218,18 @@ public class PropertiesManager {
     }
 
     public Location findPropertyLocation(Module module, String sourceType, String sourceField, String sourceMethod, IPsiUtils utils) {
-        Project project = module.getProject();
-        return ReadAction.nonBlocking(() -> {
-            PsiMember fieldOrMethod = findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils);
-            if (fieldOrMethod != null) {
-                PsiFile classFile = fieldOrMethod.getContainingFile();
-                if (classFile != null) {
-                    // Try to download source if required
-                    if (utils != null) {
-                        utils.discoverSource(classFile);
-                    }
+        PsiMember fieldOrMethod = findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils);
+        if (fieldOrMethod != null) {
+            PsiFile classFile = fieldOrMethod.getContainingFile();
+            if (classFile != null) {
+                // Try to download source if required
+                if (utils != null) {
+                    utils.discoverSource(classFile);
                 }
-                return utils.toLocation(fieldOrMethod);
             }
-            return null;
-        }).inSmartMode(project).executeSynchronously();
+            return utils.toLocation(fieldOrMethod);
+        }
+        return null;
     }
 
     /**
