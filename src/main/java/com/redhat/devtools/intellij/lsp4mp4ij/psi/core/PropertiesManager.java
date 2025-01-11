@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2025 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -10,12 +10,8 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -222,20 +218,18 @@ public class PropertiesManager {
     }
 
     public Location findPropertyLocation(Module module, String sourceType, String sourceField, String sourceMethod, IPsiUtils utils) {
-        return DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
-            PsiMember fieldOrMethod = findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils);
-            if (fieldOrMethod != null) {
-                PsiFile classFile = fieldOrMethod.getContainingFile();
-                if (classFile != null) {
-                    // Try to download source if required
-                    if (utils != null) {
-                        utils.discoverSource(classFile);
-                    }
+        PsiMember fieldOrMethod = findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils);
+        if (fieldOrMethod != null) {
+            PsiFile classFile = fieldOrMethod.getContainingFile();
+            if (classFile != null) {
+                // Try to download source if required
+                if (utils != null) {
+                    utils.discoverSource(classFile);
                 }
-                return utils.toLocation(fieldOrMethod);
             }
-            return null;
-        });
+            return utils.toLocation(fieldOrMethod);
+        }
+        return null;
     }
 
     /**
