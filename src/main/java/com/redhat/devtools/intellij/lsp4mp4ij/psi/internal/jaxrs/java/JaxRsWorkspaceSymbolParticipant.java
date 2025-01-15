@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 Red Hat Inc. and others.
+* Copyright (c) 2024-2025 Red Hat Inc. and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -22,10 +22,8 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.IJaxRsInfoProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsMethodInfo;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.SymbolInformation;
-import org.eclipse.lsp4j.SymbolKind;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -44,7 +42,7 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 	private static final Logger LOGGER = Logger.getLogger(JaxRsWorkspaceSymbolParticipant.class.getName());
 
 	@Override
-	public void collectSymbols(Module project, IPsiUtils utils, List<SymbolInformation> symbols, ProgressIndicator monitor) {
+	public void collectSymbols(Module project, IPsiUtils utils, List<WorkspaceSymbol> symbols, ProgressIndicator monitor) {
 		if (monitor.isCanceled()) {
 			return;
 		}
@@ -106,10 +104,11 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 		return jaxrsTypes;
 	}
 
-	private static SymbolInformation createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException {
+	private static WorkspaceSymbol createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException {
 		TextRange sourceRange = methodInfo.getJavaMethod().getNameIdentifier().getTextRange();
 		Range r = utils.toRange(methodInfo.getJavaMethod(), sourceRange.getStartOffset(), sourceRange.getLength());
 		Location location = new Location(methodInfo.getDocumentUri(), r);
+		Either<Location, WorkspaceSymbolLocation> eitherLocation = Either.forLeft(location);
 
 		StringBuilder nameBuilder = new StringBuilder("@");
 		URL url = new URL(methodInfo.getUrl());
@@ -118,10 +117,10 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 		nameBuilder.append(": ");
 		nameBuilder.append(methodInfo.getHttpMethod());
 
-		SymbolInformation symbol = new SymbolInformation();
+		WorkspaceSymbol symbol = new WorkspaceSymbol();
 		symbol.setName(nameBuilder.toString());
 		symbol.setKind(SymbolKind.Method);
-		symbol.setLocation(location);
+		symbol.setLocation(eitherLocation);
 		return symbol;
 	}
 
