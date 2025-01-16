@@ -68,9 +68,9 @@ sourceSets {
     create("integrationTest") {
         java.srcDir("src/it/java")
         resources.srcDir("src/it/resources")
-        compileClasspath += sourceSets.main.get().output
-        compileClasspath += configurations.testImplementation.get()
-        runtimeClasspath += compileClasspath + sourceSets.test.get().output
+        compileClasspath += sourceSets.main.get().compileClasspath + sourceSets.test.get().compileClasspath
+        //compileClasspath += configurations.testImplementation.get()
+        runtimeClasspath += output + compileClasspath + sourceSets.test.get().runtimeClasspath + sourceSets.test.get().runtimeClasspath
     }
 }
 
@@ -100,6 +100,7 @@ dependencies {
         // for local plugin -> https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin-faq.html#how-to-add-a-dependency-on-a-plugin-available-in-the-file-system
         //plugins.set(listOf(file("/path/to/plugin/")))
         pluginVerifier()
+        instrumentationTools()
         testFramework(TestFrameworkType.Plugin.Java)
     }
 
@@ -200,9 +201,9 @@ configurations {
     runtimeClasspath {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
-    testImplementation {
+    /*testImplementation {
         isCanBeResolved = true
-    }
+    }*/
 }
 
 testlogger {
@@ -243,14 +244,23 @@ tasks.withType<Copy> {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
-tasks.register<Test>("integrationTest") {
-    useJUnitPlatform()
-    description = "Runs the integration tests."
-    group = "verification"
-    testClassesDirs = sourceSets["integrationTest"].output.classesDirs
-    classpath = sourceSets["integrationTest"].runtimeClasspath
-    outputs.upToDateWhen { false }
-    mustRunAfter(tasks["test"])
+val integrationTest by intellijPlatformTesting.testIde.registering {
+    task {
+        useJUnitPlatform()
+        description = "Runs the integration tests."
+        group = "verification"
+        testClassesDirs = sourceSets["integrationTest"].output.classesDirs
+        classpath = sourceSets["integrationTest"].runtimeClasspath
+        outputs.upToDateWhen { false }
+        mustRunAfter(tasks["test"])
+    }
+    plugins {
+        robotServerPlugin()
+    }
+
+    dependencies {
+        testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.3")
+    }
 }
 
 tasks.register<Copy>("copyDeps") {
@@ -332,10 +342,8 @@ tasks {
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#runIdeForUiTests
 val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
     task {
-        val robotServerPortProperty = "robot-server.port" + System.getProperty("robot-server.port")
         jvmArgumentProviders += CommandLineArgumentProvider {
             listOf(
-                robotServerPortProperty,
                 "-Dide.mac.message.dialogs.as.sheets=false",
                 "-Djb.privacy.policy.text=<!--999.999-->",
                 "-Djb.consents.confirmation.enabled=false",
