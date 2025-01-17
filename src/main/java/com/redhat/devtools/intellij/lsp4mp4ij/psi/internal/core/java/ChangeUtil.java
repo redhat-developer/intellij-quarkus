@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2020 Red Hat Inc. and others.
+* Copyright (c) 2020, 2025 Red Hat Inc. and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,10 +13,8 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java;
 
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.Change;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -66,7 +64,7 @@ public class ChangeUtil {
 			return;
 		}
 
-		TextEditConverter converter = new TextEditConverter(unit, edit, uri, utils);
+		TextEditConverter converter = new TextEditConverter(unit, edit, utils);
 		if (resourceOperationSupported) {
 			List<Either<TextDocumentEdit, ResourceOperation>> changes = root.getDocumentChanges();
 			if (changes == null) {
