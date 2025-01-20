@@ -69,7 +69,6 @@ sourceSets {
         java.srcDir("src/it/java")
         resources.srcDir("src/it/resources")
         compileClasspath += sourceSets.main.get().compileClasspath + sourceSets.test.get().compileClasspath
-        //compileClasspath += configurations.testImplementation.get()
         runtimeClasspath += output + compileClasspath + sourceSets.test.get().runtimeClasspath + sourceSets.test.get().runtimeClasspath
     }
 }
@@ -80,7 +79,9 @@ dependencies {
     intellijPlatform {
         create(prop("platformType"), prop("platformVersion"))
         // Bundled Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
-        bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
+        val platformBundledPlugins =  ArrayList<String>()
+        platformBundledPlugins.addAll(providers.gradleProperty("platformBundledPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }.get())
+        bundledPlugins(platformBundledPlugins)
         // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
         val platformPlugins =  ArrayList<String>()
         val localLsp4ij = file("../lsp4ij/build/idea-sandbox/plugins/LSP4IJ").absoluteFile
@@ -95,10 +96,12 @@ dependencies {
         }
         //Uses `platformPlugins` property from the gradle.properties file.
         platformPlugins.addAll(properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }.get())
-        println("platformPlugins: $platformPlugins")
         plugins(platformPlugins)
         // for local plugin -> https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin-faq.html#how-to-add-a-dependency-on-a-plugin-available-in-the-file-system
         //plugins.set(listOf(file("/path/to/plugin/")))
+        // Print plugins
+        println("bundledPlugins: $platformBundledPlugins")
+        println("marketplacePlugins: $platformPlugins")
         pluginVerifier()
         instrumentationTools()
         testFramework(TestFrameworkType.Plugin.Java)
@@ -151,8 +154,6 @@ dependencies {
 
     implementation(libs.annotations) // to build against platform <= 2023.2 and gradle intellij plugin > 2.0
 
-    testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.3")
-
     // And now for some serious HACK!!!
     // Starting with 2023.1, all gradle tests fail importing projects with a:
     // com.intellij.openapi.externalSystem.model.ExternalSystemException: Unable to load class 'org.codehaus.plexus.logging.Logger'
@@ -201,9 +202,6 @@ configurations {
     runtimeClasspath {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
-    /*testImplementation {
-        isCanBeResolved = true
-    }*/
 }
 
 testlogger {
@@ -342,6 +340,7 @@ tasks {
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#runIdeForUiTests
 val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
     task {
+        systemProperty("robot-server.host.public", "true") // port is public
         jvmArgumentProviders += CommandLineArgumentProvider {
             listOf(
                 "-Dide.mac.message.dialogs.as.sheets=false",
