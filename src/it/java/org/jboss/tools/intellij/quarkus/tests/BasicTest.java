@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -155,7 +156,7 @@ public class BasicTest extends AbstractQuarkusTest {
     private boolean didProjectImportPopup() {
         try {
             remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON), Duration.ofSeconds(30));
-        } catch (WaitForConditionTimeoutException e) {
+        } catch (WaitForConditionTimeoutException | SocketTimeoutException e) {
             return false;
         }
         return true;
