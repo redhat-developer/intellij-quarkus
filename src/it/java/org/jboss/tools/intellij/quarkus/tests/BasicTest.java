@@ -15,7 +15,6 @@ import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.JButtonFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
 import com.intellij.remoterobot.fixtures.JTreeFixture;
-import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
@@ -37,16 +36,15 @@ import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-
 import java.io.File;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
+import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitForIgnoringError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -148,18 +146,10 @@ public class BasicTest extends AbstractQuarkusTest {
     }
 
     private void minimizeProjectImportPopupIfItAppears() {
-        if (didProjectImportPopup()) {
+        waitForIgnoringError(Duration.ofSeconds(30), Duration.ofMillis(200), "Close the project import popup if it appears...", () -> {
             remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON)).click();
-        }
-    }
-
-    private boolean didProjectImportPopup() {
-        try {
-            remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON), Duration.ofSeconds(20));
-        } catch (WaitForConditionTimeoutException e) {
-            return false;
-        }
-        return true;
+            return true;
+        });
     }
 
     private void buildGradleProject(GradleBuildToolPane gradleBuildToolPane) {
