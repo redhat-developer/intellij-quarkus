@@ -155,8 +155,8 @@ public class BasicTest extends AbstractQuarkusTest {
 
     private boolean didProjectImportPopup() {
         try {
-            remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON), Duration.ofSeconds(30));
-        } catch (WaitForConditionTimeoutException | SocketTimeoutException e) {
+            remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON), Duration.ofSeconds(20));
+        } catch (WaitForConditionTimeoutException e) {
             return false;
         }
         return true;
