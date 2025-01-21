@@ -340,9 +340,9 @@ tasks {
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#runIdeForUiTests
 val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
     task {
-        systemProperty("robot-server.host.public", "true") // port is public
         jvmArgumentProviders += CommandLineArgumentProvider {
             listOf(
+                "-Drobot-server.port=8580",
                 "-Dide.mac.message.dialogs.as.sheets=false",
                 "-Djb.privacy.policy.text=<!--999.999-->",
                 "-Djb.consents.confirmation.enabled=false",
