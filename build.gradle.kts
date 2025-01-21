@@ -242,7 +242,7 @@ tasks.withType<Copy> {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
-val integrationTest by intellijPlatformTesting.testIde.registering {
+val integrationTest by intellijPlatformTesting.testIdeUi.registering {
     task {
         useJUnitPlatform()
         description = "Runs the integration tests."
