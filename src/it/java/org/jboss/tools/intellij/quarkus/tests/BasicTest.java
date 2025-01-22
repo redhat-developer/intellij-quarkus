@@ -146,10 +146,14 @@ public class BasicTest extends AbstractQuarkusTest {
     }
 
     private void minimizeProjectImportPopupIfItAppears() {
-        waitForIgnoringError(Duration.ofSeconds(30), Duration.ofMillis(200), "Close the project import popup if it appears...", () -> {
-            remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON)).click();
-            return true;
-        });
+        try {
+            waitForIgnoringError(Duration.ofSeconds(30), Duration.ofMillis(200), "Close the project import popup if it appears...", () -> {
+                remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON)).click();
+                return true;
+            });
+        } catch (Exception e) {
+            //suppress  non-existing popup timeout
+        }
     }
 
     private void buildGradleProject(GradleBuildToolPane gradleBuildToolPane) {
