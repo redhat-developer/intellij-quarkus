@@ -26,6 +26,7 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwind
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.GradleBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.MavenBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
+import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
@@ -135,6 +136,7 @@ public class BasicTest extends AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(QUARKUS_PROJECT_LOCATION);
 
         newProjectDialogWizard.finish();
+        ScreenshotUtils.takeScreenshot(remoteRobot);
 
         minimizeProjectImportPopupIfItAppears();
 
@@ -152,7 +154,7 @@ public class BasicTest extends AbstractQuarkusTest {
                 return true;
             });
         } catch (Exception e) {
-            //suppress  non-existing popup timeout
+            //suppress non-existing popup timeout
         }
     }
 
