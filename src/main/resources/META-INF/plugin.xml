@@ -472,6 +472,7 @@
         <lang.substitutor language="yaml"
                           implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
         <typedHandler implementation="com.redhat.devtools.intellij.qute.editor.QuteTypedHandler"/>
+        <errorHandler implementation="com.redhat.devtools.intellij.quarkus.error.QuarkusPluginIssueReporter" />
     </extensions>
 
     <extensionPoints>
