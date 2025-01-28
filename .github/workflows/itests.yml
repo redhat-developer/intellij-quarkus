@@ -32,7 +32,10 @@ jobs:
         sleep 1
         sudo kill -2 $(pgrep tcpdump)
         sleep 1
-        sudo curl -F "file=@sntp.cap" https://file.io/?expires=1d
+    - uses: actions/upload-artifact@v4
+      with:
+        name: tcpdump
+        path: sntp.cap
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ runner.os }}-integration-test-reports
