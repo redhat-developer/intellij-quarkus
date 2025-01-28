@@ -25,7 +25,7 @@ jobs:
         sudo tcpdump -nn -i any -w sntp.cap &
         sleep 1
         chmod +x gradlew
-        xvfb-run ./gradlew integrationTest --info
+        xvfb-run ./gradlew integrationTest --info --continue
     - name: Upload capture
       if: always()
       run: |
@@ -33,6 +33,7 @@ jobs:
         sudo kill -2 $(pgrep tcpdump)
         sleep 1
     - uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: tcpdump
         path: sntp.cap
@@ -87,7 +88,7 @@ jobs:
         java-version: 17
     - name: Run integration tests
       run: |
-        .\gradlew.bat integrationTest --info
+        .\gradlew.bat integrationTest
       shell: powershell
     - uses: actions/upload-artifact@v4
       with:
