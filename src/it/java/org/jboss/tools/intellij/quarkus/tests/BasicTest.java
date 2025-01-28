@@ -26,7 +26,6 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwind
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.GradleBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.MavenBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
-import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
@@ -112,12 +111,8 @@ public class BasicTest extends AbstractQuarkusTest {
         newProjectDialogWizard.next();
         newProjectDialogWizard.find(QuarkusNewProjectThirdPage.class, Duration.ofSeconds(10)); // wait for third page to be loaded
         newProjectDialogWizard.next();
-        try {
-            Thread.sleep(1000L);
-        } catch (InterruptedException e) {
-            Thread.interrupted();
-            throw new RuntimeException(e);
-        }
+
+        waitForIgnoringError(Duration.ofMillis(1000L),() -> remoteRobot.callJs("true"));
 
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
@@ -136,7 +131,6 @@ public class BasicTest extends AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(QUARKUS_PROJECT_LOCATION);
 
         newProjectDialogWizard.finish();
-        ScreenshotUtils.takeScreenshot(remoteRobot);
 
         minimizeProjectImportPopupIfItAppears();
 

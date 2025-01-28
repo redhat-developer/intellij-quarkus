@@ -253,7 +253,7 @@ val integrationTest by intellijPlatformTesting.testIde.registering {
         mustRunAfter(tasks["test"])
     }
     plugins {
-        robotServerPlugin()
+        robotServerPlugin("0.11.23")
     }
 
     dependencies {
@@ -340,9 +340,10 @@ tasks {
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#runIdeForUiTests
 val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
     task {
+        val robotServerPort = System.getProperty("robot-server.port")
         jvmArgumentProviders += CommandLineArgumentProvider {
             listOf(
-                "-Drobot-server.port=8580",
+                "-Drobot-server.port=$robotServerPort",
                 "-Dide.mac.message.dialogs.as.sheets=false",
                 "-Djb.privacy.policy.text=<!--999.999-->",
                 "-Djb.consents.confirmation.enabled=false",
@@ -350,7 +351,7 @@ val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
         }
     }
     plugins {
-        robotServerPlugin()
+        robotServerPlugin("0.11.23")
     }
 }
 
