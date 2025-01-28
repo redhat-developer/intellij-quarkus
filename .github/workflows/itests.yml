@@ -22,7 +22,6 @@ jobs:
         java-version: 17
     - name: Run integration tests
       run: |
-        cat /proc/sys/net/ipv4/tcp_keepalive_time
         sudo tcpdump -nn -i any -w sntp.cap &
         sleep 1
         chmod +x gradlew
@@ -51,31 +50,31 @@ jobs:
           build/screenshots/
       if: always()
       
-#  build-macos:
-#    runs-on: macos-latest
-#
-#    steps:
-#    - uses: actions/checkout@v4
-#    - name: Set up JDK 17
-#      uses: actions/setup-java@v4
-#      with:
-#        distribution: temurin
-#        java-version: 17
-#    - name: Run integration tests
-#      run: |
-#        ./gradlew integrationTest --info
-#    - uses: actions/upload-artifact@v4
-#      with:
-#        name: ${{ runner.os }}-integration-test-reports
-#        path: build/reports/tests/integrationTest
-#      if: always()
-#    - name: Archiving screenshots
-#      uses: actions/upload-artifact@v4
-#      with:
-#        name: ${{ runner.os }}-screenshots
-#        path: |
-#          build/screenshots/
-#      if: always()
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+    - name: Run integration tests
+      run: |
+        ./gradlew integrationTest
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ runner.os }}-integration-test-reports
+        path: build/reports/tests/integrationTest
+      if: always()
+    - name: Archiving screenshots
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ runner.os }}-screenshots
+        path: |
+          build/screenshots/
+      if: always()
       
   build-windows:
     runs-on: windows-latest
