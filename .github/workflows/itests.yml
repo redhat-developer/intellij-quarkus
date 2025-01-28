@@ -22,6 +22,7 @@ jobs:
         java-version: 17
     - name: Run integration tests
       run: |
+        cat /proc/sys/net/ipv4/tcp_keepalive_time
         sudo tcpdump -nn -i any -w sntp.cap &
         sleep 1
         chmod +x gradlew
