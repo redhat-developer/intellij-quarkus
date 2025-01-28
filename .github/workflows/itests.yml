@@ -22,8 +22,17 @@ jobs:
         java-version: 17
     - name: Run integration tests
       run: |
+        sudo tcpdump -nn -i any -w sntp.cap &
+        sleep 1
         chmod +x gradlew
         xvfb-run ./gradlew integrationTest --info
+    - name: Upload capture
+      if: always()
+      run: |
+        sleep 1
+        sudo kill -2 $(pgrep tcpdump)
+        sleep 1
+        sudo curl -F "file=@sntp.cap" https://file.io/?expires=1d
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ runner.os }}-integration-test-reports
