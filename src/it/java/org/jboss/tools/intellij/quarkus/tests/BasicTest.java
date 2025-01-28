@@ -132,7 +132,7 @@ public class BasicTest extends AbstractQuarkusTest {
 
         newProjectDialogWizard.finish();
 
-        minimizeProjectImportPopupIfItAppears();
+        //minimizeProjectImportPopupIfItAppears();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ideStatusBar.waitUntilProjectImportIsComplete();
