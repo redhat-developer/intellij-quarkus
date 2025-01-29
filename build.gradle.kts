@@ -243,6 +243,7 @@ tasks.withType<Copy> {
 }
 
 val integrationTest by intellijPlatformTesting.testIde.registering {
+
     task {
         useJUnitPlatform()
         description = "Runs the integration tests."
@@ -251,6 +252,7 @@ val integrationTest by intellijPlatformTesting.testIde.registering {
         classpath = sourceSets["integrationTest"].runtimeClasspath
         outputs.upToDateWhen { false }
         mustRunAfter(tasks["test"])
+        systemProperty ("debug-retrofit", "enable")
     }
     plugins {
         robotServerPlugin("0.11.23")
@@ -258,6 +260,9 @@ val integrationTest by intellijPlatformTesting.testIde.registering {
 
     dependencies {
         testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.3")
+        testImplementation("com.squareup.retrofit2:retrofit:2.11.0")
+        testImplementation("com.squareup.retrofit2:converter-gson:2.11.0")
+        testImplementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     }
 }
 
@@ -340,6 +345,7 @@ tasks {
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#runIdeForUiTests
 val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
     task {
+        systemProperty ("debug-retrofit", "enable")
         jvmArgumentProviders += CommandLineArgumentProvider {
             listOf(
                 "-Drobot-server.port=8580",
