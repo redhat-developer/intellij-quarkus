@@ -641,8 +641,8 @@ public class PropertiesManagerForJava {
      * @param monitor    the progress monitor
      * @return the workspace symbols for the given java project
      */
-    public List<SymbolInformation> workspaceSymbols(String projectUri, IPsiUtils utils, ProgressIndicator monitor) {
-        List<SymbolInformation> symbols = new ArrayList<>();
+    public List<WorkspaceSymbol> workspaceSymbols(String projectUri, IPsiUtils utils, ProgressIndicator monitor) {
+        List<WorkspaceSymbol> symbols = new ArrayList<>();
         Module module = getModule(projectUri, utils);
         if (module != null) {
             collectWorkspaceSymbols(module, utils, symbols, monitor);
@@ -660,7 +660,7 @@ public class PropertiesManagerForJava {
         return null;
     }
 
-    private void collectWorkspaceSymbols(Module project, IPsiUtils utils, List<SymbolInformation> symbols,
+    private void collectWorkspaceSymbols(Module project, IPsiUtils utils, List<WorkspaceSymbol> symbols,
                                          ProgressIndicator monitor) {
         if (monitor.isCanceled()) {
             return;
