@@ -108,18 +108,13 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 		return jaxrsTypes;
 	}
 
-	private static SymbolInformation createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException {
+	private static SymbolInformation createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException, URISyntaxException {
 		TextRange sourceRange = methodInfo.getJavaMethod().getNameIdentifier().getTextRange();
 		Range r = utils.toRange(methodInfo.getJavaMethod(), sourceRange.getStartOffset(), sourceRange.getLength());
 		Location location = new Location(methodInfo.getDocumentUri(), r);
 
 		StringBuilder nameBuilder = new StringBuilder("@");
-		URL url;
-		try {
-			url = new URI(methodInfo.getUrl()).toURL();
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		URL url = new URI(methodInfo.getUrl()).toURL();
 		String path = url.getPath();
 		nameBuilder.append(path);
 		nameBuilder.append(": ");
