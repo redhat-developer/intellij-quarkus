@@ -11,10 +11,12 @@
 package org.jboss.tools.intellij.quarkus.tests;
 
 import com.intellij.remoterobot.RemoteRobot;
+import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.JButtonFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
 import com.intellij.remoterobot.fixtures.JTreeFixture;
+import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
@@ -44,6 +46,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
+import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
 import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitForIgnoringError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -133,10 +136,21 @@ public class BasicTest extends AbstractQuarkusTest {
         //minimizeProjectImportPopupIfItAppears();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
-        ideStatusBar.waitUntilProjectImportIsComplete();
+        waitFor(Duration.ofSeconds(30), Duration.ofSeconds(3), "The project import did not finish in 5 minutes.", this::didProjectImportFinish);
+
+        //ideStatusBar.waitUntilProjectImportIsComplete();
         MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
         mainIdeWindow.maximizeIdeWindow();
         ideStatusBar.waitUntilAllBgTasksFinish(500);
+    }
+
+    private boolean didProjectImportFinish() {
+        try {
+            remoteRobot.find(ComponentFixture.class, byXpath(com.redhat.devtools.intellij.commonuitest.utils.constants.XPathDefinitions.ENGRAVED_LABEL), Duration.ofSeconds(1));
+        } catch (WaitForConditionTimeoutException e) {
+            return true;
+        }
+        return false;
     }
 
     private void minimizeProjectImportPopupIfItAppears() {

@@ -22,21 +22,8 @@ jobs:
         java-version: 17
     - name: Run integration tests
       run: |
-        sudo tcpdump -nn -i any -w sntp.cap &
-        sleep 1
         chmod +x gradlew
         xvfb-run ./gradlew integrationTest --info --continue
-    - name: Upload capture
-      if: always()
-      run: |
-        sleep 1
-        sudo kill -2 $(pgrep tcpdump)
-        sleep 1
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: tcpdump
-        path: sntp.cap
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ runner.os }}-integration-test-reports
@@ -46,8 +33,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with: 
         name: ${{ runner.os }}-screenshots
-        path: |
-          build/screenshots/
+        path: build/screenshots/
+        if-no-files-found: 'ignore'
       if: always()
       
   build-macos:
@@ -61,8 +48,7 @@ jobs:
         distribution: temurin
         java-version: 17
     - name: Run integration tests
-      run: |
-        ./gradlew integrationTest
+      run: ./gradlew integrationTest
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ runner.os }}-integration-test-reports
@@ -72,8 +58,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ runner.os }}-screenshots
-        path: |
-          build/screenshots/
+        path: build/screenshots/
+        if-no-files-found: 'ignore'
       if: always()
       
   build-windows:
@@ -87,8 +73,7 @@ jobs:
         distribution: temurin
         java-version: 17
     - name: Run integration tests
-      run: |
-        .\gradlew.bat integrationTest
+      run: .\gradlew.bat integrationTest
       shell: powershell
     - uses: actions/upload-artifact@v4
       with:
@@ -99,6 +84,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with: 
         name: ${{ runner.os }}-screenshots
-        path: |
-          build\screenshots\
+        path: build\screenshots\
+        if-no-files-found: 'ignore'
       if: always()
