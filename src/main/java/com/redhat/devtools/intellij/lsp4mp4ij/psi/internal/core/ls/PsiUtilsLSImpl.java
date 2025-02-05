@@ -92,8 +92,9 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public PsiClass findClass(Module module, String className) {
-        return ClassUtil.findPsiClass(PsiManager.getInstance(module.getProject()), className, null, false,
-                GlobalSearchScope.allScope(module.getProject()));
+        return ReadAction
+            .compute(() -> ClassUtil.findPsiClass(PsiManager.getInstance(module.getProject()), className, null, false,
+                GlobalSearchScope.allScope(module.getProject())));
     }
 
     @Override
