@@ -259,7 +259,7 @@ val integrationTest by intellijPlatformTesting.testIde.registering {
     }
 
     dependencies {
-        testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.3")
+        testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.4-SNAPSHOT")
         testImplementation("com.squareup.retrofit2:retrofit:2.11.0")
         testImplementation("com.squareup.retrofit2:converter-gson:2.11.0")
         testImplementation("com.squareup.okhttp3:logging-interceptor:4.12.0")

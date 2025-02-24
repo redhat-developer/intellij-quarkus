@@ -27,7 +27,9 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwind
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowsPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.GradleBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.MavenBuildToolPane;
+import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
+import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
@@ -118,7 +120,7 @@ public class BasicTest extends AbstractQuarkusTest {
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
 
-        String QUARKUS_PROJECT_LOCATION = CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName;
+        String QUARKUS_PROJECT_LOCATION = ProjectLocation.PROJECT_LOCATION + File.separator + projectName;
         Path quarkusProjectDir = Paths.get(QUARKUS_PROJECT_LOCATION);
         boolean doesProjectDirExists = Files.exists(quarkusProjectDir);
         if (!doesProjectDirExists) {
@@ -139,6 +141,7 @@ public class BasicTest extends AbstractQuarkusTest {
         waitFor(Duration.ofSeconds(30), Duration.ofSeconds(3), "The project import did not finish in 5 minutes.", this::didProjectImportFinish);
 
         //ideStatusBar.waitUntilProjectImportIsComplete();
+        ScreenshotUtils.takeScreenshot(remoteRobot);
         MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
         mainIdeWindow.maximizeIdeWindow();
         ideStatusBar.waitUntilAllBgTasksFinish(500);
