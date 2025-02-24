@@ -24,9 +24,11 @@ cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/ope
 mkdir -p intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/util
 cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/util/ExternalSystemFileTestUtil.kt intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/util
 mkdir -p intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
-cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenImportingTestCase.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
+cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenImportingTestCase.kt intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
+cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenTestCaseUtil.kt intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenTestCase.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/NullMavenConsole.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
+cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/InstantImportCompatible.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 mkdir -p intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils/MavenImportingTestCase.kt intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils
 mkdir -p intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
@@ -39,4 +41,6 @@ mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/or
 cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation/TargetVersions.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation
 mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/
 cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/VersionMatcher.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util
+mkdir -p intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/fixtures/impl/
+cp -p intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/fixtures/impl/graldeJvm/GradleJvmResolver.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/fixtures/impl/
 echo "Done!"

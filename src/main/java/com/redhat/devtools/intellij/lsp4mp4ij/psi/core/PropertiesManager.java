@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -218,7 +219,8 @@ public class PropertiesManager {
     }
 
     public Location findPropertyLocation(Module module, String sourceType, String sourceField, String sourceMethod, IPsiUtils utils) {
-        PsiMember fieldOrMethod = findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils);
+        PsiMember fieldOrMethod = ReadAction
+            .compute(() -> findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils));
         if (fieldOrMethod != null) {
             PsiFile classFile = fieldOrMethod.getContainingFile();
             if (classFile != null) {
@@ -227,7 +229,10 @@ public class PropertiesManager {
                     utils.discoverSource(classFile);
                 }
             }
-            return utils.toLocation(fieldOrMethod);
+            if (utils != null) {
+                return ReadAction
+                    .compute(() -> utils.toLocation(fieldOrMethod));
+            }
         }
         return null;
     }
