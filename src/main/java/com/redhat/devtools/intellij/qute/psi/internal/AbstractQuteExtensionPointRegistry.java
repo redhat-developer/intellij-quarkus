@@ -17,6 +17,7 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.util.KeyedLazyInstanceEP;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ public abstract class AbstractQuteExtensionPointRegistry<T, K extends KeyedLazyI
         this.providers = new ArrayList<>();
         // Force the load of providers, to avoid loading it when getProviders() is called
         // because a ProcessCanceledException could be thrown while creating a provider.
-        loadExtensionProviders();
+        loadExtensionProvidersIfNeeded();
     }
 
     /**
@@ -59,11 +60,11 @@ public abstract class AbstractQuteExtensionPointRegistry<T, K extends KeyedLazyI
      * @return all the providers.
      */
     public List<T> getProviders() {
-        loadExtensionProviders();
+        loadExtensionProvidersIfNeeded();
         return providers;
     }
 
-    private synchronized void loadExtensionProviders() {
+    private synchronized void loadExtensionProvidersIfNeeded() {
         if (extensionProvidersLoaded)
             return;
 
@@ -74,9 +75,17 @@ public abstract class AbstractQuteExtensionPointRegistry<T, K extends KeyedLazyI
         LOGGER.log(Level.INFO, "->- Loading ." + getProviderExtensionId() + " extension point ->-");
 
         ExtensionPointName<K> cf = getProviderExtensionId();
-        addExtensionProviders(cf);
-
-        LOGGER.log(Level.INFO, "-<- Done loading ." + getProviderExtensionId() + " extension point -<-");
+        try {
+            addExtensionProviders(cf);
+            LOGGER.log(Level.INFO, "-<- Done loading ." + getProviderExtensionId() + " extension point -<-");
+        }
+        catch(Throwable e) {
+            // Don't throw an error to avoid having an error like
+            // java.lang.NoClassDefFoundError: Could not initialize class com.redhat.devtools.intellij.qute.psi.internal.template.rootpath.TemplateRootPathProviderRegistry
+            extensionProvidersLoaded = false;
+            providers.clear();
+            LOGGER.log(Level.INFO, "-<- Not loading ." + getProviderExtensionId() + " extension point -<-", e);
+        }
     }
 
     private void addExtensionProviders(ExtensionPointName<K> cf) {
