@@ -10,9 +10,10 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.json;
 
-import com.intellij.json.JsonFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -74,7 +75,8 @@ public class QuarkusJsonSchemaProjectService implements ClasspathResourceChanged
     }
 
     private static VirtualFile createJSONSchemaFile(String name) throws IOException {
-        return new LightVirtualFile(name + "-schema.json", JsonFileType.INSTANCE, "");
+        FileType jsonFileType =  FileTypeManager.getInstance().findFileTypeByName("JSON");
+        return new LightVirtualFile(name + "-schema.json", jsonFileType, "");
     }
 
     private VirtualFile computeSchema(Module module, VirtualFile schemaFile) {
