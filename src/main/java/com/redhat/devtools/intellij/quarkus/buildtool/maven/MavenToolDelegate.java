@@ -15,8 +15,8 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,20 +35,16 @@ import org.jetbrains.idea.maven.execution.MavenRunnerSettings;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenArtifactInfo;
 import org.jetbrains.idea.maven.model.MavenId;
-import org.jetbrains.idea.maven.project.MavenGeneralSettings;
 import org.jetbrains.idea.maven.project.MavenImportListener;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
+import org.jetbrains.idea.maven.server.MavenServerManager;
 import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
-
-import static com.redhat.devtools.intellij.quarkus.buildtool.maven.MavenWrapperUtils.getWrapperDistributionUrl;
 
 public class MavenToolDelegate implements BuildToolDelegate {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenToolDelegate.class);
@@ -76,30 +72,12 @@ public class MavenToolDelegate implements BuildToolDelegate {
     @Override
     public void processImport(Module module) {
         Project project = module.getProject();
-        VirtualFile pomFile = null;
         VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-        for (VirtualFile contentRoot : contentRoots) {
-            VirtualFile child = contentRoot.findChild("pom.xml");
-            if (child != null) {
-                pomFile = child;
-                break;
-            }
-        }
-
-        if (pomFile != null) {
+        Arrays.stream(contentRoots).map(contentRoot -> contentRoot.findChild("pom.xml")).filter(Objects::nonNull).findFirst().ifPresent(pomFile -> MavenUtil.runWhenInitialized(project, (DumbAwareRunnable) () -> {
             MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
             mavenProjectsManager.addManagedFiles(Collections.singletonList(pomFile));
-            MavenGeneralSettings mavenSettings = mavenProjectsManager.getGeneralSettings();
-            //TODO Once 2023-3 is the minimal required version, the following code can be removed
-            var distributionUrl = getWrapperDistributionUrl(ProjectUtil.guessProjectDir(project));
-            if (distributionUrl != null) {
-                String mavenHome = mavenSettings.getMavenHome();
-                String WRAPPED_MAVEN = "Use Maven wrapper"; //MavenServerManager.WRAPPED_MAVEN was removed in 2023.3 without any deprecation warning!
-                if (!WRAPPED_MAVEN.equals(mavenHome)) {
-                    mavenSettings.setMavenHome(WRAPPED_MAVEN);
-                }
-            }
-        }
+        }));
+
     }
 
     private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile>[] result, ProgressIndicator progressIndicator) {
@@ -176,10 +154,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
     private Set<MavenArtifact> resolveDeploymentArtifacts(Module module, MavenProject mavenProject, Set<MavenId> deploymentIds, String classifier, ProgressIndicator progressIndicator) {
         Set<MavenArtifact> deploymentArtifacts = new HashSet<>();
         try {
-            MavenEmbedderWrapper serverWrapper = createEmbedderWrapper(module.getProject(), mavenProject.getDirectory());
-            if (serverWrapper == null) {
-                return Collections.emptySet();
-            }
+            MavenEmbedderWrapper serverWrapper = MavenServerManager.getInstance().createEmbedder(module.getProject(), true, mavenProject.getDirectory());
             if (classifier != null) {
                 for (MavenId id : deploymentIds) {
                     deploymentArtifacts.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));
@@ -188,10 +163,10 @@ public class MavenToolDelegate implements BuildToolDelegate {
                 for (var deploymentId : deploymentIds) {
                     boolean shouldResolveArtifactTransitively = BuildToolDelegate.shouldResolveArtifactTransitively(deploymentId);
                     progressIndicator.checkCanceled();
-                    progressIndicator.setText2("Resolving " + (shouldResolveArtifactTransitively ? " (Transitevely) " : "") + "'" + deploymentId + "'");
+                    progressIndicator.setText2("Resolving " + (shouldResolveArtifactTransitively ? " (Transitively) " : "") + "'" + deploymentId + "'");
                     if (shouldResolveArtifactTransitively) {
                         // Resolving the deployment artifact and their dependencies
-                        List<MavenArtifactInfo> infos = Arrays.asList(new MavenArtifactInfo(deploymentId, "jar", classifier));
+                        List<MavenArtifactInfo> infos = List.of(new MavenArtifactInfo(deploymentId, "jar", classifier));
                         List<MavenArtifact> resolvedArtifacts = serverWrapper.resolveArtifactTransitively(infos, mavenProject.getRemoteRepositories()).mavenResolvedArtifacts;
                         for (var resolvedArtifact : resolvedArtifacts) {
                             addDeploymentArtifact(resolvedArtifact, deploymentArtifacts);
@@ -212,50 +187,6 @@ public class MavenToolDelegate implements BuildToolDelegate {
     private static void addDeploymentArtifact(MavenArtifact resolvedArtifact, Set<MavenArtifact> result) {
         if (resolvedArtifact != null && !result.contains(resolvedArtifact)) {
             result.add(resolvedArtifact);
-        }
-    }
-
-    /**
-     * Returns a {@code MavenEmbedderWrapper} instance for the given project and working directory.
-     * This code is using reflection to get the instance of the {@code MavenServerManager} and calls
-     * {@code createEmbedder} on it (MavenServerManager.getInstance().createEmbedder()).
-     * The instance that is created is then returned.
-     * <p>
-     * This code can be removed once the minimum version gets IC-2023.1.
-     *
-     * <ul>
-     *     <li>< IC-2023.1: MavenServerManager is an abstract class</li>
-     *     <li>>= IC-2023.1: MavenServerManager is an interface</li>
-     * </ul>
-     *
-     * @param project
-     * @param workingDirectory
-     * @return
-     */
-    private MavenEmbedderWrapper createEmbedderWrapper(Project project, String workingDirectory) {
-        try {
-            Class<?> clazz = Class.forName("org.jetbrains.idea.maven.server.MavenServerManager");
-            Object manager = clazz
-                    .getMethod("getInstance")
-                    .invoke(clazz);
-            if (manager == null) {
-                return null;
-            }
-            Method createEmbedderMethod = clazz.getMethod(
-                    "createEmbedder",
-                    Project.class,
-                    Boolean.TYPE,
-                    String.class,
-                    String.class);
-            return (MavenEmbedderWrapper) createEmbedderMethod.invoke(
-                    manager,
-                    project,
-                    false,
-                    workingDirectory,
-                    workingDirectory);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
-                 InvocationTargetException e) {
-            throw new RuntimeException(e);
         }
     }
 

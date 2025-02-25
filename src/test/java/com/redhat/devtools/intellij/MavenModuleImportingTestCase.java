@@ -19,38 +19,29 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
-import com.intellij.testFramework.builders.ModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.BuildersKt;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class MavenModuleImportingTestCase extends MavenImportingTestCase {
 
   protected TestFixtureBuilder<IdeaProjectTestFixture> myProjectBuilder;
 
   protected void setUpFixtures() throws Exception {
-    //myTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName()).getFixture();
-    //myTestFixture.setUp();
     myProjectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     final JavaTestFixtureFactory factory = JavaTestFixtureFactory.getFixtureFactory();
-    ModuleFixtureBuilder moduleBuilder = myProjectBuilder.addModule(JavaModuleFixtureBuilder.class);
+    myProjectBuilder.addModule(JavaModuleFixtureBuilder.class);
     myTestFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
     myTestFixture.setUp();
-    LanguageLevelProjectExtension.getInstance(myTestFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_1_6);
-  }
-  protected Module createJavaModule(final String name) throws Exception {
-    ModuleFixture moduleFixture = myProjectBuilder.addModule(JavaModuleFixtureBuilder.class).getFixture();
-    moduleFixture.setUp();
-    Module module = myProjectBuilder.addModule(JavaModuleFixtureBuilder.class).getFixture().getModule();
-    return module;
+    LanguageLevelProjectExtension.getInstance(myTestFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_17);
   }
 
   private static int counter = 0;
@@ -63,21 +54,23 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
    */
   protected List<Module> createMavenModules(List<File> projectDirs) throws Exception {
     Project project = myTestFixture.getProject();
-    List<VirtualFile> pomFiles = new ArrayList<>();
     for(File projectDir : projectDirs) {
       File moduleDir = new File(project.getBasePath(), projectDir.getName() + counter++);
       FileUtils.copyDirectory(projectDir, moduleDir);
       VirtualFile pomFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleDir).findFileByRelativePath("pom.xml");
-      pomFiles.add(pomFile);
-
+      BuildersKt.runBlocking(
+          EmptyCoroutineContext.INSTANCE,
+          (scope, continuation) -> importProjectAsync(pomFile,continuation)
+      );
     }
-    importProjects(pomFiles.toArray(VirtualFile[]::new));
-    Module[] modules = ModuleManager.getInstance(myTestFixture.getProject()).getModules();
+
+    Module[] modules = ModuleManager.getInstance(project).getModules();
     for(Module module : modules) {
       setupJdkForModule(module.getName());
     }
-    return Arrays.asList(modules).stream().skip(1).collect(Collectors.toList());
+    return Arrays.stream(modules).skip(1).toList();
   }
+
   protected Module createMavenModule(File projectDir) throws Exception {
     List<Module> modules = createMavenModules(Collections.singletonList(projectDir));
     return modules.get(modules.size() - 1);
@@ -94,7 +87,10 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     Module module = myTestFixture.getModule();
     File moduleDir = new File(module.getModuleFilePath()).getParentFile();
     VirtualFile pomFile = createPomFile(LocalFileSystem.getInstance().findFileByIoFile(moduleDir), xml);
-    importProject(pomFile);
+    BuildersKt.runBlocking(
+        EmptyCoroutineContext.INSTANCE,
+        (scope, continuation) -> importProjectAsync(pomFile,continuation)
+    );
     Module[] modules = ModuleManager.getInstance(myTestFixture.getProject()).getModules();
     if (modules.length > 0) {
       module = modules[modules.length - 1];

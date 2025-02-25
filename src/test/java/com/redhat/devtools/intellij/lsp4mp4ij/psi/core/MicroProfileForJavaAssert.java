@@ -360,7 +360,7 @@ public class MicroProfileForJavaAssert {
     public static void assertWorkspaceSymbols(Module javaProject, IPsiUtils utils, SymbolInformation... expected) {
         List<SymbolInformation> actual = PropertiesManagerForJava.getInstance()
                 .workspaceSymbols(PsiMicroProfileUtils.getProjectURI(javaProject), utils, new EmptyProgressIndicator());
-        MicroProfileForJavaAssert.assertWorkspaceSymbols(Arrays.asList(expected), actual);
+        assertWorkspaceSymbols(Arrays.asList(expected), actual);
     }
 
     /**
@@ -390,6 +390,6 @@ public class MicroProfileForJavaAssert {
      */
     public static void assertSymbolInformation(SymbolInformation expected, SymbolInformation actual) {
         assertEquals(expected.getName(), actual.getName());
-        assertEquals(expected.getLocation().getRange(), actual.getLocation().getRange());
+        assertEquals("Wrong location for " + expected.getName() + " at "+actual.getLocation(), expected.getLocation().getRange(), actual.getLocation().getRange());
     }
 }

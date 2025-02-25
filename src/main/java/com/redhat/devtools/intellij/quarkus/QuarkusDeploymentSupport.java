@@ -19,7 +19,6 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.OrderEntryUtil;
@@ -38,6 +37,7 @@ import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,14 +148,12 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
         }
         var project = module.getProject();
         final CompletableFuture<Void> future = new CompletableFuture<>();
-        CompletableFuture.runAsync(() -> {
-            Runnable task = () -> ProgressManager.getInstance().run(new Task.Backgroundable(project, "Adding Quarkus deployment dependencies to classpath...") {
+        MavenUtil.invokeAndWait(project, () -> ProgressManager.getInstance().run(new Task.Backgroundable(project, "Adding Quarkus deployment dependencies to classpath...") {
                 @Override
                 public void run(@NotNull ProgressIndicator indicator) {
                     try {
                         long start = System.currentTimeMillis();
                         ProgressIndicator wrappedIndicator = new ProgressIndicatorWrapper(indicator) {
-
                             @Override
                             public boolean isCanceled() {
                                 return super.isCanceled() || future.isCancelled();
@@ -176,13 +174,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
                         future.completeExceptionally(e);
                     }
                 }
-            });
-            if (DumbService.getInstance(project).isDumb()) {
-                DumbService.getInstance(project).runWhenSmart(task);
-            } else {
-                task.run();
-            }
-        });
+            }));
         module.putUserData(QUARKUS_DEPLOYMENT_SUPPORT_KEY, future);
         return future;
     }
