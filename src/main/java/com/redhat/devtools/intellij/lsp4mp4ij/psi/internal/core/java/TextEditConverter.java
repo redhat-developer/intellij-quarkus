@@ -21,7 +21,6 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Converts an {@link DocumentEvent} to
