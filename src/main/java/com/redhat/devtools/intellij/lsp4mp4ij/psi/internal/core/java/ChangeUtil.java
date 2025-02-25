@@ -64,17 +64,15 @@ public class ChangeUtil {
 			return;
 		}
 
-		TextEditConverter converter = new TextEditConverter(unit, edit, utils);
+		TextEditConverter converter = new TextEditConverter(unit, edit, uri, utils);
 		if (resourceOperationSupported) {
 			List<Either<TextDocumentEdit, ResourceOperation>> changes = root.getDocumentChanges();
 			if (changes == null) {
 				changes = new ArrayList<>();
 				root.setDocumentChanges(changes);
 			}
-
-			VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, 0);
-			TextDocumentEdit documentEdit = new TextDocumentEdit(identifier, converter.convert());
-			changes.add(Either.forLeft(documentEdit));
+			
+			changes.add(Either.forLeft(converter.convertToTextDocumentEdit(0)));
 		} else {
 
 			Map<String, List<org.eclipse.lsp4j.TextEdit>> changes = root.getChanges();
