@@ -39,7 +39,7 @@ public class QuarkusPropertyClassNameCompletionRemover extends CompletionContrib
         this.extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertyValueImpl.class).with(APPLICATION_PROPERTIES), new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
-                    result.stopHere();
+                result.stopHere();
             }
         });
     }

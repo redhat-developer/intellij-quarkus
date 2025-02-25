@@ -57,10 +57,8 @@ sourceSets {
         java.srcDir("intellij-community/platform/external-system-impl/testSrc")
         java.srcDir("intellij-community/platform/lang-impl/testSources")
         java.srcDir("intellij-community/platform/testFramework/extensions/src")
-        java.srcDir("intellij-community/plugins/gradle/src")
         java.srcDir("intellij-community/plugins/gradle/testSources")
         java.srcDir("intellij-community/plugins/gradle/tooling-extension-impl/testSources")
-        java.srcDir("intellij-community/plugins/maven/src/test/java")
         java.srcDir("intellij-community/plugins/maven/testFramework/src")
         resources.srcDir("src/test/resources")
     }
@@ -69,7 +67,7 @@ sourceSets {
         java.srcDir("src/it/java")
         resources.srcDir("src/it/resources")
         compileClasspath += sourceSets.main.get().compileClasspath + sourceSets.test.get().compileClasspath
-        runtimeClasspath += output + compileClasspath + sourceSets.test.get().runtimeClasspath + sourceSets.test.get().runtimeClasspath
+        runtimeClasspath += output + compileClasspath + sourceSets.test.get().runtimeClasspath
     }
 }
 
@@ -102,7 +100,6 @@ dependencies {
         println("bundledPlugins: $platformBundledPlugins")
         println("marketplacePlugins: $platformPlugins")
         pluginVerifier()
-        instrumentationTools()
         testFramework(TestFrameworkType.Plugin.Java)
     }
 
@@ -151,21 +148,7 @@ dependencies {
         builtBy("copyDeps")
     })
 
-    implementation(libs.annotations) // to build against platform <= 2023.2 and gradle intellij plugin > 2.0
-
-    // And now for some serious HACK!!!
-    // Starting with 2023.1, all gradle tests fail importing projects with a:
-    // com.intellij.openapi.externalSystem.model.ExternalSystemException: Unable to load class 'org.codehaus.plexus.logging.Logger'
-    // Hence adding a jar containing the missing class, to the test classpath
-    // The version matches the jar found in the IJ version used to compile the project
-    // This is so wrong/ridiculous!
-    testImplementation("org.eclipse.sisu:org.eclipse.sisu.plexus:0.3.4")
-
-    testImplementation("org.assertj:assertj-core:3.19.0")
-
-    testImplementation("org.opentest4j:opentest4j:1.3.0")
-
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
@@ -251,17 +234,13 @@ val integrationTest by intellijPlatformTesting.testIde.registering {
         classpath = sourceSets["integrationTest"].runtimeClasspath
         outputs.upToDateWhen { false }
         mustRunAfter(tasks["test"])
-        systemProperty ("debug-retrofit", "enable")
-    }
-    plugins {
-        robotServerPlugin("0.11.23")
     }
 
     dependencies {
-        testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.4-SNAPSHOT")
-        testImplementation("com.squareup.retrofit2:retrofit:2.11.0")
-        testImplementation("com.squareup.retrofit2:converter-gson:2.11.0")
-        testImplementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+        testRuntimeOnly(libs.junit.jupiter.engine)
+        testImplementation(libs.junit.platform.launcher)
+        testImplementation(libs.junit.jupiter.api)
+        testImplementation(libs.devtools.common.ui.test)
     }
 }
 
@@ -344,7 +323,6 @@ tasks {
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#runIdeForUiTests
 val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
     task {
-        systemProperty ("debug-retrofit", "enable")
         jvmArgumentProviders += CommandLineArgumentProvider {
             listOf(
                 "-Drobot-server.port=8580",
@@ -355,7 +333,7 @@ val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
         }
     }
     plugins {
-        robotServerPlugin("0.11.23")
+        robotServerPlugin()
     }
 }
 

@@ -1,6 +1,9 @@
 [versions]
 # libraries
-annotations = "24.0.1"
+junit = "4.13.2"
+junit-platform = "1.11.3"
+junit-jupiter = "5.11.3"
+devtools-common-ui-test = "0.4.4-SNAPSHOT"
 
 # plugins
 testlogger = "4.0.0"
@@ -8,9 +11,12 @@ kotlin = "2.0.20"
 changelog = "2.2.0"
 gradleIntelliJPlugin = "2.2.1"
 
-
 [libraries]
-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-platform" }
+junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit-jupiter" }
+junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit-jupiter" }
+devtools-common-ui-test = { group = "com.redhat.devtools.intellij", name = "intellij-common-ui-test-library", version.ref = "devtools-common-ui-test" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }

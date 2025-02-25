@@ -16,6 +16,7 @@ package com.redhat.devtools.intellij.quarkus.telemetry;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.DefaultPluginDescriptor;
 import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuilder;
 import com.redhat.devtools.intellij.telemetry.core.util.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,15 @@ public class TelemetryManager implements Disposable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryManager.class);
 
-    private final Lazy<TelemetryMessageBuilder> builder = new Lazy<>(() -> new TelemetryMessageBuilder(PluginManager.getPluginByClass(this.getClass())));
+    private final Lazy<TelemetryMessageBuilder> builderInstance;
+
+    private TelemetryManager() {
+        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            builderInstance = new Lazy<>(() -> new TelemetryMessageBuilder(PluginManager.getPluginByClass(this.getClass())));
+        } else {
+            builderInstance = new Lazy<>(() -> new TelemetryMessageBuilder(new DefaultPluginDescriptor("")));
+        }
+    }
 
     private boolean hasError;
 
@@ -114,7 +123,7 @@ public class TelemetryManager implements Disposable {
             return null;
         }
         try {
-            return builder.get();
+            return builderInstance.get();
         }
         catch(Exception e) {
             LOGGER.warn("Error while creating TelemetryMessageBuilder instance.", e);

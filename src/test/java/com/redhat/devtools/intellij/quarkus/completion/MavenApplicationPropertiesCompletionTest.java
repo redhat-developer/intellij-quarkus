@@ -20,9 +20,10 @@ import com.redhat.devtools.intellij.MavenEditorTest;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 import com.redhat.devtools.lsp4ij.client.indexing.ProjectIndexingManager;
-import org.junit.Test;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Project label tests
@@ -31,19 +32,39 @@ import java.io.File;
  */
 public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 
-	@Test
 	public void testBooleanCompletion() throws Exception {
 		Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
 		VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/application.properties");
-		codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);
+        assertNotNull(propertiesFile);
+        codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_START_NEW_LINE);
 		insertLine("quarkus.arc.auto-inject-fields=");
         ProjectIndexingManager.waitForIndexingAll().thenRunAsync(() -> {
             LookupElement[] elements = codeInsightTestFixture.completeBasic();
             assertNotNull(elements);
-            assertEquals(2, elements.length);
+            List<LookupElement> lookupElements = Arrays.asList(elements);
+            assertEquals(2, lookupElements.size());
+            assertEquals("false", lookupElements.stream().sorted().toList().get(0).getLookupString());
+            assertEquals("true", lookupElements.stream().sorted().toList().get(1).getLookupString());
         });
+	}
+
+	public void testPropertyCompletion() throws Exception {
+		Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
+		VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/application.properties");
+		assertNotNull(propertiesFile);
+		codeInsightTestFixture.configureFromExistingVirtualFile(propertiesFile);
+		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
+		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_START_NEW_LINE);
+		insertLine("quarkus.application.na");
+		ProjectIndexingManager.waitForIndexingAll().thenRunAsync(() -> {
+			LookupElement[] elements = codeInsightTestFixture.completeBasic();
+			assertNotNull(elements);
+			List<LookupElement> lookupElements = Arrays.asList(elements);
+			assertEquals(1, lookupElements.size());
+			assertEquals("quarkus.application.name", lookupElements.get(0).getLookupString());
+		});
 	}
 
 	private void insertLine(String s) throws InterruptedException {
