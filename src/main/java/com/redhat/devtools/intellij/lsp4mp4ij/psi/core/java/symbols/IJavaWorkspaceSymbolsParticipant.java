@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 Red Hat Inc. and others.
+ * Copyright (c) 2024-2025 Red Hat Inc. and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,7 +17,7 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
-import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.WorkspaceSymbol;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public interface IJavaWorkspaceSymbolsParticipant {
      * @param symbols the list of symbols to add to
      * @param monitor the progress monitor
      */
-    void collectSymbols(Module project, IPsiUtils utils, List<SymbolInformation> symbols,
+    void collectSymbols(Module project, IPsiUtils utils, List<WorkspaceSymbol> symbols,
                         ProgressIndicator monitor);
 
 }
