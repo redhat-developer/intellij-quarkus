@@ -16,6 +16,8 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.Change;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
+import org.eclipse.lsp4j.TextDocumentEdit;
+import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,15 +38,18 @@ public class TextEditConverter {
 	protected PsiFile compilationUnit;
 	protected List<org.eclipse.lsp4j.TextEdit> converted;
 
+	private final String uri;
+
 	private final IPsiUtils utils;
 
-	public TextEditConverter(PsiFile unit, Change edit, IPsiUtils utils) {
+	public TextEditConverter(PsiFile unit, Change edit, String uri, IPsiUtils utils) {
 		this.source = edit;
 		this.converted = new ArrayList<>();
 		if (unit == null) {
 			throw new IllegalArgumentException("Compilation unit can not be null");
 		}
 		this.compilationUnit = unit;
+		this.uri = uri;
 		this.utils = utils;
 	}
 
@@ -54,5 +59,11 @@ public class TextEditConverter {
 		te.setRange(utils.toRange(source.getSourceDocument(), 0, source.getSourceDocument().getTextLength()));
 		converted.add(te);
 		return converted;
+	}
+
+	public TextDocumentEdit convertToTextDocumentEdit(int version) {
+		VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, version);
+		identifier.setUri(uri);
+		return new TextDocumentEdit(identifier, this.convert());
 	}
 }
