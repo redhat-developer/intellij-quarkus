@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 Red Hat Inc. and others.
+* Copyright (c) 2024, 2025 Red Hat Inc. and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -28,6 +28,8 @@ import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -106,13 +108,13 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 		return jaxrsTypes;
 	}
 
-	private static SymbolInformation createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException {
+	private static SymbolInformation createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException, URISyntaxException {
 		TextRange sourceRange = methodInfo.getJavaMethod().getNameIdentifier().getTextRange();
 		Range r = utils.toRange(methodInfo.getJavaMethod(), sourceRange.getStartOffset(), sourceRange.getLength());
 		Location location = new Location(methodInfo.getDocumentUri(), r);
 
 		StringBuilder nameBuilder = new StringBuilder("@");
-		URL url = new URL(methodInfo.getUrl());
+		URL url = new URI(methodInfo.getUrl()).toURL();
 		String path = url.getPath();
 		nameBuilder.append(path);
 		nameBuilder.append(": ");
