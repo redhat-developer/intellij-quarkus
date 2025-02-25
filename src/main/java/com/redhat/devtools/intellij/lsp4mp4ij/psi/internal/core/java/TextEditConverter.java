@@ -31,9 +31,7 @@ import java.util.logging.Logger;
  *
  */
 public class TextEditConverter {
-
-	private static final Logger LOGGER = Logger.getLogger(TextEditConverter.class.getName());
-
+	
 	private final Change source;
 	protected PsiFile compilationUnit;
 	protected List<org.eclipse.lsp4j.TextEdit> converted;
