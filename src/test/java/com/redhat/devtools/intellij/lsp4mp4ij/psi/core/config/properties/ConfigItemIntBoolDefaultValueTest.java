@@ -49,7 +49,8 @@ public class ConfigItemIntBoolDefaultValueTest extends LSP4MPMavenModuleImportin
         assertProperties(infoFromClasspath,
                 259 + 31 /* properties from Java sources with ConfigProperty */ + //
                         7 /* static properties from microprofile-context-propagation-api */ +
-                        1 /* static property from microprofile config_ordinal */,
+                        1 /* static property from microprofile config_ordinal */ +
+                        4 /* optional properties */,
 
                 // GreetingConstructorResource(
                 // 		@ConfigProperty(name = "greeting.constructor.message") String message,
