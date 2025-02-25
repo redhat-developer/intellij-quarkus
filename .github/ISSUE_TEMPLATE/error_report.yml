@@ -1,0 +1,47 @@
+name: Quarkus Tools Plugin Error Report
+description: "File a bug report for Quarkus Tool Plugin for IntelliJ"
+title: "bug: "
+labels:
+  - bug
+projects:
+  - redhat-developer/37
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this issue!! Please include as much information as possible in the Bug Description
+        **Please make sure to search for the title of this report** before submitting a new issue to avoid duplicates. 
+        Tip: You can attach images, videos, or log files by dragging it into the text box.
+  - id: report
+    type: textarea
+    attributes:
+      label: Bug Description
+      description: Please describe the error. Include steps for reproducing the behavior and actual results.
+      value: |
+        ### Steps to reproduce              
+        1.
+        1.
+      
+        ### Actual results
+        Actual result
+                      
+        ### Screenshots or screencast         
+        Please attach screenshots or a screencast that helps to understand the issue.
+        Make sure these screenshots or screencast have no sensitive information.
+    validations:
+      required: false
+  - id: info
+    type: textarea
+    attributes:
+      label: IDE Information
+      description: This information is automatically gathered.
+    validations:
+      required: true
+  - id: stacktrace
+    type: textarea
+    attributes:
+      label: Stacktrace and user message
+      description: |
+        This information is automatically gathered from IntelliJ Error Report Screen.
+    validations:
+      required: true
