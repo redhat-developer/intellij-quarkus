@@ -70,7 +70,7 @@ public class BasicTest extends AbstractQuarkusTest {
     }
 
     @Test
-    @Disabled("Because of https://github.com/redhat-developer/intellij-quarkus/issues/1343")
+    //@Disabled("Because of https://github.com/redhat-developer/intellij-quarkus/issues/1343")
     public void createBuildQuarkusMavenTest() {
         createQuarkusProject(remoteRobot, NEW_QUARKUS_MAVEN_PROJECT_NAME, BuildTool.MAVEN, EndpointURLType.DEFAULT);
         ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
@@ -151,26 +151,4 @@ public class BasicTest extends AbstractQuarkusTest {
         return false;
     }
 
-    private void minimizeProjectImportPopupIfItAppears() {
-        try {
-            waitForIgnoringError(Duration.ofSeconds(30), Duration.ofMillis(200), "Close the project import popup if it appears...", () -> {
-                remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON)).click();
-                return true;
-            });
-        } catch (Exception e) {
-            //suppress non-existing popup timeout
-        }
-    }
-
-    private void buildGradleProject(GradleBuildToolPane gradleBuildToolPane) {
-        gradleBuildToolPane.find(JTreeFixture.class, JTreeFixture.Companion.byType(), Duration.ofSeconds(30));
-        gradleBuildToolPane.expandAll();
-        gradleBuildToolPane.gradleTaskTree().findAllText("build").get(1).doubleClick();
-        if (UITestRunner.getIdeaVersionInt() >= 20221) {
-            remoteRobot.find(ToolWindowPane.class).find(BuildView.class).waitUntilBuildHasFinished();
-        } else {
-            remoteRobot.find(ToolWindowsPane.class).find(BuildView.class).waitUntilBuildHasFinished();
-        }
-        remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10)).waitUntilAllBgTasksFinish();
-    }
 }
