@@ -28,7 +28,6 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwind
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.MavenBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
-import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
@@ -37,6 +36,7 @@ import org.jboss.tools.intellij.quarkus.utils.BuildTool;
 import org.jboss.tools.intellij.quarkus.utils.EndpointURLType;
 import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -70,6 +70,7 @@ public class BasicTest extends AbstractQuarkusTest {
     }
 
     @Test
+    @Disabled("Because of https://github.com/redhat-developer/intellij-quarkus/issues/1343")
     public void createBuildQuarkusMavenTest() {
         createQuarkusProject(remoteRobot, NEW_QUARKUS_MAVEN_PROJECT_NAME, BuildTool.MAVEN, EndpointURLType.DEFAULT);
         ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
@@ -114,8 +115,6 @@ public class BasicTest extends AbstractQuarkusTest {
         newProjectDialogWizard.find(QuarkusNewProjectThirdPage.class, Duration.ofSeconds(10)); // wait for third page to be loaded
         newProjectDialogWizard.next();
 
-        waitForIgnoringError(Duration.ofMillis(1000L),() -> remoteRobot.callJs("true"));
-
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
 
@@ -134,16 +133,13 @@ public class BasicTest extends AbstractQuarkusTest {
 
         newProjectDialogWizard.finish();
 
-        //minimizeProjectImportPopupIfItAppears();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         waitFor(Duration.ofSeconds(30), Duration.ofSeconds(3), "The project import did not finish in 5 minutes.", this::didProjectImportFinish);
 
-        //ideStatusBar.waitUntilProjectImportIsComplete();
-        ScreenshotUtils.takeScreenshot(remoteRobot);
+        ideStatusBar.waitUntilProjectImportIsComplete();
         MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
         mainIdeWindow.maximizeIdeWindow();
-        ideStatusBar.waitUntilAllBgTasksFinish(500);
     }
 
     private boolean didProjectImportFinish() {
