@@ -24,8 +24,10 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.JaxRsMethodInfo;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
+import org.eclipse.lsp4j.WorkspaceSymbol;
+import org.eclipse.lsp4j.WorkspaceSymbolLocation;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -46,7 +48,7 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 	private static final Logger LOGGER = Logger.getLogger(JaxRsWorkspaceSymbolParticipant.class.getName());
 
 	@Override
-	public void collectSymbols(Module project, IPsiUtils utils, List<SymbolInformation> symbols, ProgressIndicator monitor) {
+	public void collectSymbols(Module project, IPsiUtils utils, List<WorkspaceSymbol> symbols, ProgressIndicator monitor) {
 		if (monitor.isCanceled()) {
 			return;
 		}
@@ -108,10 +110,11 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 		return jaxrsTypes;
 	}
 
-	private static SymbolInformation createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException, URISyntaxException {
+	private static WorkspaceSymbol createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException, URISyntaxException {
 		TextRange sourceRange = methodInfo.getJavaMethod().getNameIdentifier().getTextRange();
 		Range r = utils.toRange(methodInfo.getJavaMethod(), sourceRange.getStartOffset(), sourceRange.getLength());
 		Location location = new Location(methodInfo.getDocumentUri(), r);
+		Either<Location, WorkspaceSymbolLocation> eitherLocation = Either.forLeft(location);
 
 		StringBuilder nameBuilder = new StringBuilder("@");
 		URL url = new URI(methodInfo.getUrl()).toURL();
@@ -120,10 +123,10 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 		nameBuilder.append(": ");
 		nameBuilder.append(methodInfo.getHttpMethod());
 
-		SymbolInformation symbol = new SymbolInformation();
+		WorkspaceSymbol symbol = new WorkspaceSymbol();
 		symbol.setName(nameBuilder.toString());
 		symbol.setKind(SymbolKind.Method);
-		symbol.setLocation(location);
+		symbol.setLocation(eitherLocation);
 		return symbol;
 	}
 
