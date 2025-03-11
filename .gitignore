@@ -6,3 +6,5 @@ build
 out
 .DS_Store
 intellij-community-tmp
+/.intellijPlatform/
+/.kotlin/

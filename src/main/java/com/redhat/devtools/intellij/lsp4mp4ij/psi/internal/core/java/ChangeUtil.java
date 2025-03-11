@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2020 Red Hat Inc. and others.
+* Copyright (c) 2020, 2025 Red Hat Inc. and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,10 +13,8 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java;
 
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.Change;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -24,7 +22,6 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ResourceOperation;
 import org.eclipse.lsp4j.TextDocumentEdit;
-import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
@@ -73,10 +70,8 @@ public class ChangeUtil {
 				changes = new ArrayList<>();
 				root.setDocumentChanges(changes);
 			}
-
-			VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, 0);
-			TextDocumentEdit documentEdit = new TextDocumentEdit(identifier, converter.convert());
-			changes.add(Either.forLeft(documentEdit));
+			
+			changes.add(Either.forLeft(converter.convertToTextDocumentEdit(0)));
 		} else {
 
 			Map<String, List<org.eclipse.lsp4j.TextEdit>> changes = root.getChanges();

@@ -21,6 +21,7 @@ import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.jetbrains.idea.maven.model.MavenId;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.utils.MavenArtifactUtil;
 
 import java.io.File;
@@ -37,7 +38,7 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
     public void testConfigQuickstartFromClasspath() throws Exception {
         Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
         MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
-
+        MavenProjectsManager myProjectsManager = MavenProjectsManager.getInstance(module.getProject());
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar").toFile();
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 

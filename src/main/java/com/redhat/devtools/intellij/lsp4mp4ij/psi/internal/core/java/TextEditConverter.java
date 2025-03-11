@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2017 Red Hat Inc. and others.
+ * Copyright (c) 2016-2025 Red Hat Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -12,7 +12,6 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java;
 
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.Change;
@@ -22,7 +21,6 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Converts an {@link DocumentEvent} to
@@ -32,9 +30,7 @@ import java.util.logging.Logger;
  *
  */
 public class TextEditConverter {
-
-	private static final Logger LOGGER = Logger.getLogger(TextEditConverter.class.getName());
-
+	
 	private final Change source;
 	protected PsiFile compilationUnit;
 	protected List<org.eclipse.lsp4j.TextEdit> converted;
@@ -63,8 +59,7 @@ public class TextEditConverter {
 	}
 
 	public TextDocumentEdit convertToTextDocumentEdit(int version) {
-		VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(version);
-		identifier.setUri(uri);
+		VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, version);
 		return new TextDocumentEdit(identifier, this.convert());
 	}
 }

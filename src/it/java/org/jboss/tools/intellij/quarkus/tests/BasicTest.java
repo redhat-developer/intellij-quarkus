@@ -11,6 +11,7 @@
 package org.jboss.tools.intellij.quarkus.tests;
 
 import com.intellij.remoterobot.RemoteRobot;
+import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.JButtonFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
@@ -26,7 +27,9 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwind
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowsPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.GradleBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.MavenBuildToolPane;
+import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
+import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
@@ -37,7 +40,6 @@ import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,6 +48,8 @@ import java.nio.file.Paths;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
+import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
+import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitForIgnoringError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -84,9 +88,7 @@ public class BasicTest extends AbstractQuarkusTest {
         toolWindowPane.openGradleBuildToolPane();
         GradleBuildToolPane gradleBuildToolPane = toolWindowPane.find(GradleBuildToolPane.class, Duration.ofSeconds(10));
 
-        // ISSUE #126: https://github.com/redhat-developer/intellij-common-ui-test-library/issues/126
-        // gradleBuildToolPane.buildProject();
-        buildGradleProject(gradleBuildToolPane);
+        gradleBuildToolPane.buildProject();
 
         boolean isBuildSuccessful = toolWindowPane.find(BuildView.class, Duration.ofSeconds(10)).isBuildSuccessful();
         assertTrue(isBuildSuccessful, "The build should be successful but is not.");
@@ -112,17 +114,13 @@ public class BasicTest extends AbstractQuarkusTest {
         newProjectDialogWizard.next();
         newProjectDialogWizard.find(QuarkusNewProjectThirdPage.class, Duration.ofSeconds(10)); // wait for third page to be loaded
         newProjectDialogWizard.next();
-        try {
-            Thread.sleep(1000L);
-        } catch (InterruptedException e) {
-            Thread.interrupted();
-            throw new RuntimeException(e);
-        }
+
+        waitForIgnoringError(Duration.ofMillis(1000L),() -> remoteRobot.callJs("true"));
 
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
 
-        String QUARKUS_PROJECT_LOCATION = CreateCloseUtils.PROJECT_LOCATION + File.separator + projectName;
+        String QUARKUS_PROJECT_LOCATION = ProjectLocation.PROJECT_LOCATION + File.separator + projectName;
         Path quarkusProjectDir = Paths.get(QUARKUS_PROJECT_LOCATION);
         boolean doesProjectDirExists = Files.exists(quarkusProjectDir);
         if (!doesProjectDirExists) {
@@ -137,20 +135,35 @@ public class BasicTest extends AbstractQuarkusTest {
 
         newProjectDialogWizard.finish();
 
-        minimizeProjectImportPopupIfItAppears();
+        //minimizeProjectImportPopupIfItAppears();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
-        ideStatusBar.waitUntilProjectImportIsComplete();
+        waitFor(Duration.ofSeconds(30), Duration.ofSeconds(3), "The project import did not finish in 5 minutes.", this::didProjectImportFinish);
+
+        //ideStatusBar.waitUntilProjectImportIsComplete();
+        ScreenshotUtils.takeScreenshot(remoteRobot);
         MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
         mainIdeWindow.maximizeIdeWindow();
         ideStatusBar.waitUntilAllBgTasksFinish(500);
     }
 
+    private boolean didProjectImportFinish() {
+        try {
+            remoteRobot.find(ComponentFixture.class, byXpath(com.redhat.devtools.intellij.commonuitest.utils.constants.XPathDefinitions.ENGRAVED_LABEL), Duration.ofSeconds(1));
+        } catch (WaitForConditionTimeoutException e) {
+            return true;
+        }
+        return false;
+    }
+
     private void minimizeProjectImportPopupIfItAppears() {
         try {
-            remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON), Duration.ofSeconds(30)).click();
-        } catch (WaitForConditionTimeoutException e) {
-            e.printStackTrace();
+            waitForIgnoringError(Duration.ofSeconds(30), Duration.ofMillis(200), "Close the project import popup if it appears...", () -> {
+                remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON)).click();
+                return true;
+            });
+        } catch (Exception e) {
+            //suppress non-existing popup timeout
         }
     }
 

@@ -19,6 +19,7 @@ import org.eclipse.lsp4mp.commons.DocumentFormat;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
 import org.jetbrains.idea.maven.model.MavenId;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.utils.MavenArtifactUtil;
 
 import java.io.File;
@@ -52,6 +53,7 @@ public class PropertiesManagerTest extends MavenModuleImportingTestCase {
 
     public void testQuarkusCoreDeploymentProperties() {
         MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MavenProjectsManager myProjectsManager = MavenProjectsManager.getInstance(module.getProject());
         File quarkusCoreJARFile = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:0.24.0"), "jar").toFile();
         assertNotNull("Test existing of quarkus-core*.jar", quarkusCoreJARFile);
 
