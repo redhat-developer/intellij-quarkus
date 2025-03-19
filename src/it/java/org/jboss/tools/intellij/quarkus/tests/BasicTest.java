@@ -12,18 +12,14 @@ package org.jboss.tools.intellij.quarkus.tests;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
-import com.intellij.remoterobot.fixtures.JButtonFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
-import com.intellij.remoterobot.fixtures.JTreeFixture;
 import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
-import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.MainIdeWindow;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatusbar.IdeStatusBar;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.BuildView;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowPane;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowsPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.GradleBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.MavenBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
@@ -36,7 +32,6 @@ import org.jboss.tools.intellij.quarkus.utils.BuildTool;
 import org.jboss.tools.intellij.quarkus.utils.EndpointURLType;
 import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -48,7 +43,6 @@ import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
-import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitForIgnoringError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -70,13 +64,12 @@ public class BasicTest extends AbstractQuarkusTest {
     }
 
     @Test
-    //@Disabled("Because of https://github.com/redhat-developer/intellij-quarkus/issues/1343")
     public void createBuildQuarkusMavenTest() {
         createQuarkusProject(remoteRobot, NEW_QUARKUS_MAVEN_PROJECT_NAME, BuildTool.MAVEN, EndpointURLType.DEFAULT);
         ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
         toolWindowPane.openMavenBuildToolPane();
         MavenBuildToolPane mavenBuildToolPane = toolWindowPane.find(MavenBuildToolPane.class, Duration.ofSeconds(10));
-        mavenBuildToolPane.buildProject("install");
+        mavenBuildToolPane.buildProject("verify");
         boolean isBuildSuccessful = toolWindowPane.find(BuildView.class, Duration.ofSeconds(10)).isBuildSuccessful();
         assertTrue(isBuildSuccessful, "The build should be successful but is not.");
     }
@@ -106,6 +99,7 @@ public class BasicTest extends AbstractQuarkusTest {
             JTextFieldFixture customEndpointURLJTextField = remoteRobot.findAll(JTextFieldFixture.class, byXpath(XPathDefinitions.CUSTOM_ENDPOINT_URL_TEXT_FIELD)).get(0);
             customEndpointURLJTextField.setText("https://code.quarkus.io");
         }
+        quarkusNewProjectFirstPage.setProjectSdkIfAvailable(JAVA_VERSION_FOR_QUARKUS_PROJECT);
         newProjectDialogWizard.next();
 
         QuarkusNewProjectSecondPage quarkusNewProjectSecondPage = newProjectDialogWizard.find(QuarkusNewProjectSecondPage.class, Duration.ofSeconds(10));
@@ -118,8 +112,8 @@ public class BasicTest extends AbstractQuarkusTest {
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
 
-        String QUARKUS_PROJECT_LOCATION = ProjectLocation.PROJECT_LOCATION + File.separator + projectName;
-        Path quarkusProjectDir = Paths.get(QUARKUS_PROJECT_LOCATION);
+        String quarkusProjectLocation = ProjectLocation.PROJECT_LOCATION + File.separator + projectName;
+        Path quarkusProjectDir = Paths.get(quarkusProjectLocation);
         boolean doesProjectDirExists = Files.exists(quarkusProjectDir);
         if (!doesProjectDirExists) {
             try {
@@ -129,7 +123,7 @@ public class BasicTest extends AbstractQuarkusTest {
             }
         }
 
-        quarkusNewProjectFinalPage.setProjectLocation(QUARKUS_PROJECT_LOCATION);
+        quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
 
         newProjectDialogWizard.finish();
 

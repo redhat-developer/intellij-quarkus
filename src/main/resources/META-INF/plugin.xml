@@ -441,7 +441,6 @@
         <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
         <fileType name="Qute_"
                   language="Qute_"
-                  instance="QUTE"
                   extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml"
                   implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileType"/>
         <lang.fileViewProviderFactory language="Qute_"
@@ -762,8 +761,6 @@
 
     </extensions>
 
-    <application-components>
-    </application-components>
     <module-components>
         <component>
             <implementation-class>com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent

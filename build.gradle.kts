@@ -149,7 +149,7 @@ dependencies {
         builtBy("copyDeps")
     })
 
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
@@ -238,10 +238,10 @@ val integrationTest by intellijPlatformTesting.testIde.registering {
     }
 
     dependencies {
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.3")
-        testImplementation("org.junit.platform:junit-platform-launcher:1.11.3")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
-        testImplementation("com.redhat.devtools.intellij:intellij-common-ui-test-library:0.4.4-SNAPSHOT")
+        testRuntimeOnly(libs.junit.jupiter.engine)
+        testImplementation(libs.junit.platform.launcher)
+        testImplementation(libs.junit.jupiter.api)
+        testImplementation(libs.devtools.common.ui.test)
     }
 }
 
