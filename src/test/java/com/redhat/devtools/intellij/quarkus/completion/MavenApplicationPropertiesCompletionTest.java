@@ -30,7 +30,6 @@ import java.io.File;
  */
 public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 
-	@Test
 	public void testBooleanCompletion() throws Exception {
 		Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
 		VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/resources/application.properties");

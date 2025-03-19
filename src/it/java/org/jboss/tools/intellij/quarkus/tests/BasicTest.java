@@ -11,25 +11,19 @@
 package org.jboss.tools.intellij.quarkus.tests;
 
 import com.intellij.remoterobot.RemoteRobot;
-import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
-import com.intellij.remoterobot.fixtures.JButtonFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
-import com.intellij.remoterobot.fixtures.JTreeFixture;
 import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
-import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.MainIdeWindow;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatusbar.IdeStatusBar;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.BuildView;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowPane;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowsPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.GradleBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.MavenBuildToolPane;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
-import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectSecondPage;
@@ -49,7 +43,6 @@ import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
-import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitForIgnoringError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -76,7 +69,7 @@ public class BasicTest extends AbstractQuarkusTest {
         ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
         toolWindowPane.openMavenBuildToolPane();
         MavenBuildToolPane mavenBuildToolPane = toolWindowPane.find(MavenBuildToolPane.class, Duration.ofSeconds(10));
-        mavenBuildToolPane.buildProject("install");
+        mavenBuildToolPane.buildProject("verify");
         boolean isBuildSuccessful = toolWindowPane.find(BuildView.class, Duration.ofSeconds(10)).isBuildSuccessful();
         assertTrue(isBuildSuccessful, "The build should be successful but is not.");
     }
@@ -106,6 +99,7 @@ public class BasicTest extends AbstractQuarkusTest {
             JTextFieldFixture customEndpointURLJTextField = remoteRobot.findAll(JTextFieldFixture.class, byXpath(XPathDefinitions.CUSTOM_ENDPOINT_URL_TEXT_FIELD)).get(0);
             customEndpointURLJTextField.setText("https://code.quarkus.io");
         }
+        quarkusNewProjectFirstPage.setProjectSdkIfAvailable(JAVA_VERSION_FOR_QUARKUS_PROJECT);
         newProjectDialogWizard.next();
 
         QuarkusNewProjectSecondPage quarkusNewProjectSecondPage = newProjectDialogWizard.find(QuarkusNewProjectSecondPage.class, Duration.ofSeconds(10));
@@ -115,13 +109,11 @@ public class BasicTest extends AbstractQuarkusTest {
         newProjectDialogWizard.find(QuarkusNewProjectThirdPage.class, Duration.ofSeconds(10)); // wait for third page to be loaded
         newProjectDialogWizard.next();
 
-        waitForIgnoringError(Duration.ofMillis(1000L),() -> remoteRobot.callJs("true"));
-
         QuarkusNewProjectFinalPage quarkusNewProjectFinalPage = newProjectDialogWizard.find(QuarkusNewProjectFinalPage.class, Duration.ofSeconds(10));
         quarkusNewProjectFinalPage.setProjectName(projectName);
 
-        String QUARKUS_PROJECT_LOCATION = ProjectLocation.PROJECT_LOCATION + File.separator + projectName;
-        Path quarkusProjectDir = Paths.get(QUARKUS_PROJECT_LOCATION);
+        String quarkusProjectLocation = ProjectLocation.PROJECT_LOCATION + File.separator + projectName;
+        Path quarkusProjectDir = Paths.get(quarkusProjectLocation);
         boolean doesProjectDirExists = Files.exists(quarkusProjectDir);
         if (!doesProjectDirExists) {
             try {
@@ -131,20 +123,17 @@ public class BasicTest extends AbstractQuarkusTest {
             }
         }
 
-        quarkusNewProjectFinalPage.setProjectLocation(QUARKUS_PROJECT_LOCATION);
+        quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
 
         newProjectDialogWizard.finish();
 
-        //minimizeProjectImportPopupIfItAppears();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         waitFor(Duration.ofSeconds(30), Duration.ofSeconds(3), "The project import did not finish in 5 minutes.", this::didProjectImportFinish);
 
-        //ideStatusBar.waitUntilProjectImportIsComplete();
-        ScreenshotUtils.takeScreenshot(remoteRobot);
+        ideStatusBar.waitUntilProjectImportIsComplete();
         MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
         mainIdeWindow.maximizeIdeWindow();
-        ideStatusBar.waitUntilAllBgTasksFinish(500);
     }
 
     private boolean didProjectImportFinish() {
@@ -156,26 +145,4 @@ public class BasicTest extends AbstractQuarkusTest {
         return false;
     }
 
-    private void minimizeProjectImportPopupIfItAppears() {
-        try {
-            waitForIgnoringError(Duration.ofSeconds(30), Duration.ofMillis(200), "Close the project import popup if it appears...", () -> {
-                remoteRobot.find(JButtonFixture.class, byXpath(XPathDefinitions.PROJECT_IMPORT_POPUP_MINIMIZE_BUTTON)).click();
-                return true;
-            });
-        } catch (Exception e) {
-            //suppress non-existing popup timeout
-        }
-    }
-
-    private void buildGradleProject(GradleBuildToolPane gradleBuildToolPane) {
-        gradleBuildToolPane.find(JTreeFixture.class, JTreeFixture.Companion.byType(), Duration.ofSeconds(30));
-        gradleBuildToolPane.expandAll();
-        gradleBuildToolPane.gradleTaskTree().findAllText("build").get(1).doubleClick();
-        if (UITestRunner.getIdeaVersionInt() >= 20221) {
-            remoteRobot.find(ToolWindowPane.class).find(BuildView.class).waitUntilBuildHasFinished();
-        } else {
-            remoteRobot.find(ToolWindowsPane.class).find(BuildView.class).waitUntilBuildHasFinished();
-        }
-        remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10)).waitUntilAllBgTasksFinish();
-    }
 }

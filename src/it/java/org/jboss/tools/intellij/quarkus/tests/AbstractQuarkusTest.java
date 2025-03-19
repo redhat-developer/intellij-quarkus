@@ -26,14 +26,14 @@ import java.time.Duration;
  * @author zcervink@redhat.com
  */
 @ExtendWith(ScreenshotAfterTestFailExtension.class)
-abstract public class AbstractQuarkusTest {
+public abstract class AbstractQuarkusTest {
     protected static RemoteRobot remoteRobot;
     private static boolean intelliJHasStarted = false;
 
     @BeforeAll
     protected static void startIntelliJ() {
         if (!intelliJHasStarted) {
-            remoteRobot = UITestRunner.runIde(IntelliJVersion.COMMUNITY_V_2023_2, 8580);
+            remoteRobot = UITestRunner.runIde(IntelliJVersion.COMMUNITY_V_2024_3, 8580);
             intelliJHasStarted = true;
             Runtime.getRuntime().addShutdownHook(new CloseIntelliJBeforeQuit());
 
