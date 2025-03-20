@@ -88,7 +88,8 @@ dependencies {
         if (localLsp4ij.isDirectory) {
             // In case Gradle fails to build because it can't find some missing jar, try deleting
             // ~/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/unzipped.com.jetbrains.plugins/com.redhat.devtools.lsp4ij*
-            platformPlugins.add(localLsp4ij.toString())
+            println("use local build of LSP4IJ")
+            localPlugin(localLsp4ij.toString())
         } else {
             // When running on CI or when there's no local lsp4ij
             val latestLsp4ijNightlyVersion = fetchLatestLsp4ijNightlyVersion()
@@ -97,8 +98,6 @@ dependencies {
         //Uses `platformPlugins` property from the gradle.properties file.
         platformPlugins.addAll(properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }.get())
         plugins(platformPlugins)
-        // for local plugin -> https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin-faq.html#how-to-add-a-dependency-on-a-plugin-available-in-the-file-system
-        //plugins.set(listOf(file("/path/to/plugin/")))
         // Print plugins
         println("bundledPlugins: $platformBundledPlugins")
         println("marketplacePlugins: $platformPlugins")
