@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.MavenEditorTest;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
+import com.redhat.devtools.lsp4ij.client.indexing.ProjectIndexingManager;
 import org.junit.Test;
 
 import java.io.File;
@@ -38,16 +39,18 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_MOVE_LINE_END);
 		codeInsightTestFixture.performEditorAction(IdeActions.ACTION_EDITOR_START_NEW_LINE);
 		insertLine("quarkus.arc.auto-inject-fields=");
-		LookupElement[] elements = codeInsightTestFixture.completeBasic();
-		assertNotNull(elements);
-		assertEquals(2, elements.length);
+        ProjectIndexingManager.waitForIndexingAll().thenRunAsync(() -> {
+            LookupElement[] elements = codeInsightTestFixture.completeBasic();
+            assertNotNull(elements);
+            assertEquals(2, elements.length);
+        });
 	}
 
 	private void insertLine(String s) throws InterruptedException {
 		for (int i = 0; i < s.length(); ++i) {
 			codeInsightTestFixture.type(s.charAt(i));
 		}
-		Thread.sleep(1000);
+		Thread.sleep(100);
 	}
 
 	protected Module loadMavenProject(String projectName) throws Exception {
