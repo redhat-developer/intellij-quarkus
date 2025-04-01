@@ -85,13 +85,13 @@ public class RenardeJaxRsTest extends QuarkusMavenModuleImportingTestCase {
                 si("@/about: GET", r(25, 28, 33)), //
                 si("@/play/id: GET", r(9, 18, 26)), //
                 si("@/play/start: GET", r(13, 18, 23)), //
-                // From Renarde JAR
-                si("@/_renarde/security/login-{provider}: GET", r(24, 16, 30)),
-                si("@/_renarde/security/logout: GET", r(27, 37, 43)),
-                si("@/_renarde/security/github-success: GET", r(31, 16, 29)),
-                si("@/_renarde/security/twitter-success: GET", r(35, 16, 30)),
-                si("@/_renarde/security/oidc-success: GET", r(39, 16, 30)),
-                si("@/_renarde/security/oidc-success: POST", r(44, 16, 31)));
+                // From Renarde JAR (RenardeSecurityController)
+                si("@/_renarde/security/login-{provider}: GET", r(41, 16, 30)),
+                si("@/_renarde/security/logout: GET", r(52, 20, 26)),
+                si("@/_renarde/security/github-success: GET", r(58, 16, 29)),
+                si("@/_renarde/security/twitter-success: GET", r(65, 16, 30)),
+                si("@/_renarde/security/oidc-success: GET", r(72, 16, 30)),
+                si("@/_renarde/security/oidc-success: POST", r(79, 16, 31)));
     }
 
 }

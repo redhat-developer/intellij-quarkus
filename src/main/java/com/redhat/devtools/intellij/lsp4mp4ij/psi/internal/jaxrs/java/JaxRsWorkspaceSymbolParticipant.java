@@ -28,10 +28,9 @@ import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +52,7 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 
 		JaxRsContext jaxrsContext = new JaxRsContext(project);
 		Set<PsiClass> jaxrsTypes = getAllJaxRsTypes(project, utils, monitor);
-		if (jaxrsTypes == null || monitor.isCanceled()) {
+		if (monitor.isCanceled()) {
 			return;
 		}
 		List<JaxRsMethodInfo> methodsInfo = new ArrayList<>();
@@ -102,20 +101,19 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 		for (IJaxRsInfoProvider provider : JaxRsInfoProviderRegistry.getInstance().getProviders()) {
 			jaxrsTypes.addAll(provider.getAllJaxRsClasses(javaProject, utils,monitor));
 			if (monitor.isCanceled()) {
-				return null;
+				return Collections.emptySet();
 			}
 		}
 		return jaxrsTypes;
 	}
 
-	private static SymbolInformation createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException, URISyntaxException {
+	private static SymbolInformation createSymbol(JaxRsMethodInfo methodInfo, IPsiUtils utils) throws MalformedURLException {
 		TextRange sourceRange = methodInfo.getJavaMethod().getNameIdentifier().getTextRange();
 		Range r = utils.toRange(methodInfo.getJavaMethod(), sourceRange.getStartOffset(), sourceRange.getLength());
 		Location location = new Location(methodInfo.getDocumentUri(), r);
 
 		StringBuilder nameBuilder = new StringBuilder("@");
-		URL url = new URI(methodInfo.getUrl()).toURL();
-		String path = url.getPath();
+		String path = new URL(methodInfo.getUrl()).getPath();
 		nameBuilder.append(path);
 		nameBuilder.append(": ");
 		nameBuilder.append(methodInfo.getHttpMethod());
