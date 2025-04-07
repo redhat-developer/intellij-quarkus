@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
@@ -18,6 +19,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import com.redhat.devtools.lsp4ij.server.JavaProcessCommandBuilder;
+import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider;
 import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import org.slf4j.Logger;
@@ -33,9 +35,7 @@ import java.util.Map;
 /**
  * Start the MicroProfile language server process with the Quarkus extension.
  */
-public class QuarkusServer extends ProcessStreamConnectionProvider {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusServer.class);
+public class QuarkusServer extends OSProcessStreamConnectionProvider {
 
     private final Project project;
 
@@ -54,7 +54,7 @@ public class QuarkusServer extends ProcessStreamConnectionProvider {
                 .create();
         commands.add("org.eclipse.lsp4mp.ls.MicroProfileServerLauncher");
         commands.add("-DrunAsync=true");
-        super.setCommands(commands);
+        super.setCommandLine(new GeneralCommandLine(commands));
 
         // Send "ls-start" telemetry event
         TelemetryManager.instance().send(TelemetryEventName.LSP_START_MICROPROFILE_SERVER);
