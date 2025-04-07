@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.qute.lsp;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
@@ -18,6 +19,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import com.redhat.devtools.lsp4ij.server.JavaProcessCommandBuilder;
+import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider;
 import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
 import org.slf4j.Logger;
@@ -32,9 +34,7 @@ import java.util.Map;
 /**
  * Start the Qute language server process.
  */
-public class QuteServer extends ProcessStreamConnectionProvider {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuteServer.class);
+public class QuteServer extends OSProcessStreamConnectionProvider {
 
     private final Project project;
 
@@ -50,7 +50,7 @@ public class QuteServer extends ProcessStreamConnectionProvider {
                 .setJar(quteServerPath.toString())
                 .create();
         commands.add("-DrunAsync=true");
-        super.setCommands(commands);
+        super.setCommandLine(new GeneralCommandLine(commands));
 
         // Send "ls-startQute" telemetry event
         TelemetryManager.instance().send(TelemetryEventName.LSP_START_QUTE_SERVER);
