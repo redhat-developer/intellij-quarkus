@@ -30,6 +30,6 @@ public class QuarkusDocumentMatcherForPropertiesFile extends AbstractQuarkusDocu
     }
 
     private boolean matchFile(VirtualFile file, Project fileProject) {
-        return QuarkusModuleUtil.isQuarkusPropertiesFile(file, fileProject) || QuarkusModuleUtil.isQuarkusYAMLFile(file, fileProject);
+        return QuarkusModuleUtil.isQuarkusPropertiesFile(file, fileProject) || QuarkusModuleUtil.isQuarkusYamlFile(file, fileProject);
     }
 }

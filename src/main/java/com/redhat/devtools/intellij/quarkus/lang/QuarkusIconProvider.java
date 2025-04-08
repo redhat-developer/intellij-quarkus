@@ -11,7 +11,6 @@
 package com.redhat.devtools.intellij.quarkus.lang;
 
 import com.intellij.ide.IconProvider;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
@@ -33,7 +32,7 @@ public class QuarkusIconProvider extends IconProvider {
                 element.getContainingFile().getVirtualFile() != null && element.getProject() != null) {
             VirtualFile file = element.getContainingFile().getVirtualFile();
             if (QuarkusModuleUtil.isQuarkusPropertiesFile(file, element.getProject()) ||
-                    QuarkusModuleUtil.isQuarkusYAMLFile(file, element.getProject())) {
+                    QuarkusModuleUtil.isQuarkusYamlFile(file, element.getProject())) {
                 return QUARKUS_ICON;
             }
         }

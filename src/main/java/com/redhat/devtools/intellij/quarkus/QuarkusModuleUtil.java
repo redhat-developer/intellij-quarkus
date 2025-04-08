@@ -19,7 +19,6 @@ import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.RootPolicy;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
@@ -61,8 +60,8 @@ public class QuarkusModuleUtil {
      * @param module the module to check
      * @return true if module is a Quarkus project and false otherwise.
      */
-    public static boolean isQuarkusModule(Module module) {
-        return hasLibrary(module, QuarkusConstants.QUARKUS_CORE_PREFIX);
+    public static boolean isQuarkusModule(@Nullable Module module) {
+        return module != null && hasLibrary(module, QuarkusConstants.QUARKUS_CORE_PREFIX);
     }
 
     /**
@@ -139,8 +138,12 @@ public class QuarkusModuleUtil {
         return false;
     }
 
-    public static boolean isQuarkusYAMLFile(VirtualFile file, Project project) {
-        if (APPLICATION_YAML.matcher(file.getName()).matches()) {
+    public static boolean isQuarkusYamlFile(@NotNull VirtualFile file) {
+        return APPLICATION_YAML.matcher(file.getName()).matches();
+    }
+
+    public static boolean isQuarkusYamlFile(VirtualFile file, Project project) {
+        if (isQuarkusYamlFile(file)) {
             return isQuarkusModule(file, project);
         }
         return false;
@@ -214,4 +217,5 @@ public class QuarkusModuleUtil {
         int port = mpProject.getPropertyAsInteger("quarkus.http.port", 8080);
         return mpProject.getPropertyAsInteger("%dev.quarkus.http.port", port);
     }
+
 }

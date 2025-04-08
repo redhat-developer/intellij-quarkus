@@ -14,8 +14,10 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ui.UIUtil;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
-import com.redhat.devtools.intellij.quarkus.json.QuarkusJsonSchemaProjectService;
+import com.redhat.devtools.intellij.quarkus.json.ApplicationYamlJsonSchemaManager;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import org.jetbrains.yaml.schema.YamlJsonSchemaHighlightingInspection;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
@@ -35,8 +37,7 @@ public class MavenApplicationYamlCompletionTest extends MavenModuleImportingTest
 	public void testApplicationYamlFile() throws Exception {
 		Module module = createMavenModule(new File("projects/maven/hibernate-orm-resteasy-yaml"));
 		((CodeInsightTestFixture)myTestFixture).setTestDataPath(ModuleUtilCore.getModuleDirPath(module));
-		((CodeInsightTestFixture)myTestFixture).configureByFile("src/main/resources/application.yaml");
-		QuarkusJsonSchemaProjectService.getInstance(module.getProject()).getSchema(module);
+		var psiFile = ((CodeInsightTestFixture)myTestFixture).configureByFile("src/main/resources/application.yaml");
 		UIUtil.dispatchAllInvocationEvents();
 		((CodeInsightTestFixture)myTestFixture).checkHighlighting();
 	}
