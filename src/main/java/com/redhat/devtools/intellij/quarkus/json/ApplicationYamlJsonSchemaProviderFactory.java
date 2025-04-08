@@ -17,17 +17,21 @@ import com.jetbrains.jsonSchema.extension.JsonSchemaProviderFactory;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class QuarkusSchemasProviderFactory implements JsonSchemaProviderFactory {
+/**
+ * Json schema factory used to provide support for Quarkus application.yaml
+ */
+public class ApplicationYamlJsonSchemaProviderFactory implements JsonSchemaProviderFactory {
+
     @NotNull
     @Override
     public List<JsonSchemaFileProvider> getProviders(@NotNull Project project) {
-        return Stream.of(ModuleManager.getInstance(project).getModules()).
-                filter(module -> QuarkusModuleUtil.isQuarkusModule(module)).
-                map(module -> new QuarkusJsonSchemaProvider(module)).
-                collect(Collectors.toList());
+        List<JsonSchemaFileProvider> providers = new ArrayList<>();
+        providers.addAll(ApplicationYamlJsonSchemaManager.getInstance(project).getProviders());
+        return providers;
     }
 }

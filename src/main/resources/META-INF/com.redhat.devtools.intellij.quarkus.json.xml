@@ -2,10 +2,10 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <projectService
-                serviceImplementation="com.redhat.devtools.intellij.quarkus.json.QuarkusJsonSchemaProjectService"/>
+                serviceImplementation="com.redhat.devtools.intellij.quarkus.json.ApplicationYamlJsonSchemaManager"/>
     </extensions>
 
     <extensions defaultExtensionNs="JavaScript.JsonSchema">
-        <ProviderFactory implementation="com.redhat.devtools.intellij.quarkus.json.QuarkusSchemasProviderFactory"/>
+        <ProviderFactory implementation="com.redhat.devtools.intellij.quarkus.json.ApplicationYamlJsonSchemaProviderFactory"/>
     </extensions>
 </idea-plugin>
