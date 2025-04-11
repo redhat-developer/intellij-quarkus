@@ -35,4 +35,16 @@ public class DefaultValueResource {
 
     @ConfigProperty(name = "greeting10", defaultValue="AB")
     char greeting10;
+
+    @ConfigProperty(name = "greeting.optional") // this optional properties are not set
+    java.util.Optional<String> optional;
+
+    @ConfigProperty(name = "greeting.optional.int")
+    java.util.OptionalInt optional;
+
+    @ConfigProperty(name = "greeting.optional.long")
+    java.util.OptionalLong optional;
+
+    @ConfigProperty(name = "greeting.optional.double")
+    java.util.OptionalDouble optional;
 }
