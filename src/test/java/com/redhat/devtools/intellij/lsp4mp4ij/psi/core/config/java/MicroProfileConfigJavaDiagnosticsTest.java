@@ -81,8 +81,16 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
+        Diagnostic d6 = d(49, 56, 62, "'PT15' does not match the expected type of 'Duration'.", DiagnosticSeverity.Error,
+                MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+        Diagnostic d7 = d(60, 56, 65, "'user' does not match the expected type of 'Profile'.", DiagnosticSeverity.Error,
+                MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
         assertJavaDiagnostics(diagnosticsParams, utils, //
-                d1, d2, d3, d4, d5);
+                d1, d2, d3, d4, d5, d6, d7);
     }
 
     @Test
