@@ -84,6 +84,15 @@
                 enabledByDefault="true"
                 level="WARNING"
                 implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedNamespaceInspection"/>
+        <localInspection
+                language="Qute_"
+                bundle="messages.QuteBundle"
+                key="qute.templates.validation.undefinedSectionTag"
+                groupPathKey="qute.inspection.group.name"
+                groupKey="qute.templates.inspection.group.name"
+                enabledByDefault="true"
+                level="WARNING"
+                implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedSectionTagInspection"/>
     </extensions>
 
 </idea-plugin>
