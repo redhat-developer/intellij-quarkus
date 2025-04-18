@@ -129,6 +129,9 @@ public class UserDefinedQuteSettings implements PersistentStateComponent<UserDef
                 },
                 "undefinedNamespace": {
                     "severity": "warning"
+                },
+                "undefinedSectionTag": {
+                    "severity": "warning"
                 }
             }
         }
@@ -158,6 +161,7 @@ public class UserDefinedQuteSettings implements PersistentStateComponent<UserDef
 
         validation.put("undefinedObject", getSeverityNode(inspectionsInfo.undefinedObjectSeverity()));
         validation.put("undefinedNamespace", getSeverityNode(inspectionsInfo.undefinedNamespaceSeverity()));
+        validation.put("undefinedSectionTag", getSeverityNode(inspectionsInfo.undefinedSectionTagSeverity()));
         return settings;
     }
 
