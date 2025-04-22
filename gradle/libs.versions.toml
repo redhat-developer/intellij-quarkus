@@ -9,7 +9,7 @@ devtools-common-ui-test = "0.4.4-SNAPSHOT"
 testlogger = "4.0.0"
 kotlin = "2.0.20"
 changelog = "2.2.0"
-gradleIntelliJPlugin = "2.2.1"
+gradleIntelliJPlugin = "2.5.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }

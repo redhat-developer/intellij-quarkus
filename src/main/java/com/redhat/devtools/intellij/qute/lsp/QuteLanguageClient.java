@@ -77,13 +77,13 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
      * Send the notification qute/dataModelChanged with the project Uris to
      * refresh data model used in Qute Template.
      *
-     * @param uris the project uris where the data model must be refreshed.
+     * @param projectChangeInfos the project change info where the data model must be refreshed.
      */
-    private void notifyQuteDataModelChanged(Set<String> uris) {
+    private void notifyQuteDataModelChanged(Set<JavaDataModelChangeEvent.ProjectChangeInfo> projectChangeInfos) {
         QuteLanguageServerAPI server = (QuteLanguageServerAPI) getLanguageServer();
         if (server != null) {
             JavaDataModelChangeEvent event = new JavaDataModelChangeEvent();
-            event.setProjectURIs(uris);
+            event.setProjects(projectChangeInfos);
             server.dataModelChanged(event);
         }
     }
@@ -116,9 +116,9 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
             // The language client has been disposed, ignore changes in libraries
             return;
         }
-        Set<String> uris = new HashSet<>();
-        uris.add(PsiQuteProjectUtils.getProjectURI(getProject()));
-        notifyQuteDataModelChanged(uris);
+        Set<JavaDataModelChangeEvent.ProjectChangeInfo> projectChangeInfo = new HashSet<>();
+        projectChangeInfo.add(new JavaDataModelChangeEvent.ProjectChangeInfo(PsiQuteProjectUtils.getProjectURI(getProject())));
+        notifyQuteDataModelChanged(projectChangeInfo);
     }
 
     @Override
@@ -127,14 +127,14 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
             // The language client has been disposed, ignore changes in Java source files
             return;
         }
-        Set<String> uris = sources.stream()
+        Set<JavaDataModelChangeEvent.ProjectChangeInfo> projectChangeInfos = sources.stream()
                 // qute/dataModelChanged must be sent only if there are some Java files which are changed
                 .filter(pair -> PsiMicroProfileProjectManager.isJavaFile(pair.getFirst()))
                 .map(pair -> pair.getSecond())
-                .map(module -> PsiUtilsLSImpl.getProjectURI(module))
+                .map(module -> new JavaDataModelChangeEvent.ProjectChangeInfo(PsiUtilsLSImpl.getProjectURI(module)))
                 .collect(Collectors.toSet());
-        if (!uris.isEmpty()) {
-            notifyQuteDataModelChanged(uris);
+        if (!projectChangeInfos.isEmpty()) {
+            notifyQuteDataModelChanged(projectChangeInfos);
         }
     }
 
