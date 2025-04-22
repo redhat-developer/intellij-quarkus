@@ -38,7 +38,7 @@ val quteLsVersion = prop("quteLsVersion")
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url = uri("https://repository.jboss.org/nexus/content/repositories/snapshots") }
+    maven { url = uri("https://raw.githubusercontent.com/redhat-developer/quarkus-ls/maven/") }
     maven { url = uri("https://repository.jboss.org/nexus/content/groups/public") }
     maven { url = uri("https://repo.eclipse.org/content/repositories/lsp4mp-snapshots") }
     maven { url = uri("https://repo.eclipse.org/content/repositories/lsp4mp-releases") }
