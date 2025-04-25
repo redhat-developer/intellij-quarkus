@@ -90,7 +90,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
      * @param module            the module.
      * @param progressIndicator the progress indicator.
      */
-    public static void updateClasspathWithQuarkusDeployment(Module module, ProgressIndicator progressIndicator) {
+    public void updateClasspathWithQuarkusDeployment(Module module, ProgressIndicator progressIndicator) {
         if (module.isDisposed())
             return;
         LOGGER.info("Ensuring library to " + module.getName());
@@ -141,7 +141,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
     }
 
     @NotNull
-    private synchronized static CompletableFuture<Void> internalUpdateClasspathWithQuarkusDeployment(Module module) {
+    private synchronized CompletableFuture<Void> internalUpdateClasspathWithQuarkusDeployment(Module module) {
         CompletableFuture<Void> deploymentSupport = module.getUserData(QUARKUS_DEPLOYMENT_SUPPORT_KEY);
         if (!isOutOfDated(deploymentSupport)) {
             return deploymentSupport;

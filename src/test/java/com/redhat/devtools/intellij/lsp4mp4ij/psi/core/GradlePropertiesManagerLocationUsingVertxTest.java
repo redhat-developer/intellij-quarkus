@@ -37,7 +37,7 @@ public class GradlePropertiesManagerLocationUsingVertxTest extends GradleTestCas
     }
 
     @Test
-    public void testUsingVertxTest() throws Exception {
+    public void testUsingVertxTest() {
         Module javaProject = getModule("using-vertx.main");
         QuarkusDeploymentSupport.getInstance(javaProject.getProject()).updateClasspathWithQuarkusDeployment(javaProject, new EmptyProgressIndicator());
 
