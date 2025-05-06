@@ -39,12 +39,13 @@ import org.jetbrains.idea.maven.project.MavenImportListener;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
-import org.jetbrains.idea.maven.server.MavenServerManager;
 import org.jetbrains.idea.maven.utils.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+
+import static org.jetbrains.idea.maven.project.MavenEmbeddersManager.FOR_DEPENDENCIES_RESOLVE;
 
 public class MavenToolDelegate implements BuildToolDelegate {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenToolDelegate.class);
@@ -154,7 +155,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
     private Set<MavenArtifact> resolveDeploymentArtifacts(Module module, MavenProject mavenProject, Set<MavenId> deploymentIds, String classifier, ProgressIndicator progressIndicator) {
         Set<MavenArtifact> deploymentArtifacts = new HashSet<>();
         try {
-            MavenEmbedderWrapper serverWrapper = MavenServerManager.getInstance().createEmbedder(module.getProject(), true, mavenProject.getDirectory());
+            MavenEmbedderWrapper serverWrapper = MavenProjectsManager.getInstance(module.getProject()).getEmbeddersManager().getEmbedder(mavenProject, FOR_DEPENDENCIES_RESOLVE);
             if (classifier != null) {
                 for (MavenId id : deploymentIds) {
                     deploymentArtifacts.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));

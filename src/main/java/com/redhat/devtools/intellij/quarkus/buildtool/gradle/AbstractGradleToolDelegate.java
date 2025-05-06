@@ -18,8 +18,10 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings;
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener;
+import com.intellij.openapi.externalSystem.task.TaskCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.ModifiableModuleModel;
@@ -116,14 +118,34 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         Path outputPath = Files.createTempFile(null, ".txt");
         Path customBuildFile = generateCustomGradleBuild(getModuleDirPath(module), outputPath, deploymentIds);
         Path customSettingsFile = generateCustomGradleSettings(getModuleDirPath(module), customBuildFile);
+        TaskCallback callback = new TaskCallback() {
+            @Override
+            public void onSuccess() {
+                cleanCustomFiles();
+            }
+
+            @Override
+            public void onFailure() {
+                LOGGER.error("Failed to run custom gradle build");
+                cleanCustomFiles();
+            }
+
+            private void cleanCustomFiles() {
+                try {
+                    Files.delete(customBuildFile);
+                    Files.delete(customSettingsFile);
+                } catch (IOException e) {
+                    LOGGER.warn(e.getLocalizedMessage(), e);
+                }
+            }
+
+        };
         try {
-            collectDependencies(module, customBuildFile, customSettingsFile, outputPath, result);
+            collectDependencies(module, customSettingsFile, outputPath, result, callback);
         } catch (IOException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         } finally {
             Files.delete(outputPath);
-            Files.delete(customBuildFile);
-            Files.delete(customSettingsFile);
         }
     }
 
@@ -149,37 +171,32 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     /**
      * Collect all deployment JARs and dependencies through a Gradle specific task.
      *
-     * @param module          the module to analyze
-     * @param customBuildFile the custom Gradle build file with the specific task
-     * @param outputPath      the file where the result of the specific task is stored
-     * @param result          the list where to place results to
+     * @param module     the module to analyze
+     * @param outputPath the file where the result of the specific task is stored
+     * @param result     the list where to place results to
+     * @param callback   the callback to call after running the task
      * @throws IOException if an error occurs running Gradle
      */
-    private void collectDependencies(Module module, Path customBuildFile, Path customSettingsFile, Path outputPath, List<VirtualFile>[] result) throws IOException {
+    private void collectDependencies(Module module, Path customSettingsFile, Path outputPath, List<VirtualFile>[] result, TaskCallback callback) throws IOException {
         try {
             ExternalSystemTaskExecutionSettings executionSettings = new ExternalSystemTaskExecutionSettings();
             executionSettings.setExternalSystemIdString(GradleConstants.SYSTEM_ID.toString());
             executionSettings.setTaskNames(Collections.singletonList("listQuarkusDependencies"));
             executionSettings.setScriptParameters(String.format("-c %s -q --console plain", customSettingsFile.toString()));
             executionSettings.setExternalProjectPath(getModuleDirPath(module));
-            ExternalSystemUtil.runTask(
-                    executionSettings,
-                    DefaultRunExecutor.EXECUTOR_ID,
-                    module.getProject(),
-                    GradleConstants.SYSTEM_ID
-            );
+            ExternalSystemUtil.runTask(executionSettings,DefaultRunExecutor.EXECUTOR_ID,
+                module.getProject(),
+                GradleConstants.SYSTEM_ID, callback, ProgressExecutionMode.IN_BACKGROUND_ASYNC, false);
             try (BufferedReader reader = Files.newBufferedReader(outputPath)) {
                 String id;
 
                 while ((id = reader.readLine()) != null) {
                     String file = reader.readLine();
                     String[] ids = id.split(":");
-                    if (!isDependency(ModuleRootManager.getInstance(module), ids[0], ids[1])) {
-                        if (file != null) {
-                            VirtualFile jarFile = getJarFile(file);
-                            if (jarFile != null) {
-                                result[file.endsWith("sources.jar") ? SOURCES : BINARY].add(jarFile);
-                            }
+                    if (!isDependency(ModuleRootManager.getInstance(module), ids[0], ids[1]) && file != null) {
+                        VirtualFile jarFile = getJarFile(file);
+                        if (jarFile != null) {
+                            result[file.endsWith("sources.jar") ? SOURCES : BINARY].add(jarFile);
                         }
                     }
                 }
@@ -233,6 +250,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             content = IOUtils.toString(reader);
         } catch (IOException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
         }
         content += System.lineSeparator() + "rootProject.buildFileName =\"" + customBuildFile.getFileName().toFile().getName() + "\"";
         Path customPath = Files.createTempFile(base, null, getScriptExtension());
@@ -252,7 +270,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      * @return the content of the custom build file
      */
     private String appendQuarkusResolution(String content, Path outputPath, Set<String> deploymentIds) {
-        StringBuffer buffer = new StringBuffer(content);
+        StringBuilder buffer = new StringBuilder(content);
         buffer.append(System.lineSeparator());
         buffer.append(createQuarkusConfiguration()).append(System.lineSeparator());
         buffer.append("dependencies {").append(System.lineSeparator());
@@ -281,29 +299,27 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      * @return the File object
      */
     public static File getDeploymentFile(String artifactId) {
-        String path = toPath(artifactId, File.separatorChar);
+        String path = toPath(artifactId);
         if (path != null) {
             return new File(M2_REPO, path);
         }
         return null;
     }
 
-    private static String toPath(String artifactId, char separator) {
+    private static String toPath(String artifactId) {
         String[] comps = artifactId.split(":");
         if (comps.length == 3) {
-            StringBuffer buffer = new StringBuffer(comps[0].replace('.', separator));
-            buffer.append(separator).append(comps[1]).append(separator).append(comps[2]).append(separator).append(comps[1]).append('-').append(comps[2]).append(".jar");
-            return buffer.toString();
+            return comps[0].replace('.', File.separatorChar) + File.separatorChar + comps[1] + File.separatorChar + comps[2] + File.separatorChar + comps[1] + '-' + comps[2] + ".jar";
         }
         return null;
     }
 
     private boolean isDependency(ModuleRootManager manager, String deploymentIdStr) {
-        return Stream.of(manager.getOrderEntries()).filter(entry -> entry instanceof LibraryOrderEntry && (GRADLE_LIBRARY_PREFIX + deploymentIdStr).equals(((LibraryOrderEntry) entry).getLibraryName())).findFirst().isPresent();
+        return Stream.of(manager.getOrderEntries()).anyMatch(entry -> entry instanceof LibraryOrderEntry && (GRADLE_LIBRARY_PREFIX + deploymentIdStr).equals(((LibraryOrderEntry) entry).getLibraryName()));
     }
 
     private boolean isDependency(ModuleRootManager manager, String groupId, String artifactId) {
-        return Stream.of(manager.getOrderEntries()).filter(entry -> entry instanceof LibraryOrderEntry && ((LibraryOrderEntry) entry).getLibraryName().startsWith(GRADLE_LIBRARY_PREFIX + groupId + ':' + artifactId)).findFirst().isPresent();
+        return Stream.of(manager.getOrderEntries()).anyMatch(entry -> entry instanceof LibraryOrderEntry && ((LibraryOrderEntry) entry).getLibraryName().startsWith(GRADLE_LIBRARY_PREFIX + groupId + ':' + artifactId));
     }
 
     @Override
@@ -381,16 +397,16 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
                 }
 
                 ReadAction.nonBlocking(() -> {
-                            List<Module> modules = new ArrayList<>();
-                            Module[] existingModules = ModuleManager.getInstance(project).getModules();
-                            for (Module module : existingModules) {
-                                // Check if the module is a Gradle project
-                                if (GradleRunnerUtil.isGradleModule(module) && isValidGradleModule(module)) {
-                                    modules.add(module);
-                                }
+                        List<Module> modules = new ArrayList<>();
+                        Module[] existingModules = ModuleManager.getInstance(project).getModules();
+                        for (Module module : existingModules) {
+                            // Check if the module is a Gradle project
+                            if (GradleRunnerUtil.isGradleModule(module) && isValidGradleModule(module)) {
+                                modules.add(module);
                             }
-                            listener.importFinished(modules);
-                        })
+                        }
+                        listener.importFinished(modules);
+                    })
                         .inSmartMode(project)
                         .submit(NonUrgentExecutor.getInstance());
             }

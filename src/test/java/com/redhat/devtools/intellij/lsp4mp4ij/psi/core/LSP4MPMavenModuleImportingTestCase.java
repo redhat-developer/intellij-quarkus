@@ -31,7 +31,7 @@ public abstract class LSP4MPMavenModuleImportingTestCase extends MavenModuleImpo
     protected Module loadMavenProject(String projectName, boolean collectAndAddQuarkusDeploymentDependencies) throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/" + projectName));
         if(collectAndAddQuarkusDeploymentDependencies) {
-            QuarkusDeploymentSupport.updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
+            QuarkusDeploymentSupport.getInstance(myTestFixture.getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
         }
         return module;
     }
