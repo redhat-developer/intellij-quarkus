@@ -46,7 +46,8 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
                         31 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */ + //
                         7 /* static properties from microprofile-context-propagation-api */ +
-                        1 /* static property from microprofile config_ordinal */,
+                        1 /* static property from microprofile config_ordinal */ +
+                        4 /* optional properties */,
 
                 // io.quarkus.deployment.ApplicationConfig
                 p("quarkus-core", "quarkus.application.name", "java.util.Optional<java.lang.String>",
@@ -121,7 +122,8 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
         MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromJavaSources, 31 /* properties from Java sources with ConfigProperty */ + //
-                        2 /* properties from Java sources with ConfigRoot */,
+                        2 /* properties from Java sources with ConfigRoot */ +
+                        4 /* optional properties */,
 
                 // GreetingResource
                 // @ConfigProperty(name = "greeting.message")
