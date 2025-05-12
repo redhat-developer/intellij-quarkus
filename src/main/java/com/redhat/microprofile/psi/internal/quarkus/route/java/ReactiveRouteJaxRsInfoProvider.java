@@ -17,10 +17,10 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.psi.*;
 import com.intellij.util.KeyedLazyInstanceEP;
-import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.jaxrs.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public class ReactiveRouteJaxRsInfoProvider extends KeyedLazyInstanceEP<IJaxRsIn
                                                     ProgressIndicator monitor) {
         try {
             PsiClass type = findFirstClass(typeRoot);
-            if (type == null) {
+            if (type == null || type.getNameIdentifier() == null) {
                 return Collections.emptyList();
             }
             // See https://quarkus.io/guides/reactive-routes#routebase
@@ -72,7 +72,7 @@ public class ReactiveRouteJaxRsInfoProvider extends KeyedLazyInstanceEP<IJaxRsIn
             List<JaxRsMethodInfo> methodInfos = new ArrayList<>();
             for (PsiMethod method : type.getMethods()) {
 
-                if (method.isConstructor() || utils.isHiddenGeneratedElement(method)) {
+                if (method.isConstructor() || utils.isHiddenGeneratedElement(method) || method.getNameIdentifier() == null) {
                     continue;
                 }
                 // ignore element if method range overlaps the type range,
