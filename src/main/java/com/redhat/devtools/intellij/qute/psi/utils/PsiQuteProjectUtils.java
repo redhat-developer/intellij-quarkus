@@ -57,7 +57,6 @@ public class PsiQuteProjectUtils {
     public static ProjectInfo getProjectInfo(Module javaProject) {
         String projectUri = getProjectURI(javaProject);
         // Project dependencies
-        // Project dependencies
         Set<Module> projectDependencies = new HashSet<>();
         ModuleUtilCore.getDependencies(javaProject, projectDependencies);
         // Template root paths
