@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.qute.lsp;
 import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -21,18 +22,21 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.ProfileChangeAdapter;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.messages.MessageBusConnection;
-import com.redhat.devtools.intellij.quarkus.QuarkusPluginDisposable;
-import com.redhat.devtools.lsp4ij.client.CoalesceByKey;
-import com.redhat.devtools.lsp4ij.client.IndexAwareLanguageClient;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
+import com.redhat.devtools.intellij.quarkus.QuarkusPluginDisposable;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForJava;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.devtools.intellij.qute.settings.QuteInspectionsInfo;
 import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
+import com.redhat.devtools.lsp4ij.client.CoalesceByKey;
+import com.redhat.devtools.lsp4ij.client.IndexAwareLanguageClient;
 import com.redhat.qute.commons.*;
 import com.redhat.qute.commons.datamodel.*;
 import com.redhat.qute.commons.usertags.QuteUserTagParams;
@@ -43,8 +47,8 @@ import org.eclipse.lsp4j.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * Qute language client.
@@ -110,6 +114,7 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
             }, ModalityState.defaultModalityState(), getProject().getDisposed());
         }
     }
+
     @Override
     public void librariesChanged() {
         if (isDisposed()) {
@@ -127,15 +132,53 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
             // The language client has been disposed, ignore changes in Java source files
             return;
         }
-        Set<JavaDataModelChangeEvent.ProjectChangeInfo> projectChangeInfos = sources.stream()
-                // qute/dataModelChanged must be sent only if there are some Java files which are changed
-                .filter(pair -> PsiMicroProfileProjectManager.isJavaFile(pair.getFirst()))
-                .map(pair -> pair.getSecond())
-                .map(module -> new JavaDataModelChangeEvent.ProjectChangeInfo(PsiUtilsLSImpl.getProjectURI(module)))
-                .collect(Collectors.toSet());
-        if (!projectChangeInfos.isEmpty()) {
-            notifyQuteDataModelChanged(projectChangeInfos);
-        }
+
+        // Send 'qute/dataModelChanged' event:
+        /* [Trace - 18:42:01] Sending notification 'qute/dataModelChanged'
+            Params: {
+              "projects": [
+                {
+                  "uri": "code-with-quarkus2",
+                  "sources": [
+                    "org.acme.SomePage"
+                  ]
+                }
+              ]
+            } */
+        final var finalSources = new HashSet<>(sources);
+        ReadAction.nonBlocking((Callable<Void>) () -> {
+                    Map<Module, JavaDataModelChangeEvent.ProjectChangeInfo> projectChangeInfos = new HashMap<>();
+                    for (var source : finalSources) {
+                        var file = source.getFirst();
+                        // qute/dataModelChanged must be sent only if there are some Java files which are changed
+                        if (PsiMicroProfileProjectManager.isJavaFile(file)) {
+                            var module = source.getSecond();
+                            var projectInfo = projectChangeInfos.get(module);
+                            if (projectInfo == null) {
+                                projectInfo = new JavaDataModelChangeEvent.ProjectChangeInfo(PsiUtilsLSImpl.getProjectURI(module));
+                                projectChangeInfos.put(module, projectInfo);
+                                projectInfo.setSources(new HashSet<>());
+                            }
+                            var psiFile = LSPIJUtils.getPsiFile(file, module.getProject());
+                            if (psiFile instanceof PsiJavaFile javaFile) {
+                                var classes = javaFile.getClasses();
+                                for (var psiClass : classes) {
+                                    var className = psiClass.getQualifiedName();
+                                    if (className != null) {
+                                        projectInfo.getSources().add(className);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (!projectChangeInfos.isEmpty()) {
+                        notifyQuteDataModelChanged(new HashSet<>(projectChangeInfos.values()));
+                    }
+                    return null;
+                })
+                .submit(AppExecutorUtil.getAppExecutorService());
+
+
     }
 
     @Override
