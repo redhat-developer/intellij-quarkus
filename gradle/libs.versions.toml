@@ -1,9 +1,9 @@
 [versions]
 # libraries
 junit = "4.13.2"
-junit-platform = "1.11.3"
-junit-jupiter = "5.11.3"
-devtools-common-ui-test = "0.4.4-SNAPSHOT"
+junit-platform = "1.12.2"
+junit-jupiter = "5.12.2"
+devtools-common-ui-test = "0.4.5-SNAPSHOT"
 
 # plugins
 testlogger = "4.0.0"
