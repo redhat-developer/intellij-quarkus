@@ -12,6 +12,8 @@
 package com.redhat.devtools.intellij.qute.psi.utils;
 
 import com.intellij.java.library.JavaLibraryUtil;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -19,10 +21,9 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.devtools.intellij.qute.psi.internal.template.rootpath.TemplateRootPathProviderRegistry;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
-import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
-import com.redhat.qute.commons.FileUtils;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.TemplateRootPath;
 import io.quarkus.runtime.util.StringUtil;
@@ -32,7 +33,10 @@ import org.jetbrains.jps.model.java.JavaResourceRootType;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -62,7 +66,7 @@ public class PsiQuteProjectUtils {
         // Template root paths
         List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
                 .getTemplateRootPaths(javaProject);
-        return new ProjectInfo(projectUri,  projectDependencies
+        return new ProjectInfo(projectUri, projectDependencies
                 .stream()
                 .filter(projectDependency -> !javaProject.equals(projectDependency))
                 .map(LSPIJUtils::getProjectUri)
@@ -82,6 +86,7 @@ public class PsiQuteProjectUtils {
         }
         return LSPIJUtils.toUri(javaProject).resolve(RESOURCES_BASE_DIR).resolve(templateFolderName).toASCIIString();
     }
+
     /**
      * Returns the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
      *
@@ -236,12 +241,17 @@ public class PsiQuteProjectUtils {
     }
 
     public static boolean isQuteTemplate(VirtualFile file, Module module) {
-        String templateFileUri = file.getPath();
-        if(file.getPath().contains(TEMPLATES_FOLDER_NAME) &&
+        return ApplicationManager.getApplication().isReadAccessAllowed() ?
+                internalIsQuteTemplate(file, module) :
+                (Boolean) ReadAction.compute(() -> internalIsQuteTemplate(file, module));
+    }
+
+    private static boolean internalIsQuteTemplate(VirtualFile file, Module module) {
+        if (file.getPath().contains(TEMPLATES_FOLDER_NAME) &&
                 ModuleRootManager.getInstance(module).getFileIndex().isInSourceContent(file)) {
             return true;
         }
-        ProjectInfo projectInfo =  PsiQuteProjectUtils.getProjectInfo(module);
+        ProjectInfo projectInfo = PsiQuteProjectUtils.getProjectInfo(module);
         if (projectInfo == null) {
             return false;
         }
