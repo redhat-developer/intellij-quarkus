@@ -19,9 +19,12 @@ package com.redhat.devtools.intellij.qute.psi;
  */
 public class QuteCommandConstants {
 
-	public static final String QUTE_COMMAND_OPEN_URI = "qute.command.open.uri";
+	public static final String OPEN_URI = "qute.command.open.uri";
+	public static final String JAVA_DEFINITION = "qute.command.java.definition";
+	public static final String COMMAND_CONFIGURATION_UPDATE = "qute.command.configuration.update";
+	public static final String COMMAND_SHOW_REFERENCES = "qute.command.show.references";
 
-	public static final String QUTE_COMMAND_GENERATE_TEMPLATE_FILE = "qute.command.generate.template.file";
+	public static final String GENERATE_TEMPLATE_FILE = "qute.command.generate.template.file";
 
 	private QuteCommandConstants() {
 
