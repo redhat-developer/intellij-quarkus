@@ -13,9 +13,11 @@ package com.redhat.devtools.intellij.qute.lsp;
 import com.intellij.openapi.project.Project;
 import com.redhat.devtools.lsp4ij.LanguageServerFactory;
 import com.redhat.devtools.lsp4ij.client.LanguageClientImpl;
+import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures;
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider;
 import com.redhat.qute.ls.api.QuteLanguageServerAPI;
 import org.eclipse.lsp4j.services.LanguageServer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Qute language server factory.
@@ -23,17 +25,22 @@ import org.eclipse.lsp4j.services.LanguageServer;
 public class QuteLanguageServerFactory implements LanguageServerFactory {
 
     @Override
-    public StreamConnectionProvider createConnectionProvider(Project project) {
+    public @NotNull StreamConnectionProvider createConnectionProvider(@NotNull Project project) {
         return new QuteServer(project);
     }
 
     @Override
-    public LanguageClientImpl createLanguageClient(Project project) {
+    public @NotNull LanguageClientImpl createLanguageClient(@NotNull Project project) {
         return new QuteLanguageClient(project);
     }
 
     @Override
-    public Class<? extends LanguageServer> getServerInterface() {
+    public @NotNull Class<? extends LanguageServer> getServerInterface() {
         return QuteLanguageServerAPI.class;
+    }
+
+    @Override
+    public @NotNull LSPClientFeatures createClientFeatures() {
+        return new QuteClientFeatures();
     }
 }
