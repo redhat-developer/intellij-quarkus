@@ -56,6 +56,15 @@
                              instance="com.redhat.devtools.intellij.qute.settings.QuteConfigurable"/>
 
         <localInspection
+                id="QuteLSPLocalInspectionTool"
+                language="Qute_"
+                bundle="messages.QuteBundle"
+                groupName="Qute"
+                displayName="Templates"
+                enabledByDefault="true"
+                implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteLSPLocalInspectionTool"/>
+
+        <localInspection
                 unfair="true"
                 language="Qute_"
                 bundle="messages.QuteBundle"
