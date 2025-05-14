@@ -8,6 +8,8 @@
     <change-notes><![CDATA[
     <h3>2.2.0</h3>
     <ul>
+      <li>Qute support improvement</li>
+      <li>Performance improvement</li>
       <li>More bug fixes</li>
     </ul>
     Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/49?closed=1">changelog</a>.
