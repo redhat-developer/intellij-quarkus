@@ -49,9 +49,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author zcervink@redhat.com
  */
 public class BasicTest extends AbstractQuarkusTest {
-    private final String NEW_QUARKUS_MAVEN_PROJECT_NAME = "code-with-quarkus-maven";
-    private final String NEW_QUARKUS_GRADLE_PROJECT_NAME = "code-with-quarkus-gradle";
-    private final String JAVA_VERSION_FOR_QUARKUS_PROJECT = "17";
+    private static final String NEW_QUARKUS_MAVEN_PROJECT_NAME = "code-with-quarkus-maven";
+    private static final String NEW_QUARKUS_GRADLE_PROJECT_NAME = "code-with-quarkus-gradle";
+    private static final String JAVA_VERSION_FOR_QUARKUS_PROJECT = "17";
 
     @AfterEach
     public void finishTestRun() {
@@ -62,18 +62,18 @@ public class BasicTest extends AbstractQuarkusTest {
     }
 
     @Test
-    public void createBuildQuarkusMavenTest() {
+    public void createBuildQuarkusMavenTest() throws IOException {
         createQuarkusProject(remoteRobot, NEW_QUARKUS_MAVEN_PROJECT_NAME, BuildTool.MAVEN, EndpointURLType.DEFAULT);
         ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
         toolWindowPane.openMavenBuildToolPane();
         MavenBuildToolPane mavenBuildToolPane = toolWindowPane.find(MavenBuildToolPane.class, Duration.ofSeconds(10));
-        mavenBuildToolPane.buildProject("verify");
+        mavenBuildToolPane.buildProject("verify", "code-with-quarkus");
         boolean isBuildSuccessful = toolWindowPane.find(BuildView.class, Duration.ofSeconds(10)).isBuildSuccessful();
         assertTrue(isBuildSuccessful, "The build should be successful but is not.");
     }
 
     @Test
-    public void createBuildQuarkusGradleTest() {
+    public void createBuildQuarkusGradleTest() throws IOException {
         createQuarkusProject(remoteRobot, NEW_QUARKUS_GRADLE_PROJECT_NAME, BuildTool.GRADLE, EndpointURLType.DEFAULT);
         ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
         toolWindowPane.openGradleBuildToolPane();
@@ -85,7 +85,7 @@ public class BasicTest extends AbstractQuarkusTest {
         assertTrue(isBuildSuccessful, "The build should be successful but is not.");
     }
 
-    private void createQuarkusProject(RemoteRobot remoteRobot, String projectName, BuildTool buildTool, EndpointURLType endpointURLType) {
+    private void createQuarkusProject(RemoteRobot remoteRobot, String projectName, BuildTool buildTool, EndpointURLType endpointURLType) throws IOException {
         remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10)).createNewProject();
         NewProjectDialogWizard newProjectDialogWizard = remoteRobot.find(NewProjectDialogWizard.class, Duration.ofSeconds(10));
         QuarkusNewProjectFirstPage quarkusNewProjectFirstPage = newProjectDialogWizard.find(QuarkusNewProjectFirstPage.class, Duration.ofSeconds(10));
@@ -113,11 +113,7 @@ public class BasicTest extends AbstractQuarkusTest {
         Path quarkusProjectDir = Paths.get(quarkusProjectLocation);
         boolean doesProjectDirExists = Files.exists(quarkusProjectDir);
         if (!doesProjectDirExists) {
-            try {
-                Files.createDirectories(quarkusProjectDir); // create project directory with project name to prevent "Directory does not exist. It will be created by Intellij. Create/Cancel" popup
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            Files.createDirectories(quarkusProjectDir); // create project directory with project name to prevent "Directory does not exist. It will be created by Intellij. Create/Cancel" popup
         }
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();

@@ -39,7 +39,8 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven { url = uri("https://raw.githubusercontent.com/redhat-developer/quarkus-ls/maven/") }
-    maven { url = uri("https://repository.jboss.org/nexus/content/groups/public") }
+    maven { url = uri("https://raw.githubusercontent.com/redhat-developer/intellij-common-ui-test-library/repository/snapshots") }
+    maven { url = uri("https://raw.githubusercontent.com/redhat-developer/intellij-common-ui-test-library/repository/releases") }
     maven { url = uri("https://repo.eclipse.org/content/repositories/lsp4mp-snapshots") }
     maven { url = uri("https://repo.eclipse.org/content/repositories/lsp4mp-releases") }
     intellijPlatform {
