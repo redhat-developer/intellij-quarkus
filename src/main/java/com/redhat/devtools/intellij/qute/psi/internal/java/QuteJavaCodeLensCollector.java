@@ -74,7 +74,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
                     ? MessageFormat.format(QUTE_COMMAND_OPEN_URI_WITH_FRAGMENT_MESSAGE, fragmentId, templateUri)
                     : MessageFormat.format(QUTE_COMMAND_OPEN_URI_MESSAGE, templateUri);
             command = new Command(title, //
-                    QuteCommandConstants.QUTE_COMMAND_OPEN_URI,
+                    QuteCommandConstants.OPEN_URI,
                     Arrays.asList(LSPIJUtils.toUriAsString(templateFile)));
         } else {
             List<DataModelParameter> parameters = createParameters(fieldOrMethod);
@@ -84,7 +84,7 @@ public class QuteJavaCodeLensCollector extends AbstractQuteTemplateLinkCollector
             info.setTemplateFileUri(getVirtualFileUrl(utils.getModule(), templateUri));
             info.setTemplateFilePath(templateUri);
             command = new Command(MessageFormat.format(QUTE_COMMAND_GENERATE_TEMPLATE_MESSAGE, templateUri), //
-                    QuteCommandConstants.QUTE_COMMAND_GENERATE_TEMPLATE_FILE, Arrays.asList(info));
+                    QuteCommandConstants.GENERATE_TEMPLATE_FILE, Arrays.asList(info));
         }
         TextRange tr = fieldOrMethod.getTextRange();
         Range range = utils.toRange(typeRoot, tr.getStartOffset(), tr.getLength());
