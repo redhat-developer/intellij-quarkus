@@ -118,12 +118,13 @@ public class BasicTest extends AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
 
+        MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
+        mainIdeWindow.maximizeIdeWindow();
+
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ideStatusBar.waitUntilProjectImportIsComplete();
         ideStatusBar.waitUntilAllBgTasksFinish();
 
-        MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5));
-        mainIdeWindow.maximizeIdeWindow();
     }
 
 }
