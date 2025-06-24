@@ -16,7 +16,6 @@ import com.intellij.remoterobot.fixtures.JTextFieldFixture;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.MainIdeWindow;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatusbar.IdeStatusBar;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
@@ -115,9 +114,6 @@ public abstract class AbstractQuarkusTest {
         }
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
-
-        MainIdeWindow mainIdeWindow = remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(10));
-        mainIdeWindow.maximizeIdeWindow();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ideStatusBar.waitUntilProjectImportIsComplete();
