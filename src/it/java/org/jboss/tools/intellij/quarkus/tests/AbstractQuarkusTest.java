@@ -19,6 +19,7 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewPro
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.MainIdeWindow;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatusbar.IdeStatusBar;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
+import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.runner.IntelliJVersion;
 import com.redhat.devtools.intellij.commonuitest.utils.testextension.ScreenshotAfterTestFailExtension;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
@@ -28,6 +29,7 @@ import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNe
 import org.jboss.tools.intellij.quarkus.utils.BuildTool;
 import org.jboss.tools.intellij.quarkus.utils.EndpointURLType;
 import org.jboss.tools.intellij.quarkus.utils.XPathDefinitions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -73,6 +75,14 @@ public abstract class AbstractQuarkusTest {
         }
     }
 
+    @AfterEach
+    protected void clearWorkspace() {
+        CreateCloseUtils.closeProject(remoteRobot);
+        FlatWelcomeFrame flatWelcomeFrame = remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10));
+        flatWelcomeFrame.clearExceptions();
+        flatWelcomeFrame.clearWorkspace();
+    }
+
     protected void createQuarkusProject(RemoteRobot remoteRobot, String projectName, BuildTool buildTool, EndpointURLType endpointURLType, String javaVersion) throws IOException {
         remoteRobot.find(FlatWelcomeFrame.class, Duration.ofSeconds(10)).createNewProject();
         NewProjectDialogWizard newProjectDialogWizard = remoteRobot.find(NewProjectDialogWizard.class, Duration.ofSeconds(10));
@@ -111,6 +121,6 @@ public abstract class AbstractQuarkusTest {
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ideStatusBar.waitUntilProjectImportIsComplete();
-        ideStatusBar.waitUntilAllBgTasksFinish();
+        ideStatusBar.waitUntilAllBgTasksFinish(300);
     }
 }
