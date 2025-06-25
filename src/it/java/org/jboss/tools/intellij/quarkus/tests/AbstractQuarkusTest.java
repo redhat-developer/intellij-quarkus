@@ -20,6 +20,7 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatu
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.runner.IntelliJVersion;
+import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.testextension.ScreenshotAfterTestFailExtension;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
@@ -116,6 +117,7 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
+        ScreenshotUtils.takeScreenshot(remoteRobot, "waiting import");
         ideStatusBar.waitUntilProjectImportIsComplete();
         ideStatusBar.waitUntilAllBgTasksFinish();
     }
