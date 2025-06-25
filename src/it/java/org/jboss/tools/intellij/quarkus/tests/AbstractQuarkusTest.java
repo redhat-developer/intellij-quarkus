@@ -11,6 +11,7 @@
 package org.jboss.tools.intellij.quarkus.tests;
 
 import com.intellij.remoterobot.RemoteRobot;
+import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.HeavyWeightWindowFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
@@ -40,6 +41,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
@@ -119,7 +122,10 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
-        if (!remoteRobot.findAll(HeavyWeightWindowFixture.class).isEmpty()){
+        List<CommonContainerFixture> fixtureList = remoteRobot.findAll(CommonContainerFixture.class, byXpath(com.redhat.devtools.intellij.commonuitest.utils.constants.XPathDefinitions.MY_DIALOG));
+        if (!fixtureList.isEmpty()){
+            Logger.getAnonymousLogger().log(Level.INFO, fixtureList.size() + "Fixtures found");
+            Logger.getAnonymousLogger().log(Level.INFO, fixtureList.toString());
             ScreenshotUtils.takeScreenshot(remoteRobot, "waiting import");
         }
         ideStatusBar.waitUntilProjectImportIsComplete();
