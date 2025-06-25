@@ -12,6 +12,7 @@ package org.jboss.tools.intellij.quarkus.tests;
 
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
+import com.intellij.remoterobot.fixtures.HeavyWeightWindowFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
@@ -39,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.logging.Logger;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
 
@@ -117,7 +119,9 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
-        ScreenshotUtils.takeScreenshot(remoteRobot, "waiting import");
+        if (!remoteRobot.findAll(HeavyWeightWindowFixture.class).isEmpty()){
+            ScreenshotUtils.takeScreenshot(remoteRobot, "waiting import");
+        }
         ideStatusBar.waitUntilProjectImportIsComplete();
         ideStatusBar.waitUntilAllBgTasksFinish();
     }
