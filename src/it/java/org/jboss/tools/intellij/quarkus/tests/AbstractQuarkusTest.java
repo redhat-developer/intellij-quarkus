@@ -13,7 +13,6 @@ package org.jboss.tools.intellij.quarkus.tests;
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.fixtures.CommonContainerFixture;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
-import com.intellij.remoterobot.fixtures.HeavyWeightWindowFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
@@ -122,7 +121,7 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
-        List<CommonContainerFixture> fixtureList = remoteRobot.findAll(CommonContainerFixture.class, byXpath(com.redhat.devtools.intellij.commonuitest.utils.constants.XPathDefinitions.MY_DIALOG));
+        List<CommonContainerFixture> fixtureList = remoteRobot.findAll(CommonContainerFixture.class);
         if (!fixtureList.isEmpty()){
             Logger.getAnonymousLogger().log(Level.INFO, fixtureList.size() + "Fixtures found");
             Logger.getAnonymousLogger().log(Level.INFO, fixtureList.toString());
