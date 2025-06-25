@@ -116,6 +116,7 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
 
         IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
-        ideStatusBar.waitUntilAllBgTasksFinish(300);
+        ideStatusBar.waitUntilProjectImportIsComplete();
+        ideStatusBar.waitUntilAllBgTasksFinish();
     }
 }

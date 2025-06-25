@@ -34,9 +34,10 @@ public class GradleTest extends AbstractQuarkusTest {
     @Test
     public void createBuildQuarkusGradleTest() throws IOException {
         createQuarkusProject(remoteRobot, NEW_QUARKUS_GRADLE_PROJECT_NAME, BuildTool.GRADLE, EndpointURLType.DEFAULT, JAVA_VERSION);
-        ScreenshotUtils.takeScreenshot(remoteRobot);
         ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
+        ScreenshotUtils.takeScreenshot(remoteRobot, "before open gradle");
         toolWindowPane.openGradleBuildToolPane();
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after open gradle");
         GradleBuildToolPane gradleBuildToolPane = toolWindowPane.find(GradleBuildToolPane.class, Duration.ofSeconds(10));
         gradleBuildToolPane.buildProject();
         boolean isBuildSuccessful = toolWindowPane.find(BuildView.class, Duration.ofSeconds(10)).isBuildSuccessful();
