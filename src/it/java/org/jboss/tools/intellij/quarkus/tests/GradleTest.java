@@ -13,6 +13,7 @@ package org.jboss.tools.intellij.quarkus.tests;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.BuildView;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowPane;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.GradleBuildToolPane;
+import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import org.jboss.tools.intellij.quarkus.utils.BuildTool;
 import org.jboss.tools.intellij.quarkus.utils.EndpointURLType;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ public class GradleTest extends AbstractQuarkusTest {
     @Test
     public void createBuildQuarkusGradleTest() throws IOException {
         createQuarkusProject(remoteRobot, NEW_QUARKUS_GRADLE_PROJECT_NAME, BuildTool.GRADLE, EndpointURLType.DEFAULT, JAVA_VERSION);
+        ScreenshotUtils.takeScreenshot(remoteRobot);
         ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
         toolWindowPane.openGradleBuildToolPane();
         GradleBuildToolPane gradleBuildToolPane = toolWindowPane.find(GradleBuildToolPane.class, Duration.ofSeconds(10));
