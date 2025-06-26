@@ -118,6 +118,15 @@ public abstract class AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
         ScreenshotUtils.takeScreenshot(remoteRobot, "after finish");
+        // wait for project to open
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            ScreenshotUtils.takeScreenshot(remoteRobot, "interrupted while waiting for project to open");
+            /* Clean up whatever needs to be handled before interrupting  */
+            Thread.currentThread().interrupt();
+        }
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after wait for 10s");
 
         CreateCloseUtils.waitAfterOpeningProject(remoteRobot);
         ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
