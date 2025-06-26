@@ -17,7 +17,7 @@ import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatusbar.IdeStatusBar;
+import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.MainIdeWindow;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.runner.IntelliJVersion;
@@ -119,17 +119,22 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
         ScreenshotUtils.takeScreenshot(remoteRobot, "after finish");
         // wait for project to open
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            ScreenshotUtils.takeScreenshot(remoteRobot, "interrupted while waiting for project to open");
-            /* Clean up whatever needs to be handled before interrupting  */
-            Thread.currentThread().interrupt();
-        }
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after wait for 10s");
+        waitFor(Duration.ofSeconds(300), Duration.ofSeconds(5), "main ide window to open", this::isMainIdeWindowOpen);
+
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after wait for main window to open");
 
         CreateCloseUtils.waitAfterOpeningProject(remoteRobot);
         ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
+    }
+
+    private Boolean isMainIdeWindowOpen() {
+        try {
+            return remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5)).isShowing();
+        } catch (WaitForConditionTimeoutException e) {
+            return false;
+        }
+    }
+
     }
 
 }
