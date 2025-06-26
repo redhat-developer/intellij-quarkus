@@ -136,10 +136,14 @@ public abstract class AbstractQuarkusTest {
     }
 
     private boolean didAllBgTasksFinish() {
-        if (remoteRobot.find(IdeStatusBar.class).isShowing()) {
-            return remoteRobot.find(IdeStatusBar.class).inlineProgressPanel().findAllText().isEmpty();
+        try {
+            if (remoteRobot.find(IdeStatusBar.class).isShowing()) {
+                return remoteRobot.find(IdeStatusBar.class).inlineProgressPanel().findAllText().isEmpty();
+            }
+            return true;
+        } catch (WaitForConditionTimeoutException e) {
+            return true;
         }
-        return false;
     }
 
 }
