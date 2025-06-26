@@ -119,13 +119,8 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
         ScreenshotUtils.takeScreenshot(remoteRobot, "after finish");
 
-        IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(2));
-        ideStatusBar.waitUntilAllBgTasksFinish();
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting bg");
-
-        ideStatusBar.waitUntilProjectImportIsComplete();
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting project import");
-
+        CreateCloseUtils.waitAfterOpeningProject(remoteRobot);
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
     }
 
 }
