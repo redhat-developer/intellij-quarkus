@@ -116,6 +116,9 @@ public abstract class AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
 
+        IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after finish");
+
         // wait for 'loading Project' progressmonitor to end
         // TODO for now don't know what kind of dialog is the 'loading' so just pausing thread
         try {
@@ -125,8 +128,8 @@ public abstract class AbstractQuarkusTest {
             /* Clean up whatever needs to be handled before interrupting  */
             Thread.currentThread().interrupt();
         }
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
 
-        IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ideStatusBar.waitUntilProjectImportIsComplete();
         ideStatusBar.waitUntilAllBgTasksFinish();
     }
