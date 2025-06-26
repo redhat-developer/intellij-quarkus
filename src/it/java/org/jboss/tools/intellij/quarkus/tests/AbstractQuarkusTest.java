@@ -13,6 +13,7 @@ package org.jboss.tools.intellij.quarkus.tests;
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
+import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
@@ -41,6 +42,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
+import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
 
 /**
  * Abstract test class
@@ -115,22 +117,15 @@ public abstract class AbstractQuarkusTest {
         }
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
-
-        IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(10));
         ScreenshotUtils.takeScreenshot(remoteRobot, "after finish");
 
-        // wait for 'loading Project' progressmonitor to end
-        // TODO for now don't know what kind of dialog is the 'loading' so just pausing thread
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            ScreenshotUtils.takeScreenshot(remoteRobot, "interrupted while waiting for new project to load");
-            /* Clean up whatever needs to be handled before interrupting  */
-            Thread.currentThread().interrupt();
-        }
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
+        IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class, Duration.ofSeconds(2));
+        ideStatusBar.waitUntilAllBgTasksFinish();
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting bg");
 
         ideStatusBar.waitUntilProjectImportIsComplete();
-        ideStatusBar.waitUntilAllBgTasksFinish();
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting project import");
+
     }
+
 }
