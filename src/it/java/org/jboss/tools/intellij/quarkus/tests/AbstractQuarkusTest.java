@@ -19,6 +19,8 @@ import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFra
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.MainIdeWindow;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatusbar.IdeStatusBar;
+import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ProjectExplorer;
+import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowPane;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.runner.IntelliJVersion;
@@ -119,11 +121,11 @@ public abstract class AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
         // wait for project to open
-        waitFor(Duration.ofSeconds(300), Duration.ofSeconds(5), "main ide window to open", this::isMainIdeWindowOpen);
+        waitFor(Duration.ofSeconds(5), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
 
         ScreenshotUtils.takeScreenshot(remoteRobot, "after wait for main window to open");
 
-        waitFor(Duration.ofSeconds(600), Duration.ofSeconds(10), "the background tasks to finish.", this::didAllBgTasksFinish);
+        waitFor(Duration.ofSeconds(600), Duration.ofSeconds(10), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
         ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
     }
 
@@ -135,12 +137,11 @@ public abstract class AbstractQuarkusTest {
         }
     }
 
-    private boolean didAllBgTasksFinish() {
+    private boolean didProjectExplorerFinishInit() {
         try {
-            if (remoteRobot.find(IdeStatusBar.class).isShowing()) {
-                return remoteRobot.find(IdeStatusBar.class).inlineProgressPanel().findAllText().isEmpty();
-            }
-            return true;
+            ToolWindowPane toolWinPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
+            ProjectExplorer projectExplorer = toolWinPane.find(ProjectExplorer.class, Duration.ofSeconds(10));
+            return projectExplorer.projectViewTree().findAllText().stream().noneMatch(remoteText -> remoteText.getText().contains("loading"));
         } catch (WaitForConditionTimeoutException e) {
             return true;
         }
