@@ -18,6 +18,7 @@ import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.MainIdeWindow;
+import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatusbar.IdeStatusBar;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.runner.IntelliJVersion;
@@ -117,13 +118,12 @@ public abstract class AbstractQuarkusTest {
         }
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after finish");
         // wait for project to open
         waitFor(Duration.ofSeconds(300), Duration.ofSeconds(5), "main ide window to open", this::isMainIdeWindowOpen);
 
         ScreenshotUtils.takeScreenshot(remoteRobot, "after wait for main window to open");
 
-        CreateCloseUtils.waitAfterOpeningProject(remoteRobot);
+        waitFor(Duration.ofSeconds(600), Duration.ofSeconds(10), "the background tasks to finish.", this::didAllBgTasksFinish);
         ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
     }
 
@@ -133,6 +133,13 @@ public abstract class AbstractQuarkusTest {
         } catch (WaitForConditionTimeoutException e) {
             return false;
         }
+    }
+
+    private boolean didAllBgTasksFinish() {
+        if (remoteRobot.find(IdeStatusBar.class).isShowing()) {
+            return remoteRobot.find(IdeStatusBar.class).inlineProgressPanel().findAllText().isEmpty();
+        }
+        return false;
     }
 
 }
