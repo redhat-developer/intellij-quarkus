@@ -122,11 +122,11 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
 
         try {
-            Thread.sleep(60000);
+            Thread.sleep(300000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
+        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
         // wait for project to open
         //waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
         //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting main");
@@ -139,7 +139,6 @@ public abstract class AbstractQuarkusTest {
         //IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class);
         //waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the background tasks to finish.", () -> didAllBgTasksFinish(ideStatusBar));
         //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting background tasks");
-
     }
 
     private Boolean isMainIdeWindowOpen() {
