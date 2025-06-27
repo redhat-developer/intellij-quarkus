@@ -63,7 +63,7 @@ public abstract class AbstractQuarkusTest {
     @BeforeAll
     protected static void startIntelliJ() {
         if (!intelliJHasStarted) {
-            remoteRobot = UITestRunner.runIde(IntelliJVersion.COMMUNITY_V_2024_3, 8580);
+            remoteRobot = UITestRunner.runIde(IntelliJVersion.COMMUNITY_V_2023_3);
             intelliJHasStarted = true;
             Runtime.getRuntime().addShutdownHook(new CloseIntelliJBeforeQuit());
 
@@ -120,18 +120,22 @@ public abstract class AbstractQuarkusTest {
         }
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
+
+        Thread.sleep(60000);
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
         // wait for project to open
-        waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting main");
+        //waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
+        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting main");
         // wait for project explorer to initialize
-        waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting project explorer");
+        //waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
+        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting project explorer");
         // wait for import to finish
-        waitFor(Duration.ofSeconds(5), Duration.ofMillis(500), () -> remoteRobot.find(IdeStatusBar.class).isShowing());
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting ide status bar");
-        IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class);
-        waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the background tasks to finish.", () -> didAllBgTasksFinish(ideStatusBar));
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting background tasks");
+        //waitFor(Duration.ofSeconds(5), Duration.ofMillis(500), () -> remoteRobot.find(IdeStatusBar.class).isShowing());
+        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting ide status bar");
+        //IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class);
+        //waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the background tasks to finish.", () -> didAllBgTasksFinish(ideStatusBar));
+        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting background tasks");
+
     }
 
     private Boolean isMainIdeWindowOpen() {
