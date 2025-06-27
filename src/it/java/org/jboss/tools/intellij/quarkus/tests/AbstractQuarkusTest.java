@@ -124,7 +124,8 @@ public abstract class AbstractQuarkusTest {
         waitFor(Duration.ofSeconds(10), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
         // wait for project explorer to initialize
         waitFor(Duration.ofSeconds(60), Duration.ofSeconds(1), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
-        CreateCloseUtils.waitAfterOpeningProject(remoteRobot);
+        // wait for import to finish
+        waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the background tasks to finish.", this::didAllBgTasksFinish);
     }
 
     private Boolean isMainIdeWindowOpen() {
@@ -143,6 +144,11 @@ public abstract class AbstractQuarkusTest {
         } catch (WaitForConditionTimeoutException e) {
             return true;
         }
+    }
+
+    private boolean didAllBgTasksFinish() {
+        waitFor(Duration.ofSeconds(5), Duration.ofMillis(500), () -> remoteRobot.find(IdeStatusBar.class).isShowing());
+        return remoteRobot.find(IdeStatusBar.class).inlineProgressPanel().findAllText().isEmpty();
     }
 
 }
