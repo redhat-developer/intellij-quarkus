@@ -122,10 +122,16 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
         // wait for project to open
         waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting main");
         // wait for project explorer to initialize
         waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting project explorer");
         // wait for import to finish
-        waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the background tasks to finish.", this::didAllBgTasksFinish);
+        waitFor(Duration.ofSeconds(5), Duration.ofMillis(500), () -> remoteRobot.find(IdeStatusBar.class).isShowing());
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting ide status bar");
+        IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class);
+        waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the background tasks to finish.", () -> didAllBgTasksFinish(ideStatusBar));
+        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting background tasks");
     }
 
     private Boolean isMainIdeWindowOpen() {
@@ -146,10 +152,9 @@ public abstract class AbstractQuarkusTest {
         }
     }
 
-    private boolean didAllBgTasksFinish() {
+    private boolean didAllBgTasksFinish(IdeStatusBar ideStatusBar) {
         try {
-            waitFor(Duration.ofSeconds(5), Duration.ofMillis(500), () -> remoteRobot.find(IdeStatusBar.class).isShowing());
-            return remoteRobot.find(IdeStatusBar.class).inlineProgressPanel().findAllText().isEmpty();
+            return ideStatusBar.inlineProgressPanel().findAllText().isEmpty();
         } catch (WaitForConditionTimeoutException e) {
             return false;
         }
