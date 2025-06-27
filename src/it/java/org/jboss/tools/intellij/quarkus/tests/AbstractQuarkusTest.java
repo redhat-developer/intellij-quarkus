@@ -121,7 +121,11 @@ public abstract class AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
 
-        Thread.sleep(60000);
+        try {
+            Thread.sleep(60000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
         // wait for project to open
         //waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
