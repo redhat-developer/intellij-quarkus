@@ -121,15 +121,15 @@ public abstract class AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
         // wait for project to open
-        waitFor(Duration.ofSeconds(5), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
+        waitFor(Duration.ofSeconds(10), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
         // wait for project explorer to initialize
-        waitFor(Duration.ofSeconds(600), Duration.ofSeconds(10), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
+        waitFor(Duration.ofSeconds(60), Duration.ofSeconds(1), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
         CreateCloseUtils.waitAfterOpeningProject(remoteRobot);
     }
 
     private Boolean isMainIdeWindowOpen() {
         try {
-            return remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(5)).isShowing();
+            return remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(1)).isShowing();
         } catch (WaitForConditionTimeoutException e) {
             return false;
         }
@@ -137,8 +137,8 @@ public abstract class AbstractQuarkusTest {
 
     private boolean didProjectExplorerFinishInit() {
         try {
-            ToolWindowPane toolWinPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
-            ProjectExplorer projectExplorer = toolWinPane.find(ProjectExplorer.class, Duration.ofSeconds(10));
+            ToolWindowPane toolWinPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(1));
+            ProjectExplorer projectExplorer = toolWinPane.find(ProjectExplorer.class, Duration.ofSeconds(1));
             return projectExplorer.projectViewTree().findAllText().stream().noneMatch(remoteText -> remoteText.getText().contains("loading"));
         } catch (WaitForConditionTimeoutException e) {
             return true;
