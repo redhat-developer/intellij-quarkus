@@ -122,11 +122,9 @@ public abstract class AbstractQuarkusTest {
         newProjectDialogWizard.finish();
         // wait for project to open
         waitFor(Duration.ofSeconds(5), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
-
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after wait for main window to open");
-
+        // wait for project explorer to initialize
         waitFor(Duration.ofSeconds(600), Duration.ofSeconds(10), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
-        ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
+        CreateCloseUtils.waitAfterOpeningProject(remoteRobot);
     }
 
     private Boolean isMainIdeWindowOpen() {
