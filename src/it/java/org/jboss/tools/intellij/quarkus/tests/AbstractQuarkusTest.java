@@ -121,9 +121,9 @@ public abstract class AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
         // wait for project to open
-        waitFor(Duration.ofSeconds(10), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
+        waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
         // wait for project explorer to initialize
-        waitFor(Duration.ofSeconds(60), Duration.ofSeconds(1), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
+        waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
         // wait for import to finish
         waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the background tasks to finish.", this::didAllBgTasksFinish);
     }
@@ -138,17 +138,21 @@ public abstract class AbstractQuarkusTest {
 
     private boolean didProjectExplorerFinishInit() {
         try {
-            ToolWindowPane toolWinPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(1));
-            ProjectExplorer projectExplorer = toolWinPane.find(ProjectExplorer.class, Duration.ofSeconds(1));
+            ToolWindowPane toolWinPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(5));
+            ProjectExplorer projectExplorer = toolWinPane.find(ProjectExplorer.class, Duration.ofSeconds(5));
             return projectExplorer.projectViewTree().findAllText().stream().noneMatch(remoteText -> remoteText.getText().contains("loading"));
         } catch (WaitForConditionTimeoutException e) {
-            return true;
+            return false;
         }
     }
 
     private boolean didAllBgTasksFinish() {
-        waitFor(Duration.ofSeconds(5), Duration.ofMillis(500), () -> remoteRobot.find(IdeStatusBar.class).isShowing());
-        return remoteRobot.find(IdeStatusBar.class).inlineProgressPanel().findAllText().isEmpty();
+        try {
+            waitFor(Duration.ofSeconds(5), Duration.ofMillis(500), () -> remoteRobot.find(IdeStatusBar.class).isShowing());
+            return remoteRobot.find(IdeStatusBar.class).inlineProgressPanel().findAllText().isEmpty();
+        } catch (WaitForConditionTimeoutException e) {
+            return false;
+        }
     }
 
 }
