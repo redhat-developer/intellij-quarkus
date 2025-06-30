@@ -13,18 +13,12 @@ package org.jboss.tools.intellij.quarkus.tests;
 import com.intellij.remoterobot.RemoteRobot;
 import com.intellij.remoterobot.fixtures.ComponentFixture;
 import com.intellij.remoterobot.fixtures.JTextFieldFixture;
-import com.intellij.remoterobot.utils.WaitForConditionTimeoutException;
 import com.redhat.devtools.intellij.commonuitest.UITestRunner;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.FlatWelcomeFrame;
 import com.redhat.devtools.intellij.commonuitest.fixtures.dialogs.project.NewProjectDialogWizard;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.MainIdeWindow;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.idestatusbar.IdeStatusBar;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ProjectExplorer;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowPane;
 import com.redhat.devtools.intellij.commonuitest.utils.constants.ProjectLocation;
 import com.redhat.devtools.intellij.commonuitest.utils.project.CreateCloseUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.runner.IntelliJVersion;
-import com.redhat.devtools.intellij.commonuitest.utils.screenshot.ScreenshotUtils;
 import com.redhat.devtools.intellij.commonuitest.utils.testextension.ScreenshotAfterTestFailExtension;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFinalPage;
 import org.jboss.tools.intellij.quarkus.fixtures.dialogs.project.pages.QuarkusNewProjectFirstPage;
@@ -45,7 +39,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 
 import static com.intellij.remoterobot.search.locators.Locators.byXpath;
-import static com.intellij.remoterobot.utils.RepeatUtilsKt.waitFor;
 
 /**
  * Abstract test class
@@ -121,50 +114,7 @@ public abstract class AbstractQuarkusTest {
         quarkusNewProjectFinalPage.setProjectLocation(quarkusProjectLocation);
         newProjectDialogWizard.finish();
 
-        try {
-            Thread.sleep(300000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting");
-        // wait for project to open
-        //waitFor(Duration.ofSeconds(30), Duration.ofSeconds(1), "main ide window to open", this::isMainIdeWindowOpen);
-        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting main");
-        // wait for project explorer to initialize
-        //waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the project explorer to finish initializing.", this::didProjectExplorerFinishInit);
-        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting project explorer");
-        // wait for import to finish
-        //waitFor(Duration.ofSeconds(5), Duration.ofMillis(500), () -> remoteRobot.find(IdeStatusBar.class).isShowing());
-        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting ide status bar");
-        //IdeStatusBar ideStatusBar = remoteRobot.find(IdeStatusBar.class);
-        //waitFor(Duration.ofSeconds(60), Duration.ofSeconds(5), "the background tasks to finish.", () -> didAllBgTasksFinish(ideStatusBar));
-        //ScreenshotUtils.takeScreenshot(remoteRobot, "after waiting background tasks");
-    }
-
-    private Boolean isMainIdeWindowOpen() {
-        try {
-            return remoteRobot.find(MainIdeWindow.class, Duration.ofSeconds(1)).isShowing();
-        } catch (WaitForConditionTimeoutException e) {
-            return false;
-        }
-    }
-
-    private boolean didProjectExplorerFinishInit() {
-        try {
-            ToolWindowPane toolWinPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(5));
-            ProjectExplorer projectExplorer = toolWinPane.find(ProjectExplorer.class, Duration.ofSeconds(5));
-            return projectExplorer.projectViewTree().findAllText().stream().noneMatch(remoteText -> remoteText.getText().contains("loading"));
-        } catch (WaitForConditionTimeoutException e) {
-            return false;
-        }
-    }
-
-    private boolean didAllBgTasksFinish(IdeStatusBar ideStatusBar) {
-        try {
-            return ideStatusBar.inlineProgressPanel().findAllText().isEmpty();
-        } catch (WaitForConditionTimeoutException e) {
-            return false;
-        }
+        CreateCloseUtils.waitAfterOpeningProject(remoteRobot);
     }
 
 }
