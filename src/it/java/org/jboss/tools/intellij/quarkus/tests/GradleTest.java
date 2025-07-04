@@ -11,8 +11,7 @@
 package org.jboss.tools.intellij.quarkus.tests;
 
 import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.BuildView;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.ToolWindowPane;
-import com.redhat.devtools.intellij.commonuitest.fixtures.mainidewindow.toolwindowspane.buildtoolpane.GradleBuildToolPane;
+import com.redhat.devtools.intellij.commonuitest.utils.build.BuildUtils;
 import org.jboss.tools.intellij.quarkus.utils.BuildTool;
 import org.jboss.tools.intellij.quarkus.utils.EndpointURLType;
 import org.junit.jupiter.api.Test;
@@ -42,12 +41,9 @@ public class GradleTest extends AbstractQuarkusTest {
 
     private void runTest(String projectName, BuildTool buildTool) throws IOException {
         createQuarkusProject(remoteRobot, projectName, buildTool, EndpointURLType.DEFAULT, JAVA_VERSION);
-        ToolWindowPane toolWindowPane = remoteRobot.find(ToolWindowPane.class, Duration.ofSeconds(10));
-        toolWindowPane.openGradleBuildToolPane();
-        GradleBuildToolPane gradleBuildToolPane = toolWindowPane.find(GradleBuildToolPane.class, Duration.ofSeconds(10));
-        gradleBuildToolPane.buildProject();
-        boolean isBuildSuccessful = toolWindowPane.find(BuildView.class, Duration.ofSeconds(10)).isBuildSuccessful();
-        assertTrue(isBuildSuccessful, "The build should be successful but is not.");
+        BuildUtils.buildMavenProjectAndWaitForFinish(remoteRobot, projectName, "verify");
+        BuildView buildView = remoteRobot.find(BuildView.class, Duration.ofSeconds(10));
+        assertTrue(buildView.isBuildSuccessful(), "The build should be successful but is not.");
     }
 
 }
