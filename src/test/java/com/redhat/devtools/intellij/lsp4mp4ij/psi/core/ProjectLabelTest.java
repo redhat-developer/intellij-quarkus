@@ -15,7 +15,6 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiMicroProfileUtil
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
 import org.junit.Assert;
-import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
@@ -30,10 +29,10 @@ import java.util.stream.Collectors;
  */
 public class ProjectLabelTest extends MavenModuleImportingTestCase {
 
-    @Test
-    public void testgetProjectLabelInfoOnlyMaven() throws Exception {
+    public void testGetProjectLabelInfoOnlyMaven() throws Exception {
         Module maven = createMavenModule(new File("projects/lsp4mp/projects/maven/empty-maven-project"));
-        List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(maven.getProject()));
+        var project = maven.getProject();
+        List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance(project).getProjectLabelInfo(PsiUtilsLSImpl.getInstance(project));
         assertProjectLabelInfoContainsProject(projectLabelEntries, maven);
         assertLabels(projectLabelEntries, maven, "maven");
     }
@@ -46,10 +45,10 @@ public class ProjectLabelTest extends MavenModuleImportingTestCase {
 		assertLabels(projectLabelEntries, gradle, "gradle");
 	}*/
 
-    @Test
-    public void testgetProjectLabelQuarkusMaven() throws Exception {
+    public void testGetProjectLabelQuarkusMaven() throws Exception {
         Module quarkusMaven = createMavenModule(new File("projects/lsp4mp/projects/maven/using-vertx"));
-        List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(quarkusMaven.getProject()));
+        var project = quarkusMaven.getProject();
+        List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance(project).getProjectLabelInfo(PsiUtilsLSImpl.getInstance(project));
         assertProjectLabelInfoContainsProject(projectLabelEntries, quarkusMaven);
         assertLabels(projectLabelEntries, quarkusMaven, "microprofile", "maven", "quarkus");
     }
@@ -79,31 +78,31 @@ public class ProjectLabelTest extends MavenModuleImportingTestCase {
 		assertLabels(projectLabelEntries, gradle, "gradle");
 	}*/
 
-    @Test
-    public void testprojectNameMaven() throws Exception {
+    public void testProjectNameMaven() throws Exception {
         List<Module> modules = createMavenModules(Arrays.asList(
                 new File("projects/lsp4mp/projects/maven/using-vertx"),
                 new File("projects/lsp4mp/projects/maven/empty-maven-project"),
                 new File("projects/lsp4mp/projects/maven/folder-name-different-maven")
         ));
         Module quarkusMaven = modules.stream().filter(m -> m.getName().equals("using-vertx")).findFirst().get();
+        var project = quarkusMaven.getProject();
         Module maven = modules.stream().filter(m -> m.getName().equals("empty-maven-project")).findFirst().get();
         Module folderNameDifferent = modules.stream().filter(m -> m.getName().equals("mostly.empty")).findFirst().get();
-        List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(quarkusMaven.getProject()));
+        List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance(project).getProjectLabelInfo(PsiUtilsLSImpl.getInstance(project));
         assertName(projectLabelEntries, quarkusMaven, "using-vertx");
         assertName(projectLabelEntries, maven, "empty-maven-project");
         assertName(projectLabelEntries, folderNameDifferent, "mostly.empty");
     }
 
-    @Test
-    public void testprojectNameSameFolderName() throws Exception {
+    public void testProjectNameSameFolderName() throws Exception {
         List<Module> modules = createMavenModules(Arrays.asList(
                 new File("projects/lsp4mp/projects/maven/empty-maven-project"),
                 new File("projects/lsp4mp/projects/maven/folder/empty-maven-project")
         ));
         Module empty1 = modules.stream().filter(m -> m.getName().equals("empty-maven-project")).findFirst().get();
+        var project = empty1.getProject();
         Module empty2 = modules.stream().filter(m -> m.getName().equals("other-empty-maven-project")).findFirst().get();
-        List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(empty1.getProject()));
+        List<ProjectLabelInfoEntry> projectLabelEntries = ProjectLabelManager.getInstance(project).getProjectLabelInfo(PsiUtilsLSImpl.getInstance(project));
         assertName(projectLabelEntries, empty1, "empty-maven-project");
         assertName(projectLabelEntries, empty2, "other-empty-maven-project");
     }
@@ -121,7 +120,7 @@ public class ProjectLabelTest extends MavenModuleImportingTestCase {
 
     private static void assertProjectLabelInfoContainsProject(List<ProjectLabelInfoEntry> projectLabelEntries,
                                                               Module... javaProjects) {
-        List<String> actualProjectPaths = projectLabelEntries.stream().map(e -> e.getUri())
+        List<String> actualProjectPaths = projectLabelEntries.stream().map(ProjectLabelInfoEntry::getUri)
                 .collect(Collectors.toList());
         for (Module javaProject : javaProjects) {
             assertContains(actualProjectPaths, PsiMicroProfileUtils.getProjectURI(javaProject));
@@ -134,7 +133,7 @@ public class ProjectLabelTest extends MavenModuleImportingTestCase {
         List<String> actualLabels = getLabelsFromProjectPath(projectLabelEntries, javaProjectPath);
         Assert.assertEquals(
                 "Test project labels size for '" + javaProjectPath + "' with labels ["
-                        + actualLabels.stream().collect(Collectors.joining(",")) + "]",
+                        + String.join(",", actualLabels) + "]",
                 expectedLabels.length, actualLabels.size());
         for (String expectedLabel : expectedLabels) {
             assertContains(actualLabels, expectedLabel);
