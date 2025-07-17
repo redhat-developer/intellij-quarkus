@@ -115,7 +115,7 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
         if (AnnotationUtils.isMatchAnnotation(annotation, CONFIG_PROPERTY_ANNOTATION) && parent != null) {
             PsiAnnotationMemberValue defaultValueExpr = getAnnotationMemberValueExpression(annotation, MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
             validatePropertyDefaultValue(annotation, defaultValueExpr, parent);
-            validatePropertyHasValue(annotation, defaultValueExpr);
+            validatePropertyHasValue(annotation, defaultValueExpr, parent);
         }
 
     }
@@ -162,7 +162,7 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
      * @param defaultValueExpr the default value expression, or null if no default
      *                         value is defined
      */
-    private void validatePropertyHasValue(PsiAnnotation annotation, PsiAnnotationMemberValue defaultValueExpr) {
+    private void validatePropertyHasValue(PsiAnnotation annotation, PsiAnnotationMemberValue defaultValueExpr, PsiField parent) {
         String name = null;
         PsiAnnotationMemberValue nameExpression = getAnnotationMemberValueExpression(annotation,
                 CONFIG_PROPERTY_ANNOTATION_NAME);
@@ -178,7 +178,7 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
                 String message = MessageFormat.format(EMPTY_KEY_ERROR_MESSAGE, CONFIG_PROPERTY_ANNOTATION_NAME);
                 Diagnostic d = super.addDiagnostic(message, MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE, nameExpression,
                         MicroProfileConfigErrorCode.EMPTY_KEY, DiagnosticSeverity.Error);
-            } else if (!hasDefaultValue && !doesPropertyHaveValue(name, getContext()) && !isPropertyIgnored(name)) {
+            } else if (!hasDefaultValue && !doesPropertyHaveValue(name, getContext()) && !isPropertyIgnored(name) && !isOptionalType(parent.getType())) {
                 String message = MessageFormat.format(NO_VALUE_ERROR_MESSAGE, name);
                 Diagnostic d = super.addDiagnostic(message, MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE, nameExpression,
                         MicroProfileConfigErrorCode.NO_VALUE_ASSIGNED_TO_PROPERTY, DiagnosticSeverity.Warning);
@@ -280,6 +280,11 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    private boolean isOptionalType(PsiType fieldBinding) {
+        // Optional containers: java.util.Optional, java.util.OptionalInt, java.util.OptionalLong, and java.util.OptionalDouble
+        return TypeConversionUtil.erasure(fieldBinding).getCanonicalText().startsWith("java.util.Optional");
     }
 
     private static boolean doesPropertyHaveValue(String property, JavaDiagnosticsContext context) {
