@@ -18,12 +18,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
+import com.redhat.devtools.intellij.qute.psi.QuteCommandConstants;
 import com.redhat.devtools.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider;
-import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -63,7 +61,10 @@ public class QuteServer extends OSProcessStreamConnectionProvider {
         Map<String, Object> extendedClientCapabilities = new HashMap<>();
         Map<String, Object> commands = new HashMap<>();
         Map<String, Object> commandsKind = new HashMap<>();
-        commandsKind.put("valueSet", Arrays.asList("qute.command.java.definition", "qute.command.configuration.update" , "qute.command.open.uri"));
+        commandsKind.put("valueSet", Arrays.asList(QuteCommandConstants.OPEN_URI,
+                QuteCommandConstants.JAVA_DEFINITION,
+                QuteCommandConstants.COMMAND_CONFIGURATION_UPDATE,
+                QuteCommandConstants.COMMAND_SHOW_REFERENCES));
         commands.put("commandsKind", commandsKind);
         extendedClientCapabilities.put("commands", commands);
         extendedClientCapabilities.put("shouldLanguageServerExitOnShutdown", Boolean.TRUE);
