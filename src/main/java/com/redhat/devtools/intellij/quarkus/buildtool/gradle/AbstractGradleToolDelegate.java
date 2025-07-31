@@ -372,7 +372,8 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     @Override
     public RunnerAndConfigurationSettings getConfigurationDelegate(@NotNull Module module,
                                                                    @NotNull QuarkusRunConfiguration configuration,
-                                                                   @Nullable Integer debugPort) {
+                                                                   @Nullable Integer debugPort,
+                                                                   @Nullable Integer quteDebugPort) {
         RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Gradle)", GradleExternalTaskConfigurationType.class);
         GradleRunConfiguration gradleConfiguration = (GradleRunConfiguration) settings.getConfiguration();
         gradleConfiguration.getSettings().getTaskNames().add("quarkusDev");
@@ -380,6 +381,9 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         String parameters = debugPort != null ? ("-Ddebug=" + Integer.toString(debugPort)) : "";
         if (StringUtils.isNotBlank(configuration.getProfile())) {
             parameters += " -Dquarkus.profile=" + configuration.getProfile();
+        }
+        if (quteDebugPort != null) {
+            parameters += " -Dqute.debug.port=" + Integer.toString(quteDebugPort);
         }
         gradleConfiguration.getSettings().setScriptParameters(parameters);
         gradleConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());

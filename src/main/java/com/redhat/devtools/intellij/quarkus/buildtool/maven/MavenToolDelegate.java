@@ -192,7 +192,9 @@ public class MavenToolDelegate implements BuildToolDelegate {
     }
 
     @Override
-    public RunnerAndConfigurationSettings getConfigurationDelegate(Module module, QuarkusRunConfiguration configuration, @Nullable Integer debugPort) {
+    public RunnerAndConfigurationSettings getConfigurationDelegate(@NotNull Module module, @NotNull QuarkusRunConfiguration configuration,
+                                                                   @Nullable Integer debugPort,
+                                                                   @Nullable Integer quteDebugPort) {
         RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Maven)", MavenRunConfigurationType.class);
         MavenRunConfiguration mavenConfiguration = (MavenRunConfiguration) settings.getConfiguration();
         mavenConfiguration.getRunnerParameters().setResolveToWorkspace(true);
@@ -205,6 +207,9 @@ public class MavenToolDelegate implements BuildToolDelegate {
         }
         if (debugPort != null) {
             mavenConfiguration.getRunnerSettings().getMavenProperties().put("debug", Integer.toString(debugPort));
+        }
+        if (quteDebugPort != null) {
+            mavenConfiguration.getRunnerSettings().getMavenProperties().put("qute.debug.port", Integer.toString(quteDebugPort));
         }
         mavenConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
