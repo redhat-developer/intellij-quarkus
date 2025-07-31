@@ -22,6 +22,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
+import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunnableState;
@@ -34,11 +35,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.psi.util.PsiClassUtil;
 import com.intellij.util.net.NetUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
+import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -142,6 +147,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
             telemetryData.put("tool", toolDelegate.getDisplay());
             boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
             Integer debugPort = debug ? allocateLocalPort() : null;
+            Integer quteDebugPort = debug && isQuteDebuggerInstalled(module) ? allocateLocalPort() : null;
             // The parameter (run/debug) executor is filled according the run/debug action
             // but in the case of Gradle, the executor must be only the run executor
             // otherwise for some reason, the stop button will stop the task without stopping the Quarkus application process.
@@ -149,7 +155,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
             Executor overridedExecutor = toolDelegate.getOverridedExecutor();
             executor = overridedExecutor != null ? overridedExecutor : executor;
             // Create a Gradle or Maven run configuration in memory
-            RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(module, this, debugPort);
+            RunnerAndConfigurationSettings settings = toolDelegate.getConfigurationDelegate(module, this, debugPort, quteDebugPort);
             if (settings != null) {
                 QuarkusRunConfigurationManager.getInstance(module.getProject()); // to be sure that Quarkus execution listener is registered
                 long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
@@ -161,6 +167,11 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         // Send "run-run" telemetry event
         TelemetryManager.instance().send(TelemetryEventName.RUN_RUN, telemetryData);
         return state;
+    }
+
+
+    private boolean isQuteDebuggerInstalled(@NotNull Module module) {
+        return PsiTypeUtils.findType("io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter",  module, null) != null;
     }
 
     public String getProfile() {

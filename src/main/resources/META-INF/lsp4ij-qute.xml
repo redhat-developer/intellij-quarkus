@@ -1,5 +1,6 @@
 <idea-plugin>
 
+    <!-- Qute language server -->
     <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
         <!-- Qute LSP -->
         <server id="qute"
@@ -102,6 +103,21 @@
                 enabledByDefault="true"
                 level="WARNING"
                 implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedSectionTagInspection"/>
+    </extensions>
+
+    <!-- Qute DAP debugger -->
+    <extensions defaultExtensionNs="com.intellij">
+        <configurationType
+            implementation="com.redhat.devtools.intellij.qute.run.QuteConfigurationType"/>
+        <xdebugger.breakpointType
+                implementation="com.redhat.devtools.intellij.qute.run.QuteBreakpointType"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <debugAdapterServer
+                id="qute"
+                name="Qute"
+                factoryClass="com.redhat.devtools.intellij.qute.run.QuteDebugAdapterDescriptorFactory" />
     </extensions>
 
 </idea-plugin>
