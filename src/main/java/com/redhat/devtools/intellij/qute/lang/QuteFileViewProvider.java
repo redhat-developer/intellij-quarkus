@@ -25,6 +25,7 @@ import com.intellij.psi.templateLanguages.TemplateLanguageFileViewProvider;
 import com.intellij.psi.tree.IElementType;
 import com.redhat.devtools.intellij.qute.lang.psi.QuteElementTypes;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -33,14 +34,14 @@ import java.util.Set;
  * Qute file view provider.
  */
 public class QuteFileViewProvider extends MultiplePsiFilesPerDocumentFileViewProvider implements TemplateLanguageFileViewProvider {
-    private final Language language;
-    private final Language templateLanguage;
+    private final @NotNull Language language;
+    private final @NotNull Language templateLanguage;
 
-    public QuteFileViewProvider(VirtualFile file, Language language, PsiManager manager, boolean eventSystemEnabled) {
+    public QuteFileViewProvider(@NotNull VirtualFile file, @NotNull Language language, @NotNull PsiManager manager, boolean eventSystemEnabled) {
         this(file, language, getTemplateLanguage(file), manager, eventSystemEnabled);
     }
 
-    private QuteFileViewProvider(VirtualFile file, Language language, Language templateLanguage, PsiManager manager, boolean eventSystemEnabled) {
+    private QuteFileViewProvider(@NotNull VirtualFile file, @NotNull Language language, @NotNull Language templateLanguage, @NotNull PsiManager manager, boolean eventSystemEnabled) {
         super(manager, file, eventSystemEnabled);
         this.language = language;
         this.templateLanguage = templateLanguage;
@@ -53,8 +54,9 @@ public class QuteFileViewProvider extends MultiplePsiFilesPerDocumentFileViewPro
      *
      * @return the template language of the given file (ex : "HTML", "YAML", language etc) and the "Qute_" language otherwise.
      */
-    public static Language getTemplateLanguage(VirtualFile file) {
-        FileType fileType = FileTypeManager.getInstance().getFileTypeByExtension(file.getExtension());
+    public static @NotNull Language getTemplateLanguage(@NotNull VirtualFile file) {
+        @Nullable String fileExtension = file.getExtension();
+        FileType fileType = fileExtension != null ? FileTypeManager.getInstance().getFileTypeByExtension(fileExtension) : null;
         return fileType instanceof LanguageFileType ? ((LanguageFileType) fileType).getLanguage() : QuteLanguage.INSTANCE;
     }
 
