@@ -431,7 +431,10 @@
                 serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager"/>
         <projectService
                 serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager"/>
-        <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport"/>
+        <projectService
+                serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport"/>
+        <projectService
+                serviceImplementation="com.redhat.devtools.intellij.quarkus.search.QuarkusDeploymentProjectService"/>
 
         <!--Quarkus run config -->
         <programRunner implementation="com.redhat.devtools.intellij.quarkus.buildtool.gradle.GradleRunAndDebugProgramRunner"/>
@@ -769,13 +772,6 @@
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.DataMappingSupport"/>
 
     </extensions>
-
-    <module-components>
-        <component>
-            <implementation-class>com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent
-            </implementation-class>
-        </component>
-    </module-components>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-quarkus.xml"
                 xpointer="xpointer(/idea-plugin/*)"/>
