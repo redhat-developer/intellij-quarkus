@@ -12,7 +12,12 @@ package com.redhat.devtools.intellij.qute.run;
 
 import com.intellij.execution.configurations.RunConfigurationOptions;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.lang.Language;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
+import com.redhat.devtools.intellij.qute.lang.QuteLanguage;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.lsp4ij.dap.descriptors.DebugAdapterDescriptor;
 import com.redhat.devtools.lsp4ij.dap.descriptors.DebugAdapterDescriptorFactory;
 import org.jetbrains.annotations.NotNull;
@@ -31,5 +36,11 @@ public class QuteDebugAdapterDescriptorFactory extends DebugAdapterDescriptorFac
     @Override
     public boolean supportsBreakpointType(@NotNull XBreakpointType breakpointType) {
         return breakpointType.getClass() == QuteBreakpointType.class;
+    }
+
+    @Override
+    public boolean isDebuggableFile(@NotNull VirtualFile file, @NotNull Project project) {
+        Language language = LSPIJUtils.getFileLanguage(file, project);
+        return QuteLanguage.INSTANCE.is(language);
     }
 }
