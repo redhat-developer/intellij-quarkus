@@ -383,7 +383,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
             parameters += " -Dquarkus.profile=" + configuration.getProfile();
         }
         if (quteDebugPort != null) {
-            parameters += " -Dqute.debug.port=" + Integer.toString(quteDebugPort);
+            parameters += " -DquteDebugPort=" + Integer.toString(quteDebugPort);
         }
         gradleConfiguration.getSettings().setScriptParameters(parameters);
         gradleConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());

@@ -209,7 +209,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
             mavenConfiguration.getRunnerSettings().getMavenProperties().put("debug", Integer.toString(debugPort));
         }
         if (quteDebugPort != null) {
-            mavenConfiguration.getRunnerSettings().getMavenProperties().put("qute.debug.port", Integer.toString(quteDebugPort));
+            mavenConfiguration.getRunnerSettings().getMavenProperties().put("quteDebugPort", Integer.toString(quteDebugPort));
         }
         mavenConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
