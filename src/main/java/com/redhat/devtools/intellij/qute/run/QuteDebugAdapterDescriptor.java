@@ -42,6 +42,7 @@ public class QuteDebugAdapterDescriptor extends DebugAdapterDescriptor {
                                       @NotNull ExecutionEnvironment environment,
                                       @Nullable DebugAdapterServerDefinition serverDefinition) {
         super(options, environment, serverDefinition);
+        super.setVariableSupport(new QuteDebugAdapterVariableSupport());
     }
 
     @Override
@@ -77,6 +78,5 @@ public class QuteDebugAdapterDescriptor extends DebugAdapterDescriptor {
     public @NotNull DAPBreakpointHandlerBase<?> createBreakpointHandler(@NotNull XDebugSession session, Project project) {
         return new QuteBreakpointHandler(session, this, project);
     }
-
 
 }
