@@ -20,7 +20,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
+import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.redhat.devtools.intellij.qute.lang.QuteFileType;
+import com.redhat.devtools.lsp4ij.dap.DAPDebugProcess;
+import com.redhat.devtools.lsp4ij.dap.DAPDebuggerEditorsProvider;
 import com.redhat.devtools.lsp4ij.dap.DebugMode;
 import com.redhat.devtools.lsp4ij.dap.breakpoints.DAPBreakpointHandler;
 import com.redhat.devtools.lsp4ij.dap.breakpoints.DAPBreakpointHandlerBase;
@@ -66,7 +69,7 @@ public class QuteDebugAdapterDescriptor extends DebugAdapterDescriptor {
 
     @Override
     public @Nullable FileType getFileType() {
-        return QuteFileType.QUTE;
+        return null;
     }
 
     @Override
@@ -79,4 +82,8 @@ public class QuteDebugAdapterDescriptor extends DebugAdapterDescriptor {
         return new QuteBreakpointHandler(session, this, project);
     }
 
+    @Override
+    public @NotNull XDebuggerEditorsProvider createDebuggerEditorsProvider(@Nullable FileType fileType, @NotNull DAPDebugProcess debugProcess) {
+        return new QuteDebuggerEditorsProvider(fileType, debugProcess);
+    }
 }
