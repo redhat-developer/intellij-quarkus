@@ -6,6 +6,13 @@
     </vendor>
 
     <change-notes><![CDATA[
+    <h3>2.3.0</h3>
+    <ul>
+      <li>Integrate (future) Qute debugger</li>
+      <li>More bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/50?closed=1">changelog</a>.
+
     <h3>2.2.0</h3>
     <ul>
       <li>Qute support improvement</li>
