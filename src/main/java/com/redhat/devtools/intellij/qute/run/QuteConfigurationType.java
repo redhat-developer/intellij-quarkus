@@ -28,8 +28,8 @@ public class QuteConfigurationType extends ConfigurationTypeBase {
 
     QuteConfigurationType() {
         super(ID,
-                "Qute",
-                "Qute debugger",
+                "Remote Qute Debug",
+                "Debugging Qute templates",
                 NotNullLazyValue.createValue(() -> QuarkusIcons.Quarkus));
         addFactory(new QuteConfigurationFactory(this));
     }
