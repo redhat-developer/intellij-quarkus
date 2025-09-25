@@ -55,7 +55,7 @@ class AttachDebuggerProcessListener implements ProcessListener {
     private static final String LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS = "Listening for transport dt_socket at address: ";
     private static final String JWDP_HANDSHAKE = "JDWP-Handshake";
 
-    private static final String QUTE_LISTENING_ON_PORT = "DebugServerAdapter listening on port ";
+    private static final String QUTE_LISTENING_ON_PORT = "Qute debugger server listening on port ";
 
     private final Project project;
     private final ExecutionEnvironment env;
