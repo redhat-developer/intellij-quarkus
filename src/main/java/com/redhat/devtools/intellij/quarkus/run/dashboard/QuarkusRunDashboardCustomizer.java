@@ -52,7 +52,6 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
         if (!(node.getConfigurationSettings().getConfiguration() instanceof QuarkusRunConfiguration)) {
             return false;
         }
-        node.putUserData(RunDashboardCustomizer.NODE_LINKS, null);
         RunContentDescriptor descriptor = node.getDescriptor();
         if (descriptor != null) {
             ProcessHandler processHandler = descriptor.getProcessHandler();
