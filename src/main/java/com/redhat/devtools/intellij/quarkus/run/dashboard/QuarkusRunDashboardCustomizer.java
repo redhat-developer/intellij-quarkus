@@ -95,7 +95,6 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
                             TelemetryManager.instance().send(TelemetryEventName.UI_OPEN_DEV_UI);
                         }
                     });
-                    node.putUserData(RunDashboardCustomizer.NODE_LINKS, links);
                 }
             }
         }
