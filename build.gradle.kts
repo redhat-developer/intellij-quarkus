@@ -171,7 +171,12 @@ intellijPlatform {
         failureLevel = listOf(INVALID_PLUGIN, COMPATIBILITY_PROBLEMS, MISSING_DEPENDENCIES)
         verificationReportsFormats = listOf(MARKDOWN, PLAIN)
         ides {
-            recommended()
+            select {
+                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+                channels = listOf(ProductRelease.Channel.RELEASE) // Only stable releases
+                sinceBuild = "242" // From your minimum supported version
+                untilBuild = "252.*" // Up to current major version
+            }
         }
         freeArgs = listOf(
             "-mute",
