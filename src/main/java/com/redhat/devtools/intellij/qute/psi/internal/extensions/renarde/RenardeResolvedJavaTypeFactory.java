@@ -26,7 +26,6 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import com.redhat.qute.commons.jaxrs.JaxRsMethodKind;
 import com.redhat.qute.commons.jaxrs.JaxRsParamKind;
 import com.redhat.qute.commons.jaxrs.RestParam;
-import org.gradle.internal.impldep.org.testng.annotations.IAnnotation;
 
 /**
  * Custom Factory to create an {@link ResolvedJavaTypeInfo} instance for Renarde

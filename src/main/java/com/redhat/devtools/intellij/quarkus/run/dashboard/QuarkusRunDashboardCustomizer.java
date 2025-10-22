@@ -11,13 +11,13 @@
 package com.redhat.devtools.intellij.quarkus.run.dashboard;
 
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.dashboard.RunDashboardCustomizationBuilder;
 import com.intellij.execution.dashboard.RunDashboardCustomizer;
 import com.intellij.execution.dashboard.RunDashboardRunConfigurationNode;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
@@ -45,6 +45,53 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
     @Override
     public boolean isApplicable(@NotNull RunnerAndConfigurationSettings settings, @Nullable RunContentDescriptor descriptor) {
         return settings.getConfiguration() instanceof QuarkusRunConfiguration;
+    }
+
+    @Override
+    public boolean updatePresentation(@NotNull RunDashboardCustomizationBuilder customizationBuilder,
+                                      @NotNull RunnerAndConfigurationSettings settings,
+                                      @Nullable RunContentDescriptor descriptor) {
+        QuarkusRunConfiguration quarkusRunConfiguration = settings.getConfiguration() instanceof QuarkusRunConfiguration config ? config : null;
+        if (descriptor == null || quarkusRunConfiguration == null) {
+            return false;
+        }
+        ProcessHandler processHandler = descriptor.getProcessHandler();
+        if (processHandler != null && !processHandler.isProcessTerminated()) {
+            // The Quarkus run configuration is running
+            Module module = quarkusRunConfiguration.getModule();
+            if (QuarkusModuleUtil.isQuarkusWebAppModule(module)) {
+                PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(module.getProject()).getMicroProfileProject(module);
+
+                // It is a Web application, add links for:
+                // - Opening quarkus application in a browser
+                // - Opening DevUI in a browser
+                // Add application Url as hyperlink
+                String applicationUrl = QuarkusModuleUtil.getApplicationUrl(mpProject);
+                customizationBuilder.addLink(applicationUrl, new SimpleColoredComponent.BrowserLauncherTag(applicationUrl) {
+                    @Override
+                    public void run() {
+                        // Open Quarkus application in a Web Browser
+                        super.run();
+                        // Send "ui-openApplication" telemetry event
+                        TelemetryManager.instance().send(TelemetryEventName.UI_OPEN_APPLICATION);
+                    }
+                });
+
+                // Add DevUI Url as hyperlink
+                String devUIUrl = QuarkusModuleUtil.getDevUIUrl(mpProject);
+                String devUILabel = "Dev UI";
+                customizationBuilder.addLink(devUILabel, new SimpleColoredComponent.BrowserLauncherTag(devUIUrl) {
+                    @Override
+                    public void run() {
+                        // Open DevUI in a Web Browser
+                        super.run();
+                        // Send "ui-openDevUI" telemetry event
+                        TelemetryManager.instance().send(TelemetryEventName.UI_OPEN_DEV_UI);
+                    }
+                });
+            }
+        }
+        return true;
     }
 
     @Override
@@ -95,7 +142,7 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
                             TelemetryManager.instance().send(TelemetryEventName.UI_OPEN_DEV_UI);
                         }
                     });
-                    node.putUserData(RunDashboardCustomizer.NODE_LINKS, links);
+                    //node.putUserData(RunDashboardCustomizer.NODE_LINKS, links);
                 }
             }
         }
