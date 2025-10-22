@@ -415,6 +415,8 @@
     <depends optional="true" config-file="com.redhat.devtools.intellij.quarkus.maven.xml">org.jetbrains.idea.maven</depends>
     <depends optional="true" config-file="com.redhat.devtools.intellij.quarkus.gradle.xml">org.jetbrains.plugins.gradle</depends>
     <depends optional="true" config-file="com.redhat.devtools.intellij.quarkus.json.xml">com.intellij.modules.json</depends>
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="242.*"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>

@@ -19,6 +19,7 @@ import com.intellij.psi.templateLanguages.OuterLanguageElementImpl;
 import com.intellij.psi.tree.IElementType;
 import com.redhat.devtools.intellij.qute.lang.psi.QuteToken;
 import com.redhat.devtools.intellij.qute.lang.psi.QuteElementTypes;
+import com.redhat.devtools.intellij.qute.lang.psi.QuteTokenType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +35,18 @@ public class QuteASTFactory extends ASTFactory {
             return new OuterLanguageElementImpl(type, text);
         }
         // Qute content
+        if (type == QuteTokenType.QUTE_EXPRESSION_OBJECT_PART) {
+            return new QuteASTObjectPart(text);
+        }
+        if (type == QuteTokenType.QUTE_EXPRESSION_PROPERTY_PART) {
+            return new QuteASTPropertyPart(text);
+        }
+        if (type == QuteTokenType.QUTE_EXPRESSION_METHOD_PART) {
+            return new QuteASTMethodPart(text);
+        }
+        if (type == QuteTokenType.QUTE_EXPRESSION_INFIX_METHOD_PART) {
+            return new QuteASTInfixMethodPart(text);
+        }
         return new QuteToken(type, text);
     }
 }
