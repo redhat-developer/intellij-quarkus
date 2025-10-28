@@ -39,9 +39,10 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     myProjectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     final JavaTestFixtureFactory factory = JavaTestFixtureFactory.getFixtureFactory();
     myProjectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    myTestFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
-    myTestFixture.setUp();
-    LanguageLevelProjectExtension.getInstance(myTestFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_17);
+    IdeaProjectTestFixture myFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
+    myFixture.setUp();
+    setTestFixture(myFixture);
+    LanguageLevelProjectExtension.getInstance(myFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_17);
   }
 
   private static int counter = 0;
@@ -53,7 +54,7 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
    * @return the created modules
    */
   protected List<Module> createMavenModules(List<File> projectDirs) throws Exception {
-    Project project = myTestFixture.getProject();
+    Project project = getTestFixture().getProject();
     for(File projectDir : projectDirs) {
       File moduleDir = new File(project.getBasePath(), projectDir.getName() + counter++);
       FileUtils.copyDirectory(projectDir, moduleDir);
@@ -84,14 +85,14 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
    * @return the created module
    */
   protected Module createMavenModule(String name, String xml) throws Exception {
-    Module module = myTestFixture.getModule();
+    Module module = getTestFixture().getModule();
     File moduleDir = new File(module.getModuleFilePath()).getParentFile();
     VirtualFile pomFile = createPomFile(LocalFileSystem.getInstance().findFileByIoFile(moduleDir), xml);
     BuildersKt.runBlocking(
         EmptyCoroutineContext.INSTANCE,
         (scope, continuation) -> importProjectAsync(pomFile,continuation)
     );
-    Module[] modules = ModuleManager.getInstance(myTestFixture.getProject()).getModules();
+    Module[] modules = ModuleManager.getInstance(getTestFixture().getProject()).getModules();
     if (modules.length > 0) {
       module = modules[modules.length - 1];
       setupJdkForModule(module.getName());
@@ -100,6 +101,6 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
   }
 
   protected IPsiUtils getJDTUtils() {
-    return PsiUtilsLSImpl.getInstance(myProject);
+    return PsiUtilsLSImpl.getInstance(getProject());
   }
 }

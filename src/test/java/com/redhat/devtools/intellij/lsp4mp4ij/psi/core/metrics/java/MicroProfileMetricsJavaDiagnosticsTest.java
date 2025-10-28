@@ -43,7 +43,7 @@ public class MicroProfileMetricsJavaDiagnosticsTest extends LSP4MPMavenModuleImp
     @Test
     public void testApplicationScopedAnnotationMissing() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_metrics);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/IncorrectScope.java", javaProject);
@@ -68,7 +68,7 @@ public class MicroProfileMetricsJavaDiagnosticsTest extends LSP4MPMavenModuleImp
     @Test
     public void testApplicationScopedAnnotationMissingJakarta() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.open_liberty);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 

@@ -40,7 +40,7 @@ public class MicroProfileGraphQLValidationTest extends LSP4MPMavenModuleImportin
     @Test
     public void testIncorrectDirectivePlacement() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_graphql);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("/src/main/java/io/openliberty/graphql/sample/WeatherService.java", javaProject);

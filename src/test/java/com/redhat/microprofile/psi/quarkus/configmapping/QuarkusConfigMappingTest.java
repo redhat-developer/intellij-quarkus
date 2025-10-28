@@ -34,7 +34,7 @@ public class QuarkusConfigMappingTest extends QuarkusMavenModuleImportingTestCas
     public void testConfigMapping() throws Exception {
 
         Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_mapping);
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromJavaSources,
 

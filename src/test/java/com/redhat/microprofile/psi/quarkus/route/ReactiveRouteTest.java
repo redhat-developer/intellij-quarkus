@@ -37,7 +37,7 @@ public class ReactiveRouteTest extends QuarkusMavenModuleImportingTestCase {
         params.setUri(javaFileUri);
         params.setUrlCodeLensEnabled(true);
 
-        assertCodeLens(params, PsiUtilsLSImpl.getInstance(myProject), //
+        assertCodeLens(params, PsiUtilsLSImpl.getInstance(getProject()), //
                 cl("http://localhost:8080/first", "", r(9, 4, 4)), //
                 cl("http://localhost:8080/second", "", r(9, 4, 4)));
     }
@@ -53,7 +53,7 @@ public class ReactiveRouteTest extends QuarkusMavenModuleImportingTestCase {
         params.setUri(javaFileUri);
         params.setUrlCodeLensEnabled(true);
 
-        assertCodeLens(params, PsiUtilsLSImpl.getInstance(myProject), //
+        assertCodeLens(params, PsiUtilsLSImpl.getInstance(getProject()), //
                 cl("http://localhost:8080/hello", "", r(15, 4, 4)), //
                 cl("http://localhost:8080/world", "", r(20, 4, 4)), //
                 cl("http://localhost:8080/greetings", "", r(25, 4, 4)), //
@@ -71,7 +71,7 @@ public class ReactiveRouteTest extends QuarkusMavenModuleImportingTestCase {
         params.setUri(javaFileUri);
         params.setUrlCodeLensEnabled(true);
 
-        assertCodeLens(params, PsiUtilsLSImpl.getInstance(myProject), //
+        assertCodeLens(params, PsiUtilsLSImpl.getInstance(getProject()), //
                 cl("http://localhost:8080/simple/ping", "", r(10, 4, 4)));
     }
 }

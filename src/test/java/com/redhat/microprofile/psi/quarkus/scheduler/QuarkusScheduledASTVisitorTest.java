@@ -43,7 +43,7 @@ public class QuarkusScheduledASTVisitorTest extends QuarkusMavenModuleImportingT
 	public void testScheduledAnnotationTest() throws Exception {
 
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_diagnostic);
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 
 		String javaFileUri = getFileUri("src/main/java/org/acme/ScheduledResource.java", javaProject);

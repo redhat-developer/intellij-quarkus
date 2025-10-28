@@ -29,7 +29,7 @@ public class MavenQuarkusScheduledPropertiesTest extends QuarkusMavenModuleImpor
     @Test
     public void testConfigQuickstartFromClasspath() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
-        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromClasspath,
                 // CounterBean
@@ -45,7 +45,7 @@ public class MavenQuarkusScheduledPropertiesTest extends QuarkusMavenModuleImpor
     @Test
     public void testConfigQuickstartFromJavaSources() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromJavaSources,
                 // CounterBean

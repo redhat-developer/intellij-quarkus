@@ -35,7 +35,7 @@ public class MicroProfileJWTPropertiesTest extends LSP4MPMavenModuleImportingTes
     public void testMicroprofileJWT() throws Exception {
 
         Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_jwt_quickstart);
-        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromClasspath,
                 // confirm properties are being merged with force, should not overwrite properties coming from ConfigProperty provider

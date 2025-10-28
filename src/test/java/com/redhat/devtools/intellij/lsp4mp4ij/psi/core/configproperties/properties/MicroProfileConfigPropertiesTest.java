@@ -39,7 +39,7 @@ public class MicroProfileConfigPropertiesTest extends LSP4MPMavenModuleImporting
     public void testConfigPropertiesFromJavaSources() throws Exception {
 
         Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_configproperties);
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromJavaSources, 17 /* properties from Java sources with ConfigProperties */,
 

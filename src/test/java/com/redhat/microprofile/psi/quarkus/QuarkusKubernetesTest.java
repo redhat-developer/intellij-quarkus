@@ -31,7 +31,7 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
     @Test
     public void testKubernetes() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.kubernetes, true);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
         assertProperties(info,
 
@@ -82,7 +82,7 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
     @Test
     public void testOpenshift() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.kubernetes, true);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
         assertProperties(info,
                 // io.dekorate.openshift.annotation.OpenshiftApplication
@@ -125,7 +125,7 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
     @Test
     public void testS2i() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.kubernetes, true);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
         assertProperties(info,
                 // io.dekorate.s2i.annotation.S2iBuild
@@ -161,7 +161,7 @@ public class QuarkusKubernetesTest extends QuarkusMavenModuleImportingTestCase {
     @Test
     public void testDocker() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.kubernetes, true);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.Markdown, new EmptyProgressIndicator());
         String description = """
                             The relative path of the Dockerfile, from the module root.
 

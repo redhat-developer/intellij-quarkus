@@ -6,6 +6,7 @@ import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesManager;
 import com.intellij.find.findUsages.FindUsagesOptions;
 import com.intellij.find.impl.FindManagerImpl;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.externalSystem.importing.ImportSpec;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -13,7 +14,7 @@ import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
@@ -28,125 +29,123 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Couple;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.RunAll;
+import com.intellij.testFramework.utils.module.ModuleAssertions;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.CommonProcessors;
 import com.intellij.util.containers.ContainerUtil;
-import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
-import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import static com.intellij.testFramework.EdtTestUtil.runInEdtAndGet;
+import static com.intellij.testFramework.EdtTestUtil.runInEdtAndWait;
 
 /**
  * @author Vladislav.Soroka
  */
 public abstract class ExternalSystemImportingTestCase extends ExternalSystemTestCase {
-  protected void assertModulesContains(@NotNull Project project, String... expectedNames) {
-    Module[] actual = ModuleManager.getInstance(project).getModules();
-    List<String> actualNames = new ArrayList<>();
 
-    for (Module m : actual) {
-      actualNames.add(m.getName());
+  private @Nullable Disposable myTestDisposable = null;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    var notificationManager = ExternalSystemProgressNotificationManager.getInstance();
+    var notificationListener = new ExternalSystemTaskNotificationListener() {
+      @Override
+      public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
+        printOutput(text, stdOut);
+      }
+    };
+    notificationManager.addNotificationListener(notificationListener, getTestDisposable());
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    new RunAll(
+      () -> Disposer.dispose(getTestDisposable()),
+      () -> super.tearDown()
+    ).run();
+  }
+
+  private @NotNull Disposable getTestDisposable() {
+    if (myTestDisposable == null) {
+      myTestDisposable = Disposer.newDisposable();
     }
-
-    assertContain(actualNames, expectedNames);
+    return myTestDisposable;
   }
 
   protected void assertModulesContains(String... expectedNames) {
-    assertModulesContains(myProject, expectedNames);
+    ModuleAssertions.assertModulesContains(myProject, expectedNames);
   }
 
   protected void assertModules(String... expectedNames) {
-    Module[] actualModules = ModuleManager.getInstance(myProject).getModules();
+    ModuleAssertions.assertModules(myProject, expectedNames);
+  }
 
-    Assertions.assertThat(actualModules)
-      .extracting("name")
-      .containsExactlyInAnyOrder(expectedNames);
+  protected void assertModules(List<String> expectedNames) {
+    ModuleAssertions.assertModules(myProject, expectedNames);
   }
 
   protected void assertContentRoots(String moduleName, String... expectedRoots) {
-    List<String> actual = new ArrayList<>();
-    for (ContentEntry e : getContentRoots(moduleName)) {
-      actual.add(e.getUrl());
-    }
-
-    for (int i = 0; i < expectedRoots.length; i++) {
-      expectedRoots[i] = VfsUtilCore.pathToUrl(expectedRoots[i]);
-    }
-
-    assertUnorderedPathsAreEqual(actual, Arrays.asList(expectedRoots));
+    var expectedRootPaths = ContainerUtil.map(expectedRoots, it -> Path.of(it));
+    ModuleAssertions.assertContentRoots(myProject, moduleName, expectedRootPaths);
   }
 
   protected void assertSources(String moduleName, String... expectedSources) {
-    doAssertContentFolders(moduleName, JavaSourceRootType.SOURCE, expectedSources);
-  }
-
-  protected void assertGeneratedSources(String moduleName, String... expectedSources) {
-    assertGeneratedSources(moduleName, JavaSourceRootType.SOURCE, expectedSources);
-  }
-
-  protected void assertGeneratedTestSources(String moduleName, String... expectedSources) {
-    assertGeneratedSources(moduleName, JavaSourceRootType.TEST_SOURCE, expectedSources);
-  }
-
-  private void assertGeneratedSources(String moduleName, JavaSourceRootType type, String... expectedSources) {
-    final ContentEntry[] contentRoots = getContentRoots(moduleName);
-    String rootUrl = contentRoots.length > 1 ? ExternalSystemApiUtil.getExternalProjectPath(getModule(moduleName)) : null;
-    List<String> actual = new ArrayList<>();
-
-    for (ContentEntry contentRoot : contentRoots) {
-      rootUrl = VirtualFileManager.extractPath(rootUrl == null ? contentRoot.getUrl() : rootUrl);
-      for (SourceFolder f : contentRoot.getSourceFolders(type)) {
-        String folderUrl = VirtualFileManager.extractPath(f.getUrl());
-
-        if (folderUrl.startsWith(rootUrl)) {
-          int length = rootUrl.length() + 1;
-          folderUrl = folderUrl.substring(Math.min(length, folderUrl.length()));
-        }
-
-        JavaSourceRootProperties properties = f.getJpsElement().getProperties(type);
-        if (properties != null && properties.isForGeneratedSources()) {
-          actual.add(folderUrl);
-        }
-      }
-    }
-
-    assertOrderedElementsAreEqual(actual, Arrays.asList(expectedSources));
+    assertSourceFolders(moduleName, JavaSourceRootType.SOURCE, Arrays.asList(expectedSources));
   }
 
   protected void assertResources(String moduleName, String... expectedSources) {
-    doAssertContentFolders(moduleName, JavaResourceRootType.RESOURCE, expectedSources);
+    assertSourceFolders(moduleName, JavaResourceRootType.RESOURCE, Arrays.asList(expectedSources));
   }
 
   protected void assertTestSources(String moduleName, String... expectedSources) {
-    doAssertContentFolders(moduleName, JavaSourceRootType.TEST_SOURCE, expectedSources);
+    assertSourceFolders(moduleName, JavaSourceRootType.TEST_SOURCE, Arrays.asList(expectedSources));
   }
 
   protected void assertTestResources(String moduleName, String... expectedSources) {
-    doAssertContentFolders(moduleName, JavaResourceRootType.TEST_RESOURCE, expectedSources);
+    assertSourceFolders(moduleName, JavaResourceRootType.TEST_RESOURCE, Arrays.asList(expectedSources));
+  }
+
+  protected void assertGeneratedSources(String moduleName, String... expectedSources) {
+    assertGeneratedSourceFolders(moduleName, JavaSourceRootType.SOURCE, Arrays.asList(expectedSources));
+  }
+
+  protected void assertGeneratedTestSources(String moduleName, String... expectedSources) {
+    assertGeneratedSourceFolders(moduleName, JavaSourceRootType.TEST_SOURCE, Arrays.asList(expectedSources));
+  }
+
+  protected void assertGeneratedResources(String moduleName, String... expectedSources) {
+    assertGeneratedResourceFolders(moduleName, JavaResourceRootType.RESOURCE, Arrays.asList(expectedSources));
+  }
+
+  protected void assertGeneratedTestResources(String moduleName, String... expectedSources) {
+    assertGeneratedResourceFolders(moduleName, JavaResourceRootType.TEST_RESOURCE, Arrays.asList(expectedSources));
   }
 
   protected void assertExcludes(String moduleName, String... expectedExcludes) {
@@ -169,35 +168,63 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
     doAssertContentFolders(root, Arrays.asList(root.getExcludeFolders()), expectedExcudes);
   }
 
-  private void doAssertContentFolders(String moduleName, @NotNull JpsModuleSourceRootType<?> rootType, String... expected) {
-    final ContentEntry[] contentRoots = getContentRoots(moduleName);
-    Arrays.sort(contentRoots, Comparator.comparing(ContentEntry::getUrl));
-    final String rootUrl = contentRoots.length > 1 ? ExternalSystemApiUtil.getExternalProjectPath(getModule(moduleName)) : null;
-    doAssertContentFolders(rootUrl, contentRoots, rootType, expected);
+  private void assertSourceFolders(
+    @NotNull String moduleName,
+    @NotNull JpsModuleSourceRootType<?> rootType,
+    @NotNull List<String> expected
+  ) {
+    assertSourceFolders(moduleName, rootType, __ -> true, expected);
   }
 
-  protected static List<SourceFolder> doAssertContentFolders(@Nullable String rootUrl,
-                                                             ContentEntry[] contentRoots,
-                                                             @NotNull JpsModuleSourceRootType<?> rootType,
-                                                             String... expected) {
-    List<SourceFolder> result = new ArrayList<>();
-    List<String> actual = new ArrayList<>();
-    for (ContentEntry contentRoot : contentRoots) {
-      for (SourceFolder f : contentRoot.getSourceFolders(rootType)) {
-        rootUrl = VirtualFileManager.extractPath(rootUrl == null ? contentRoot.getUrl() : rootUrl);
-        String folderUrl = VirtualFileManager.extractPath(f.getUrl());
-        if (folderUrl.startsWith(rootUrl)) {
-          int length = rootUrl.length() + 1;
-          folderUrl = folderUrl.substring(Math.min(length, folderUrl.length()));
-        }
+  private void assertGeneratedSourceFolders(
+    @NotNull String moduleName,
+    @NotNull JavaSourceRootType rootType,
+    @NotNull List<String> expectedSources
+  ) {
+    assertSourceFolders(moduleName, rootType, it -> isGeneratedSource(it, rootType), expectedSources);
+  }
 
-        actual.add(folderUrl);
-        result.add(f);
+  private void assertGeneratedResourceFolders(
+    @NotNull String moduleName,
+    @NotNull JavaResourceRootType rootType,
+    @NotNull List<String> expectedSources
+  ) {
+    assertSourceFolders(moduleName, rootType, it -> isGeneratedResource(it, rootType), expectedSources);
+  }
+
+  private static boolean isGeneratedSource(
+    @NotNull SourceFolder sourceFolder,
+    @NotNull JavaSourceRootType rootType
+  ) {
+    var element = sourceFolder.getJpsElement();
+    var properties = element.getProperties(rootType);
+    return properties != null && properties.isForGeneratedSources();
+  }
+
+  private static boolean isGeneratedResource(
+    @NotNull SourceFolder sourceFolder,
+    @NotNull JavaResourceRootType rootType
+  ) {
+    var element = sourceFolder.getJpsElement();
+    var properties = element.getProperties(rootType);
+    return properties != null && properties.isForGeneratedSources();
+  }
+
+  private void assertSourceFolders(
+    @NotNull String moduleName,
+    @NotNull JpsModuleSourceRootType<?> rootType,
+    @NotNull Predicate<SourceFolder> sourceFolderFilter,
+    @NotNull List<String> expectedSources
+  ) {
+    var actualSources = new ArrayList<String>();
+    for (var contentRoot : getContentRoots(moduleName)) {
+      for (var sourceFolder : contentRoot.getSourceFolders(rootType)) {
+        if (sourceFolderFilter.test(sourceFolder)) {
+          actualSources.add(VirtualFileManager.extractPath(sourceFolder.getUrl()));
+        }
       }
     }
-
-    assertOrderedElementsAreEqual(actual, Arrays.asList(expected));
-    return result;
+    assertUnorderedElementsAreEqual(actualSources, expectedSources);
   }
 
   private static void doAssertContentFolders(ContentEntry e, final List<? extends ContentFolder> folders, String... expected) {
@@ -420,21 +447,21 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
     ProjectDataManager.getInstance().importData(projectDataNode, myProject);
   }
 
-  protected void importProject(@NonNls String config, Boolean skipIndexing) throws IOException {
+  protected void importProject(@NotNull String config, @Nullable Boolean skipIndexing) throws IOException {
     createProjectConfig(config);
     importProject(skipIndexing);
   }
 
-  protected void importProject(Boolean skipIndexing) {
+  protected void importProject(@Nullable Boolean skipIndexing) {
     if (skipIndexing != null) {
-      PlatformTestUtil.withSystemProperty("idea.skip.indices.initialization", skipIndexing.toString(), () -> doImportProject());
+      PlatformTestUtil.withSystemProperty("idea.skip.indices.initialization", skipIndexing.toString(), () -> importProject());
     }
     else {
-      doImportProject();
+      importProject();
     }
   }
 
-  private void doImportProject() {
+  protected void importProject() {
     AbstractExternalSystemSettings systemSettings = ExternalSystemApiUtil.getSettings(myProject, getExternalSystemId());
     final ExternalProjectSettings projectSettings = getCurrentExternalProjectSettings();
     projectSettings.setExternalProjectPath(getProjectPath());
@@ -472,24 +499,16 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
       }).build();
     }
 
-    ExternalSystemProgressNotificationManager notificationManager = ExternalSystemProgressNotificationManager.getInstance();
-    ExternalSystemTaskNotificationListenerAdapter listener = new ExternalSystemTaskNotificationListenerAdapter() {
-      @Override
-      public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
-        printOutput(text, stdOut);
-      }
-    };
-    notificationManager.addNotificationListener(listener);
-    try {
-      ExternalSystemUtil.refreshProjects(importSpec);
-    }
-    finally {
-      notificationManager.removeNotificationListener(listener);
-    }
+    ExternalSystemUtil.refreshProjects(importSpec);
 
     if (!error.isNull()) {
       handleImportFailure(error.get().first, error.get().second);
     }
+
+    // allow all the invokeLater to pass through the queue, before waiting for indexes to be ready
+    // (specifically, all the invokeLater that schedule indexing after language level change performed by import)
+    runInEdtAndWait(() -> PlatformTestUtil.dispatchAllEventsInIdeEventQueue());
+    IndexingTestUtil.waitUntilIndexesAreReady(myProject);
   }
 
   protected void printOutput(@NotNull String text, boolean stdOut) {
@@ -511,8 +530,7 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
 
   protected ImportSpec createImportSpec() {
     ImportSpecBuilder importSpecBuilder = new ImportSpecBuilder(myProject, getExternalSystemId())
-      .use(ProgressExecutionMode.MODAL_SYNC)
-      .forceWhenUptodate();
+      .use(ProgressExecutionMode.MODAL_SYNC);
     return importSpecBuilder.build();
   }
 

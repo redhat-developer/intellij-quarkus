@@ -47,51 +47,51 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
                 javaProject);
         // Position(14, 40) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.mes|sage")
-        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), h(
+        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), h(
                 "`greeting.message = hello` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
                 14, 28, 44));
 
         // Test left edge
         // Position(14, 28) is the character after the | symbol:
         // @ConfigProperty(name = "|greeting.message")
-        assertJavaHover(new Position(14, 28), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), h(
+        assertJavaHover(new Position(14, 28), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), h(
                 "`greeting.message = hello` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
                 14, 28, 44));
 
         // Test right edge
         // Position(14, 43) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.messag|e")
-        assertJavaHover(new Position(14, 43), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), h(
+        assertJavaHover(new Position(14, 43), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), h(
                 "`greeting.message = hello` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
                 14, 28, 44));
 
         // Test no hover
         // Position(14, 27) is the character after the | symbol:
         // @ConfigProperty(name = |"greeting.message")
-        assertJavaHover(new Position(14, 27), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), null);
+        assertJavaHover(new Position(14, 27), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), null);
 
         // Test no hover 2
         // Position(14, 44) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.message|")
-        assertJavaHover(new Position(14, 44), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), null);
+        assertJavaHover(new Position(14, 44), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), null);
 
         // Hover default value
         // Position(17, 33) is the character after the | symbol:
         // @ConfigProperty(name = "greet|ing.suffix", defaultValue="!")
-        assertJavaHover(new Position(17, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+        assertJavaHover(new Position(17, 33), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
                 h("`greeting.suffix = !` *in* [GreetingResource.java](" + javaFileUri + ")", 17, 28, 43));
 
         // Hover override default value
         // Position(26, 33) is the character after the | symbol:
         // @ConfigProperty(name = "greet|ing.number", defaultValue="0")
-        assertJavaHover(new Position(29, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+        assertJavaHover(new Position(29, 33), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
                 h("`greeting.number = 100` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
                         29, 28, 43));
 
         // Hover when no value
         // Position(23, 33) is the character after the | symbol:
         // @ConfigProperty(name = "greet|ing.missing")
-        assertJavaHover(new Position(23, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), h("`greeting.missing` is not set", 23, 28, 44));
+        assertJavaHover(new Position(23, 33), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), h("`greeting.missing` is not set", 23, 28, 44));
     }
 
     @Test
@@ -110,7 +110,7 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
 
         // Position(14, 40) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.mes|sage")
-        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
+        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), //
                 h("`%dev.greeting.message = hello dev` *in* [META-INF/microprofile-config.properties]("
                                 + propertiesFileUri + ")  \n" + //
                                 "`%prod.greeting.message = hello prod` *in* [META-INF/microprofile-config.properties]("
@@ -128,7 +128,7 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
 
         // Position(14, 40) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.mes|sage")
-        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
+        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), //
                 h("`%dev.greeting.message = hello dev` *in* [META-INF/microprofile-config.properties]("
                                 + propertiesFileUri + ")  \n" + //
                                 "`%prod.greeting.message = hello prod` *in* [META-INF/microprofile-config.properties]("
@@ -148,18 +148,18 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
 
         // Position(22, 61) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.m|ethod.message")
-        assertJavaHover(new Position(22, 61), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+        assertJavaHover(new Position(22, 61), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
                 h("`greeting.method.message = hello` *in* [META-INF/microprofile-config.properties]("
                         + propertiesFileUri + ")", 22, 51, 74));
 
         // Position(27, 60) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.m|ethod.suffix" , defaultValue="!")
-        assertJavaHover(new Position(27, 60), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+        assertJavaHover(new Position(27, 60), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
                 h("`greeting.method.suffix = !` *in* [GreetingMethodResource.java](" + javaFileUri + ")", 27, 50, 72));
 
         // Position(32, 58) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.method.name")
-        assertJavaHover(new Position(32, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+        assertJavaHover(new Position(32, 48), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
                 h("`greeting.method.name` is not set", 32, 48, 68));
     }
 
@@ -174,25 +174,25 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
 
         // Position(23, 48) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.con|structor.message")
-        assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
+        assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), //
                 h("`greeting.constructor.message = hello` *in* [META-INF/microprofile-config.properties]("
                         + propertiesFileUri + ")", 23, 36, 64));
 
         // Position(24, 48) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.con|structor.suffix" , defaultValue="!")
-        assertJavaHover(new Position(24, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
+        assertJavaHover(new Position(24, 48), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), //
                 h("`greeting.constructor.suffix = !` *in* [GreetingConstructorResource.java](" + javaFileUri + ")", 24,
                         36, 63));
 
         // Position(25, 48) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.con|structor.name")
-        assertJavaHover(new Position(25, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
+        assertJavaHover(new Position(25, 48), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), //
                 h("`greeting.constructor.name` is not set", 25, 36, 61));
     }
 
     @Test
     public void testConfigPropertyNamePrecendence() throws Exception {
-        IConfigSourceProvider.EP_NAME.getPoint().registerExtension(new TestConfigSourceProvider(), myProject);
+        IConfigSourceProvider.EP_NAME.getPoint().registerExtension(new TestConfigSourceProvider(), getProject());
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
         String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
         String propertiesFileUri = getFileUri("src/main/resources/META-INF/microprofile-config.properties", javaProject);
@@ -205,14 +205,14 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
 
         // Position(14, 40) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.mes|sage")
-        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
                 h("`greeting.message = hi` *in* [META-INF/config.properties](" + configPropertiesFileUri + ")", 14, 28,
                         44));
 
         saveFile(TestConfigSourceProvider.CONFIG_FILE, //
                 "\r\n", javaProject);
 
-        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), h(
+        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), h(
                 "`greeting.message = hello` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
                 14, 28, 44));
     }
@@ -220,7 +220,7 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
     @Test
     public void testConfigPropertyNameProfile() throws Exception {
 
-        IConfigSourceProvider.EP_NAME.getPoint().registerExtension(new TestConfigSourceProvider(), myProject);
+        IConfigSourceProvider.EP_NAME.getPoint().registerExtension(new TestConfigSourceProvider(), getProject());
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
         String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
         String propertiesFileUri = getFileUri("src/main/resources/META-INF/microprofile-config.properties", javaProject);
@@ -233,7 +233,7 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
 
         // Position(14, 40) is the character after the | symbol:
         // @ConfigProperty(name = "greeting.mes|sage")
-        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
                 h("`%test.greeting.message = hi` *in* [META-INF/microprofile-config-test.properties]("
                         + testPropertiesFileUri + ")  \n" + //
                         "`greeting.message = hi` *in* [META-INF/microprofile-config-test.properties]("
@@ -242,7 +242,7 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
         saveFile(TestConfigSourceProvider.MICROPROFILE_CONFIG_TEST_FILE, //
                 "\r\n", javaProject);
 
-        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), h(
+        assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), h(
                 "`greeting.message = hello` *in* [META-INF/microprofile-config.properties](" + propertiesFileUri + ")",
                 14, 28, 44));
 
@@ -253,7 +253,7 @@ public class MicroProfileConfigJavaHoverTest extends LSP4MPMavenModuleImportingT
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_hover);
         String javaFileUri = getFileUri("src/main/java/org/acme/config/GreetingResource.java", javaProject);
         String propertiesFileUri = getFileUri("src/main/resources/META-INF/microprofile-config.properties", javaProject);
-        IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(getProject());
 
         saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, //
                 "greeting.message = ${asdf}\r\n" + "asdf = hello", //
