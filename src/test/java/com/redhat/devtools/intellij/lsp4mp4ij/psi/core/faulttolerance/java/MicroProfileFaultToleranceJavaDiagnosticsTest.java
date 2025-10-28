@@ -42,7 +42,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     public void testFallbackMethodsMissing() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/FaultTolerantResource.java").toURI());
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         diagnosticsParams.setUris(Arrays.asList(javaFileUri));
@@ -59,7 +59,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testAsynchronousNonFutureOrCompletionStage() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/AsynchronousFaultToleranceResource.java").toURI());
@@ -90,7 +90,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testAsynchronousClassNonFutureOrCompletionStage() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/AsynchronousFaultToleranceClassResource.java").toURI());
@@ -122,7 +122,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     public void testFallbackMethodValidationFaultTolerant() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/acme/OtherFaultTolerantResource.java").toURI());
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         diagnosticsParams.setUris(Arrays.asList(javaFileUri));
@@ -133,7 +133,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testCircuitBreakerClientForValidationDelay() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/CircuitBreakerClientForValidationDelay.java").toURI());
@@ -156,7 +156,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testBulkheadClientForValidation() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/BulkheadClientForValidation.java").toURI());
@@ -205,7 +205,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testTimeoutClientForValidation() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/TimeoutClientForValidation.java").toURI());
@@ -228,7 +228,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testRetryClientForValidation() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/RetryClientForValidation.java").toURI());
@@ -297,7 +297,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testRetryClientForValidationClass() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/RetryClientForValidationClass.java").toURI());
@@ -336,7 +336,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testRetryClientForValidationChronoUnit() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = fixURI(new File(ModuleUtilCore.getModuleDirPath(module), "src/main/java/org/eclipse/microprofile/fault/tolerance/tck/invalidParameters/RetryClientForValidationChronoUnit.java").toURI());

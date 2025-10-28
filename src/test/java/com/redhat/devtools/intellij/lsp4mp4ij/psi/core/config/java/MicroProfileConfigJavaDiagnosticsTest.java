@@ -50,7 +50,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testImproperDefaultValues() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/config/DefaultValueResource.java", javaProject);
@@ -88,7 +88,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testImproperDefaultValuesList() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         System.err.println(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/DefaultValueListResource.java"));
@@ -123,7 +123,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testNoValueAssignedWithIgnore() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/config/DefaultValueResource.java", javaProject);
@@ -154,7 +154,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testUnassignedWithConfigproperties() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_configproperties);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/Details.java", javaProject);
@@ -173,7 +173,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testCodeActionForUnassigned() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "", javaProject);
 
@@ -254,7 +254,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testEmptyNameKeyValue() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_configproperties);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/EmptyKey.java", javaProject);

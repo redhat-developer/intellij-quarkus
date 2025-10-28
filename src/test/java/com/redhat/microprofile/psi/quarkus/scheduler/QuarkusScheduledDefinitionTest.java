@@ -34,7 +34,7 @@ public class QuarkusScheduledDefinitionTest extends QuarkusMavenModuleImportingT
 	public void testConfigCronPropertyDefinition() throws Exception {
 
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
-		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
+		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(getProject());
 		String javaFileUri = getFileUri("src/main/java/org/acme/scheduler/CounterBean.java", javaProject);
 		String propertiesFileUri = getFileUri("src/main/resources/application.properties", javaProject);
 
@@ -50,7 +50,7 @@ public class QuarkusScheduledDefinitionTest extends QuarkusMavenModuleImportingT
 	public void testConfigEveryPropertyNameDefinition() throws Exception {
 
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
-		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
+		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(getProject());
 		String javaFileUri = getFileUri("src/main/java/org/acme/scheduler/CounterBean.java", javaProject);
 		String propertiesFileUri = getFileUri("src/main/resources/application.properties", javaProject);
 
@@ -66,7 +66,7 @@ public class QuarkusScheduledDefinitionTest extends QuarkusMavenModuleImportingT
 	public void testConfigPropertyExpressionDefinition() throws Exception {
 
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.scheduler_quickstart);
-		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(myProject);
+		IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(getProject());
 		String javaFileUri = getFileUri("src/main/java/org/acme/scheduler/CounterBean.java", javaProject);
 		String propertiesFileUri = getFileUri("src/main/resources/application.properties", javaProject);
 

@@ -4,18 +4,18 @@ rm -rf intellij-community-tmp 2>/dev/null
 git clone --single-branch --depth 1 --branch $IDEA_VERSION https://github.com/JetBrains/intellij-community intellij-community-tmp
 rm -rf intellij-community 2>/dev/null
 mkdir -p intellij-community/java/testFramework/src/com/intellij/compiler/artifacts
-cp -p intellij-community-tmp/java/testFramework/src/com/intellij/compiler/artifacts/ArtifactsTestUtil.java intellij-community/java/testFramework/src/com/intellij/compiler/artifacts
+cp intellij-community-tmp/java/testFramework/src/com/intellij/compiler/artifacts/ArtifactsTestUtil.java intellij-community/java/testFramework/src/com/intellij/compiler/artifacts
 mkdir -p intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
-cp -p intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/Assertions.java intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
-cp -p intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/JdomAssert.kt intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
-cp -p intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/StringAssertEx.kt intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
-cp -p intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/snapshot.kt intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
-cp -p intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/PathAssertEx.kt intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
+cp intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/Assertions.java intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
+cp intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/JdomAssert.kt intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
+cp intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/StringAssertEx.kt intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
+cp intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/snapshot.kt intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
+cp intellij-community-tmp/platform/testFramework/extensions/src/com/intellij/testFramework/assertions/PathAssertEx.kt intellij-community/platform/testFramework/extensions/src/com/intellij/testFramework/assertions
 mkdir -p intellij-community/platform/lang-impl/testSources/com/intellij/openapi/roots/ui/configuration
 cp intellij-community-tmp/platform/lang-impl/testSources/com/intellij/openapi/roots/ui/configuration/SdkTestCase.kt intellij-community/platform/lang-impl/testSources/com/intellij/openapi/roots/ui/configuration
 mkdir -p intellij-community/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework
-cp -p intellij-community-tmp/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework/ExternalSystemImportingTestCase.java intellij-community/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework
-cp -p intellij-community-tmp/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework/ExternalSystemTestCase.java intellij-community/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework
+cp intellij-community-tmp/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework/ExternalSystemImportingTestCase.java intellij-community/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework
+cp intellij-community-tmp/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework/ExternalSystemTestCase.java intellij-community/platform/external-system-api/testFramework/src/com/intellij/platform/externalSystem/testFramework
 mkdir -p intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/service/execution
 cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/service/execution/TestUnknownSdkResolver.kt intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/service/execution
 mkdir -p intellij-community/platform/external-system-impl/testSrc/com/intellij/openapi/externalSystem/test
@@ -26,21 +26,29 @@ cp intellij-community-tmp/platform/external-system-impl/testSrc/com/intellij/ope
 mkdir -p intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenImportingTestCase.kt intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenTestCaseUtil.kt intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
-cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenTestCase.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
-cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/NullMavenConsole.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
+cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/MavenTestCase.kt intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
 cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/InstantImportCompatible.java intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework
-mkdir -p intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils
-cp intellij-community-tmp/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils/MavenImportingTestCase.kt intellij-community/plugins/maven/testFramework/src/com/intellij/maven/testFramework/utils
 mkdir -p intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
-cp -p intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing/TestGradleBuildScriptBuilder.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
-cp -p intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing/GradleImportingTestCase.java intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
+cp intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing/TestGradleBuildScriptBuilder.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
+cp intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing/GradleImportingTestCase.java intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
+cp intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing/TestGradleSettingsScriptHelper.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/importing
+mkdir -p intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/util/buildscript/
+cp intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/util/buildscript/TestGradleBuildScriptBuilder.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/util/buildscript/
+cp intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/util/buildscript/TestGroovyDslGradleBuildScriptBuilder.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/util/buildscript/
+cp intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/util/buildscript/TestKotlinDslGradleBuildScriptBuilder.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/util/buildscript/
+mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/VersionMatcherRule.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/GradleJvmResolver.kt intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/JavaVersionRestriction.kt intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/TargetJavaVersionWatcher.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling
 mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/builder
-cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/builder/AbstractModelBuilderTest.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/builder
-cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/VersionMatcherRule.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/builder/AbstractModelBuilderTest.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/builder
 mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation
-cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation/TargetVersions.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation/TargetVersions.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation/TargetJavaVersion.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/annotation
 mkdir -p intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/
-cp -p intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/VersionMatcher.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util
-mkdir -p intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/fixtures/impl/
-cp -p intellij-community-tmp/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/fixtures/impl/graldeJvm/GradleJvmResolver.kt intellij-community/plugins/gradle/testSources/org/jetbrains/plugins/gradle/testFramework/fixtures/impl/
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/VersionMatcher.java intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util
+cp intellij-community-tmp/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util/JavaVersionMatcher.kt intellij-community/plugins/gradle/tooling-extension-impl/testSources/org/jetbrains/plugins/gradle/tooling/util
+
+
 echo "Done!"

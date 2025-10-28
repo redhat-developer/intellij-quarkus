@@ -48,7 +48,7 @@ public class TemplateGetJavaTypeTest extends QuteMavenModuleImportingTestCase {
 	public void testpackages() throws Exception {
 
 		QuteJavaTypesParams params = new QuteJavaTypesParams("java.", QuteMavenProjectName.qute_quickstart);
-		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(myProject),
+		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(getProject()),
 				new EmptyProgressIndicator());
 
 		assertJavaTypes(actual, //
@@ -60,7 +60,7 @@ public class TemplateGetJavaTypeTest extends QuteMavenModuleImportingTestCase {
 	public void testlist() throws Exception {
 
 		QuteJavaTypesParams params = new QuteJavaTypesParams("List", QuteMavenProjectName.qute_quickstart);
-		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(myProject),
+		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(getProject()),
 				new EmptyProgressIndicator());
 
 		assertJavaTypes(actual, //
@@ -71,7 +71,7 @@ public class TemplateGetJavaTypeTest extends QuteMavenModuleImportingTestCase {
 	public void testitem() throws Exception {
 
 		QuteJavaTypesParams params = new QuteJavaTypesParams("Item", QuteMavenProjectName.qute_quickstart);
-		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(myProject),
+		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(getProject()),
 				new EmptyProgressIndicator());
 
 		assertJavaTypes(actual, //
@@ -84,7 +84,7 @@ public class TemplateGetJavaTypeTest extends QuteMavenModuleImportingTestCase {
 
 		QuteJavaTypesParams params = new QuteJavaTypesParams("org.acme.qute.NestedClass.",
 				QuteMavenProjectName.qute_quickstart);
-		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(myProject),
+		List<JavaTypeInfo> actual = QuteSupportForTemplate.getInstance().getJavaTypes(params, PsiUtilsLSImpl.getInstance(getProject()),
 				new EmptyProgressIndicator());
 
 		assertJavaTypes(actual, //

@@ -41,7 +41,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testImplementHealthCheck() throws Exception {
         Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_health_quickstart);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/health/DontImplementHealthCheck.java");
@@ -53,7 +53,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
                 "The class `org.acme.health.DontImplementHealthCheck` using the @Liveness, @Readiness or @Health annotation should implement the HealthCheck interface.",
                 DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
                 MicroProfileHealthErrorCode.ImplementHealthCheck);
-        assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
+        assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(getProject()), //
                 d);
 
         /*String uri = javaFile.getUrl();*/
@@ -69,7 +69,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     public void testHealthAnnotationMissing() throws Exception {
 
         Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_health_quickstart);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/health/ImplementHealthCheck.java");
@@ -81,7 +81,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
                 "The class `org.acme.health.ImplementHealthCheck` implementing the HealthCheck interface should use the @Liveness, @Readiness or @Health annotation.",
                 DiagnosticSeverity.Warning, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
                 MicroProfileHealthErrorCode.HealthAnnotationMissing);
-        assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), //
+        assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(getProject()), //
                 d);
 
         MicroProfileJavaCodeActionParams codeActionParams = createCodeActionParams(uri, d);
@@ -109,7 +109,7 @@ public class MicroProfileHealthJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testHealthAnnotationMissingv3() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_health_3, true);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(javaProject) + "/src/main/java/org/acme/MyLivenessCheck.java");

@@ -44,7 +44,7 @@ public class QuarkusCachePropertiesTest extends QuarkusMavenModuleImportingTestC
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.cache_quickstart, true);
 		MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(
 				javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
-				PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
+				PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
 		assertProperties(infoFromClasspath,
 				// WeatherForecastService

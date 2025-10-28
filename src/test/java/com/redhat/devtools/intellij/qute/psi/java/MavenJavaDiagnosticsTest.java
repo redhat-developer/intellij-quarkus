@@ -71,7 +71,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
         assertEquals(1, publishDiagnostics.size());
 
         List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
@@ -102,7 +102,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
         assertEquals(1, publishDiagnostics.size());
 
         List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
@@ -130,7 +130,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
         assertEquals(1, publishDiagnostics.size());
 
         List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
@@ -157,7 +157,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
         assertEquals(1, publishDiagnostics.size());
 
         diagnostics = publishDiagnostics.get(0).getDiagnostics();
@@ -182,7 +182,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
         assertEquals(1, publishDiagnostics.size());
 
         List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
@@ -205,7 +205,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
         assertEquals(1, publishDiagnostics.size());
 
         List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
@@ -239,7 +239,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
         assertEquals(1, publishDiagnostics.size());
 
         List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
@@ -274,7 +274,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
         assertEquals(1, publishDiagnostics.size());
 
         List<Diagnostic> diagnostics = publishDiagnostics.get(0).getDiagnostics();
@@ -302,7 +302,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         params.setUris(Arrays.asList(javaFileUri));
 
         List<PublishDiagnosticsParams> publishDiagnostics = QuteSupportForJava.getInstance().diagnostics(params,
-                PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
 
         assertEquals(1, publishDiagnostics.size());
 

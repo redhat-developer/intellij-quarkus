@@ -50,7 +50,7 @@ public class QuarkusConfigPropertiesTest extends QuarkusMavenModuleImportingTest
 
         MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(
                 javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
-                PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
         int nbProperties = 0;
 
@@ -174,7 +174,7 @@ public class QuarkusConfigPropertiesTest extends QuarkusMavenModuleImportingTest
 
         MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(
                 javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
-                PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
+                PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
         int nbProperties = 0;
 
