@@ -33,19 +33,19 @@ import java.util.List;
 
 public abstract class MavenModuleImportingTestCase extends MavenImportingTestCase {
 
-    protected TestFixtureBuilder<IdeaProjectTestFixture> myProjectBuilder;
+  protected TestFixtureBuilder<IdeaProjectTestFixture> myProjectBuilder;
 
-    protected void setUpFixtures() throws Exception {
-        myProjectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-        final JavaTestFixtureFactory factory = JavaTestFixtureFactory.getFixtureFactory();
-        myProjectBuilder.addModule(JavaModuleFixtureBuilder.class);
-        IdeaProjectTestFixture myFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
-        myFixture.setUp();
-        setTestFixture(myFixture);
-        LanguageLevelProjectExtension.getInstance(myFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_17);
-    }
+  protected void setUpFixtures() throws Exception {
+    myProjectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+    final JavaTestFixtureFactory factory = JavaTestFixtureFactory.getFixtureFactory();
+    myProjectBuilder.addModule(JavaModuleFixtureBuilder.class);
+    IdeaProjectTestFixture myFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
+    myFixture.setUp();
+    setTestFixture(myFixture);
+    LanguageLevelProjectExtension.getInstance(myFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_17);
+  }
 
-    private static int counter = 0;
+  private static int counter = 0;
 
   /**
    * Create a new module into the test project from existing project folder.
