@@ -165,7 +165,7 @@ public class QuarkusModuleInfoStep extends ModuleWizardStep implements Disposabl
             @Override
             public void contentsChanged(ListDataEvent e) {
                 updateJavaVersions();
-                loadExtensionsModel(streamModel, indicator);
+                extensionsModelRequest = loadExtensionsModel(streamModel, indicator);
             }
         });
 
