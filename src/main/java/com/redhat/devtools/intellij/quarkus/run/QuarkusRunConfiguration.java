@@ -171,7 +171,11 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
 
 
     private boolean isQuteDebuggerInstalled(@NotNull Module module) {
-        return PsiTypeUtils.findType("io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter",  module, null) != null;
+        // Qute debugger is available since Quarkus 3.29.
+        // We check if "io.quarkus.qute.runtime.debug.DebugQuteEngineObserver" is in the classpath
+        // Note: we cannot check if "io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter" is in classpath
+        // because "io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter" is not available in the standard IJ classpath
+        return PsiTypeUtils.findType("io.quarkus.qute.runtime.debug.DebugQuteEngineObserver",  module, null) != null;
     }
 
     public String getProfile() {
