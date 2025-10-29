@@ -28,6 +28,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class MavenModuleImportingTestCase extends MavenImportingTestCase {
@@ -75,7 +76,35 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     return Arrays.stream(modules).skip(1).toList();
   }
 
+  protected Module createMavenModule(File projectDir) throws Exception {
+    List<Module> modules = createMavenModules(Collections.singletonList(projectDir));
+    return modules.get(modules.size() - 1);
+  }
+
+  /**
+   * Create a new module into the test project from existing in memory POM.
+   *
+   * @param name the new module name
+   * @param xml the project POM
+   * @return the created module
+   */
+  protected Module createMavenModule(String name, String xml) throws Exception {
+    Module module = getTestFixture().getModule();
+    File moduleDir = new File(module.getModuleFilePath()).getParentFile();
+    VirtualFile pomFile = createPomFile(LocalFileSystem.getInstance().findFileByIoFile(moduleDir), xml);
+    List<VirtualFile> pomFiles = new ArrayList<>();
+    pomFiles.add(pomFile);
+    importProjects(pomFiles.toArray(VirtualFile[]::new));
+    Module[] modules = ModuleManager.getInstance(getTestFixture().getProject()).getModules();
+    if (modules.length > 0) {
+      module = modules[modules.length - 1];
+      setupJdkForModule(module.getName());
+    }
+    IndexingTestUtil.waitUntilIndexesAreReady(getTestFixture().getProject());
+    return module;
+  }
+
   protected IPsiUtils getJDTUtils() {
-    return PsiUtilsLSImpl.getInstance(getProject());
+    return PsiUtilsLSImpl.getInstance(getTestFixture().getProject());
   }
 }
