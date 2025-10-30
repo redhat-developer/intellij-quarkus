@@ -16,10 +16,12 @@ package com.redhat.devtools.intellij.quarkus.run;
 import com.intellij.execution.ExecutionListener;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Execution listener singleton which tracks any process starting to add in debug mode
@@ -42,13 +44,40 @@ class AttachDebuggerExecutionListener implements ExecutionListener {
         }
         // Debug mode...
         RunnerAndConfigurationSettings settings = env.getRunnerAndConfigurationSettings();
-        if (settings != null && settings.getConfiguration() instanceof QuarkusRunConfiguration) {
+        if (settings.getConfiguration() instanceof QuarkusRunConfiguration) {
             // The execution has been done by debugging a Quarkus run configuration (Gradle / Maven)
             // add a AttachDebuggerProcessListener to track
             // 'Listening for transport dt_socket at address: $PORT' message and starts
-            // the remote debugger with the givenport $PORT
-            handler.addProcessListener(new AttachDebuggerProcessListener(project, env));
+            // the remote debugger with the given port $PORT
+            handler.addProcessListener(new AttachDebuggerProcessListener(project, env, getDebugPort(handler)));
         }
+    }
+
+    /**
+     * Returns the port declared in teh command line with -Ddebug= and null otherwise.
+     * @param handler the process handler.
+     * @return the port declared in teh command line with -Ddebug= and null otherwise.
+     */
+    private @Nullable Integer getDebugPort(@NotNull ProcessHandler handler) {
+        if (handler instanceof BaseOSProcessHandler osProcessHandler) {
+            String commandLine = osProcessHandler.getCommandLine();
+            int startIndex = commandLine.indexOf("-Ddebug=");
+            if(startIndex != -1) {
+                StringBuilder port = new StringBuilder();
+                for (int i = startIndex+"-Ddebug=".length(); i < commandLine.length(); i++) {
+                    char c = commandLine.charAt(i);
+                    if (Character.isDigit(c)) {
+                        port.append(c);
+                    } else {
+                        break;
+                    }
+                }
+                if (!port.isEmpty()) {
+                    return Integer.parseInt(port.toString());
+                }
+            }
+        }
+        return null;
     }
 
 }
