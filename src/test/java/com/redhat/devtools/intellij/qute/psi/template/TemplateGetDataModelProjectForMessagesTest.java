@@ -48,7 +48,7 @@ public class TemplateGetDataModelProjectForMessagesTest extends QuteMavenModuleI
 
 		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.qute_messages);
 		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
-				.getDataModelProject(params, PsiUtilsLSImpl.getInstance(myProject), new EmptyProgressIndicator());
+				.getDataModelProject(params, PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
 		Assert.assertNotNull(project);
 
 		// Test templates

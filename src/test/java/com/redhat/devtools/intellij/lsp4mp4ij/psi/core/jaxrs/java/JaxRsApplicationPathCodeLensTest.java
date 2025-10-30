@@ -33,7 +33,7 @@ public class JaxRsApplicationPathCodeLensTest extends LSP4MPMavenModuleImporting
     @Test
     public void testUrlCodeLensApplicationPath() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_applicationpath);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
         params.setCheckServerAvailable(false);
@@ -56,7 +56,7 @@ public class JaxRsApplicationPathCodeLensTest extends LSP4MPMavenModuleImporting
     @Test
     public void testUrlCodeLensApplicationPathNoSlash() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_applicationpath);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
         params.setCheckServerAvailable(false);
@@ -79,7 +79,7 @@ public class JaxRsApplicationPathCodeLensTest extends LSP4MPMavenModuleImporting
     @Test
     public void testUrlCodeLensApplicationPathChange() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_applicationpath);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
         params.setCheckServerAvailable(false);
@@ -112,7 +112,7 @@ public class JaxRsApplicationPathCodeLensTest extends LSP4MPMavenModuleImporting
     @Test
     public void testOpenLibertyJakarta() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.open_liberty);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
         params.setCheckServerAvailable(false);

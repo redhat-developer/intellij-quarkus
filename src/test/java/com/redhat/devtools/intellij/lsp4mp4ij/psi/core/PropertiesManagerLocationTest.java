@@ -33,19 +33,19 @@ public class PropertiesManagerLocationTest extends LSP4MPMavenModuleImportingTes
         // Test with JAR
         // quarkus.datasource.url
         Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-                "io.quarkus.reactive.pg.client.runtime.DataSourceConfig", "url", null, PsiUtilsLSImpl.getInstance(myProject));
+                "io.quarkus.reactive.pg.client.runtime.DataSourceConfig", "url", null, PsiUtilsLSImpl.getInstance(getProject()));
         Assert.assertNotNull("Definition from JAR", location);
 
         // Test with deployment JAR
         // quarkus.arc.auto-inject-fields
         location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
-                "io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, PsiUtilsLSImpl.getInstance(myProject));
+                "io.quarkus.arc.deployment.ArcConfig", "autoInjectFields", null, PsiUtilsLSImpl.getInstance(getProject()));
         Assert.assertNotNull("Definition deployment from JAR", location);
 
         // Test with Java sources
         // myapp.schema.create
         location = PropertiesManager.getInstance().findPropertyLocation(javaProject, "org.acme.vertx.FruitResource",
-                "schemaCreate", null, PsiUtilsLSImpl.getInstance(myProject));
+                "schemaCreate", null, PsiUtilsLSImpl.getInstance(getProject()));
         Assert.assertNotNull("Definition from Java Sources", location);
     }
 
@@ -57,7 +57,7 @@ public class PropertiesManagerLocationTest extends LSP4MPMavenModuleImportingTes
         // greetingInterface.name
         Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
                 "org.acme.config.IGreetingConfiguration", null, "getName()QOptional<QString;>;",
-                PsiUtilsLSImpl.getInstance(myProject));
+                PsiUtilsLSImpl.getInstance(getProject()));
 
         Assert.assertNotNull("Definition from IGreetingConfiguration#getName() method", location);
     }
@@ -70,7 +70,7 @@ public class PropertiesManagerLocationTest extends LSP4MPMavenModuleImportingTes
         // greeting.constructor.message
         Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
                 "org.acme.config.GreetingMethodResource", null, "setMessage(QString;)V",
-                PsiUtilsLSImpl.getInstance(myProject));
+                PsiUtilsLSImpl.getInstance(getProject()));
 
         Assert.assertNotNull("Definition from GreetingMethodResource#setMessage() method", location);
     }
@@ -84,7 +84,7 @@ public class PropertiesManagerLocationTest extends LSP4MPMavenModuleImportingTes
         Location location = PropertiesManager.getInstance().findPropertyLocation(javaProject,
                 "org.acme.config.GreetingConstructorResource", null,
                 "GreetingConstructorResource(QString;QString;QOptional<QString;>;)V",
-                PsiUtilsLSImpl.getInstance(myProject));
+                PsiUtilsLSImpl.getInstance(getProject()));
 
         Assert.assertNotNull("Definition from GreetingConstructorResource constructor", location);
     }

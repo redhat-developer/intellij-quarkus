@@ -30,15 +30,15 @@ public class MavenApplicationYamlCompletionTest extends MavenModuleImportingTest
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		((CodeInsightTestFixture)myTestFixture).enableInspections(YamlJsonSchemaHighlightingInspection.class);
+		((CodeInsightTestFixture)getTestFixture()).enableInspections(YamlJsonSchemaHighlightingInspection.class);
 	}
 
 	@Test
 	public void testApplicationYamlFile() throws Exception {
 		Module module = createMavenModule(new File("projects/maven/hibernate-orm-resteasy-yaml"));
-		((CodeInsightTestFixture)myTestFixture).setTestDataPath(ModuleUtilCore.getModuleDirPath(module));
-		var psiFile = ((CodeInsightTestFixture)myTestFixture).configureByFile("src/main/resources/application.yaml");
+		((CodeInsightTestFixture)getTestFixture()).setTestDataPath(ModuleUtilCore.getModuleDirPath(module));
+		var psiFile = ((CodeInsightTestFixture)getTestFixture()).configureByFile("src/main/resources/application.yaml");
 		UIUtil.dispatchAllInvocationEvents();
-		((CodeInsightTestFixture)myTestFixture).checkHighlighting();
+		((CodeInsightTestFixture)getTestFixture()).checkHighlighting();
 	}
 }

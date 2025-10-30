@@ -33,7 +33,7 @@ public class JaxRsWorkspaceSymbolParticipantTest extends LSP4MPMavenModuleImport
 	public void testConfigQuickstart() throws Exception {
 		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
 
-		assertWorkspaceSymbols(javaProject, PsiUtilsLSImpl.getInstance(myProject), //
+		assertWorkspaceSymbols(javaProject, PsiUtilsLSImpl.getInstance(getProject()), //
 				si("@/greeting/hello4: GET", r(40, 18, 24)), //
 				si("@/greeting/constructor: GET", r(34, 18, 23)), //
 				si("@/greeting/hello: GET", r(33, 18, 24)), //
@@ -46,7 +46,7 @@ public class JaxRsWorkspaceSymbolParticipantTest extends LSP4MPMavenModuleImport
 	public void testOpenLiberty() throws Exception {
 		Module javaProject = loadMavenProject(MicroProfileMavenProjectName.open_liberty);
 
-		assertWorkspaceSymbols(javaProject, PsiUtilsLSImpl.getInstance(myProject), //
+		assertWorkspaceSymbols(javaProject, PsiUtilsLSImpl.getInstance(getProject()), //
 				si("@/api/api/resource: GET", r(13, 15, 20)));
 	}
 

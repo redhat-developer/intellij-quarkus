@@ -46,7 +46,7 @@ public class MicroProfileReactiveMessagingTest extends LSP4MPMavenModuleImportin
     public void testMicroprofileReactiveMessagingPropertiesTest() throws Exception {
 
         Module module = loadMavenProject(MicroProfileMavenProjectName.microprofile_reactive_messaging);
-        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromClasspath,
 
@@ -93,7 +93,7 @@ public class MicroProfileReactiveMessagingTest extends LSP4MPMavenModuleImportin
     @Test
     public void testBlankAnnotation() throws Exception {
         Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-reactive-messaging"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(javaProject) + "/src/main/java/org/acme/kafka/PriceConverter.java");

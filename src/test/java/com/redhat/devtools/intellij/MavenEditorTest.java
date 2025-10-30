@@ -18,6 +18,6 @@ public abstract class MavenEditorTest extends MavenModuleImportingTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        codeInsightTestFixture = (CodeInsightTestFixture) myTestFixture;
+        codeInsightTestFixture = (CodeInsightTestFixture) getTestFixture();
     }
 }

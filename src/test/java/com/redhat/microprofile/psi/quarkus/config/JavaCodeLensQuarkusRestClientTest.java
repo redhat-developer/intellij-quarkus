@@ -44,7 +44,7 @@ public class JavaCodeLensQuarkusRestClientTest extends MavenModuleImportingTestC
 	@Test
 	public void testUrlCodeLensYaml() throws Exception {
 		Module javaProject = createMavenModule(new File("projects/quarkus/projects/maven/rest-client-quickstart"));
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
 		// Initialize file
 		initConfigFile(javaProject);

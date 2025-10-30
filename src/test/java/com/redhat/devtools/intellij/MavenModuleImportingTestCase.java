@@ -18,15 +18,15 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
-import kotlin.coroutines.EmptyCoroutineContext;
-import kotlinx.coroutines.BuildersKt;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -39,9 +39,10 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     myProjectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     final JavaTestFixtureFactory factory = JavaTestFixtureFactory.getFixtureFactory();
     myProjectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    myTestFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
-    myTestFixture.setUp();
-    LanguageLevelProjectExtension.getInstance(myTestFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_17);
+    IdeaProjectTestFixture myFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
+    myFixture.setUp();
+    setTestFixture(myFixture);
+    LanguageLevelProjectExtension.getInstance(myFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_17);
   }
 
   private static int counter = 0;
@@ -53,21 +54,25 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
    * @return the created modules
    */
   protected List<Module> createMavenModules(List<File> projectDirs) throws Exception {
-    Project project = myTestFixture.getProject();
+    Project project = getTestFixture().getProject();
+    List<VirtualFile> pomFiles = new ArrayList<>();
     for(File projectDir : projectDirs) {
       File moduleDir = new File(project.getBasePath(), projectDir.getName() + counter++);
       FileUtils.copyDirectory(projectDir, moduleDir);
       VirtualFile pomFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleDir).findFileByRelativePath("pom.xml");
-      BuildersKt.runBlocking(
-          EmptyCoroutineContext.INSTANCE,
-          (scope, continuation) -> importProjectAsync(pomFile,continuation)
-      );
+      pomFiles.add(pomFile);
     }
+    // Calling the non-suspending importProjects method instead of the Kotlin suspending function
+    // importProjectsAsync(file: VirtualFile) to prevent blocking unit tests starting from IntelliJ version 2024.2.
+    importProjects(pomFiles.toArray(VirtualFile[]::new));
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for(Module module : modules) {
       setupJdkForModule(module.getName());
     }
+    // Starting from IntelliJ 2024.2, indexing runs asynchronously in a background thread, https://plugins.jetbrains.com/docs/intellij/testing-faq.html#how-to-handle-indexing.
+    // Use the following method to ensure indexes are fully populated before proceeding.
+    IndexingTestUtil.waitUntilIndexesAreReady(project);
     return Arrays.stream(modules).skip(1).toList();
   }
 
@@ -84,22 +89,22 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
    * @return the created module
    */
   protected Module createMavenModule(String name, String xml) throws Exception {
-    Module module = myTestFixture.getModule();
+    Module module = getTestFixture().getModule();
     File moduleDir = new File(module.getModuleFilePath()).getParentFile();
     VirtualFile pomFile = createPomFile(LocalFileSystem.getInstance().findFileByIoFile(moduleDir), xml);
-    BuildersKt.runBlocking(
-        EmptyCoroutineContext.INSTANCE,
-        (scope, continuation) -> importProjectAsync(pomFile,continuation)
-    );
-    Module[] modules = ModuleManager.getInstance(myTestFixture.getProject()).getModules();
+    List<VirtualFile> pomFiles = new ArrayList<>();
+    pomFiles.add(pomFile);
+    importProjects(pomFiles.toArray(VirtualFile[]::new));
+    Module[] modules = ModuleManager.getInstance(getTestFixture().getProject()).getModules();
     if (modules.length > 0) {
       module = modules[modules.length - 1];
       setupJdkForModule(module.getName());
     }
+    IndexingTestUtil.waitUntilIndexesAreReady(getTestFixture().getProject());
     return module;
   }
 
   protected IPsiUtils getJDTUtils() {
-    return PsiUtilsLSImpl.getInstance(myProject);
+    return PsiUtilsLSImpl.getInstance(getTestFixture().getProject());
   }
 }
