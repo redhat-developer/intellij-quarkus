@@ -115,6 +115,7 @@
             implementation="com.redhat.devtools.intellij.qute.run.QuteConfigurationType"/>
         <xdebugger.breakpointType
                 implementation="com.redhat.devtools.intellij.qute.run.QuteBreakpointType"/>
+        <consoleFilterProvider implementation="com.redhat.devtools.intellij.quarkus.run.QuteDebuggerConsoleFilterProvider"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
@@ -123,5 +124,6 @@
                 name="Qute"
                 factoryClass="com.redhat.devtools.intellij.qute.run.QuteDebugAdapterDescriptorFactory" />
     </extensions>
+
 
 </idea-plugin>

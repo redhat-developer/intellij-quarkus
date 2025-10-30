@@ -19,6 +19,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessListener;
+import com.intellij.execution.process.ProcessOutputType;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -73,30 +74,32 @@ class AttachDebuggerProcessListener implements ProcessListener {
 
     @Override
     public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-        String message = event.getText();
-        if (!connected && debugPort != null && message.startsWith(LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS + debugPort)) {
-            connected = true;
-            ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, false) {
-                @Override
-                public void run(@NotNull ProgressIndicator indicator) {
-                    String name = env.getRunProfile().getName();
-                    createRemoteConfiguration(indicator, debugPort, name);
+        if (ProcessOutputType.isStdout(outputType)) {
+            String message = event.getText();
+            if (!connected && debugPort != null && message.startsWith(LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS + debugPort)) {
+                connected = true;
+                ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, true) {
+                    @Override
+                    public void run(@NotNull ProgressIndicator indicator) {
+                        String name = env.getRunProfile().getName();
+                        createRemoteConfiguration(indicator, debugPort, name);
+                    }
+                });
+            } else if (!quteConnected && message.startsWith(QUTE_LISTENING_ON_PORT)) {
+                quteConnected = true;
+                Integer quteDebugPort = getQuteDebugPort(message);
+                if (quteDebugPort == null) {
+                    LOGGER.error("Cannot extract Qute debug port from the given message: {}", message);
+                    return;
                 }
-            });
-        } else if (!quteConnected && message.startsWith(QUTE_LISTENING_ON_PORT)) {
-            quteConnected = true;
-            Integer quteDebugPort = getQuteDebugPort(message);
-            if (quteDebugPort == null) {
-                LOGGER.error("Cannot extract Qute debug port from the given message: {}", message);
-                return;
+                ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, true) {
+                    @Override
+                    public void run(@NotNull ProgressIndicator indicator) {
+                        String name = env.getRunProfile().getName();
+                        createQuteConfiguration(indicator, quteDebugPort, name);
+                    }
+                });
             }
-            ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, false) {
-                @Override
-                public void run(@NotNull ProgressIndicator indicator) {
-                    String name = env.getRunProfile().getName();
-                    createQuteConfiguration(indicator, quteDebugPort, name);
-                }
-            });
         }
     }
 
@@ -131,9 +134,19 @@ class AttachDebuggerProcessListener implements ProcessListener {
     }
 
     private void createQuteConfiguration(@NotNull ProgressIndicator indicator, int port, String name) {
+        createQuteConfiguration(port, name, project, indicator, true);
+    }
+
+    public static void createQuteConfiguration(int port,
+                                               @NotNull String name,
+                                               @NotNull Project project,
+                                               @NotNull ProgressIndicator indicator,
+                                               boolean waitForPortAvailable) {
         indicator.setText("Connecting Qute debugger to port " + port);
         try {
-            waitForPortAvailable(port, indicator);
+            if (waitForPortAvailable) {
+                waitForPortAvailable(port, indicator);
+            }
             RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name + " (Qute)", QuteConfigurationType.class);
             QuteRunConfiguration quteConfiguration = (QuteRunConfiguration) settings.getConfiguration();
             quteConfiguration.setAttachPort(Integer.toString(port));
@@ -145,7 +158,7 @@ class AttachDebuggerProcessListener implements ProcessListener {
         }
     }
 
-    private void waitForPortAvailable(int port, ProgressIndicator monitor) throws IOException {
+    private static void waitForPortAvailable(int port, ProgressIndicator monitor) throws IOException {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < 120_000 && !monitor.isCanceled()) {
             try (Socket socket = new Socket("localhost", port)) {
