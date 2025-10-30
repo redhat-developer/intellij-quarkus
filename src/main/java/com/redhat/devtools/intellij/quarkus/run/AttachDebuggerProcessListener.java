@@ -19,6 +19,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessListener;
+import com.intellij.execution.process.ProcessOutputType;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -30,6 +31,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.registry.Registry;
 import com.redhat.devtools.intellij.qute.run.QuteConfigurationType;
 import com.redhat.devtools.intellij.qute.run.QuteRunConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +43,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.MissingResourceException;
 
 import static com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration.QUARKUS_CONFIGURATION;
 
@@ -48,7 +51,7 @@ import static com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration.Q
  * ProcessListener which tracks the message Listening for transport dt_socket at address: $PORT' to start the
  * remote debugger of the given port $PORT.
  */
-class AttachDebuggerProcessListener implements ProcessListener {
+public class AttachDebuggerProcessListener implements ProcessListener {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(AttachDebuggerProcessListener.class);
 
@@ -73,30 +76,32 @@ class AttachDebuggerProcessListener implements ProcessListener {
 
     @Override
     public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-        String message = event.getText();
-        if (!connected && debugPort != null && message.startsWith(LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS + debugPort)) {
-            connected = true;
-            ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, false) {
-                @Override
-                public void run(@NotNull ProgressIndicator indicator) {
-                    String name = env.getRunProfile().getName();
-                    createRemoteConfiguration(indicator, debugPort, name);
+        if (ProcessOutputType.isStdout(outputType)) {
+            String message = event.getText();
+            if (!connected && debugPort != null && message.startsWith(LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS + debugPort)) {
+                connected = true;
+                ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, true) {
+                    @Override
+                    public void run(@NotNull ProgressIndicator indicator) {
+                        String name = env.getRunProfile().getName();
+                        createRemoteConfiguration(indicator, debugPort, name);
+                    }
+                });
+            } else if (!quteConnected && message.startsWith(QUTE_LISTENING_ON_PORT)) {
+                quteConnected = true;
+                Integer quteDebugPort = getQuteDebugPort(message);
+                if (quteDebugPort == null) {
+                    LOGGER.error("Cannot extract Qute debug port from the given message: {}", message);
+                    return;
                 }
-            });
-        } else if (!quteConnected && message.startsWith(QUTE_LISTENING_ON_PORT)) {
-            quteConnected = true;
-            Integer quteDebugPort = getQuteDebugPort(message);
-            if (quteDebugPort == null) {
-                LOGGER.error("Cannot extract Qute debug port from the given message: {}", message);
-                return;
+                ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, true) {
+                    @Override
+                    public void run(@NotNull ProgressIndicator indicator) {
+                        String name = env.getRunProfile().getName();
+                        createQuteConfiguration(indicator, quteDebugPort, name);
+                    }
+                });
             }
-            ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, false) {
-                @Override
-                public void run(@NotNull ProgressIndicator indicator) {
-                    String name = env.getRunProfile().getName();
-                    createQuteConfiguration(indicator, quteDebugPort, name);
-                }
-            });
         }
     }
 
@@ -131,9 +136,19 @@ class AttachDebuggerProcessListener implements ProcessListener {
     }
 
     private void createQuteConfiguration(@NotNull ProgressIndicator indicator, int port, String name) {
+        createQuteConfiguration(port, name, project, indicator, true);
+    }
+
+    public static void createQuteConfiguration(int port,
+                                               @NotNull String name,
+                                               @NotNull Project project,
+                                               @NotNull ProgressIndicator indicator,
+                                               boolean waitForPortAvailable) {
         indicator.setText("Connecting Qute debugger to port " + port);
         try {
-            waitForPortAvailable(port, indicator);
+            if (waitForPortAvailable) {
+                waitForPortAvailable(port, indicator);
+            }
             RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name + " (Qute)", QuteConfigurationType.class);
             QuteRunConfiguration quteConfiguration = (QuteRunConfiguration) settings.getConfiguration();
             quteConfiguration.setAttachPort(Integer.toString(port));
@@ -145,7 +160,15 @@ class AttachDebuggerProcessListener implements ProcessListener {
         }
     }
 
-    private void waitForPortAvailable(int port, ProgressIndicator monitor) throws IOException {
+    public static boolean isDebuggerAutoAttach() {
+        try {
+            return Registry.is("debugger.auto.attach.from.any.console");
+        } catch (MissingResourceException e) {
+            return false;
+        }
+    }
+
+    private static void waitForPortAvailable(int port, ProgressIndicator monitor) throws IOException {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < 120_000 && !monitor.isCanceled()) {
             try (Socket socket = new Socket("localhost", port)) {

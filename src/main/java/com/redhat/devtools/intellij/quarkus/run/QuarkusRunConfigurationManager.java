@@ -13,7 +13,6 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.run;
 
-import com.intellij.execution.ExecutionListener;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;

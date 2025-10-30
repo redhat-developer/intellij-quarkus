@@ -23,6 +23,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.redhat.devtools.intellij.quarkus.run.AttachDebuggerProcessListener.isDebuggerAutoAttach;
+
 /**
  * Execution listener singleton which tracks any process starting to add in debug mode
  * an instance of {@link AttachDebuggerProcessListener} to the process handler
@@ -45,16 +47,19 @@ class AttachDebuggerExecutionListener implements ExecutionListener {
         // Debug mode...
         RunnerAndConfigurationSettings settings = env.getRunnerAndConfigurationSettings();
         if (settings.getConfiguration() instanceof QuarkusRunConfiguration) {
-            // The execution has been done by debugging a Quarkus run configuration (Gradle / Maven)
-            // add a AttachDebuggerProcessListener to track
-            // 'Listening for transport dt_socket at address: $PORT' message and starts
-            // the remote debugger with the given port $PORT
-            handler.addProcessListener(new AttachDebuggerProcessListener(project, env, getDebugPort(handler)));
+            if (!isDebuggerAutoAttach()) {
+                // The execution has been done by debugging a Quarkus run configuration (Gradle / Maven)
+                // add a AttachDebuggerProcessListener to track
+                // 'Listening for transport dt_socket at address: $PORT' message and starts
+                // the remote debugger with the given port $PORT
+                handler.addProcessListener(new AttachDebuggerProcessListener(project, env, getDebugPort(handler)));
+            }
         }
     }
 
     /**
      * Returns the port declared in teh command line with -Ddebug= and null otherwise.
+     *
      * @param handler the process handler.
      * @return the port declared in teh command line with -Ddebug= and null otherwise.
      */
@@ -62,9 +67,9 @@ class AttachDebuggerExecutionListener implements ExecutionListener {
         if (handler instanceof BaseOSProcessHandler osProcessHandler) {
             String commandLine = osProcessHandler.getCommandLine();
             int startIndex = commandLine.indexOf("-Ddebug=");
-            if(startIndex != -1) {
+            if (startIndex != -1) {
                 StringBuilder port = new StringBuilder();
-                for (int i = startIndex+"-Ddebug=".length(); i < commandLine.length(); i++) {
+                for (int i = startIndex + "-Ddebug=".length(); i < commandLine.length(); i++) {
                     char c = commandLine.charAt(i);
                     if (Character.isDigit(c)) {
                         port.append(c);
