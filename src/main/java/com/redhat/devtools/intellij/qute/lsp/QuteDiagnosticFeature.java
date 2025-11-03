@@ -25,7 +25,7 @@ public class QuteDiagnosticFeature extends LSPDiagnosticFeature {
     @Override
     public boolean isInspectionApplicableFor(@NotNull PsiFile file,
                                              @NotNull LocalInspectionTool inspection) {
-        if (file.getLanguage() == QuteLanguage.INSTANCE) {
+        if (QuteLanguage.isQuteLanguage(file.getLanguage())) {
             // Show Qute templates warnings/errors
             // after clicking on "Inspect Code..." from the problem view.
             return QuteLSPLocalInspectionTool.ID.equals(inspection.getID());

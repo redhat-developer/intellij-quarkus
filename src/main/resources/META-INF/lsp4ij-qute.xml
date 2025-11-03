@@ -21,6 +21,10 @@
                          serverId="qute"
                          documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
                          languageId="qute-html"/>
+        <languageMapping language="Qute"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
+                         languageId="qute-html"/>
         <languageMapping language="JSON"
                          serverId="qute"
                          documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"

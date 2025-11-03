@@ -13,36 +13,17 @@ package com.redhat.devtools.intellij.quarkus.run;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessListener;
-import com.intellij.execution.remote.RemoteConfiguration;
-import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
-import com.intellij.java.library.JavaLibraryUtil;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunnableState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.psi.util.PsiClassUtil;
 import com.intellij.util.net.NetUtils;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
-import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,10 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,7 +47,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
 
     static final String QUARKUS_CONFIGURATION = "Quarkus Configuration";
 
-    private static final int DEFAULT_PORT = 5005 ;
+    private static final int DEFAULT_PORT = 5005;
 
     public QuarkusRunConfiguration(Project project, ConfigurationFactory factory, String name) {
         super(name, getRunConfigurationModule(project), factory);
@@ -124,12 +101,11 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     }
 
     private int allocateLocalPort() {
-            try {
-                return NetUtils.findAvailableSocketPort();
-            }
-            catch (IOException e) {
-                LOGGER.warn("Unexpected I/O exception occurred on attempt to find a free port to use for external system task debugging", e);
-            }
+        try {
+            return NetUtils.findAvailableSocketPort();
+        } catch (IOException e) {
+            LOGGER.warn("Unexpected I/O exception occurred on attempt to find a free port to use for external system task debugging", e);
+        }
         return DEFAULT_PORT;
     }
 
@@ -159,7 +135,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
             if (settings != null) {
                 QuarkusRunConfigurationManager.getInstance(module.getProject()); // to be sure that Quarkus execution listener is registered
                 long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
-                state = doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId, null);
+                state = doRunConfiguration(settings, executor, DefaultExecutionTarget.INSTANCE, groupId);
             }
         } else {
             telemetryData.put("tool", "not found");
@@ -171,7 +147,11 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
 
 
     private boolean isQuteDebuggerInstalled(@NotNull Module module) {
-        return PsiTypeUtils.findType("io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter",  module, null) != null;
+        // Qute debugger is available since Quarkus 3.29.
+        // We check if "io.quarkus.qute.runtime.debug.DebugQuteEngineObserver" is in the classpath
+        // Note: we cannot check if "io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter" is in classpath
+        // because "io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter" is not available in the standard IJ classpath
+        return PsiTypeUtils.findType("io.quarkus.qute.runtime.debug.DebugQuteEngineObserver", module, null) != null;
     }
 
     public String getProfile() {
@@ -198,8 +178,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     private static RunProfileState doRunConfiguration(@NotNull RunnerAndConfigurationSettings configuration,
                                                       @NotNull Executor executor,
                                                       @Nullable ExecutionTarget targetOrNullForDefault,
-                                                      @Nullable Long executionId,
-                                                      @Nullable DataContext dataContext) throws ExecutionException {
+                                                      @Nullable Long executionId) throws ExecutionException {
         ExecutionEnvironmentBuilder builder = createEnvironment(executor, configuration);
         if (builder == null) {
             return null;
@@ -211,9 +190,6 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         }
         if (executionId != null) {
             builder.executionId(executionId);
-        }
-        if (dataContext != null) {
-            builder.dataContext(dataContext);
         }
         return configuration.getConfiguration().getState(executor, builder.build());
     }

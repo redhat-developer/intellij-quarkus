@@ -32,7 +32,7 @@ jobs:
         uses: gradle/actions/wrapper-validation@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
       - name: Check New Changes
         id: cache-last-commit
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: lastCommit
           key: lastCommit-${{ hashFiles('lastCommit') }}

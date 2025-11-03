@@ -59,25 +59,23 @@ class AttachDebuggerProcessListener implements ProcessListener {
 
     private final Project project;
     private final ExecutionEnvironment env;
+    private final @Nullable Integer debugPort;
     private boolean connected; // to prevent from several messages like 'Listening for transport dt_socket at address:'
     private boolean quteConnected; // to prevent from several messages like 'Listening for transport dt_socket at address:'
 
     AttachDebuggerProcessListener(@NotNull Project project,
-                                  @NotNull ExecutionEnvironment env) {
+                                  @NotNull ExecutionEnvironment env,
+                                  @Nullable Integer debugPort) {
         this.project = project;
         this.env = env;
+        this.debugPort = debugPort;
     }
 
     @Override
     public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         String message = event.getText();
-        if (!connected && message.startsWith(LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS)) {
+        if (!connected && debugPort != null && message.startsWith(LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS + debugPort)) {
             connected = true;
-            Integer debugPort = getDebugPort(message);
-            if (debugPort == null) {
-                LOGGER.error("Cannot extract port from the given message: {}", message);
-                return;
-            }
             ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, false) {
                 @Override
                 public void run(@NotNull ProgressIndicator indicator) {
@@ -99,16 +97,6 @@ class AttachDebuggerProcessListener implements ProcessListener {
                     createQuteConfiguration(indicator, quteDebugPort, name);
                 }
             });
-        }
-    }
-
-    @Nullable
-    private static Integer getDebugPort(String message) {
-        try {
-            String port = message.substring(LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS.length()).trim();
-            return Integer.valueOf(port);
-        } catch (Exception e) {
-            return null;
         }
     }
 

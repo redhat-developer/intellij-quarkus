@@ -50,13 +50,16 @@ public class QuteDebugAdapterVariableSupport extends DebugAdapterVariableSupport
             return null;
         }
         var element = psiFile.findElementAt(offset);
-        if (element == null || !QuteLanguage.INSTANCE.equals(element.getLanguage())) {
+        if (element == null || !QuteLanguage.isQuteLanguage(element.getLanguage())) {
             return null;
         }
+        // It is a Qute element
         if (element instanceof QuteToken quteToken) {
+            // Qute Token coming from RedHat Quarkus
             return quteToken.getTextRangeInExpression();
         }
-        return null;
+        // Qute Token coming from JetBrains Quarkus
+        return element.getTextRange();
     }
 
 }

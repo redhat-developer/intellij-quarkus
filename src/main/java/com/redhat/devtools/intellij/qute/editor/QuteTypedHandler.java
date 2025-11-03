@@ -36,7 +36,7 @@ public class QuteTypedHandler extends TypedHandlerDelegate {
   public @NotNull Result charTyped(char c, @NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
     FileViewProvider provider = file.getViewProvider();
 
-    if (!file.getLanguage().isKindOf(QuteLanguage.INSTANCE) && !provider.getBaseLanguage().isKindOf(QuteLanguage.INSTANCE)) {
+    if (!(QuteLanguage.isQuteLanguage(file.getLanguage()) || QuteLanguage.isQuteLanguage(provider.getBaseLanguage()))) {
       return Result.CONTINUE;
     }
 
