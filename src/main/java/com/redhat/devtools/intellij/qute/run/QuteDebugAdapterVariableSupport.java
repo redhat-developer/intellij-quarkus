@@ -33,12 +33,12 @@ import java.util.Collections;
  */
 public class QuteDebugAdapterVariableSupport extends DebugAdapterVariableSupport {
 
-    public static final String QUTE_JETBRAINS_IDENTIFIER = "IDENTIFIER";
-    public static final String QUTE_JETBRAINS_IDENTIFIER_EXPR = "IDENTIFIER_EXPR";
-    public static final String QUTE_JETBRAINS_REFERENCE_EXPR = "REFERENCE_EXPR";
-    public static final String QUTE_JETBRAINS_NAMESPACE_EXPR = "NAMESPACE_EXPR";
-    public static final String QUTE_JETBRAINS_QUALIFIER = "QUALIFIER";
-    public static final String QUTE_JETBRAINS_CALL_EXPR = "CALL_EXPR";
+    public static final String QUTE_JETBRAINS_IDENTIFIER = "QuteTokenType.IDENTIFIER";
+    private static final String QUTE_JETBRAINS_IDENTIFIER_EXPR = "QuteElementType.IDENTIFIER_EXPR";
+    private static final String QUTE_JETBRAINS_REFERENCE_EXPR = "QuteElementType.REFERENCE_EXPR";
+    private static final String QUTE_JETBRAINS_NAMESPACE_EXPR = "QuteElementType.NAMESPACE_EXPR";
+    private static final String QUTE_JETBRAINS_QUALIFIER = "QuteElementType.QUALIFIER";
+    private static final String QUTE_JETBRAINS_CALL_EXPR = "QuteElementType.CALL_EXPR";
 
     @Override
     public @NotNull Collection<DebugVariablePositionProvider> getDebugVariablePositionProvider() {
@@ -117,8 +117,8 @@ public class QuteDebugAdapterVariableSupport extends DebugAdapterVariableSupport
         return node != null ? node.getElementType() : null;
     }
 
-    private static boolean isTokenType(@Nullable IElementType tokenType, @NotNull String tokenName) {
-        return tokenType != null && tokenName.equals(tokenType.getDebugName());
+    public static boolean isTokenType(@Nullable IElementType tokenType, @NotNull String tokenName) {
+        return tokenType != null && tokenName.equals(tokenType.toString());
     }
 
 }
