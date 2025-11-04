@@ -19,6 +19,9 @@ import com.redhat.devtools.lsp4ij.dap.client.variables.providers.DebugVariableCo
 import com.redhat.devtools.lsp4ij.dap.client.variables.providers.DefaultVariableRangeRegistrar;
 import org.jetbrains.annotations.NotNull;
 
+import static com.redhat.devtools.intellij.qute.run.QuteDebugAdapterVariableSupport.QUTE_JETBRAINS_IDENTIFIER;
+import static com.redhat.devtools.intellij.qute.run.QuteDebugAdapterVariableSupport.isTokenType;
+
 /**
  * Qute variable range registar.
  */
@@ -32,7 +35,7 @@ public class QuteVariableRangeRegistrar extends DefaultVariableRangeRegistrar {
             context.addVariableRange(variableName, textRange);
         } else if (QuteLanguage.isQuteLanguage(tokenType.getLanguage())) {
             if (!(tokenType instanceof QuteTokenType)) {
-                if (QuteDebugAdapterVariableSupport.QUTE_JETBRAINS_IDENTIFIER.equals(tokenType.getDebugName())) {
+                if (isTokenType(tokenType, QUTE_JETBRAINS_IDENTIFIER)) {
                     TextRange textRange = new TextRange(start, end);
                     String variableName = document.getText(textRange);
                     context.addVariableRange(variableName, textRange);
