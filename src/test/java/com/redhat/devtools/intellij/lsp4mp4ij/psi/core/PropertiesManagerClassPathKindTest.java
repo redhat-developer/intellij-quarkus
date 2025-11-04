@@ -76,7 +76,7 @@ public class PropertiesManagerClassPathKindTest extends LSP4MPMavenModuleImporti
                 // GreetingResource
                 // @ConfigProperty(name = "greeting.message")
                 // String message;
-                p(null, "greeting.message", "java.lang.String", null, false, "org.acme.config.GreetingResource",
+                p(null, "greeting.message", "String", null, false, "org.acme.config.GreetingResource",
                         "message", null, 0, null),
 
                 // @ConfigProperty(name = "greeting.suffix" , defaultValue="!")

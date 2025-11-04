@@ -14,6 +14,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 
@@ -33,6 +34,7 @@ public abstract class LSP4MPMavenModuleImportingTestCase extends MavenModuleImpo
         if(collectAndAddQuarkusDeploymentDependencies) {
             QuarkusDeploymentSupport.getInstance(getTestFixture().getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
         }
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
         return module;
     }
 }

@@ -10,7 +10,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.module.Module;
-import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4j.Location;
 import org.junit.Assert;

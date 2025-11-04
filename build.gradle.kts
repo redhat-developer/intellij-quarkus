@@ -168,7 +168,7 @@ dependencies {
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+., and Java 21 for 2025.3+.
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(17)
         vendor = JvmVendorSpec.JETBRAINS
     }
 }
