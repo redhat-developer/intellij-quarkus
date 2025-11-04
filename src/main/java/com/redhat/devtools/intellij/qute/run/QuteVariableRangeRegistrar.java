@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.qute.run;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.tree.IElementType;
+import com.redhat.devtools.intellij.qute.lang.QuteLanguage;
 import com.redhat.devtools.intellij.qute.lang.psi.QuteTokenType;
 import com.redhat.devtools.lsp4ij.dap.client.variables.providers.DebugVariableContext;
 import com.redhat.devtools.lsp4ij.dap.client.variables.providers.DefaultVariableRangeRegistrar;
@@ -29,6 +30,14 @@ public class QuteVariableRangeRegistrar extends DefaultVariableRangeRegistrar {
             TextRange textRange = new TextRange(start, end);
             String variableName = document.getText(textRange);
             context.addVariableRange(variableName, textRange);
+        } else if (QuteLanguage.isQuteLanguage(tokenType.getLanguage())) {
+            if (!(tokenType instanceof QuteTokenType)) {
+                if (QuteDebugAdapterVariableSupport.QUTE_JETBRAINS_IDENTIFIER.equals(tokenType.getDebugName())) {
+                    TextRange textRange = new TextRange(start, end);
+                    String variableName = document.getText(textRange);
+                    context.addVariableRange(variableName, textRange);
+                }
+            }
         }
         return true;
     }
