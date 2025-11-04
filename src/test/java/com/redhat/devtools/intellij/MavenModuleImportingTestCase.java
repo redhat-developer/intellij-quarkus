@@ -77,8 +77,7 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
   }
 
   protected Module createMavenModule(File projectDir) throws Exception {
-    List<Module> modules = createMavenModules(Collections.singletonList(projectDir));
-    return modules.get(modules.size() - 1);
+    return createMavenModules(Collections.singletonList(projectDir)).getLast();
   }
 
   /**

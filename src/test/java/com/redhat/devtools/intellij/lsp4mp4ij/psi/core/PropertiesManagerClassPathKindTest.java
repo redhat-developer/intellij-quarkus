@@ -71,7 +71,7 @@ public class PropertiesManagerClassPathKindTest extends LSP4MPMavenModuleImporti
         assertProperties(infoFromSrc, 3 /* properties from Java sources */ + //
                         7 /* static properties from microprofile-context-propagation-api */ +
                         1 /* static property from microprofile config_ordinal */ +
-                        187,
+                        180,
 
                 // GreetingResource
                 // @ConfigProperty(name = "greeting.message")
@@ -105,7 +105,7 @@ public class PropertiesManagerClassPathKindTest extends LSP4MPMavenModuleImporti
                         3 /* properties from (test) Java sources */ + //
                         7 /* static properties from microprofile-context-propagation-api */ +
                         1 /* static property from microprofile config_ordinal */ +
-                        184,
+                        177,
 
                 // GreetingResource
                 // @ConfigProperty(name = "greeting.message")

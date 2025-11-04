@@ -151,7 +151,7 @@ public class TemplateGetResolvedJavaTypeTest extends QuteMavenModuleImportingTes
 		Assert.assertNotNull(extendedTypes);
 		Assert.assertEquals(2, extendedTypes.size());
 		assertExtendedTypes("java.util.List", "java.lang.Object", extendedTypes);
-		assertExtendedTypes("java.util.List", "java.util.Collection<E>", extendedTypes);
+		assertExtendedTypes("java.util.List", "java.util.SequencedCollection<E>", extendedTypes);
 
 		// List
 		params = new QuteResolvedJavaTypeParams("List", QuteMavenProjectName.qute_quickstart);

@@ -71,7 +71,7 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
 
     @Parameterized.Parameters(name = "{index}: with Gradle-{0}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{{"8.7"}});
+        return Arrays.asList(new Object[][]{{"8.6"}});
     }
 
     protected String getJavaFileUri(String path, Module module) {
