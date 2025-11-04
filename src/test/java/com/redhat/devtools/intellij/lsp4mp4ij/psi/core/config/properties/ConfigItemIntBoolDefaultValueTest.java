@@ -52,7 +52,7 @@ public class ConfigItemIntBoolDefaultValueTest extends LSP4MPMavenModuleImportin
                 // 		@ConfigProperty(name = "greeting.constructor.message") String message,
                 //		@ConfigProperty(name = "greeting.constructor.suffix" , defaultValue="!") String suffix,
                 //		@ConfigProperty(name = "greeting.constructor.name") Optional<String> name)
-                p(null, "greeting.constructor.message", "java.lang.String", null, false, "org.acme.config.GreetingConstructorResource",
+                p(null, "greeting.constructor.message", "String", null, false, "org.acme.config.GreetingConstructorResource",
                         null, "GreetingConstructorResource(Ljava/lang/String;Ljava/lang/String;Ljava/util/Optional;)V", 0, null),
 
                 p(null, "greeting.constructor.suffix", "java.lang.String", null, false, "org.acme.config.GreetingConstructorResource",

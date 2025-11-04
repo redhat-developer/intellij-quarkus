@@ -42,7 +42,7 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar").toFile();
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
-        assertProperties(infoFromClasspath, 244 /* properties from JAR */ + //
+        assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //
                         31 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */ + //
                         7 /* static properties from microprofile-context-propagation-api */ +
