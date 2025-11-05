@@ -52,8 +52,6 @@ public class TemplateGetDataModelProjectForMessagesTest extends QuteMavenModuleI
 				.getDataModelProject(params, PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
 		Assert.assertNotNull(project);
 
-        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
-
 		// Test templates
 		testTemplates(project);
 
