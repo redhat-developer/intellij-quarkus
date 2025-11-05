@@ -77,18 +77,12 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
       setupJdkForModule(module.getName());
     }
 
-    // REVISIT: After calling setupJdkForModule() initialization appears to continue in the background
-    // and a may cause a test to intermittently fail if it accesses the module too early. A 5-second wait
-    // is hopefully long enough but would be preferable to synchronize on a completion event if one is
-    // ever introduced in the future.
-  //  Thread.sleep(5000L);
-
     return Arrays.stream(modules).toList();
   }
 
   protected Module createMavenModule(File projectDir) throws Exception {
-      List<Module> modules = createMavenModules(Collections.singletonList(projectDir));
-      return modules.get(modules.size() - 1);
+    List<Module> modules = createMavenModules(Collections.singletonList(projectDir));
+    return modules.get(modules.size() - 1);
   }
 
   /**

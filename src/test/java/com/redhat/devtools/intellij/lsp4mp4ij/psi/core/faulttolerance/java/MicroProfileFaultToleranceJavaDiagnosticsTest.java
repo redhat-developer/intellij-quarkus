@@ -15,6 +15,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.faulttolerance.java;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
@@ -59,6 +60,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testAsynchronousNonFutureOrCompletionStage() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -90,6 +92,7 @@ public class MicroProfileFaultToleranceJavaDiagnosticsTest extends MavenModuleIm
     @Test
     public void testAsynchronousClassNonFutureOrCompletionStage() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-fault-tolerance"));
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();

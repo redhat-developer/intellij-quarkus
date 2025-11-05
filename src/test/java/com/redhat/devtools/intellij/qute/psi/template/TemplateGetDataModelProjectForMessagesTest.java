@@ -15,6 +15,7 @@ import java.util.List;
 
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
@@ -50,6 +51,8 @@ public class TemplateGetDataModelProjectForMessagesTest extends QuteMavenModuleI
 		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()
 				.getDataModelProject(params, PsiUtilsLSImpl.getInstance(getProject()), new EmptyProgressIndicator());
 		Assert.assertNotNull(project);
+
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 
 		// Test templates
 		testTemplates(project);
