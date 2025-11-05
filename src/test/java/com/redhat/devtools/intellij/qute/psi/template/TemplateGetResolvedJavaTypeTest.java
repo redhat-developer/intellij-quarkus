@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
@@ -38,12 +39,12 @@ import com.redhat.qute.commons.ResolvedJavaTypeInfo;
  *
  */
 public class TemplateGetResolvedJavaTypeTest extends QuteMavenModuleImportingTestCase {
-	private Module module;
 
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		module = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+		loadMavenProject(QuteMavenProjectName.qute_quickstart);
+        IndexingTestUtil.waitUntilIndexesAreReady(getTestFixture().getProject());
 	}
 
 	@Test
