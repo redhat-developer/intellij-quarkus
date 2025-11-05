@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.qute.psi.template;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
@@ -39,6 +40,7 @@ public class TemplateGenerateMissingJavaMemberTest extends QuteMavenModuleImport
 	@Test
 	public void testGenerateField() throws Exception {
 		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.Field, "asdf", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
@@ -82,6 +84,7 @@ public class TemplateGenerateMissingJavaMemberTest extends QuteMavenModuleImport
 	@Test
 	public void testGenerateGetterWithNoMatchingField() throws Exception {
 		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.Getter, "asdf", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart);
@@ -128,6 +131,7 @@ public class TemplateGenerateMissingJavaMemberTest extends QuteMavenModuleImport
 	@Test
 	public void testGenerateTemplateExtensionInExistingClass() throws Exception {
 		Module project = loadMavenProject(QuteMavenProjectName.qute_quickstart);
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 		GenerateMissingJavaMemberParams params = new GenerateMissingJavaMemberParams(
 				GenerateMissingJavaMemberParams.MemberType.AppendTemplateExtension, "asdf", "org.acme.qute.Item",
 				QuteMavenProjectName.qute_quickstart, "org.acme.qute.MyTemplateExtensions");
