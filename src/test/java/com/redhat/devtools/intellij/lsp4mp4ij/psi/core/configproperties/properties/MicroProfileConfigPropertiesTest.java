@@ -43,7 +43,7 @@ public class MicroProfileConfigPropertiesTest extends LSP4MPMavenModuleImporting
 
         assertProperties(infoFromJavaSources, 17 /* properties from Java sources with ConfigProperties */,
 
-                p(null, "server.host", "String", null, false, "org.acme.Details", "host", null, 0, null),
+                p(null, "server.host", "java.lang.String", null, false, "org.acme.Details", "host", null, 0, null),
                 p(null, "server.port", "int", null, false, "org.acme.Details", "port", null, 0, null),
                 p(null, "server.endpoint", "java.lang.String", null, false, "org.acme.Details", "endpoint", null, 0,
                         null),
