@@ -18,6 +18,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.testFramework.IndexingTestUtil;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.Position;
@@ -269,11 +270,12 @@ public class MicroProfileAssert {
         // second.
         // Here we wait for > 1s to be sure that call of Files.getLastModifiedTime will
         // work.
-        try {
+        /*try {
             Thread.sleep(1050);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
+        IndexingTestUtil.waitUntilIndexesAreReady(javaProject.getProject());
         WriteAction.runAndWait(() -> {
             try {
                 VirtualFile folder = null;
