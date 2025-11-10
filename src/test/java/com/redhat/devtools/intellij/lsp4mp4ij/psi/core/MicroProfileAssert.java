@@ -273,6 +273,7 @@ public class MicroProfileAssert {
                 if (!inSource) {
                     folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
                     if (folder == null) {
+                        IndexingTestUtil.waitUntilIndexesAreReady(javaProject.getProject());
                         VfsUtil.createDirectoryIfMissing(CompilerPaths.getModuleOutputPath(javaProject, false));
                         folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
                     }
@@ -299,6 +300,7 @@ public class MicroProfileAssert {
                 file.setBinaryContent(content.getBytes(file.getCharset()));
 
                 PsiDocumentManager.getInstance(javaProject.getProject()).commitAllDocuments();
+                IndexingTestUtil.waitUntilIndexesAreReady(javaProject.getProject());
             } catch (IOException ignored) {
             }
         });
