@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.qute.psi.template.renarde;
 
 
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.qute.psi.QuteMavenProjectName;
 import com.redhat.devtools.intellij.qute.psi.QuteSupportForTemplate;
@@ -40,6 +41,7 @@ public class UriNamespaceResolverSupportTest extends QuteMavenModuleImportingTes
 	public void testQuteRenarde() throws Exception {
 
 		loadMavenProject(QuteMavenProjectName.quarkus_renarde_todo);
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 
 		QuteDataModelProjectParams params = new QuteDataModelProjectParams(QuteMavenProjectName.quarkus_renarde_todo);
 		DataModelProject<DataModelTemplate<DataModelParameter>> project = QuteSupportForTemplate.getInstance()

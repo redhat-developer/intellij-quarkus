@@ -39,7 +39,7 @@ public class JaxRsCodeLensTest extends QuarkusMavenModuleImportingTestCase {
 	@Test
 	public void testUrlCodeLensProperties() throws Exception {
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.hibernate_orm_resteasy);
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);
@@ -92,7 +92,7 @@ public class JaxRsCodeLensTest extends QuarkusMavenModuleImportingTestCase {
 	@Test
 	public void testUrlCodeLensYaml() throws Exception {
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.hibernate_orm_resteasy);
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
 		MicroProfileJavaCodeLensParams params = new MicroProfileJavaCodeLensParams();
 		params.setCheckServerAvailable(false);

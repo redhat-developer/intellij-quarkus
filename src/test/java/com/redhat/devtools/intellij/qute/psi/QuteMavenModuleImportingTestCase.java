@@ -11,6 +11,7 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi;
 
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 
 import com.intellij.openapi.module.Module;
@@ -23,6 +24,8 @@ import java.io.File;
 public abstract class QuteMavenModuleImportingTestCase extends MavenModuleImportingTestCase {
 
     protected Module loadMavenProject(String projectName) throws Exception {
-        return createMavenModule(new File("projects/qute/projects/maven/" + projectName));
+        Module module = createMavenModule(new File("projects/qute/projects/maven/" + projectName));
+        IndexingTestUtil.waitUntilIndexesAreReady(getTestFixture().getProject());
+        return module;
     }
 }

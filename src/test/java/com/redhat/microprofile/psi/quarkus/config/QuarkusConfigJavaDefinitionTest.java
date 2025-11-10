@@ -49,7 +49,7 @@ public class QuarkusConfigJavaDefinitionTest extends QuarkusMavenModuleImporting
 				javaProject);
 		// Position(14, 40) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.mes|sage")
-		assertJavaDefinitions(p(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), //
+		assertJavaDefinitions(p(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), //
 				def(r(14, 28, 44), applicationYmlFileUri, "greeting.message"));
 
 	}

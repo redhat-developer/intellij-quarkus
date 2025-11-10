@@ -40,7 +40,7 @@ public class BuildItemDiagnosticsTest extends MavenModuleImportingTestCase {
                     "BuildItem class `org.acme.builditems.BadBuildItem` must either be declared final or abstract",
                     DiagnosticSeverity.Error, QuarkusConstants.QUARKUS_DIAGNOSTIC_SOURCE,
                     QuarkusBuildItemErrorCode.InvalidModifierBuildItem);
-            assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject), d);
+            assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(getProject()), d);
         }
 
 
@@ -49,7 +49,7 @@ public class BuildItemDiagnosticsTest extends MavenModuleImportingTestCase {
             String uri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/builditems/GoodBuildItem.java").toASCIIString();
             diagnosticsParams.setUris(Arrays.asList(uri));
             diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
-            assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(myProject));
+            assertJavaDiagnostics(diagnosticsParams, PsiUtilsLSImpl.getInstance(getProject()));
         }
 
     }

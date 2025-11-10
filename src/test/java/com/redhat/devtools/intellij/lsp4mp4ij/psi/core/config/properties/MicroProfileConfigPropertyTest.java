@@ -37,7 +37,7 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
 
     public void testConfigQuickstartFromClasspath() throws Exception {
         Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
-        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
         MavenProjectsManager myProjectsManager = MavenProjectsManager.getInstance(module.getProject());
         File f = MavenArtifactUtil.getArtifactFile(myProjectsManager.findProject(module).getLocalRepository(), new MavenId("io.quarkus:quarkus-core-deployment:1.1.0.Final"), "jar").toFile();
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
@@ -118,7 +118,7 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
 
     public void testConfigQuickstartFromJavaSources() throws Exception {
         Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromJavaSources, 31 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */,

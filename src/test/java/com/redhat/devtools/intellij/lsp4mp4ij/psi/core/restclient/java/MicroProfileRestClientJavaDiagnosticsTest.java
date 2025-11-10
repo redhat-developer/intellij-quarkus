@@ -43,7 +43,7 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
     public void testRestClientAnnotationMissingForFields() throws Exception {
 
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/rest-client-quickstart"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/restclient/Fields.java");
@@ -99,7 +99,7 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
     @Test
     public void testRestClientAnnotationMissingForFieldsJakarta() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/open-liberty"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/com/demo/rest/injectAnnotation.java");
@@ -147,7 +147,7 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
     public void testRestClientAnnotationMissingForInterface() throws Exception {
 
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/rest-client-quickstart"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/restclient/MyService.java");
@@ -175,7 +175,7 @@ public class MicroProfileRestClientJavaDiagnosticsTest extends MavenModuleImport
     @Test
     public void testRestClientAnnotationMissingForInterfaceJakarta() throws Exception {
         Module module = createMavenModule(new File("projects/lsp4mp/projects/maven/open-liberty"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams params = new MicroProfileJavaDiagnosticsParams();
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/com/demo/rest/MyService.java");

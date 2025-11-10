@@ -49,13 +49,13 @@ public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestC
 		// microprofile-config.properties exists
 		saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE,
 				"greeting.constructor.message = hello 1", javaProject);
-		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.constructor.message = hello 1` *in* META-INF/microprofile-config.properties", 23, 36, 64));
 
 		// microprofile-config.properties and application.properties exist
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.constructor.message = hello 2",
 				javaProject);
-		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.constructor.message = hello 2` *in* [application.properties](" + propertiesFileUri + ")",
 						23, 36, 64));
 
@@ -66,7 +66,7 @@ public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestC
 						"  constructor:\n" + //
 						"    message: hello 3", //
 				javaProject);
-		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(23, 48), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.constructor.message = hello 3` *in* application.yaml", 23, 36, 64));
 	}
 
@@ -91,12 +91,12 @@ public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestC
 
 		// Position(14, 40) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.mes|sage")
-		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.message = message from yaml` *in* [application.yaml](" + yamlFileUri + ")", 14, 28, 44));
 
 		// Position(26, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.number", defaultValue="0")
-		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.number = 2001` *in* [application.yaml](" + yamlFileUri + ")", 26, 28, 43));
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_YAML_FILE, //
@@ -104,7 +104,7 @@ public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestC
 						"  message: message from yaml",
 				javaProject);
 		// fallback to application.properties
-		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.number = 100` *in* [application.properties](" + propertiesFileUri + ")", 26, 28, 43));
 	}
 
@@ -129,12 +129,12 @@ public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestC
 
 		// Position(14, 40) is the character after the | symbol:
 		// @ConfigProperty(name = "greeting.mes|sage")
-		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(14, 40), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.message = message from yml` *in* [application.yml](" + ymlFileUri + ")", 14, 28, 44));
 
 		// Position(26, 33) is the character after the | symbol:
 		// @ConfigProperty(name = "greet|ing.number", defaultValue="0")
-		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.number = 2001` *in* [application.yml](" + ymlFileUri + ")", 26, 28, 43));
 
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_YML_FILE, //
@@ -142,7 +142,7 @@ public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestC
 						"  message: message from yml",
 				javaProject);
 		// fallback to application.properties
-		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(26, 33), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`greeting.number = 100` *in* [application.properties](" + propertiesFileUri + ")", 26, 28, 43));
 	}
 
@@ -155,7 +155,7 @@ public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestC
 		saveFile(QuarkusConfigSourceProvider.APPLICATION_PROPERTIES_FILE, "greeting.hover = test", javaProject);
 
 		// no hover should show for property expression
-		assertJavaHover(new Position(31, 29), javaFileUri, PsiUtilsLSImpl.getInstance(myProject), null);
+		assertJavaHover(new Position(31, 29), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()), null);
 	}
 
 	@Test
@@ -167,7 +167,7 @@ public class QuarkusConfigJavaHoverTest extends QuarkusMavenModuleImportingTestC
 
 		saveFile("application-foo.properties", "greeting.message = hello from foo profile\n",
 				javaProject);
-		assertJavaHover(new Position(14, 29), javaFileUri, PsiUtilsLSImpl.getInstance(myProject),
+		assertJavaHover(new Position(14, 29), javaFileUri, PsiUtilsLSImpl.getInstance(getProject()),
 				h("`%foo.greeting.message = hello from foo profile` *in* [application-foo.properties](" + propertiesFileUri + ")  \n`greeting.message` is not set", 14, 28, 44));
 
 	}

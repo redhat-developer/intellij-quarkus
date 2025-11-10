@@ -81,7 +81,7 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 	protected Module loadMavenProject(String projectName, boolean collectAndAddQuarkusDeploymentDependencies) throws Exception {
 		Module module = createMavenModule(new File("projects/quarkus/projects/maven/" + projectName));
 		if(collectAndAddQuarkusDeploymentDependencies) {
-			QuarkusDeploymentSupport.getInstance(myTestFixture.getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
+			QuarkusDeploymentSupport.getInstance(getTestFixture().getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
 		}
 		return module;
 	}

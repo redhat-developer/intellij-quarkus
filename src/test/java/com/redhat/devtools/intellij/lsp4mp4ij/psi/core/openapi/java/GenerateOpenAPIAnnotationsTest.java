@@ -39,7 +39,7 @@ public class GenerateOpenAPIAnnotationsTest extends MavenModuleImportingTestCase
     @Test
     public void testGenerateOpenAPIAnnotationsAction() throws Exception {
         Module javaProject = createMavenModule(new File("projects/lsp4mp/projects/maven/microprofile-openapi"));
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         File javaFile = new File(ModuleUtilCore.getModuleDirPath(javaProject),
                 "src/main/java/org/acme/openapi/NoOperationAnnotation.java");

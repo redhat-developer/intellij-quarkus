@@ -13,6 +13,7 @@ package com.redhat.microprofile.psi.quarkus;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.MavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
 
@@ -31,8 +32,9 @@ public abstract class QuarkusMavenModuleImportingTestCase extends MavenModuleImp
     protected Module loadMavenProject(String projectName, boolean collectAndAddQuarkusDeploymentDependencies) throws Exception {
         Module module = createMavenModule(new File("projects/quarkus/projects/maven/" + projectName));
         if(collectAndAddQuarkusDeploymentDependencies) {
-            QuarkusDeploymentSupport.getInstance(myTestFixture.getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
+            QuarkusDeploymentSupport.getInstance(getTestFixture().getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
         }
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
         return module;
     }
 }
