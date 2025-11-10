@@ -34,7 +34,7 @@ public abstract class LSP4MPMavenModuleImportingTestCase extends MavenModuleImpo
         if(collectAndAddQuarkusDeploymentDependencies) {
             QuarkusDeploymentSupport.getInstance(getTestFixture().getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
         }
-        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
+        IndexingTestUtil.waitUntilIndexesAreReady(getTestFixture().getProject());
         return module;
     }
 }
