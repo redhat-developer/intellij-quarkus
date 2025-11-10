@@ -16,6 +16,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.MavenEditorTest;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileMavenProjectName;
 import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
@@ -83,6 +84,7 @@ public class MavenApplicationPropertiesCompletionTest extends MavenEditorTest {
 		if(collectAndAddQuarkusDeploymentDependencies) {
 			QuarkusDeploymentSupport.getInstance(getTestFixture().getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
 		}
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 		return module;
 	}
 }
