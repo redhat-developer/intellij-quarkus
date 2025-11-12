@@ -33,8 +33,6 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJav
  */
 public class QuarkusScheduledHoverTest extends QuarkusMavenModuleImportingTestCase {
 
-	private static Module javaProject;
-
 	@Test
 	public void testConfigFirstPropertyNameHover() throws Exception {
 

@@ -266,15 +266,6 @@ public class MicroProfileAssert {
     }
 
     public static void saveFile(String name, String content, Module javaProject, boolean inSource) throws IOException {
-        // For Mac OS, Linux OS, the call of Files.getLastModifiedTime is working for 1
-        // second.
-        // Here we wait for > 1s to be sure that call of Files.getLastModifiedTime will
-        // work.
-        /*try {
-            Thread.sleep(1050);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }*/
         IndexingTestUtil.waitUntilIndexesAreReady(javaProject.getProject());
         WriteAction.runAndWait(() -> {
             try {
@@ -282,6 +273,7 @@ public class MicroProfileAssert {
                 if (!inSource) {
                     folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
                     if (folder == null) {
+                        IndexingTestUtil.waitUntilIndexesAreReady(javaProject.getProject());
                         VfsUtil.createDirectoryIfMissing(CompilerPaths.getModuleOutputPath(javaProject, false));
                         folder = CompilerPaths.getModuleOutputDirectory(javaProject, false);
                     }
@@ -308,6 +300,7 @@ public class MicroProfileAssert {
                 file.setBinaryContent(content.getBytes(file.getCharset()));
 
                 PsiDocumentManager.getInstance(javaProject.getProject()).commitAllDocuments();
+                IndexingTestUtil.waitUntilIndexesAreReady(javaProject.getProject());
             } catch (IOException ignored) {
             }
         });
