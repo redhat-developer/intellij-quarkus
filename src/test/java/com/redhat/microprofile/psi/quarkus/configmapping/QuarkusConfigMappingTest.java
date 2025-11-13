@@ -182,8 +182,21 @@ public class QuarkusConfigMappingTest extends QuarkusMavenModuleImportingTestCas
 
                 p(null, "my.native.monitoring[*]", "java.util.List", null, false,
                         "org.acme.enums.MyNativeConfig", null,
-                        "monitoring()Ljava/util/Optional;", 0, null)
-        );
+                        "monitoring()Ljava/util/Optional;", 0, null),
+
+                // 9) Class
+                // import java.util.logging.Level;
+                //
+                // @ConfigMapping(prefix = "server.classes")
+                // public interface Server {
+                //
+                //	Level level;
+                //}
+                //}
+
+                p(null, "server.classes.level", "java.util.logging.Level", null, false, "org.acme.classes.ServerClass", null,
+                        "level()Ljava/util/logging/Level;", 0, null)
+                );
 
 
         assertPropertiesDuplicate(infoFromJavaSources);
