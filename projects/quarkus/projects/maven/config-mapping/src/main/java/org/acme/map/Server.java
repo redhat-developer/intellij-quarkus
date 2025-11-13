@@ -9,11 +9,11 @@ import java.util.logging.Level;
 @ConfigMapping(prefix = "server.map")
 public interface Server {
 
-	String host();
+    String host();
 
-	int port();
+    int port();
 
-	Map<String, String> form();
+    Map<String, String> form();
 
     @WithName("category")
     Map<String, CategoryConfig> categories();
@@ -21,3 +21,4 @@ public interface Server {
     interface CategoryConfig {
         Level level();
     }
+}
