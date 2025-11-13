@@ -20,6 +20,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.AbstractAnnotationTypeReferencePropertiesProvider;
@@ -167,14 +168,25 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
                 if (!leafType) {
                     if (isMap(returnType, resolvedTypeSignature)) {
                         // Map<String, String>
+                        // Map<String, SomeConfig>
                         propertyName += ".{*}";
-                        leafType = true;
+                        var parameters = ((PsiClassType) psiType).getParameters();
+                        if (parameters.length > 1) {
+                            returnType = (parameters[1] instanceof PsiClassReferenceType parameterClassType) ? parameterClassType.resolve() : null;
+                            leafType = isLeafType(returnType);
+                        } else {
+                            leafType = false;
+                        }
                     } else if (isCollection(returnType, resolvedTypeSignature)) {
                         // List<String>, List<App>
                         propertyName += "[*]"; // Generate indexed property.
-                        resolvedTypeSignature = getRawResolvedTypeName(((PsiClassType) psiType).getParameters()[0]);
-                        returnType = findType(method.getManager(), resolvedTypeSignature);
-                        leafType = isLeafType(returnType);
+                        var parameters = ((PsiClassType) psiType).getParameters();
+                        if (parameters.length > 0) {
+                            returnType = (parameters[0] instanceof PsiClassReferenceType parameterClassType) ? parameterClassType.resolve() : null;
+                            leafType = isLeafType(returnType);
+                        } else {
+                            leafType = false;
+                        }
                     }
                 }
 
