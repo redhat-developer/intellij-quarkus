@@ -14,6 +14,9 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,7 +124,12 @@ public final class QuteDebuggerConsoleFilterProvider implements ConsoleFilterPro
                     factory.roundWithBackground(factory.smallText("Attach Qute debugger")),
                     (event, point) -> {
                         // On click → attach Qute debugger
-                        createQuteConfiguration(port, "", editor.getProject(), new EmptyProgressIndicator(), true);
+                        ProgressManager.getInstance().run(new Task.Backgroundable(editor.getProject(), "Attaching to Qute debugger", true) {
+                            @Override
+                            public void run(@NotNull ProgressIndicator indicator) {
+                                createQuteConfiguration(port, editor.getProject().getName(), editor.getProject(), indicator, true);
+                            }
+                        });
                     });
             return new PresentationRenderer(presentation);
         }
