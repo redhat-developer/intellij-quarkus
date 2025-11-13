@@ -68,8 +68,8 @@ public class QuarkusConfigMappingTest extends QuarkusMavenModuleImportingTestCas
                 p(null, "server.map.port", "int", null, false, "org.acme.map.Server", null, "port()I", 0, null),
                 p(null, "server.map.form.{*}", "java.util.Map", null, false, "org.acme.map.Server", null,
                         "form()Ljava/util/Map;", 0, null),
-                p(null, "server.map.category.{*}.level", "java.util.logging.Level", null, false, "org.acme.map.Server", null,
-                        "form()Ljava/util/logging/Level;", 0, null),
+                p(null, "server.map.category.{*}.level", "java.util.logging.Level", null, false, "org.acme.map.Server$CategoryConfig", null,
+                        "level()Ljava/util/logging/Level;", 0, null),
 
                 // 3) Naming strategy
 
