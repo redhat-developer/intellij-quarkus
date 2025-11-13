@@ -17,13 +17,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightRecordField;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
@@ -110,7 +104,16 @@ public class PsiUtilsLSImpl implements IPsiUtils {
             PsiFile file = sourceElement.getContainingFile();
             Document document = PsiDocumentManager.getInstance(psiMember.getProject()).getDocument(file);
             if (document != null) {
-                TextRange range = sourceElement.getTextRange();
+                TextRange range = null;
+                if (sourceElement instanceof PsiNameIdentifierOwner nameIdentifierOwner) {
+                    var nameIdentifier = nameIdentifierOwner.getNameIdentifier();
+                    if (nameIdentifier != null) {
+                        range = nameIdentifier.getTextRange();
+                    }
+                }
+                if (range == null) {
+                    range = sourceElement.getTextRange();
+                }
                 return toLocation(file, LSPIJUtils.toRange(range, document));
             }
         }
