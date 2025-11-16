@@ -300,7 +300,7 @@ public class JavaFileCursorContextTest extends MavenModuleImportingTestCase {
         // static class MyNestedNestedClass {
         // ...
         MicroProfileJavaCompletionParams params = new MicroProfileJavaCompletionParams(javaFileUri, new Position(4, 0));
-        assertEquals(JavaCursorContextKind.BEFORE_CLASS,
+        assertEquals(JavaCursorContextKind.BEFORE_INNER_CLASS,
                 PropertiesManagerForJava.getInstance().javaCursorContext(params, getJDTUtils()).getKind());
 
         // ...
@@ -311,7 +311,7 @@ public class JavaFileCursorContextTest extends MavenModuleImportingTestCase {
         // static class MyNestedNestedClass {
         // ...
         params = new MicroProfileJavaCompletionParams(javaFileUri, new Position(5, 0));
-        assertEquals(JavaCursorContextKind.BEFORE_CLASS,
+        assertEquals(JavaCursorContextKind.BEFORE_INNER_CLASS,
                 PropertiesManagerForJava.getInstance().javaCursorContext(params, getJDTUtils()).getKind());
 
         // ...
@@ -331,7 +331,7 @@ public class JavaFileCursorContextTest extends MavenModuleImportingTestCase {
         // public class MyNestedClass {
         // ...
         params = new MicroProfileJavaCompletionParams(javaFileUri, new Position(1, 0));
-        assertEquals(JavaCursorContextKind.BEFORE_CLASS,
+        assertEquals(JavaCursorContextKind.BEFORE_TOP_LEVEL_CLASS,
                 PropertiesManagerForJava.getInstance().javaCursorContext(params, getJDTUtils()).getKind());
 
         // ...
