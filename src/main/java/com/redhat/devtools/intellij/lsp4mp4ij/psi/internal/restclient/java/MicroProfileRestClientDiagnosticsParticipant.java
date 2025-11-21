@@ -192,7 +192,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 
 		final AtomicInteger nbReferences = new AtomicInteger(0);
 		Query<PsiReference> query = ReferencesSearch.search(interfaceType, createSearchScope(context.getJavaProject()));
-		query.forEach(match -> {
+		for (PsiReference match : query.findAll()) {
 			PsiField field = PsiTreeUtil.getParentOfType(match.getElement(), PsiField.class);
 			if (field != null) {
 				boolean hasInjectAnnotation = AnnotationUtils.hasAnyAnnotation(field, INJECT_JAVAX_ANNOTATION, INJECT_JAKARTA_ANNOTATION);
@@ -201,7 +201,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 					nbReferences.incrementAndGet();
 				}
 			}
-		});
+		}
 
 		if (nbReferences.get() > 0) {
 			Range restInterfaceRange = PositionUtils.toNameRange(interfaceType, context.getUtils());
