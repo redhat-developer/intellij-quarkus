@@ -44,7 +44,7 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.Mic
 /**
  *
  * MicroProfile RestClient Diagnostics:
- * 
+ *
  * <ul>
  * <li>Diagnostic 1: Field on current type has Inject and RestClient annotations
  * but corresponding interface does not have RegisterRestClient annotation</li>
@@ -61,15 +61,15 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.Mic
  * annotations but corresponding interface has RegisterRestClient
  * annotation</li>
  * </ul>
- * 
+ *
  * <p>
  * Those rules comes from
  * https://github.com/MicroShed/microprofile-language-server/blob/8f3401852d2b82310f49cd41ec043f5b541944a9/src/main/java/com/microprofile/lsp/internal/diagnostic/MicroProfileDiagnostic.java#L75
  * </p>
- * 
+ *
  * @author Angelo ZERR
- * 
- * @see https://github.com/eclipse/microprofile-rest-client
+ *
+ * @see <a href="https://github.com/eclipse/microprofile-rest-client">microprofile-rest-client</a>
  * @see <a ref="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/internal/restclient/java/MicroProfileRestClientDiagnosticsParticipant.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/internal/restclient/java/MicroProfileRestClientDiagnosticsParticipant.java</a>
  *
  */
@@ -84,40 +84,37 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 	}
 
 	@Override
-	public List<Diagnostic> collectDiagnostics(JavaDiagnosticsContext context) {
+	public void collectDiagnostics(JavaDiagnosticsContext context) {
 		PsiFile typeRoot = context.getTypeRoot();
 		PsiElement[] elements = typeRoot.getChildren();
-		List<Diagnostic> diagnostics = new ArrayList<>();
-		collectDiagnostics(elements, diagnostics, context);
-		return diagnostics;
+		collectDiagnostics(elements, context);
 	}
 
-	private static void collectDiagnostics(PsiElement[] elements, List<Diagnostic> diagnostics,
+	private static void collectDiagnostics(PsiElement[] elements,
 			JavaDiagnosticsContext context) {
 		for (PsiElement element : elements) {
 			if (element instanceof PsiClass) {
 				PsiClass type = (PsiClass) element;
 				if (type.isInterface()) {
-					validateInterfaceType(type, diagnostics, context);
+					validateInterfaceType(type, context);
 				} else {
-					validateClassType(type, diagnostics, context);
+					validateClassType(type, context);
 				}
 				continue;
 			}
 		}
 	}
 
-	private static void validateClassType(PsiClass classType, List<Diagnostic> diagnostics, JavaDiagnosticsContext context) {
+	private static void validateClassType(PsiClass classType, JavaDiagnosticsContext context) {
 		for (PsiElement element : classType.getChildren()) {
 			if (element instanceof PsiField) {
 				PsiField field = (PsiField) element;
-				validateField(field, diagnostics, context);
+				validateField(field, context);
 			}
 		}
 	}
 
-	private static void validateField(PsiField field, List<Diagnostic> diagnostics, JavaDiagnosticsContext context) {
-		String uri = context.getUri();
+	private static void validateField(PsiField field, JavaDiagnosticsContext context) {
 		DocumentFormat documentFormat = context.getDocumentFormat();
 		boolean hasInjectAnnotation = AnnotationUtils.hasAnyAnnotation(field, INJECT_JAVAX_ANNOTATION, INJECT_JAKARTA_ANNOTATION);
 		boolean hasRestClientAnnotation = AnnotationUtils.hasAnnotation(field, REST_CLIENT_ANNOTATION);
@@ -136,40 +133,32 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 				// Diagnostic 1: Field on current type has Inject and RestClient annotations but
 				// corresponding interface does not have RegisterRestClient annotation
 				Range restClientRange = PositionUtils.toNameRange(field, context.getUtils());
-				Diagnostic d = context.createDiagnostic(uri,
-						createDiagnostic1Message(field, fieldTypeName, documentFormat), restClientRange,
+				context.addDiagnostic(createDiagnostic1Message(field, fieldTypeName, documentFormat), restClientRange,
 						MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE, null);
-				diagnostics.add(d);
 			}
 		} else {
 			if (hasInjectAnnotation && !hasRestClientAnnotation) {
 				// Diagnostic 3: Field on current type has Inject and not RestClient annotations
 				// but corresponding interface has RegisterRestClient annotation
 				Range restClientRange = PositionUtils.toNameRange(field, context.getUtils());
-				Diagnostic d = context.createDiagnostic(uri,
-						"The Rest Client object should have the @RestClient annotation to be injected as a CDI bean.",
+				context.addDiagnostic("The Rest Client object should have the @RestClient annotation to be injected as a CDI bean.",
 						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
 						MicroProfileRestClientErrorCode.RestClientAnnotationMissing);
-				diagnostics.add(d);
 			} else if (!hasInjectAnnotation && hasRestClientAnnotation) {
 				// Diagnostic 4: Field on current type has RestClient and not Inject
 				// annotations but corresponding interface has RegisterRestClient annotation
 				Range restClientRange = PositionUtils.toNameRange(field, context.getUtils());
-				Diagnostic d = context.createDiagnostic(uri,
-						"The Rest Client object should have the @Inject annotation to be injected as a CDI bean.",
+				context.addDiagnostic("The Rest Client object should have the @Inject annotation to be injected as a CDI bean.",
 						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
 						MicroProfileRestClientErrorCode.InjectAnnotationMissing);
-				diagnostics.add(d);
 			} else if (!hasInjectAnnotation && !hasRestClientAnnotation) {
 				// Diagnostic 5: Field on current type has not RestClient and not Inject
 				// annotations
 				// but corresponding interface has RegisterRestClient annotation
 				Range restClientRange = PositionUtils.toNameRange(field, context.getUtils());
-				Diagnostic d = context.createDiagnostic(uri,
-						"The Rest Client object should have the @Inject and @RestClient annotations to be injected as a CDI bean.",
+				context.addDiagnostic("The Rest Client object should have the @Inject and @RestClient annotations to be injected as a CDI bean.",
 						restClientRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
 						MicroProfileRestClientErrorCode.InjectAndRestClientAnnotationMissing);
-				diagnostics.add(d);
 			}
 		}
 	}
@@ -195,8 +184,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 		return message.toString();
 	}
 
-	private static void validateInterfaceType(PsiClass interfaceType, List<Diagnostic> diagnostics,
-			JavaDiagnosticsContext context) {
+	private static void validateInterfaceType(PsiClass interfaceType, JavaDiagnosticsContext context) {
 		boolean hasRegisterRestClient = AnnotationUtils.hasAnnotation(interfaceType, REGISTER_REST_CLIENT_ANNOTATION);
 		if (hasRegisterRestClient) {
 			return;
@@ -216,15 +204,12 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 		});
 
 		if (nbReferences.get() > 0) {
-			String uri = context.getUri();
 			Range restInterfaceRange = PositionUtils.toNameRange(interfaceType, context.getUtils());
-			Diagnostic d = context.createDiagnostic(uri,
-					"The interface `" + interfaceType.getName()
+			context.addDiagnostic("The interface `" + interfaceType.getName()
 							+ "` does not have the @RegisterRestClient annotation. The " + nbReferences.get()
 							+ " fields references will not be injected as CDI beans.",
 					restInterfaceRange, MicroProfileRestClientConstants.DIAGNOSTIC_SOURCE,
 					MicroProfileRestClientErrorCode.RegisterRestClientAnnotationMissing);
-			diagnostics.add(d);
 		}
 	}
 

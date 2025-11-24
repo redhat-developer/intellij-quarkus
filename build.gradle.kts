@@ -156,12 +156,22 @@ dependencies {
         isTransitive = false
     }
     lsp("com.redhat.microprofile:com.redhat.qute.ls:$quteLsVersion:uber") {
+        exclude(group= "org.jboss.logging")
         isTransitive = false
     }
     implementation(files(layout.buildDirectory.dir("server")) {
         builtBy("copyDeps")
     })
 
+    // To avoid having error in Test
+    // java.lang.NoClassDefFoundError: Could not initialize class io.smallrye.config._private.ConfigLogging
+    //Caused by: java.lang.NoSuchMethodError:
+    //'java.lang.Object org.jboss.logging.Logger.getMessageLogger(
+    //   java.lang.invoke.MethodHandles$Lookup,
+    //   java.lang.Class,
+    //   java.lang.String
+    //)
+    testImplementation("org.jboss.logging:jboss-logging:3.6.1.Final")
     testImplementation(libs.junit)
 }
 

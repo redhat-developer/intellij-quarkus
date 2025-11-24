@@ -35,16 +35,10 @@ import java.util.List;
 public class JavaASTDiagnosticsParticipant implements IJavaDiagnosticsParticipant {
 
 	@Override
-	public List<Diagnostic> collectDiagnostics(JavaDiagnosticsContext context) {
-		List<Diagnostic> diagnostics = new ArrayList<>();
-		collectDiagnosticsInFile(context, diagnostics);
-		return diagnostics;
-	}
-
-	private static void collectDiagnosticsInFile(JavaDiagnosticsContext context, List<Diagnostic> diagnostics) {
+	public void collectDiagnostics(JavaDiagnosticsContext context) {
 		// Collect the list of JavaASTValidator which are adapted for the current AST
 		// compilation unit to validate.
-		Collection<JavaASTValidator> validators = JavaASTValidatorRegistry.getInstance().getValidators(context, diagnostics);
+		Collection<JavaASTValidator> validators = JavaASTValidatorRegistry.getInstance().getValidators(context);
 		if (!validators.isEmpty()) {
 			// Visit the AST compilation unit and process each validator.
 			PsiFile ast = context.getASTRoot();
