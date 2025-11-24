@@ -132,12 +132,12 @@ public class JavaASTValidatorRegistry extends AnnotationValidator {
 		return rule;
 	}
 
-	public Collection<JavaASTValidator> getValidators(JavaDiagnosticsContext context, List<Diagnostic> diagnostics) {
+	public Collection<JavaASTValidator> getValidators(JavaDiagnosticsContext context) {
 		List<JavaASTValidator> validators = new ArrayList<>();
-		addValidator(new AnnotationRulesJavaASTValidator(getRules()), context, diagnostics, validators);
+		addValidator(new AnnotationRulesJavaASTValidator(getRules()), context, validators);
 		for (JavaASTValidatorExtensionPointBean ce : validatorsFromClass) {
 			try {
-				addValidator(ce.createValidator(), context, diagnostics, validators);
+				addValidator(ce.createValidator(), context, validators);
 			} catch (ClassNotFoundException | NoSuchMethodException |
 					 InvocationTargetException | InstantiationException | IllegalAccessException e) {
 				LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
@@ -146,9 +146,9 @@ public class JavaASTValidatorRegistry extends AnnotationValidator {
 		return validators;
 	}
 
-	private void addValidator(JavaASTValidator validator, JavaDiagnosticsContext context, List<Diagnostic> diagnostics,
+	private void addValidator(JavaASTValidator validator, JavaDiagnosticsContext context,
 			List<JavaASTValidator> validators) {
-		validator.initialize(context, diagnostics);
+		validator.initialize(context);
 		if (validator.isAdaptedForDiagnostics(context)) {
 			validators.add(validator);
 		}

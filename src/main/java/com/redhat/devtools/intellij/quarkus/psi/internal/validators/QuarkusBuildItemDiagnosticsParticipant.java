@@ -52,21 +52,19 @@ public class QuarkusBuildItemDiagnosticsParticipant implements IJavaDiagnosticsP
     }
 
     @Override
-    public List<Diagnostic> collectDiagnostics(JavaDiagnosticsContext context) {
+    public void collectDiagnostics(JavaDiagnosticsContext context) {
         PsiFile typeRoot = context.getTypeRoot();
         PsiElement[] elements = typeRoot.getChildren();
-        List<Diagnostic> diagnostics = new ArrayList<>();
-        collectDiagnostics(elements, diagnostics, context);
-        return diagnostics;
+        collectDiagnostics(elements, context);
     }
 
-    private static void collectDiagnostics(PsiElement[] elements, List<Diagnostic> diagnostics,
+    private static void collectDiagnostics(PsiElement[] elements,
                                            JavaDiagnosticsContext context) {
         for (PsiElement element : elements) {
             if (element instanceof PsiClass) {
                 PsiClass psiClass = (PsiClass) element;
                 if (isBuildItem(psiClass)) {
-                    validateBuildItem(psiClass, diagnostics, context);
+                    validateBuildItem(psiClass, context);
                 }
             }
         }
@@ -76,20 +74,17 @@ public class QuarkusBuildItemDiagnosticsParticipant implements IJavaDiagnosticsP
         return InheritanceUtil.isInheritor(type, QuarkusConstants.QUARKUS_BUILD_ITEM_CLASS_NAME);
     }
 
-    private static void validateBuildItem(PsiClass psiClass, List<Diagnostic> diagnostics, JavaDiagnosticsContext context) {
+    private static void validateBuildItem(PsiClass psiClass, JavaDiagnosticsContext context) {
         if (psiClass.hasModifierProperty(PsiModifier.FINAL)
         || psiClass.hasModifierProperty(PsiModifier.ABSTRACT)
         ) {
             return;
         }
         Range range = PositionUtils.toClassDeclarationRange(psiClass, context.getUtils());
-        Diagnostic d = context.createDiagnostic(context.getUri(),
-                createDiagnosticMessage(psiClass, context.getDocumentFormat()),
+        context.addDiagnostic(createDiagnosticMessage(psiClass, context.getDocumentFormat()),
                 range, QuarkusConstants.QUARKUS_DIAGNOSTIC_SOURCE,
                 QuarkusBuildItemErrorCode.InvalidModifierBuildItem,
-                DiagnosticSeverity.Error
-        );
-        diagnostics.add(d);
+                DiagnosticSeverity.Error);
     }
 
     private static String createDiagnosticMessage(PsiClass classType, DocumentFormat documentFormat) {

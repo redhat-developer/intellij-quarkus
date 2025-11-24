@@ -204,7 +204,7 @@ public class MicroProfileForJavaAssert {
                 return simpler;
             }).collect(Collectors.toList());
         }
-        assertEquals("Unexpected diagnostics:\n" + actual, expected, received);
+        Assert.assertArrayEquals("Unexpected diagnostics:", expected.toArray(), received.toArray());
     }
 
     // Assert for Hover

@@ -10,7 +10,6 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.config.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.LSP4MPMavenModuleImportingTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants;
@@ -27,10 +26,11 @@ import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsSettings;
 import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionFactory;
 import org.eclipse.lsp4mp.commons.codeaction.MicroProfileCodeActionId;
+import org.eclipse.lsp4mp.commons.runtime.ExecutionMode;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileAssert.saveFile;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileForJavaAssert.*;
@@ -54,35 +54,48 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/config/DefaultValueResource.java", javaProject);
-        diagnosticsParams.setUris(Arrays.asList(javaFileUri.toString()));
+        diagnosticsParams.setUris(List.of(javaFileUri));
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
-        diagnosticsParams.setUris(Arrays.asList(javaFileUri));
-        diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
-
-        Diagnostic d1 = d(8, 53, 58, "'foo' does not match the expected type of 'int'.", DiagnosticSeverity.Error,
+        // Error message like "SRCFG00029: Expected an integer value, got \"foo\""
+        // commes from SmallRyeConfig
+        Diagnostic d1 = d(10, 56, 59, "SRCFG00029: Expected an integer value, got \"foo\"", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d2 = d(11, 53, 58, "'bar' does not match the expected type of 'Integer'.", DiagnosticSeverity.Error,
+        Diagnostic d2 = d(13, 56, 59, "SRCFG00029: Expected an integer value, got \"bar\"", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d3 = d(17, 53, 58, "'128' does not match the expected type of 'byte'.", DiagnosticSeverity.Error,
+        Diagnostic d3 = d(19, 56, 59, "Value out of range. Value:\"128\" Radix:10", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
-        Diagnostic d4 = d(32, 27, 38,
+
+        Diagnostic d4 = d(34, 27, 38,
                 "The property 'greeting9' is not assigned a value in any config file, and must be assigned at runtime.",
                 DiagnosticSeverity.Warning, MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.NO_VALUE_ASSIGNED_TO_PROPERTY);
         setDataForUnassigned("greeting9", d4);
 
-        Diagnostic d5 = d(35, 54, 58, "'AB' does not match the expected type of 'char'.", DiagnosticSeverity.Error,
+        Diagnostic d5 = d(37, 57, 59, "SRCFG00002: AB can not be converted to a Character", DiagnosticSeverity.Error,
+                MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+        Diagnostic d6 = d(52, 83, 86,
+                "SRCFG00049: Cannot convert FOO to enum class org.acme.config.DefaultValueResource$ProcessingLevel, allowed values: all,messages,messages-persist",
+                DiagnosticSeverity.Error, MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+        Diagnostic d7 = d(58, 62, 67, "Text '00-00' could not be parsed at index 2", DiagnosticSeverity.Error,
+                MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+        Diagnostic d8 = d(64, 65, 70, "Text cannot be parsed to a Duration", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
         assertJavaDiagnostics(diagnosticsParams, utils, //
-                d1, d2, d3, d4, d5);
+                d1, d2, d3, d4, d5, d6, d7, d8);
     }
 
     @Test
@@ -91,33 +104,37 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
-        System.err.println(new File(ModuleUtilCore.getModuleDirPath(javaProject), "src/main/java/org/acme/config/DefaultValueListResource.java"));
         String javaFileUri = getFileUri("src/main/java/org/acme/config/DefaultValueListResource.java", javaProject);
-        diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+        diagnosticsParams.setUris(List.of(javaFileUri));
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
-        Diagnostic d1 = d(10, 53, 58, "'foo' does not match the expected type of 'List<Integer>'.", DiagnosticSeverity.Error,
+        Diagnostic d1 = d(13, 57, 60, "SRCFG00029: Expected an integer value, got \"13X\"", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d2 = d(19, 53, 65, "'12,13\\,14' does not match the expected type of 'int[]'.", DiagnosticSeverity.Error,
+        Diagnostic d2 = d(19, 57, 60, "SRCFG00029: Expected an integer value, got \"13X\"", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d3 = d(31, 53, 60, "'AB,CD' does not match the expected type of 'char[]'.", DiagnosticSeverity.Error,
+        Diagnostic d3 = d(22, 57, 60, "SRCFG00029: Expected an integer value, got \"13\\\"", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d4 = d(34, 53, 59, "',,,,' does not match the expected type of 'char[]'.", DiagnosticSeverity.Error,
+        Diagnostic d4 = d(34, 54, 56, "SRCFG00002: AB can not be converted to a Character", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d5 = d(37, 54, 56, "'defaultValue=\"\"' will behave as if no default value is set, and will not be treated as an empty 'List<String>'.", DiagnosticSeverity.Warning,
+        Diagnostic d5 = d(34, 57, 59, "SRCFG00002: CD can not be converted to a Character", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+        Diagnostic d6 = d(40, 54, 56,
+                "'defaultValue=\"\"' will behave as if no default value is set, and will not be treated as an empty 'List<String>'.",
+                DiagnosticSeverity.Warning, MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.EMPTY_LIST_NOT_SUPPORTED);
 
         assertJavaDiagnostics(diagnosticsParams, utils, //
-                d1, d2, d3, d4, d5);
+                d1, d2, d3, d4, d5, d6);
     }
 
     @Test
@@ -127,38 +144,64 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/config/DefaultValueResource.java", javaProject);
-        diagnosticsParams.setSettings(new MicroProfileJavaDiagnosticsSettings(Arrays.asList("greeting?")));
-        diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+        diagnosticsParams.setUris(List.of(javaFileUri));
+        diagnosticsParams.setSettings(new MicroProfileJavaDiagnosticsSettings(List.of("greeting?"),
+                DiagnosticSeverity.Error, ExecutionMode.SAFE));
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
-        Diagnostic d1 = d(8, 53, 58, "'foo' does not match the expected type of 'int'.", DiagnosticSeverity.Error,
+        // Error message like "SRCFG00029: Expected an integer value, got \"foo\""
+        // commes from SmallRyeConfig
+        Diagnostic d1 = d(10, 56, 59, "SRCFG00029: Expected an integer value, got \"foo\"", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d2 = d(11, 53, 58, "'bar' does not match the expected type of 'Integer'.", DiagnosticSeverity.Error,
+        Diagnostic d2 = d(13, 56, 59, "SRCFG00029: Expected an integer value, got \"bar\"", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d3 = d(17, 53, 58, "'128' does not match the expected type of 'byte'.", DiagnosticSeverity.Error,
+        Diagnostic d3 = d(19, 56, 59, "Value out of range. Value:\"128\" Radix:10", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
-        Diagnostic d4 = d(35, 54, 58, "'AB' does not match the expected type of 'char'.", DiagnosticSeverity.Error,
+        /*
+         * Diagnostic d4 = d(34, 27, 38,
+         * "The property 'greeting9' is not assigned a value in any config file, and must be assigned at runtime."
+         * , DiagnosticSeverity.Warning,
+         * MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+         * MicroProfileConfigErrorCode.NO_VALUE_ASSIGNED_TO_PROPERTY);
+         * setDataForUnassigned("greeting9", d4);
+         */
+
+        Diagnostic d5 = d(37, 57, 59, "SRCFG00002: AB can not be converted to a Character", DiagnosticSeverity.Error,
+                MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+        Diagnostic d6 = d(52, 83, 86,
+                "SRCFG00049: Cannot convert FOO to enum class org.acme.config.DefaultValueResource$ProcessingLevel, allowed values: all,messages,messages-persist",
+                DiagnosticSeverity.Error, MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+        Diagnostic d7 = d(58, 62, 67, "Text '00-00' could not be parsed at index 2", DiagnosticSeverity.Error,
+                MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
+                MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
+
+        Diagnostic d8 = d(64, 65, 70, "Text cannot be parsed to a Duration", DiagnosticSeverity.Error,
                 MicroProfileConfigConstants.MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE,
                 MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE);
 
         assertJavaDiagnostics(diagnosticsParams, utils, //
-                d1, d2, d3, d4);
+                d1, d2, d3, d5, d6, d7, d8);
+
     }
 
     @Test
-    public void testUnassignedWithConfigproperties() throws Exception {
+    public void testUnassignedWithConfigProperties() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_configproperties);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/Details.java", javaProject);
-        diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+        diagnosticsParams.setUris(List.of(javaFileUri));
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
         Diagnostic d = d(13, 32, 46,
@@ -182,7 +225,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/config/UnassignedValue.java", javaProject);
 
-        diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+        diagnosticsParams.setUris(List.of(javaFileUri));
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
         Diagnostic d1 = d(8, 24, 29,
@@ -248,8 +291,8 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
                 ca(propertiesFileUri, "Insert 'server.url' property in 'META-INF/microprofile-config.properties'", MicroProfileCodeActionId.AssignValueToProperty, d2_1, //
                         te(0, 0, 0, 0, "server.url=" + lineSeparator)));
 
-    }
 
+    }
 
     @Test
     public void testEmptyNameKeyValue() throws Exception {
@@ -258,7 +301,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
         String javaFileUri = getFileUri("src/main/java/org/acme/EmptyKey.java", javaProject);
-        diagnosticsParams.setUris(Arrays.asList(javaFileUri));
+        diagnosticsParams.setUris(List.of(javaFileUri));
         diagnosticsParams.setDocumentFormat(DocumentFormat.Markdown);
 
         Diagnostic d1 = d(5, 25, 27, "The member 'name' can't be empty.", DiagnosticSeverity.Error,
@@ -267,4 +310,5 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
 
         assertJavaDiagnostics(diagnosticsParams, utils, d1);
     }
+
 }
