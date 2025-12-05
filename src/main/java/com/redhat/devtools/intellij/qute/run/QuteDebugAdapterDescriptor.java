@@ -22,15 +22,18 @@ import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.redhat.devtools.intellij.qute.lang.QuteFileType;
+import com.redhat.devtools.intellij.qute.run.client.QuteDAPClient;
 import com.redhat.devtools.lsp4ij.dap.DAPDebugProcess;
 import com.redhat.devtools.lsp4ij.dap.DAPDebuggerEditorsProvider;
 import com.redhat.devtools.lsp4ij.dap.DebugMode;
 import com.redhat.devtools.lsp4ij.dap.breakpoints.DAPBreakpointHandler;
 import com.redhat.devtools.lsp4ij.dap.breakpoints.DAPBreakpointHandlerBase;
 import com.redhat.devtools.lsp4ij.dap.breakpoints.DAPBreakpointProperties;
+import com.redhat.devtools.lsp4ij.dap.client.DAPClient;
 import com.redhat.devtools.lsp4ij.dap.client.LaunchUtils;
 import com.redhat.devtools.lsp4ij.dap.definitions.DebugAdapterServerDefinition;
 import com.redhat.devtools.lsp4ij.dap.descriptors.DebugAdapterDescriptor;
+import com.redhat.devtools.lsp4ij.settings.ServerTrace;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,5 +88,10 @@ public class QuteDebugAdapterDescriptor extends DebugAdapterDescriptor {
     @Override
     public @NotNull XDebuggerEditorsProvider createDebuggerEditorsProvider(@Nullable FileType fileType, @NotNull DAPDebugProcess debugProcess) {
         return new QuteDebuggerEditorsProvider(fileType, debugProcess);
+    }
+
+    @Override
+    public @NotNull DAPClient createClient(@NotNull DAPDebugProcess debugProcess, @NotNull Map<String, Object> dapParameters, boolean isDebug, @NotNull DebugMode debugMode, @NotNull ServerTrace serverTrace, @Nullable DAPClient parentClient) {
+        return new QuteDAPClient(debugProcess, dapParameters, isDebug, debugMode, serverTrace, parentClient);
     }
 }

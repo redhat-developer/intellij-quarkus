@@ -13,6 +13,7 @@ package com.redhat.devtools.intellij.qute.run;
 import com.intellij.execution.configurations.RunConfigurationOptions;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.lang.Language;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
@@ -41,6 +42,6 @@ public class QuteDebugAdapterDescriptorFactory extends DebugAdapterDescriptorFac
     @Override
     public boolean isDebuggableFile(@NotNull VirtualFile file, @NotNull Project project) {
         Language language = LSPIJUtils.getFileLanguage(file, project);
-        return QuteLanguage.isQuteLanguage(language);
+        return language != null && (QuteLanguage.isQuteLanguage(language) || language.equals(JavaLanguage.INSTANCE));
     }
 }
