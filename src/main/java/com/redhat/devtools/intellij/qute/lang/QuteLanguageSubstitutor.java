@@ -10,6 +10,8 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.qute.lang;
 
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.lang.Language;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
