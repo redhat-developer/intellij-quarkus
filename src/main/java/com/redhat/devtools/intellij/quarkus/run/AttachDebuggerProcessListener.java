@@ -122,17 +122,11 @@ public class AttachDebuggerProcessListener implements ProcessListener {
 
     private void createRemoteConfiguration(@NotNull ProgressIndicator indicator, int port, String name) {
         indicator.setText("Connecting Java debugger to port " + port);
-        try {
-            waitForPortAvailable(port, indicator);
-            RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name + " (Remote)", RemoteConfigurationType.class);
-            RemoteConfiguration remoteConfiguration = (RemoteConfiguration) settings.getConfiguration();
-            remoteConfiguration.PORT = Integer.toString(port);
-            long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
-            ExecutionUtil.runConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance(), DefaultExecutionTarget.INSTANCE, groupId);
-        } catch (IOException e) {
-            ApplicationManager.getApplication()
-                    .invokeLater(() -> Messages.showErrorDialog("Can' t connector to port " + port, "Quarkus"));
-        }
+        RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name + " (Remote)", RemoteConfigurationType.class);
+        RemoteConfiguration remoteConfiguration = (RemoteConfiguration) settings.getConfiguration();
+        remoteConfiguration.PORT = Integer.toString(port);
+        long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
+        ExecutionUtil.runConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance(), DefaultExecutionTarget.INSTANCE, groupId);
     }
 
     private void createQuteConfiguration(@NotNull ProgressIndicator indicator, int port, String name) {

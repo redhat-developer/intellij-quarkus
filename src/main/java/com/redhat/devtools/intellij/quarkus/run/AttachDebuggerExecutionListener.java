@@ -52,16 +52,16 @@ class AttachDebuggerExecutionListener implements ExecutionListener {
                 // add a AttachDebuggerProcessListener to track
                 // 'Listening for transport dt_socket at address: $PORT' message and starts
                 // the remote debugger with the given port $PORT
-                handler.addProcessListener(new AttachDebuggerProcessListener(project, env, getDebugPort(handler)));
+               handler.addProcessListener(new AttachDebuggerProcessListener(project, env, getDebugPort(handler)));
             }
         }
     }
 
     /**
-     * Returns the port declared in teh command line with -Ddebug= and null otherwise.
+     * Returns the port declared in the command line with -Ddebug= and null otherwise.
      *
      * @param handler the process handler.
-     * @return the port declared in teh command line with -Ddebug= and null otherwise.
+     * @return the port declared in the command line with -Ddebug= and null otherwise.
      */
     private @Nullable Integer getDebugPort(@NotNull ProcessHandler handler) {
         if (handler instanceof BaseOSProcessHandler osProcessHandler) {
