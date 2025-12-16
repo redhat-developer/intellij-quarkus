@@ -392,4 +392,49 @@ public class MicroProfileForJavaAssert {
         assertEquals(expected.getName(), actual.getName());
         assertEquals("Wrong location for " + expected.getName() + " at "+actual.getLocation(), expected.getLocation().getRange(), actual.getLocation().getRange());
     }
+
+    // ------------------- InlayHint assert
+
+    /**
+     * Asserts that the expected inlay hints are in the document specified by the
+     * params.
+     *
+     * @param params   the parameters specifying the document to get the inlay hints
+     *                 for
+     * @param utils    the jdt utils
+     * @param expected the list of expected inlay hints
+     */
+    public static void assertInlayHints(MicroProfileJavaInlayHintParams params, IPsiUtils utils, InlayHint... expected) {
+        List<InlayHint> actual = PropertiesManagerForJava.getInstance().inlayHint(params, utils,
+                new EmptyProgressIndicator());
+        assertInlayHint(actual, expected);
+    }
+
+    public static InlayHint ih(Position position, String label) {
+        return new InlayHint(position, Either.forLeft(label));
+    }
+
+    public static InlayHint ih(Position position, InlayHintLabelPart... parts) {
+        return new InlayHint(position, Either.forRight(Arrays.asList(parts)));
+    }
+
+    public static InlayHintLabelPart ihLabel(String label) {
+        return new InlayHintLabelPart(label);
+    }
+
+    public static InlayHintLabelPart ihLabel(String label, String tooltip, Command command) {
+        InlayHintLabelPart part = ihLabel(label);
+        part.setCommand(command);
+        part.setTooltip(tooltip);
+        return part;
+    }
+
+    public static void assertInlayHint(List<InlayHint> actual, InlayHint... expected) {
+        assertEquals(expected.length, actual.size());
+        for (int i = 0; i < expected.length; i++) {
+            assertEquals("position at " + i, expected[i].getPosition(), actual.get(i).getPosition());
+            assertEquals("label at " + i, expected[i].getLabel(), actual.get(i).getLabel());
+        }
+    }
+
 }

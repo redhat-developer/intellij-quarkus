@@ -58,8 +58,6 @@ public class JavaASTValidator extends JavaRecursiveElementVisitor implements Clo
 
 	public static final ExtensionPointName<JavaASTValidatorExtensionPointBean> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaASTValidator.validator");
 
-	private List<Diagnostic> diagnostics;
-
 	private JavaDiagnosticsContext context;
 
 	protected static String validate(String valueAsString, AnnotationAttributeRule attributeRule) {
@@ -114,4 +112,15 @@ public class JavaASTValidator extends JavaRecursiveElementVisitor implements Clo
 	public JavaDiagnosticsContext getContext() {
 		return context;
 	}
+
+    @Override
+    public JavaASTValidator clone() {
+        try {
+            JavaASTValidator clone = (JavaASTValidator) super.clone();
+            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 }

@@ -245,6 +245,13 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
         return runAsBackground("Computing Java codelens", monitor -> PropertiesManagerForJava.getInstance().codeLens(javaParams, PsiUtilsLSImpl.getInstance(getProject()), monitor), coalesceBy);
     }
 
+
+    @Override
+    public CompletableFuture<List<InlayHint>> getJavaInlayHint(MicroProfileJavaInlayHintParams javaParams) {
+        var coalesceBy = new CoalesceByKey("microprofile/java/inlayHint", javaParams.getUri());
+        return runAsBackground("Computing Java inlayHint", monitor -> PropertiesManagerForJava.getInstance().inlayHint(javaParams, PsiUtilsLSImpl.getInstance(getProject()), monitor), coalesceBy);
+    }
+
     @Override
     public CompletableFuture<List<CodeAction>> getJavaCodeAction(MicroProfileJavaCodeActionParams javaParams) {
         var coalesceBy = new CoalesceByKey("microprofile/java/codeAction", javaParams.getUri());
@@ -278,4 +285,5 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
         // Requires porting https://github.com/eclipse/lsp4mp/issues/321 / https://github.com/eclipse/lsp4mp/pull/329
         return CompletableFuture.completedFuture(null);
     }
+
 }

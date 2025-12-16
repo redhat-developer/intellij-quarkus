@@ -28,6 +28,8 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaDia
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.JavaHoverContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.inlayhint.IJavaInlayHintsParticipant;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.inlayhint.JavaInlayHintsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.symbols.IJavaWorkspaceSymbolsParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.CodeActionHandler;
@@ -136,6 +138,56 @@ public class PropertiesManagerForJava {
         }
     }
 
+    /**
+     * Returns the inlayHint list according the given inlayHint parameters.
+     *
+     * @param params the inlayHint parameters
+     * @param utils  the utilities class
+     * @return the inlayHint list according the given inlayHint parameters.
+     */
+    public List<InlayHint> inlayHint(@NotNull MicroProfileJavaInlayHintParams params,
+                                               @NotNull IPsiUtils utils,
+                                               @NotNull ProgressIndicator monitor) {
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return Collections.emptyList();
+        }
+        List<InlayHint> inlayHints = new ArrayList<>();
+        collectInlayHints(uri, typeRoot, utils, params, inlayHints, monitor);
+        return inlayHints;
+    }
+
+    private void collectInlayHints(@NotNull String uri,
+                                   @NotNull PsiFile typeRoot,
+                                   @NotNull IPsiUtils utils,
+                                   @NotNull MicroProfileJavaInlayHintParams params,
+                                   @NotNull List<InlayHint> inlayHints,
+                                   @NotNull ProgressIndicator monitor) {
+        // Collect all adapted inlayHint participant
+        try {
+            Module module = utils.getModule(uri);
+            if (module == null) {
+                return;
+            }
+            JavaInlayHintsContext context = new JavaInlayHintsContext(uri, typeRoot, utils, module, params, inlayHints);
+            List<IJavaInlayHintsParticipant> definitions = IJavaInlayHintsParticipant.EP_NAME.getExtensionList()
+                    .stream()
+                    .filter(definition -> definition.isAdaptedForInlayHint(context, monitor))
+                    .toList();
+            if (definitions.isEmpty()) {
+                return;
+            }
+
+            // Begin, collect, end participants
+            definitions.forEach(definition -> definition.beginInlayHint(context, monitor));
+            definitions.forEach(definition -> definition.collectInlayHint(context, monitor));
+            definitions.forEach(definition -> definition.endInlayHint(context, monitor));
+        } catch (IOException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+        }
+    }
+    
     /**
      * Returns the CompletionItems given the completion item params
      *

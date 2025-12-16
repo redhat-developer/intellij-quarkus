@@ -331,7 +331,7 @@ public class PsiMicroProfileProject {
 
         for (VirtualFile vf : roots) {
             if (vf.getName().endsWith(".jar")) {
-                jars.add(new File(vf.getPath()).getAbsolutePath());
+                jars.add(new File(vf.getPath()).getAbsolutePath().replace("!", ""));
             }
         }
         return jars;

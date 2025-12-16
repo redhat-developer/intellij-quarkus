@@ -510,6 +510,8 @@
                         interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
         <extensionPoint name="javaCodeLensParticipant"
                         interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant"/>
+        <extensionPoint name="javaInlayHintsParticipant"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.inlayhint.IJavaInlayHintsParticipant"/>
         <extensionPoint name="configSourceProvider"
                         interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider"/>
         <extensionPoint name="javaASTValidator.validator"
@@ -519,6 +521,11 @@
         </extensionPoint>
         <extensionPoint name="javaASTValidator.annotationValidator"
                         beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationRuleExtensionPointBean"/>
+        <extensionPoint name="javaASTInlayHint.inlayHint"
+                        beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.inlahint.JavaASTInlayHintExtensionPointBean">
+            <with attribute="implementation"
+                  implements="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.inlayhint.JavaASTInlayHint"/>
+        </extensionPoint>
         <extensionPoint name="javaCodeActionParticipant"
                         beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.JavaCodeActionDefinition">
             <with attribute="implementationClass"
@@ -591,6 +598,9 @@
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.java.MicroProfileMetricsDiagnosticsParticipant"/>
         <javaDiagnosticsParticipant
                 implementation="com.redhat.devtools.intellij.quarkus.psi.internal.validators.QuarkusBuildItemDiagnosticsParticipant"/>
+
+        <javaInlayHintsParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.inlahint.JavaASTInlayHintsParticipant"/>
 
         <projectLabelProvider
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileProjectLabelProvider"/>
@@ -701,12 +711,15 @@
         <configSourceProvider
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider"/>
 
+        <!-- MicroProfile Config support -->
         <javaASTValidator.validator
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator"/>
+        <javaASTInlayHint.inlayHint
+            implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTInlayHint" />
+
+        <!-- MicroProfile Fault Tolerance support -->
         <javaASTValidator.validator
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceASTValidator"/>
-        <javaASTValidator.validator
-                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java.MicroProfileGraphQLASTValidator"/>
 
         <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.CircuitBreaker"
                                               source="microprofile-faulttolerance">
@@ -733,6 +746,10 @@
         </javaASTValidator.annotationValidator>
         <javaASTValidator.validator
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.java.MicroProfileReactiveMessagingASTValidator"/>
+
+        <!-- MicroProfile GraphQL support -->
+        <javaASTValidator.validator
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java.MicroProfileGraphQLASTValidator"/>
 
         <!-- Qute -->
         <qute.templateRootPathProvider
