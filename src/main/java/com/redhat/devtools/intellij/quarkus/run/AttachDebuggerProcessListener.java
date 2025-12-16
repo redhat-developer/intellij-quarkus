@@ -13,6 +13,7 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.run;
 
+import com.intellij.debugger.impl.attach.JavaAttachDebuggerProvider;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -20,8 +21,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.process.ProcessOutputType;
-import com.intellij.execution.remote.RemoteConfiguration;
-import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,6 +43,8 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.MissingResourceException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration.QUARKUS_CONFIGURATION;
 
@@ -54,15 +55,16 @@ import static com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration.Q
 public class AttachDebuggerProcessListener implements ProcessListener {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(AttachDebuggerProcessListener.class);
+    private static final Pattern PATTERN = Pattern.compile("Listening for transport (\\S+) at address: (\\S+)");
 
-    private static final String LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS = "Listening for transport dt_socket at address: ";
+    private static final String LISTENING_FOR_TRANSPORT = "Listening for transport";
     private static final String JWDP_HANDSHAKE = "JDWP-Handshake";
 
     private static final String QUTE_LISTENING_ON_PORT = "Qute debugger server listening on port ";
 
     private final Project project;
     private final ExecutionEnvironment env;
-    private final @Nullable Integer debugPort;
+    private final @Nullable String debugPort;
     private boolean connected; // to prevent from several messages like 'Listening for transport dt_socket at address:'
     private boolean quteConnected; // to prevent from several messages like 'Listening for transport dt_socket at address:'
 
@@ -71,22 +73,28 @@ public class AttachDebuggerProcessListener implements ProcessListener {
                                   @Nullable Integer debugPort) {
         this.project = project;
         this.env = env;
-        this.debugPort = debugPort;
+        this.debugPort = debugPort != null ? "" + debugPort : null;
     }
 
     @Override
     public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         if (ProcessOutputType.isStdout(outputType)) {
             String message = event.getText();
-            if (!connected && debugPort != null && message.startsWith(LISTENING_FOR_TRANSPORT_DT_SOCKET_AT_ADDRESS + debugPort)) {
-                connected = true;
-                ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, true) {
-                    @Override
-                    public void run(@NotNull ProgressIndicator indicator) {
-                        String name = env.getRunProfile().getName();
-                        createRemoteConfiguration(indicator, debugPort, name);
-                    }
-                });
+            if (!connected && debugPort != null && message.startsWith(LISTENING_FOR_TRANSPORT) && message.contains(debugPort)) {
+                Matcher matcher = getConnectionMatcher(message);
+                if (matcher != null) {
+                    connected = true;
+                    ProgressManager.getInstance().run(new Task.Backgroundable(project, QUARKUS_CONFIGURATION, true) {
+                        @Override
+                        public void run(@NotNull ProgressIndicator indicator) {
+                            String name = env.getRunProfile().getName();
+                            String transport = matcher.group(1);
+                            String address = matcher.group(2);
+                            JavaAttachDebuggerProvider.attach(transport, address, name, project);
+                        }
+                    });
+                }
+
             } else if (!quteConnected && message.startsWith(QUTE_LISTENING_ON_PORT)) {
                 quteConnected = true;
                 Integer quteDebugPort = getQuteDebugPort(message);
@@ -105,6 +113,14 @@ public class AttachDebuggerProcessListener implements ProcessListener {
         }
     }
 
+    public static Matcher getConnectionMatcher(String line) {
+        Matcher matcher = PATTERN.matcher(line);
+        if (matcher.find()) {
+            return matcher;
+        }
+        return null;
+    }
+
     @Nullable
     private static Integer getQuteDebugPort(String message) {
         try {
@@ -118,15 +134,6 @@ public class AttachDebuggerProcessListener implements ProcessListener {
     @Override
     public void processTerminated(@NotNull ProcessEvent event) {
         event.getProcessHandler().removeProcessListener(this);
-    }
-
-    private void createRemoteConfiguration(@NotNull ProgressIndicator indicator, int port, String name) {
-        indicator.setText("Connecting Java debugger to port " + port);
-        RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name + " (Remote)", RemoteConfigurationType.class);
-        RemoteConfiguration remoteConfiguration = (RemoteConfiguration) settings.getConfiguration();
-        remoteConfiguration.PORT = Integer.toString(port);
-        long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
-        ExecutionUtil.runConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance(), DefaultExecutionTarget.INSTANCE, groupId);
     }
 
     private void createQuteConfiguration(@NotNull ProgressIndicator indicator, int port, String name) {
