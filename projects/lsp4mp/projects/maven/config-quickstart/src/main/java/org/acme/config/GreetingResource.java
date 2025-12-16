@@ -1,5 +1,6 @@
 package org.acme.config;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import javax.ws.rs.GET;
@@ -21,6 +22,9 @@ public class GreetingResource {
 
     @ConfigProperty(name = "greeting.name")
     Optional<String> name;
+
+    @ConfigProperty(name = "greeting.defaultValue")
+    Duration defaultValue;
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)

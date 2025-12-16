@@ -35,9 +35,9 @@ import java.util.logging.Logger;
 public class MultiASTVisitor extends JavaRecursiveElementVisitor {
 
 	private static final Logger LOGGER = Logger.getLogger(MultiASTVisitor.class.getName());
-	private final Collection<JavaASTValidator> visitors;
+	private final Collection<JavaRecursiveElementVisitor> visitors;
 
-	public MultiASTVisitor(Collection<JavaASTValidator> visitors) {
+	public MultiASTVisitor(Collection<JavaRecursiveElementVisitor> visitors) {
 		this.visitors = visitors;
 	}
 

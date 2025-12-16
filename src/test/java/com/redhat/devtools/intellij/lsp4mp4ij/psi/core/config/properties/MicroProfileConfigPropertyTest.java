@@ -43,7 +43,7 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
         assertNotNull("Test existing of quarkus-core-deployment*.jar", f);
 
         assertProperties(infoFromClasspath, 257 /* properties from JAR */ + //
-                        39 /* properties from Java sources with ConfigProperty */ + //
+                        40 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */ + //
                         7 /* static properties from microprofile-context-propagation-api */ +
                         1 /* static property from microprofile config_ordinal */,
@@ -74,6 +74,12 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
                 // Optional<String> name;
                 p(null, "greeting.name", "java.util.Optional<java.lang.String>", null, false, "org.acme.config.GreetingResource", "name",
                         null, 0, null),
+
+                // GreetingResource
+                // @ConfigProperty(name = "greeting.defaultValue")
+                // Duration defaultValue;
+                p(null, "greeting.defaultValue", "java.time.Duration", null, false, "org.acme.config.GreetingResource",
+                        "defaultValue", null, 0, null),
 
                 // GreetingConstructorResource(
                 // @ConfigProperty(name = "greeting.constructor.message") String message,
@@ -120,7 +126,7 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
         Module module = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
         MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
-        assertProperties(infoFromJavaSources, 39 /* properties from Java sources with ConfigProperty */ + //
+        assertProperties(infoFromJavaSources, 40 /* properties from Java sources with ConfigProperty */ + //
                         2 /* properties from Java sources with ConfigRoot */,
 
                 // GreetingResource
@@ -138,6 +144,12 @@ public class MicroProfileConfigPropertyTest extends LSP4MPMavenModuleImportingTe
                 // Optional<String> name;
                 p(null, "greeting.name", "java.util.Optional<java.lang.String>", null, false, "org.acme.config.GreetingResource", "name",
                         null, 0, null),
+
+                // GreetingResource
+                // @ConfigProperty(name = "greeting.defaultValue")
+                // Duration defaultValue;
+                p(null, "greeting.defaultValue", "java.time.Duration", null, false, "org.acme.config.GreetingResource",
+                        "defaultValue", null, 0, null),
 
                 // GreetingConstructorResource(
                 // @ConfigProperty(name = "greeting.constructor.message") String message,

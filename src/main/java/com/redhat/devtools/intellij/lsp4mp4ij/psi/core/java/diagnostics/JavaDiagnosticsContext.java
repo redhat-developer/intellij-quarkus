@@ -14,8 +14,6 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.AbstractJavaContext;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigErrorCode;
 import org.eclipse.lsp4j.Diagnostic;
@@ -45,7 +43,6 @@ public class JavaDiagnosticsContext extends AbstractJavaContext {
     private final @NotNull List<Diagnostic> diagnostics;
     private final DocumentFormat documentFormat;
     private final @NotNull MicroProfileJavaDiagnosticsSettings settings;
-    private final @Nullable MicroProfileProjectRuntime projectRuntime;
 
     public JavaDiagnosticsContext(String uri,
                                   PsiFile typeRoot,
@@ -62,18 +59,6 @@ public class JavaDiagnosticsContext extends AbstractJavaContext {
         } else {
             this.settings = settings;
         }
-        this.projectRuntime = getProjectRuntime();
-    }
-
-    private MicroProfileProjectRuntime getProjectRuntime() {
-        try {
-            PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(getJavaProject().getProject())
-                    .getMicroProfileProject(getJavaProject());
-            return mpProject.getProjectRuntime();
-        } catch (Exception e) {
-            // Do nothing
-            return null;
-        }
     }
 
     public DocumentFormat getDocumentFormat() {
@@ -87,7 +72,7 @@ public class JavaDiagnosticsContext extends AbstractJavaContext {
      *
      * @return the MicroProfileJavaDiagnosticsSettings
      */
-    public MicroProfileJavaDiagnosticsSettings getSettings() {
+    public @NotNull MicroProfileJavaDiagnosticsSettings getSettings() {
         return this.settings;
     }
 
@@ -135,6 +120,7 @@ public class JavaDiagnosticsContext extends AbstractJavaContext {
                                       @NotNull PsiType fieldBinding,
                                       @NotNull PsiAnnotationMemberValue defaultValueExpr) {
         DiagnosticSeverity valueSeverity = getSettings().getValidationValueSeverity();
+        MicroProfileProjectRuntime projectRuntime = super.getProjectRuntime();
         if (projectRuntime == null || valueSeverity == null) {
             return;
         }
@@ -154,104 +140,6 @@ public class JavaDiagnosticsContext extends AbstractJavaContext {
                             MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE.getCode(),
                             valueSeverity, start + 1, end);
                 });
-    }
-
-    private static String toQualifiedTypeString(@NotNull PsiType type,
-                                                @NotNull EnumConstantsProvider.SimpleEnumConstantsProvider provider) {
-
-        if (type instanceof PsiPrimitiveType) {
-            return type.getPresentableText(); // int, char, etc.
-        }
-
-        if (type instanceof PsiArrayType arrayType) {
-            return toQualifiedTypeString(arrayType.getComponentType(), provider) + "[]";
-        }
-
-        if (type instanceof PsiClassType classType) {
-            PsiClass psiClass = classType.resolve();
-            if (psiClass == null) {
-                return type.getCanonicalText();
-            }
-
-            String qualifiedName = getBinaryName(psiClass);
-            if (qualifiedName == null) {
-                qualifiedName = psiClass.getName();
-            }
-
-            // ENUM SUPPORT
-            if (psiClass.isEnum()) {
-                List<String> enumConstants = new ArrayList<>();
-                for (PsiField field : psiClass.getFields()) {
-                    if (field instanceof PsiEnumConstant enumConst) {
-                        enumConstants.add(enumConst.getName());
-                    }
-                }
-                provider.addEnumConstants(qualifiedName, enumConstants);
-            }
-
-            // GENERIC TYPE ARGUMENTS
-            PsiType[] parameters = classType.getParameters();
-            if (parameters.length == 0) {
-                return qualifiedName;
-            }
-
-            StringBuilder sb = new StringBuilder(qualifiedName);
-            sb.append("<");
-            for (int i = 0; i < parameters.length; i++) {
-                if (i > 0) sb.append(", ");
-                sb.append(toQualifiedTypeString(parameters[i], provider));
-            }
-            sb.append(">");
-            return sb.toString();
-        }
-
-        return type.getCanonicalText();
-    }
-
-    /**
-     * Returns the JVM binary name of a PsiClass.
-     *
-     * Example:
-     *   - Top-level class: com.example.Foo            -> com.example.Foo
-     *   - Inner class:     com.example.Outer.Inner    -> com.example.Outer$Inner
-     *   - Nested inner:    Outer.Inner.Deep           -> com.example.Outer$Inner$Deep
-     *
-     * This replicates the behavior of JDT's ITypeBinding.getBinaryName().
-     */
-    private static @Nullable String getBinaryName(@NotNull PsiClass psiClass) {
-        String qualifiedName = psiClass.getQualifiedName();
-        if (qualifiedName == null) {
-            return null;
-        }
-
-        // If the class is top-level, the qualified name is already correct.
-        PsiClass outerClass = psiClass.getContainingClass();
-        if (outerClass == null) {
-            return qualifiedName;
-        }
-
-        // Build the binary name by collecting all containing classes
-        // and joining them using '$'.
-        List<String> classNames = new ArrayList<>();
-        PsiClass current = psiClass;
-
-        while (current != null) {
-            String name = current.getName();
-            if (name != null) {
-                classNames.add(name);
-            }
-            current = current.getContainingClass();
-        }
-
-        // Reverse to get Outer -> Inner -> Deep
-        Collections.reverse(classNames);
-
-        // Extract the package prefix (everything before the first class name)
-        int lastDot = qualifiedName.indexOf(classNames.get(0));
-        String packagePrefix = lastDot > 0 ? qualifiedName.substring(0, lastDot) : "";
-
-        // Combine package and nested class names using '$'
-        return packagePrefix + String.join("$", classNames);
     }
 
     public @NotNull List<Diagnostic> getDiagnostics() {
