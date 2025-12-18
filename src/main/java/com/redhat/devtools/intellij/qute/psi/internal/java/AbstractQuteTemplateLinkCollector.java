@@ -184,7 +184,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
      * Records</a>
      */
     private void visitRecordType(PsiClass node) {
-        if (isImplementTemplateInstance(node)) {
+        if (isImplementTemplateInstance(node) && !isTemplateContents(node)) {
 
             // public class HelloResource {
             // record Hello(String name) implements TemplateInstance {}
@@ -196,6 +196,10 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
             collectTemplateLinkForMethodOrRecord(basePath, node, recordName, node, ignoreFragments,
                     templateNameStrategy);
         }
+    }
+
+    private static boolean isTemplateContents(PsiClass node) {
+        return AnnotationUtils.hasAnnotation(node, TEMPLATE_CONTENTS_ANNOTATION);
     }
 
     /**
