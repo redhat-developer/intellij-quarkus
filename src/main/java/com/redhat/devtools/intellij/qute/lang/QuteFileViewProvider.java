@@ -103,7 +103,7 @@ public class QuteFileViewProvider
         if (language.is(JavaLanguage.INSTANCE) && file instanceof VirtualFileWindow) {
             // Injected Qute content inside a Java file:
             // retrieve the template language from the injection host.
-            var host = InjectedLanguageUtilBase.findInjectionHost(file);
+            var host = InjectedLanguageReflectionUtil.findInjectionHost(file);
             @Nullable Language templateLanguage =
                     host != null ? host.getUserData(TEMPLATE_LANGUAGE_KEY) : null;
             return templateLanguage != null
