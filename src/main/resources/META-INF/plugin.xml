@@ -6,6 +6,17 @@
     </vendor>
 
     <change-notes><![CDATA[
+    <h3>2.4.0</h3>
+    <ul>
+      <li>Compatibility with IntelliJ Platform 2025.3</li>
+      <li>Hover evaluation on Qute expressions while debugging</li>
+      <li>Improved MicroProfile value validation using converters</li>
+      <li>Richer inlay hints: converters, default values and types</li>
+      <li>Qute syntax highlighting inside @TemplateContents and @Message</li>
+      <li>Various bug fixes and stability improvements</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/51?closed=1">changelog</a>.
+
     <h3>2.3.0</h3>
     <ul>
       <li>Integrate (future) Qute debugger</li>
