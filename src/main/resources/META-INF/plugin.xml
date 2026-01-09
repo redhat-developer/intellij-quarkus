@@ -804,6 +804,11 @@
         <qute.dataModelProvider namespaces="uri,uriabs"
                                 description="In order to generate the URI to an endpoint, in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
                                 url="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views"
+                                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.MNamespaceResolverSupport"/>
+
+        <qute.dataModelProvider namespaces="m"
+                                description="Localisation / Internationalisation."
+                                url="https://docs.quarkiverse.io/quarkus-renarde/dev/advanced.html#localisation"
                                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.UriNamespaceResolverSupport"/>
         <!-- Resolved Java Type Factories for Quarkus Renarde -->
         <qute.resolvedJavaTypeFactories
