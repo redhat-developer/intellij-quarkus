@@ -17,7 +17,9 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
@@ -58,7 +60,7 @@ public class PsiQuteProjectUtils {
     private PsiQuteProjectUtils() {
     }
 
-    public static ProjectInfo getProjectInfo(Module javaProject) {
+    public static ProjectInfo getProjectInfo(@NotNull Module javaProject) {
         String projectUri = getProjectURI(javaProject);
         // Project dependencies
         Set<Module> projectDependencies = new HashSet<>();
@@ -66,12 +68,28 @@ public class PsiQuteProjectUtils {
         // Template root paths
         List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
                 .getTemplateRootPaths(javaProject);
+        Set<String> sourceFolders = getSourceFolders(javaProject);
         return new ProjectInfo(projectUri, projectDependencies
                 .stream()
                 .filter(projectDependency -> !javaProject.equals(projectDependency))
                 .map(LSPIJUtils::getProjectUri)
-                .collect(Collectors.toList()), templateRootPaths);
+                .collect(Collectors.toList()), templateRootPaths, sourceFolders);
     }
+
+    private static @NotNull Set<String> getSourceFolders(@NotNull Module javaProject) {
+        Set<String> sourceFolders = new HashSet<>();
+        ModuleRootManager rootManager = ModuleRootManager.getInstance(javaProject);
+        for (ContentEntry entry : rootManager.getContentEntries()) {
+            for (SourceFolder sourceFolder : entry.getSourceFolders()) {
+                VirtualFile folder = sourceFolder.getFile();
+                if (folder != null) {
+                    sourceFolders.add(LSPIJUtils.toUriAsString(folder));
+                }
+            }
+        }
+        return sourceFolders;
+    }
+
 
     /**
      * Returns the full path of the Qute templates base dir '$base-dir-of-module/src/main/resources/templates' for the given module.
