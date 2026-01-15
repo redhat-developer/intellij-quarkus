@@ -14,6 +14,7 @@ import com.intellij.lang.Language;
 import com.intellij.lang.html.HTMLLanguage;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
@@ -21,47 +22,54 @@ import org.eclipse.lsp4mp.commons.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Registry of Java annotations that embed Qute template content.
- * <p>
- * Provides access to {@link QuteJavaInjectionDescriptor} for each annotation,
- * including logic for determining the template data language (HTML, text, XML, etc.).
  */
-public class QuteJavaInjectionRegistry {
+public final class QuteJavaInjectionRegistry {
 
     private static final QuteJavaInjectionRegistry INSTANCE = new QuteJavaInjectionRegistry();
+
     private final Map<String, QuteJavaInjectionDescriptor> descriptorsByAnnotation;
 
     private QuteJavaInjectionRegistry() {
-        this.descriptorsByAnnotation = new HashMap<>();
+        Map<String, QuteJavaInjectionDescriptor> map = new HashMap<>();
 
         // --- Qute core ---
-        registerDescriptor(new QuteJavaInjectionDescriptor(
+        register(map, new QuteJavaInjectionDescriptor(
                 QuteJavaConstants.TEMPLATE_CONTENTS_ANNOTATION,
                 element -> {
+
                     PsiAnnotation annotation = PsiTreeUtil.getParentOfType(
                             element, PsiAnnotation.class
                     );
                     if (annotation == null) {
                         return null;
                     }
-                    //  @TemplateContents(value = "<p>He <a></a>  <a></a> Hello2 {name}!}</p>",
-                    //                    suffix = "html")
-                    //    record HelloWithHtml(String name) implements TemplateInstance {}
+
+                    // IMPORTANT:
+                    // Do NOT resolve anything when indexes are not ready
+                    if (DumbService.isDumb(annotation.getProject())) {
+                        return PlainTextLanguage.INSTANCE;
+                    }
+
                     String suffix = com.intellij.codeInsight.AnnotationUtil
                             .getDeclaredStringAttributeValue(annotation, "suffix");
+
                     return mapSuffixToLanguage(suffix);
                 }
         ));
 
-        registerDescriptor(new QuteJavaInjectionDescriptor(QuteJavaConstants.MESSAGE_ANNOTATION));
+        register(map, new QuteJavaInjectionDescriptor(QuteJavaConstants.MESSAGE_ANNOTATION));
 
         // --- langchain4j ---
-        registerDescriptor(new QuteJavaInjectionDescriptor("dev.langchain4j.service.UserMessage"));
-        registerDescriptor(new QuteJavaInjectionDescriptor("dev.langchain4j.service.SystemMessage"));
+        register(map, new QuteJavaInjectionDescriptor("dev.langchain4j.service.UserMessage"));
+        register(map, new QuteJavaInjectionDescriptor("dev.langchain4j.service.SystemMessage"));
+
+        this.descriptorsByAnnotation = Collections.unmodifiableMap(map);
     }
 
     public static QuteJavaInjectionRegistry getInstance() {
@@ -69,45 +77,61 @@ public class QuteJavaInjectionRegistry {
     }
 
     /**
-     * Maps a suffix string to the corresponding IntelliJ Language.
+     * Returns the descriptor for the given annotation, or null if not registered.
      *
-     * @param suffix the suffix, e.g. "html", "xml", "json", "yaml"
-     * @return the corresponding Language instance, or PlainText if unknown/null
+     * IMPORTANT:
+     * Must be dumb-aware because this method is called from debugger / injections.
+     */
+    public @Nullable QuteJavaInjectionDescriptor getDescriptor(@Nullable PsiAnnotation annotation) {
+        if (annotation == null) {
+            return null;
+        }
+
+        // 🔒 CRITICAL: never touch indexes during dumb mode
+        if (DumbService.isDumb(annotation.getProject())) {
+            return null;
+        }
+
+        // ⚠ This call resolves the annotation -> indexes required
+        String qualifiedName = annotation.getQualifiedName();
+        if (qualifiedName == null) {
+            return null;
+        }
+
+        return descriptorsByAnnotation.get(qualifiedName);
+    }
+
+    private static void register(
+            @NotNull Map<String, QuteJavaInjectionDescriptor> map,
+            @NotNull QuteJavaInjectionDescriptor descriptor
+    ) {
+        map.put(descriptor.getAnnotationName(), descriptor);
+    }
+
+    /**
+     * Maps a suffix string to the corresponding IntelliJ Language.
      */
     private static @NotNull Language mapSuffixToLanguage(@Nullable String suffix) {
         if (StringUtils.isEmpty(suffix)) {
             return PlainTextLanguage.INSTANCE;
         }
+
         switch (suffix.toLowerCase()) {
             case "html":
                 return HTMLLanguage.INSTANCE;
             case "xml":
                 return XMLLanguage.INSTANCE;
             case "json": {
-                Language lang = Language.findLanguageByID("JSON"); // optional plugin
+                Language lang = Language.findLanguageByID("JSON");
                 return lang != null ? lang : PlainTextLanguage.INSTANCE;
             }
             case "yaml":
             case "yml": {
-                Language lang = Language.findLanguageByID("YAML"); // optional plugin
+                Language lang = Language.findLanguageByID("YAML");
                 return lang != null ? lang : PlainTextLanguage.INSTANCE;
             }
             default:
                 return PlainTextLanguage.INSTANCE;
         }
-    }
-
-    private void registerDescriptor(@NotNull QuteJavaInjectionDescriptor descriptor) {
-        descriptorsByAnnotation.put(descriptor.getAnnotationName(), descriptor);
-    }
-
-    /**
-     * Returns the descriptor for the given annotation, or null if not registered.
-     */
-    public @Nullable QuteJavaInjectionDescriptor getDescriptor(@Nullable PsiAnnotation annotation) {
-        if (annotation == null) {
-            return null;
-        }
-        return descriptorsByAnnotation.get(annotation.getQualifiedName());
     }
 }
