@@ -827,20 +827,25 @@
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-qute.xml"
                 xpointer="xpointer(/idea-plugin/*)"/>
     <actions>
+        <!-- Custom LSP client command for MicroProfile LS -->
         <action id="microprofile.command.open.uri"
                 class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileOpenURIAction"
                 text="MicroprofileOpenURIAction"/>
         <action id="microprofile.command.configuration.update"
                 class="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.command.MicroprofileUpdateConfigurationAction"
                 text="MicroprofileUpdateConfigurationAction"/>
+
+        <!-- Custom LSP client command for Qute LS -->
         <action id="qute.command.open.uri"
                 class="com.redhat.devtools.intellij.qute.psi.core.command.QuteOpenURIAction"/>
-        <action id="qute.command.generate.template.file"
-                class="com.redhat.devtools.intellij.qute.psi.core.command.QuteGenerateTemplateAction"/>
         <action id="qute.command.java.definition"
                 class="com.redhat.devtools.intellij.qute.psi.core.command.QuteJavaDefinitionAction"/>
         <action id="qute.command.configuration.update"
                 class="com.redhat.devtools.intellij.qute.psi.core.command.QuteUpdateConfigurationAction"/>
+        <action id="qute.command.show.references"
+                class="com.redhat.devtools.intellij.qute.psi.core.command.QuteShowReferencesAction"/>
+        <action id="qute.command.generate.template.file"
+                class="com.redhat.devtools.intellij.qute.psi.core.command.QuteGenerateTemplateAction"/>
 
     </actions>
 </idea-plugin>
