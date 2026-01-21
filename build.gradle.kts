@@ -47,7 +47,8 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven { url = uri("https://raw.githubusercontent.com/redhat-developer/quarkus-ls/maven/") }
-    maven { url = uri("https://repository.jboss.org/nexus/content/groups/public") }
+    maven { url = uri("https://raw.githubusercontent.com/redhat-developer/intellij-common-ui-test-library/repository/snapshots") }
+    maven { url = uri("https://raw.githubusercontent.com/redhat-developer/intellij-common-ui-test-library/repository/releases") }
     maven { url = uri("https://repo.eclipse.org/content/repositories/lsp4mp-snapshots") }
     maven { url = uri("https://repo.eclipse.org/content/repositories/lsp4mp-releases") }
     intellijPlatform {
@@ -354,7 +355,6 @@ val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
     task {
         jvmArgumentProviders += CommandLineArgumentProvider {
             listOf(
-                "-Drobot-server.port=8580",
                 "-Dide.mac.message.dialogs.as.sheets=false",
                 "-Djb.privacy.policy.text=<!--999.999-->",
                 "-Djb.consents.confirmation.enabled=false",
