@@ -11,6 +11,9 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Renarde Java constants.
  * 
@@ -20,5 +23,9 @@ package com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde;
 public class RenardeJavaConstants {
 
 	public static final String RENARDE_CONTROLLER_TYPE = "io.quarkiverse.renarde.Controller";
+
+	public static final String RENARDE_ARTIFACT_ID = "quarkus-renarde";
+
+	public static final Collection<String> RENARDE_MAVEN_COORS = List.of("io.quarkiverse.renarde:quarkus-renarde");
 
 }
