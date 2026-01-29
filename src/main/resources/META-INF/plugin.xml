@@ -569,6 +569,11 @@
             <with attribute="implementationClass"
                   implements="com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.IResolvedJavaTypeFactory"/>
         </extensionPoint>
+        <extensionPoint name="qute.projectFeatureProvider"
+                        beanClass="com.redhat.devtools.intellij.qute.psi.template.project.ProjectFeatureProviderRegistry$ProjectFeatureProviderBean">
+            <with attribute="implementationClass"
+                  implements="com.redhat.devtools.intellij.qute.psi.template.project.IProjectFeatureProvider"/>
+        </extensionPoint>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.redhat.devtools.intellij.quarkus">
@@ -813,12 +818,16 @@
         <!-- Resolved Java Type Factories for Quarkus Renarde -->
         <qute.resolvedJavaTypeFactories
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeResolvedJavaTypeFactory"/>
+        <qute.projectFeatureProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeProjectFeatureProvider" />
 
         <!-- Data model providers for Quarkus Roq -->
         <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqDataModelProvider"/>
         <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.DataMappingSupport"/>
+        <qute.projectFeatureProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqProjectFeatureProvider" />
 
     </extensions>
 

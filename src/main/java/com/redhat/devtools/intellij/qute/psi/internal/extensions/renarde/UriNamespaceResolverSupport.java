@@ -36,7 +36,7 @@ import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 
 import static com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeJavaConstants.RENARDE_CONTROLLER_TYPE;
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVA_LANG_OBJECT_TYPE;
-
+import static com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeUtils.isRenardeProject;
 /**
  * uri, uriabs renarde support.
  *
@@ -147,8 +147,7 @@ public class UriNamespaceResolverSupport extends AbstractDataModelProvider {
     @Override
     protected boolean isNamespaceAvailable(String namespace, SearchContext context, ProgressIndicator monitor) {
         // uri, and uriabs are available only for renarde project
-        Module javaProject = context.getJavaProject();
-        return PsiTypeUtils.findType(javaProject, RENARDE_CONTROLLER_TYPE) != null;
+        return isRenardeProject(context.getJavaProject());
     }
 
     @Override

@@ -25,7 +25,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.devtools.intellij.qute.psi.internal.template.rootpath.TemplateRootPathProviderRegistry;
+import com.redhat.devtools.intellij.qute.psi.template.project.ProjectFeatureProviderRegistry;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
+import com.redhat.qute.commons.ProjectFeature;
 import com.redhat.qute.commons.ProjectInfo;
 import com.redhat.qute.commons.TemplateRootPath;
 import io.quarkus.runtime.util.StringUtil;
@@ -65,15 +67,23 @@ public class PsiQuteProjectUtils {
         // Project dependencies
         Set<Module> projectDependencies = new HashSet<>();
         ModuleUtilCore.getDependencies(javaProject, projectDependencies);
+
+        // Project folder
+        VirtualFile moduleDir =  QuarkusModuleUtil.getModuleDirPath(javaProject);
+        String projectFolder = moduleDir != null ? LSPIJUtils.toUriAsString(moduleDir) : null;
         // Template root paths
         List<TemplateRootPath> templateRootPaths = TemplateRootPathProviderRegistry.getInstance()
                 .getTemplateRootPaths(javaProject);
+        // Source folders
         Set<String> sourceFolders = getSourceFolders(javaProject);
-        return new ProjectInfo(projectUri, projectDependencies
+        // Project Features
+        Set<ProjectFeature> projectFeatures = ProjectFeatureProviderRegistry.getInstance()
+                .getProjectFeatures(javaProject);
+        return new ProjectInfo(projectUri, projectFolder, projectDependencies
                 .stream()
                 .filter(projectDependency -> !javaProject.equals(projectDependency))
                 .map(LSPIJUtils::getProjectUri)
-                .collect(Collectors.toList()), templateRootPaths, sourceFolders);
+                .collect(Collectors.toList()), templateRootPaths, sourceFolders, projectFeatures);
     }
 
     private static @NotNull Set<String> getSourceFolders(@NotNull Module javaProject) {
