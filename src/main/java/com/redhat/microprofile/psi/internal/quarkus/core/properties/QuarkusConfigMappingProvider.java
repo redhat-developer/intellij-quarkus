@@ -151,7 +151,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
         for (PsiElement child : elements) {
             if (child instanceof PsiMethod method) {
                 if (method.getReturnType() == null || method.getModifierList().hasExplicitModifier(PsiModifier.DEFAULT) || method.hasParameters()
-                        || PsiTypeUtils.isVoidReturnType(method)) {
+                        || PsiTypeUtils.isVoidReturnType(method) || method.hasModifierProperty(PsiModifier.STATIC)) {
                     continue;
                 }
 
