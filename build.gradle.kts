@@ -215,13 +215,6 @@ configurations {
     }
 }
 
-configurations.all {
-    resolutionStrategy {
-        cacheChangingModulesFor(0, "seconds")
-        cacheDynamicVersionsFor(0, "seconds")
-    }
-}
-
 testlogger {
     theme = ThemeType.STANDARD
     showExceptions = true
