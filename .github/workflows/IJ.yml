@@ -36,10 +36,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
 
+      - name: Show resolved Qute LS version
+        run: ./gradlew dependencyInsight --dependency com.redhat.qute.ls --configuration compileClasspath
+
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks
         run: |
-          ./gradlew verifyPlugin -Dplugin.verifier.home.dir=~/.pluginVerifier
+          ./gradlew verifyPlugin -Dplugin.verifier.home.dir=~/.pluginVerifier --refresh-dependencies
           REPORTS=$(cat ${{ github.workspace }}/build/reports/pluginVerifier/*/report.md | sed 's/^#/##/')
           echo "$REPORTS" >> $GITHUB_STEP_SUMMARY
 
