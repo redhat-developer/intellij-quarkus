@@ -65,7 +65,7 @@ jobs:
         env:
           PUBLISH_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
         run: |
-          ./gradlew publishPlugin -PpluginVersion=$PLUGIN_VERSION -Pchannel=default --refresh-dependencie
+          ./gradlew publishPlugin -PpluginVersion=$PLUGIN_VERSION -Pchannel=default --refresh-dependencies
           echo "Published $PLUGIN_VERSION to the Jetbrains Marketplace"
 
       - name: Tag Release
