@@ -479,7 +479,7 @@
         <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
         <fileType name="Qute_"
                   language="Qute_"
-                  extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml"
+                  extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml;qute.md"
                   implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileType"/>
         <lang.fileViewProviderFactory language="Qute_"
                                       implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileViewProviderFactory"/>
@@ -504,6 +504,8 @@
         <lang.substitutor language="JSON"
                           implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
         <lang.substitutor language="yaml"
+                          implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+        <lang.substitutor language="Markdown"
                           implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
         <typedHandler implementation="com.redhat.devtools.intellij.qute.editor.QuteTypedHandler"/>
         <multiHostInjector implementation="com.redhat.devtools.intellij.qute.lang.injector.QuteLanguageInjector"/>

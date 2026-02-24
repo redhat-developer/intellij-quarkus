@@ -41,6 +41,10 @@
                          serverId="qute"
                          documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForJavaFile"
                          languageId="java"/>
+        <languageMapping language="Markdown"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
+                         languageId="qute-markdown"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
