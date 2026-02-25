@@ -21,17 +21,20 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.devtools.intellij.qute.psi.utils.*;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.AnnotationLocationSupport;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4j.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,10 +58,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
 
     private static final Logger LOGGER = Logger.getLogger(AbstractQuteTemplateLinkCollector.class.getName());
 
-    private static String[] suffixes = {".qute.html", ".qute.json", ".qute.txt", ".qute.yaml", ".html", ".json",
+    private static String[] DEFAULT_SUFFIXES = {".html", ".qute.html", ".qute.json", ".qute.txt", ".qute.yaml", ".json",
             ".txt", ".yaml"};
-
-    protected static final String PREFERRED_SUFFIX = ".html"; // TODO make it configurable
 
     protected final PsiFile typeRoot;
     protected final IPsiUtils utils;
@@ -70,6 +71,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
     private AnnotationLocationSupport annotationLocationSupport;
 
     private PsiFile compilationUnit;
+    private final String[] suffixes;
 
     public AbstractQuteTemplateLinkCollector(PsiFile typeRoot, IPsiUtils utils, ProgressIndicator monitor) {
         this.typeRoot = typeRoot;
@@ -79,7 +81,19 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
         this.levelTypeDecl = 0;
         VirtualFile resourcesDir = findBestResourcesDir(utils.getModule());
         this.templatesDir = resourcesDir != null ? resourcesDir.findFileByRelativePath(TEMPLATES_FOLDER_NAME) : null;
-        this.relativeTemplatesBaseDir = PsiQuteProjectUtils.getRelativeTemplateBaseDir(utils.getModule(), resourcesDir);
+        var javaProject = utils.getModule();
+        this.relativeTemplatesBaseDir = PsiQuteProjectUtils.getRelativeTemplateBaseDir(javaProject, resourcesDir);
+        var mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject()).getMicroProfileProject(javaProject);
+        String customSuffixes = mpProject.getProperty(QuteConfigConstants.QUARKUS_QUTE_SUFFIXES);
+        if (StringUtils.isNotBlank(customSuffixes)) {
+            this.suffixes = Arrays.stream(customSuffixes.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(s -> s.startsWith(".") ? s : "." + s)
+                    .toArray(String[]::new);
+        } else {
+            this.suffixes = DEFAULT_SUFFIXES;
+        }
     }
 
     /**
@@ -299,7 +313,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
         // Compute the relative path from the module root path:
         // - src/main/resources/templates/page.html for Maven project
         // - resources/templates/page.html for Gradle project
-        return relativeTemplatesBaseDir + templateFilePath + (definedSuffix ? "" : PREFERRED_SUFFIX);
+        return relativeTemplatesBaseDir + templateFilePath + (definedSuffix ? "" : suffixes[0]);
     }
 
 
@@ -317,7 +331,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
                 return templateFile;
             }
         }
-        return templatesDir.findFileByRelativePath(templateUri + PREFERRED_SUFFIX);
+        return templatesDir.findFileByRelativePath(templateUri + suffixes[0]);
     }
 
     protected static String getVirtualFileUrl(Module project, String templateFilePath) {
