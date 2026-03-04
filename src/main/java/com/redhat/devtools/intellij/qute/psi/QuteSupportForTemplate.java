@@ -11,14 +11,12 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi;
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -31,13 +29,13 @@ import com.redhat.devtools.intellij.qute.psi.internal.template.TemplateDataSuppo
 import com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.ResolvedJavaTypeFactoryRegistry;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
 import com.redhat.qute.commons.*;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.QuteDataModelProjectParams;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.WorkspaceEdit;
 
@@ -64,6 +62,43 @@ public class QuteSupportForTemplate {
 
     public static QuteSupportForTemplate getInstance() {
         return INSTANCE;
+    }
+
+    private static boolean isValidField(PsiField field, PsiClass type) {
+        if (type.isEnum()) {
+            return true;
+        }
+        return field.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
+    }
+
+    private static Module getJavaProjectFromProjectUri(String projectName, IPsiUtils utils) {
+        if (projectName == null) {
+            return null;
+        }
+        return ModuleManager.getInstance(utils.getProject()).findModuleByName(projectName);
+    }
+
+    public static Module getJavaProjectFromTemplateFile(String templateFileUri, IPsiUtils utils) {
+        try {
+            templateFileUri = templateFileUri.replace("vscode-notebook-cell", "file");
+            VirtualFile file = utils.findFile(templateFileUri);
+            return utils.getModule(file);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private static PsiClass[] findImplementedInterfaces(PsiClass type, ProgressIndicator progressMonitor) {
+        return type.getInterfaces();
+    }
+
+    public static ITypeResolver createTypeResolver(PsiMember member, Module javaProject) {
+		/*ITypeResolver typeResolver = !member.isBinary()
+				? new CompilationUnitTypeResolver((ICompilationUnit) member.getAncestor(IJavaElement.COMPILATION_UNIT))
+				: new ClassFileTypeResolver((IClassFile) member.getAncestor(IJavaElement.CLASS_FILE));*/
+        ITypeResolver typeResolver = new ClassFileTypeResolver(member instanceof PsiClass ?
+                (PsiClass) member : member.getContainingClass(), javaProject);
+        return typeResolver;
     }
 
     /**
@@ -134,20 +169,20 @@ public class QuteSupportForTemplate {
     }
 
     /**
-     * Collect user tags from the given project Uri.
+     * Collect binary templates from the given project Uri.
      *
      * @param params  the project uri.
      * @param utils   JDT LS utilities
      * @param monitor the progress monitor
-     * @return user tags from the given project Uri.
+     * @return binary templates from the given project Uri.
      */
-    public List<UserTagInfo> getUserTags(QuteUserTagParams params, IPsiUtils utils, ProgressIndicator monitor) {
+    public List<BinaryTemplateInfo> getBinaryTemplates(QuteBinaryTemplateParams params, IPsiUtils utils, ProgressIndicator monitor) {
         String projectUri = params.getProjectUri();
         Module javaProject = getJavaProjectFromProjectUri(projectUri, utils);
         if (javaProject == null) {
             return null;
         }
-        return QuarkusIntegrationForQute.getUserTags(javaProject, monitor);
+        return QuarkusIntegrationForQute.getBinaryTemplates(javaProject, monitor);
     }
 
     /**
@@ -311,44 +346,6 @@ public class QuteSupportForTemplate {
 
         ValueResolverKind kind = params.getKind();
         return ResolvedJavaTypeFactoryRegistry.getInstance().create(type, kind, javaProject);
-    }
-
-    private static boolean isValidField(PsiField field, PsiClass type) {
-        if (type.isEnum()) {
-            return true;
-        }
-        return field.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC);
-    }
-
-    private static Module getJavaProjectFromProjectUri(String projectName, IPsiUtils utils) {
-        if (projectName == null) {
-            return null;
-        }
-        return ModuleManager.getInstance(utils.getProject()).findModuleByName(projectName);
-    }
-
-    public static Module getJavaProjectFromTemplateFile(String templateFileUri, IPsiUtils utils) {
-        try {
-            templateFileUri = templateFileUri.replace("vscode-notebook-cell", "file");
-            VirtualFile file = utils.findFile(templateFileUri);
-            return utils.getModule(file);
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-    private static PsiClass[] findImplementedInterfaces(PsiClass type, ProgressIndicator progressMonitor) {
-        return type.getInterfaces();
-    }
-
-
-    public static ITypeResolver createTypeResolver(PsiMember member, Module javaProject) {
-		/*ITypeResolver typeResolver = !member.isBinary()
-				? new CompilationUnitTypeResolver((ICompilationUnit) member.getAncestor(IJavaElement.COMPILATION_UNIT))
-				: new ClassFileTypeResolver((IClassFile) member.getAncestor(IJavaElement.CLASS_FILE));*/
-        ITypeResolver typeResolver = new ClassFileTypeResolver(member instanceof PsiClass ?
-                (PsiClass) member : member.getContainingClass(), javaProject);
-        return typeResolver;
     }
 
     /**
