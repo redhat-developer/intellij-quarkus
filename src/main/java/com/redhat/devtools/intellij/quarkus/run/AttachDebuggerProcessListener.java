@@ -76,6 +76,70 @@ public class AttachDebuggerProcessListener implements ProcessListener {
         this.debugPort = debugPort != null ? "" + debugPort : null;
     }
 
+    public static Matcher getConnectionMatcher(String line) {
+        Matcher matcher = PATTERN.matcher(line);
+        if (matcher.find()) {
+            return matcher;
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Integer getQuteDebugPort(String message) {
+        try {
+            String port = message.substring(QUTE_LISTENING_ON_PORT.length()).trim();
+            return Integer.valueOf(port);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static void createQuteConfiguration(int port,
+                                               @NotNull String name,
+                                               @NotNull Project project,
+                                               @NotNull ProgressIndicator indicator,
+                                               boolean waitForPortAvailable) {
+        indicator.setText("Connecting Qute debugger to port " + port);
+        try {
+            if (waitForPortAvailable) {
+                waitForPortAvailable(port, indicator);
+            }
+            RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name + " (Qute)", QuteConfigurationType.class);
+            QuteRunConfiguration quteConfiguration = (QuteRunConfiguration) settings.getConfiguration();
+            quteConfiguration.setAttachPort(Integer.toString(port));
+            long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
+            ExecutionUtil.runConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance(), DefaultExecutionTarget.INSTANCE, groupId);
+        } catch (IOException e) {
+            ApplicationManager.getApplication()
+                    .invokeLater(() -> Messages.showErrorDialog("Can' t connector to port " + port, "Quarkus"));
+        }
+    }
+
+    public static boolean isDebuggerAutoAttach() {
+        try {
+            return Registry.is("debugger.auto.attach.from.any.console") || Registry.is("debugger.auto.attach.from.console");
+        } catch (MissingResourceException e) {
+            return false;
+        }
+    }
+
+    private static void waitForPortAvailable(int port, ProgressIndicator monitor) throws IOException {
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < 120_000 && !monitor.isCanceled()) {
+            try (Socket socket = new Socket("localhost", port)) {
+                socket.getOutputStream().write(JWDP_HANDSHAKE.getBytes(StandardCharsets.US_ASCII));
+                return;
+            } catch (ConnectException e) {
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e1) {
+                    throw new IOException(e1);
+                }
+            }
+        }
+        throw new IOException("Can't connect remote debugger to port " + port);
+    }
+
     @Override
     public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         if (ProcessOutputType.isStdout(outputType)) {
@@ -113,24 +177,6 @@ public class AttachDebuggerProcessListener implements ProcessListener {
         }
     }
 
-    public static Matcher getConnectionMatcher(String line) {
-        Matcher matcher = PATTERN.matcher(line);
-        if (matcher.find()) {
-            return matcher;
-        }
-        return null;
-    }
-
-    @Nullable
-    private static Integer getQuteDebugPort(String message) {
-        try {
-            String port = message.substring(QUTE_LISTENING_ON_PORT.length()).trim();
-            return Integer.valueOf(port);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     @Override
     public void processTerminated(@NotNull ProcessEvent event) {
         event.getProcessHandler().removeProcessListener(this);
@@ -138,51 +184,5 @@ public class AttachDebuggerProcessListener implements ProcessListener {
 
     private void createQuteConfiguration(@NotNull ProgressIndicator indicator, int port, String name) {
         createQuteConfiguration(port, name, project, indicator, true);
-    }
-
-    public static void createQuteConfiguration(int port,
-                                               @NotNull String name,
-                                               @NotNull Project project,
-                                               @NotNull ProgressIndicator indicator,
-                                               boolean waitForPortAvailable) {
-        indicator.setText("Connecting Qute debugger to port " + port);
-        try {
-            if (waitForPortAvailable) {
-                waitForPortAvailable(port, indicator);
-            }
-            RunnerAndConfigurationSettings settings = RunManager.getInstance(project).createConfiguration(name + " (Qute)", QuteConfigurationType.class);
-            QuteRunConfiguration quteConfiguration = (QuteRunConfiguration) settings.getConfiguration();
-            quteConfiguration.setAttachPort(Integer.toString(port));
-            long groupId = ExecutionEnvironment.getNextUnusedExecutionId();
-            ExecutionUtil.runConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance(), DefaultExecutionTarget.INSTANCE, groupId);
-        } catch (IOException e) {
-            ApplicationManager.getApplication()
-                    .invokeLater(() -> Messages.showErrorDialog("Can' t connector to port " + port, "Quarkus"));
-        }
-    }
-
-    public static boolean isDebuggerAutoAttach() {
-        try {
-            return Registry.is("debugger.auto.attach.from.any.console");
-        } catch (MissingResourceException e) {
-            return false;
-        }
-    }
-
-    private static void waitForPortAvailable(int port, ProgressIndicator monitor) throws IOException {
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 120_000 && !monitor.isCanceled()) {
-            try (Socket socket = new Socket("localhost", port)) {
-                socket.getOutputStream().write(JWDP_HANDSHAKE.getBytes(StandardCharsets.US_ASCII));
-                return;
-            } catch (ConnectException e) {
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e1) {
-                    throw new IOException(e1);
-                }
-            }
-        }
-        throw new IOException("Can't connect remote debugger to port " + port);
     }
 }

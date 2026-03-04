@@ -19,6 +19,7 @@ import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAc
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.util.net.NetUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
@@ -44,6 +45,8 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         implements RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(QuarkusRunConfiguration.class);
+
+    public static final Key<Integer> QUARKUS_DEBUG_PORT_KEY = Key.create("quarkus.debug.port");
 
     static final String QUARKUS_CONFIGURATION = "Quarkus Configuration";
 
@@ -123,6 +126,9 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
             telemetryData.put("tool", toolDelegate.getDisplay());
             boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
             Integer debugPort = debug ? allocateLocalPort() : null;
+            if (debugPort != null) {
+                environment.putUserData(QUARKUS_DEBUG_PORT_KEY, debugPort);
+            }
             Integer quteDebugPort = debug && isQuteDebuggerInstalled(module) ? allocateLocalPort() : null;
             // The parameter (run/debug) executor is filled according the run/debug action
             // but in the case of Gradle, the executor must be only the run executor
