@@ -52,33 +52,41 @@ class AttachDebuggerExecutionListener implements ExecutionListener {
                 // add a AttachDebuggerProcessListener to track
                 // 'Listening for transport dt_socket at address: $PORT' message and starts
                 // the remote debugger with the given port $PORT
-               handler.addProcessListener(new AttachDebuggerProcessListener(project, env, getDebugPort(handler)));
+               handler.addProcessListener(new AttachDebuggerProcessListener(project, env, getDebugPort(env, handler)));
             }
         }
     }
 
     /**
-     * Returns the port declared in the command line with -Ddebug= and null otherwise.
+     * Returns the debug port, first from the ExecutionEnvironment UserData
+     * (set by QuarkusRunConfiguration), falling back to parsing -Ddebug= from the command line.
      *
+     * @param env     the execution environment.
      * @param handler the process handler.
-     * @return the port declared in the command line with -Ddebug= and null otherwise.
+     * @return the debug port, or null if not found.
      */
-    private @Nullable Integer getDebugPort(@NotNull ProcessHandler handler) {
+    private @Nullable Integer getDebugPort(@NotNull ExecutionEnvironment env, @NotNull ProcessHandler handler) {
+        // Try to get the port from UserData (works for both Maven and Gradle)
+        Integer port = env.getUserData(QuarkusRunConfiguration.QUARKUS_DEBUG_PORT_KEY);
+        if (port != null) {
+            return port;
+        }
+        // Fallback: parse from command line (only works for BaseOSProcessHandler)
         if (handler instanceof BaseOSProcessHandler osProcessHandler) {
             String commandLine = osProcessHandler.getCommandLine();
             int startIndex = commandLine.indexOf("-Ddebug=");
             if (startIndex != -1) {
-                StringBuilder port = new StringBuilder();
+                StringBuilder portStr = new StringBuilder();
                 for (int i = startIndex + "-Ddebug=".length(); i < commandLine.length(); i++) {
                     char c = commandLine.charAt(i);
                     if (Character.isDigit(c)) {
-                        port.append(c);
+                        portStr.append(c);
                     } else {
                         break;
                     }
                 }
-                if (!port.isEmpty()) {
-                    return Integer.parseInt(port.toString());
+                if (!portStr.isEmpty()) {
+                    return Integer.parseInt(portStr.toString());
                 }
             }
         }
