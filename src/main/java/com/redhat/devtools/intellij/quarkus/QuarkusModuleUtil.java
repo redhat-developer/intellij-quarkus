@@ -96,7 +96,7 @@ public class QuarkusModuleUtil {
             return cached;
         }
         boolean result = ApplicationManager.getApplication().runReadAction(
-                (Computable<Boolean>) () -> JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_VERTX_HTTP_MAVEN_COORDS));
+                (Computable<Boolean>) () -> JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_CORE_MAVEN_COORDS));
         module.putUserData(QUARKUS_MODULE_KEY, result);
         return result;
     }
