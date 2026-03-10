@@ -10,7 +10,6 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus;
 
-import com.intellij.ProjectTopics;
 import com.intellij.facet.FacetManager;
 import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -18,8 +17,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
@@ -42,41 +39,16 @@ import java.util.regex.Pattern;
 
 public class QuarkusModuleUtil {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleUtil.class);
-
-    private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
-
     public static final Pattern QUARKUS_STANDARD_VERSIONING = Pattern.compile("(\\d+).(\\d+).(\\d+)(.Final)?(-redhat-\\\\d+)?$");
-
     public static final Pattern APPLICATION_PROPERTIES = Pattern.compile("application(-.+)?\\.properties");
-
     public static final Pattern MICROPROFILE_CONFIG_PROPERTIES = Pattern.compile("microprofile-config(-.+)?\\.properties");
-
     public static final Pattern APPLICATION_YAML = Pattern.compile("application(-.+)?\\.ya?ml");
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleUtil.class);
+    private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
     private static final Comparator<VirtualFile> ROOT_COMPARATOR = Comparator.comparingInt(r -> r.getPath().length());
 
     private static final Key<Boolean> QUARKUS_MODULE_KEY = Key.create("quarkusModule");
     private static final Key<Boolean> QUARKUS_WEB_APP_MODULE_KEY = Key.create("quarkusWebAppModule");
-
-    static {
-        // Invalidate module caches when module roots change
-        // (e.g. Quarkus library added or removed).
-        ApplicationManager.getApplication().getMessageBus()
-                .connect()
-                .subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-                    @Override
-                    public void rootsChanged(@NotNull ModuleRootEvent event) {
-                        Object source = event.getSource();
-                        if (source instanceof Project project) {
-                            for (Module m : ModuleManager.getInstance(project).getModules()) {
-                                m.putUserData(QUARKUS_MODULE_KEY, null);
-                                m.putUserData(QUARKUS_WEB_APP_MODULE_KEY, null);
-                            }
-                        }
-                    }
-                });
-    }
 
     /**
      * Check if the module is a Quarkus project by checking if the Quarkus core library
@@ -132,9 +104,9 @@ public class QuarkusModuleUtil {
      * the minor version, {@code matcher.group(3)} returns the patch version.
      * If the detected Quarkus version does not follow the standard versioning, the matcher does not match at all.
      *
-     * @param module                      the module to check, must not be null.
-     * @param predicate                   the predicate to apply to the version matcher, must not be null.
-     * @param returnIfNoQuarkusDetected   the value to return if no Quarkus version is detected.
+     * @param module                    the module to check, must not be null.
+     * @param predicate                 the predicate to apply to the version matcher, must not be null.
+     * @param returnIfNoQuarkusDetected the value to return if no Quarkus version is detected.
      * @return true if the Quarkus version matches the predicate, false otherwise.
      */
     public static boolean checkQuarkusVersion(@NotNull Module module, @NotNull Predicate<Matcher> predicate, boolean returnIfNoQuarkusDetected) {
@@ -253,5 +225,12 @@ public class QuarkusModuleUtil {
     private static int getPort(@NotNull PsiMicroProfileProject mpProject) {
         int port = mpProject.getPropertyAsInteger("quarkus.http.port", 8080);
         return mpProject.getPropertyAsInteger("%dev.quarkus.http.port", port);
+    }
+
+    public static void invalidateCache(@NotNull Project project) {
+        for (Module m : ModuleManager.getInstance(project).getModules()) {
+            m.putUserData(QUARKUS_MODULE_KEY, null);
+            m.putUserData(QUARKUS_WEB_APP_MODULE_KEY, null);
+        }
     }
 }

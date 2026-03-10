@@ -11,7 +11,6 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.utils;
 
-import com.intellij.ProjectTopics;
 import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -20,8 +19,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Computable;
@@ -67,25 +64,6 @@ public class PsiQuteProjectUtils {
 
     private static final Key<Boolean> QUTE_PROJECT_KEY = Key.create("quteProject");
     private static final Key<Boolean> QUTE_SUPPORT_KEY = Key.create("quteSupport");
-
-    static {
-        // Invalidate module and project Qute support caches when module roots change
-        // (e.g. Qute library added or removed).
-        ApplicationManager.getApplication().getMessageBus()
-                .connect()
-                .subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-                    @Override
-                    public void rootsChanged(@NotNull ModuleRootEvent event) {
-                        Object source = event.getSource();
-                        if (source instanceof Project project) {
-                            project.putUserData(QUTE_PROJECT_KEY, null);
-                            for (Module m : ModuleManager.getInstance(project).getModules()) {
-                                m.putUserData(QUTE_SUPPORT_KEY, null);
-                            }
-                        }
-                    }
-                });
-    }
 
     private PsiQuteProjectUtils() {
     }
@@ -365,6 +343,13 @@ public class PsiQuteProjectUtils {
         path.append(segment);
         if (!segment.endsWith("/")) {
             path.append('/');
+        }
+    }
+
+    public static void invalidateCache(@NotNull Project project) {
+        project.putUserData(QUTE_PROJECT_KEY, null);
+        for (Module m : ModuleManager.getInstance(project).getModules()) {
+            m.putUserData(QUTE_SUPPORT_KEY, null);
         }
     }
 }
