@@ -48,10 +48,6 @@ public class QuteLanguageSubstitutor extends LanguageSubstitutor {
      */
     @Override
     public @Nullable Language getLanguage(@NotNull VirtualFile file, @NotNull Project project) {
-        if (ApplicationManager.getApplication().isDispatchThread()) {
-            return null;
-        }
-
         if (maybeBinaryQuteTemplate(file)) {
             // File is inside a JAR archive in 'templates' JAR entry
             return hasQuteSupport(project) ? QuteLanguage.INSTANCE : null;
