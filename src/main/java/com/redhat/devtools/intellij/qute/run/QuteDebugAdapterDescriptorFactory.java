@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.qute.run;
 
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationOptions;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.lang.Language;
@@ -43,5 +44,13 @@ public class QuteDebugAdapterDescriptorFactory extends DebugAdapterDescriptorFac
     public boolean isDebuggableFile(@NotNull VirtualFile file, @NotNull Project project) {
         Language language = LSPIJUtils.getFileLanguage(file, project);
         return QuteLanguage.isQuteLanguage(language);
+    }
+
+    @Override
+    public boolean prepareConfiguration(@NotNull RunConfiguration configuration,
+                                        @NotNull VirtualFile file,
+                                        @NotNull Project project) {
+        // Don't try to use existing or create Qute run configuration when right mouse button is clicked.
+        return false;
     }
 }
