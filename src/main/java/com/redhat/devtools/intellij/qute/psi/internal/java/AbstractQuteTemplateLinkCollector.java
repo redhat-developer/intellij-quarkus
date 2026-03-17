@@ -183,7 +183,7 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
             String basePath = getBasePath(checkedAnnotation);
             TemplateNameStrategy templateNameStrategy = getDefaultName(checkedAnnotation);
             for (PsiMethod method : node.getMethods()) {
-                if (!method.isConstructor()) {
+                if (isCheckedTemplateMethod(method)) {
                     collectTemplateLinkForMethodOrRecord(basePath, method, method.getName(), node, ignoreFragments, templateNameStrategy);
                 }
             }
