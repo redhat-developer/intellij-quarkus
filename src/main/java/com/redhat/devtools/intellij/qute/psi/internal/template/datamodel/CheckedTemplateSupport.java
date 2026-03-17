@@ -39,6 +39,7 @@ import com.redhat.qute.commons.datamodel.DataModelBaseTemplate;
 import com.redhat.qute.commons.datamodel.DataModelFragment;
 import com.redhat.qute.commons.datamodel.DataModelParameter;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -233,39 +234,45 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
         // method.
         PsiMethod[] methods = type.getMethods();
         for (PsiMethod method : methods) {
-            // src/main/resources/templates/${className}/${methodName}.qute.html
-            TemplatePathInfo templatePathInfo = getTemplatePath(templatesBaseDir, basePath, className, method.getName(), ignoreFragments, templateNameStrategy);
+            if (isCheckedTemplateMethod(method)) {
+                // src/main/resources/templates/${className}/${methodName}.qute.html
+                TemplatePathInfo templatePathInfo = getTemplatePath(templatesBaseDir, basePath, className, method.getName(), ignoreFragments, templateNameStrategy);
 
-            // Get or create template
-            String templateUri = templatePathInfo.getTemplateUri();
-            String fragmentId = templatePathInfo.getFragmentId();
+                // Get or create template
+                String templateUri = templatePathInfo.getTemplateUri();
+                String fragmentId = templatePathInfo.getFragmentId();
 
-            DataModelTemplate<DataModelParameter> template = null;
-            Optional<DataModelTemplate<DataModelParameter>> existingTemplate = templates.stream()
-                    .filter(t -> t.getTemplateUri().equals(templateUri)) //
-                    .findFirst();
-            if (existingTemplate.isEmpty()) {
-                template = createTemplateDataModel(templateUri, method, type);
-                templates.add(template);
-            } else {
-                template = existingTemplate.get();
-                if (fragmentId == null) {
-                    template.setSourceMethod(method.getName());
+                DataModelTemplate<DataModelParameter> template = null;
+                Optional<DataModelTemplate<DataModelParameter>> existingTemplate = templates.stream()
+                        .filter(t -> t.getTemplateUri().equals(templateUri)) //
+                        .findFirst();
+                if (existingTemplate.isEmpty()) {
+                    template = createTemplateDataModel(templateUri, method, type);
+                    templates.add(template);
+                } else {
+                    template = existingTemplate.get();
+                    if (fragmentId == null) {
+                        template.setSourceMethod(method.getName());
+                    }
+                }
+
+                if (fragmentId != null && fragmentId.length() > 0) {
+                    // The method name has '$' to define fragment id (ex : foo$bar)
+                    // Create fragment
+                    DataModelFragment<DataModelParameter> fragment = createFragmentDataModel(fragmentId, method, type);
+                    template.addFragment(fragment);
+                    // collect parameters for the fragment
+                    collectParameters(method, typeResolver, fragment, monitor);
+                } else {
+                    // collect parameters for the template
+                    collectParameters(method, typeResolver, template, monitor);
                 }
             }
-
-            if (fragmentId != null && fragmentId.length() > 0) {
-                // The method name has '$' to define fragment id (ex : foo$bar)
-                // Create fragment
-                DataModelFragment<DataModelParameter> fragment = createFragmentDataModel(fragmentId, method, type);
-                template.addFragment(fragment);
-                // collect parameters for the fragment
-                collectParameters(method, typeResolver, fragment, monitor);
-            } else {
-                // collect parameters for the template
-                collectParameters(method, typeResolver, template, monitor);
-            }
         }
+    }
+
+    public static boolean isCheckedTemplateMethod(@NotNull PsiMethod method) {
+        return !method.isConstructor() && PsiTypeUtils.isStaticMember(method) && PsiTypeUtils.isNativeMember(method);
     }
 
     public static @Nullable String getParentClassName(PsiClass type) {

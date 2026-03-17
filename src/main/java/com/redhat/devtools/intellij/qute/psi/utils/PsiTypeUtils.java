@@ -190,6 +190,16 @@ public class PsiTypeUtils {
     }
 
     /**
+     * Return true if member is native, and false otherwise
+     *
+     * @param member the member to check for native
+     * @return true if member is native, and false otherwise
+     */
+    public static boolean isNativeMember(PsiMember member) {
+        return member.getModifierList() != null && member.getModifierList().hasExplicitModifier(PsiModifier.NATIVE);
+    }
+
+    /**
      * Return true if member is private, and false otherwise
      *
      * @param member the member to check for private access modifier
