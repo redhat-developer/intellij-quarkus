@@ -14,6 +14,7 @@ package com.redhat.devtools.intellij.qute.psi.internal.extensions.roq;
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.qute.psi.template.project.IProjectFeatureProvider;
 import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.config.roq.RoqConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -29,9 +30,8 @@ public class RoqProjectFeatureProvider implements IProjectFeatureProvider {
     @Override
     public void collectProjectFeatures(@NotNull Module javaProject, Set<ProjectFeature> projectFeatures) {
         if (isRoqProject(javaProject)) {
-            projectFeatures.add(ProjectFeature.Roq);
+            projectFeatures.add(RoqConfig.PROJECT_FEATURE);
         }
-
     }
 
 }

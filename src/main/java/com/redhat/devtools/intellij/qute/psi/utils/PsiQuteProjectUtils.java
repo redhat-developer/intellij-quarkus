@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -152,6 +153,19 @@ public class PsiQuteProjectUtils {
             }
         }
         return sourceFolders;
+    }
+
+    public static String getRelativeResourcesFolder(@NotNull Module javaProject) {
+        VirtualFile resourcesDir = findBestResourcesDir(javaProject);
+        if (resourcesDir != null) {
+            for (VirtualFile root : ModuleRootManager.getInstance(javaProject).getContentRoots()) {
+                String path = VfsUtilCore.getRelativePath(resourcesDir, root);
+                if (path != null) {
+                    return path;
+                }
+            }
+        }
+        return RESOURCES_BASE_DIR;
     }
 
     /**
@@ -351,5 +365,28 @@ public class PsiQuteProjectUtils {
         for (Module m : ModuleManager.getInstance(project).getModules()) {
             m.putUserData(QUTE_SUPPORT_KEY, null);
         }
+    }
+
+    public static URI resolveRelativePath(@NotNull VirtualFile file,
+                                          @NotNull String... segments) {
+        return resolveRelativePath(LSPIJUtils.toUri(file), segments);
+    }
+
+    public static URI resolveRelativePath(@NotNull URI base,
+                                          @NotNull String... segments) {
+        URI result = base;
+        for (String segment : segments) {
+            if (segment == null || segment.isEmpty()) {
+                continue;
+            }
+            // Ensure segment ends with / to avoid replacing the last path component
+            String normalized = segment.endsWith("/") ? segment : segment + "/";
+            // Ensure segment does not start with / to avoid replacing the whole path
+            if (normalized.startsWith("/")) {
+                normalized = normalized.substring(1);
+            }
+            result = result.resolve(normalized);
+        }
+        return result;
     }
 }
