@@ -19,6 +19,7 @@ import com.intellij.psi.PsiManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.project.ConfigSourcePropertiesProvider;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
+import com.redhat.qute.commons.config.PropertyConfig;
 import org.eclipse.lsp4mp.commons.runtime.MicroProfileProjectRuntime;
 import org.eclipse.lsp4mp.commons.utils.ConfigSourcePropertiesProviderUtils;
 import org.eclipse.lsp4mp.commons.utils.IConfigSourcePropertiesProvider;
@@ -335,6 +336,49 @@ public class PsiMicroProfileProject {
             }
         }
         return jars;
+    }
+
+    public String getProperty(PropertyConfig config) {
+        return this.getProperty(config.getName(), config.getDefaultValue());
+    }
+
+    /**
+     * Returns the list of segments matching the wildcard segment of the given
+     * pattern.
+     *
+     * <p>
+     * The pattern must contain exactly one {@code *} wildcard character. For
+     * example, given the pattern {@code "quarkus.web-bundler.bundle.*.qute-tags"}
+     * and the properties:
+     * <ul>
+     * <li>{@code quarkus.web-bundler.bundle.components.qute-tags=true}</li>
+     * <li>{@code quarkus.web-bundler.bundle.bar.qute-tags=true}</li>
+     * </ul>
+     * this method returns {@code ["components", "bar"]}.
+     *
+     * @param pattern the property key pattern containing a single {@code *}
+     *                wildcard
+     * @return the list of segments captured by the wildcard, or an empty list if
+     *         the pattern contains no wildcard or no matching keys are found
+     */
+    public @NotNull Set<String> getMatchingSegments(String pattern) {
+        int starIndex = pattern.indexOf('*');
+        if (starIndex == -1) {
+            return Set.of();
+        }
+        Set<String> matchingSegments = new HashSet<>();
+        String prefix = pattern.substring(0, starIndex);
+        String suffix = pattern.substring(starIndex + 1);
+        for (IConfigSource configSource : this.getConfigSources()) {
+            Set<String> keys = configSource.getAllKeys();
+            for (String key : keys) {
+                if (key.startsWith(prefix) && key.endsWith(suffix)) {
+                    String segment = key.substring(prefix.length(), key.length() - suffix.length());
+                    matchingSegments.add(segment);
+                }
+            }
+        }
+        return matchingSegments;
     }
 
 }

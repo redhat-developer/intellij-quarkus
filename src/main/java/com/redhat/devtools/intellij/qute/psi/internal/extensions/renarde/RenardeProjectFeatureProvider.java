@@ -14,6 +14,7 @@ package com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde;
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.qute.psi.template.project.IProjectFeatureProvider;
 import com.redhat.qute.commons.ProjectFeature;
+import com.redhat.qute.commons.config.renarde.RenardeConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -28,7 +29,7 @@ public class RenardeProjectFeatureProvider implements IProjectFeatureProvider {
     @Override
     public void collectProjectFeatures(@NotNull Module javaProject, Set<ProjectFeature> projectFeatures) {
         if (isRenardeProject(javaProject)) {
-            projectFeatures.add(ProjectFeature.Renarde);
+            projectFeatures.add(RenardeConfig.PROJECT_FEATURE);
         }
 
     }

@@ -29,10 +29,4 @@ public class RoqJavaConstants {
 
 	public static final Collection<String> ROQ_MAVEN_COORS = List.of("io.quarkiverse.roq:quarkus-roq-frontmatter");
 
-	public static final String DATA_MAPPING_ANNOTATION = "io.quarkiverse.roq.data.runtime.annotations.DataMapping";
-
-	public static final String SITE_CLASS = "io.quarkiverse.roq.frontmatter.runtime.model.Site";
-
-	public static final String PAGE_CLASS = "io.quarkiverse.roq.frontmatter.runtime.model.Page";
-
 }

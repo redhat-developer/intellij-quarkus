@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.VALUE_ANNOTATION_NAME;
-import static com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqJavaConstants.DATA_MAPPING_ANNOTATION;
+import static com.redhat.qute.commons.config.roq.RoqConfig.DATA_MAPPING_ANNOTATION;
 
 /**
  * Roq @DataMapping annotation support.

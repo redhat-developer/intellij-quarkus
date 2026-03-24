@@ -11,37 +11,37 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.IndexNotReadyException;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.DirectClassInheritorsSearch;
+import com.intellij.util.Query;
+import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractDataModelProvider;
+import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
+import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
+import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.DirectClassInheritorsSearch;
-import com.intellij.psi.util.PsiClassUtil;
-import com.intellij.util.Query;
-import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractDataModelProvider;
-import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
-import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
-
-import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
-import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
-
-import static com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeJavaConstants.RENARDE_CONTROLLER_TYPE;
 import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVA_LANG_OBJECT_TYPE;
 import static com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeUtils.isRenardeProject;
+import static com.redhat.qute.commons.config.renarde.RenardeConfig.RENARDE_CONTROLLER_TYPE;
+
 /**
  * uri, uriabs renarde support.
  *
  * @author Angelo ZERR
- * @see https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views
+ * @see <a href="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views">obtaining-a-uri-in-qute-views</a>
  */
 public class UriNamespaceResolverSupport extends AbstractDataModelProvider {
 
@@ -50,6 +50,54 @@ public class UriNamespaceResolverSupport extends AbstractDataModelProvider {
     private static final String URI_NAMESPACE = "uri";
 
     private static final String URIABS_NAMESPACE = "uriabs";
+
+    private static void collectSubTypes(PsiClass psiClass, GlobalSearchScope scope, List<PsiClass> subTypes) {
+        Query<PsiClass> query = DirectClassInheritorsSearch.search(psiClass, scope);
+        List<PsiClass> directSubTypes = new ArrayList<>(query.findAll());
+        subTypes.addAll(directSubTypes);
+
+        for (PsiClass directSubType : directSubTypes) {
+            collectSubTypes(directSubType, scope, subTypes);
+        }
+    }
+
+    /**
+     * Returns true if the given Java type is a non abstract Renarde controller and
+     * false otherwise.
+     *
+     * @param controllerType the renarde controller type.
+     * @return true if the given Java type is a non abstract Renarde controller and
+     * false otherwise.
+     */
+    private static boolean isRenardeController(PsiClass controllerType) {
+        if (controllerType.hasModifierProperty(PsiModifier.ABSTRACT)) {
+            return false;
+        }
+        String typeName = controllerType.getQualifiedName();
+        return !(JAVA_LANG_OBJECT_TYPE.equals(typeName) || RENARDE_CONTROLLER_TYPE.equals(typeName));
+    }
+
+    /**
+     * Add renarde controller as Qute resolver.
+     *
+     * @param namespace      the uri, uriabs renarde namespace.
+     * @param controllerType the controller type.
+     * @param resolvers      the resolvers to fill.
+     */
+    private static void addRenardeController(String namespace, PsiClass controllerType,
+                                             List<ValueResolverInfo> resolvers) {
+        String className = controllerType.getQualifiedName();
+        String named = controllerType.getName();
+        ValueResolverInfo resolver = new ValueResolverInfo();
+        resolver.setNamed(named);
+        resolver.setSourceType(className);
+        resolver.setSignature(className);
+        resolver.setNamespace(namespace);
+        resolver.setKind(ValueResolverKind.Renarde);
+        if (!resolvers.contains(resolver)) {
+            resolvers.add(resolver);
+        }
+    }
 
     @Override
     public void beginSearch(SearchContext context, ProgressIndicator monitor) {
@@ -92,55 +140,6 @@ public class UriNamespaceResolverSupport extends AbstractDataModelProvider {
                 addRenardeController(URI_NAMESPACE, controllerType, resolvers);
                 addRenardeController(URIABS_NAMESPACE, controllerType, resolvers);
             }
-        }
-    }
-
-    private static void collectSubTypes(PsiClass psiClass, GlobalSearchScope scope, List<PsiClass> subTypes) {
-        Query<PsiClass> query = DirectClassInheritorsSearch.search(psiClass, scope);
-        List<PsiClass> directSubTypes = new ArrayList<>(query.findAll());
-        subTypes.addAll(directSubTypes);
-
-        for (PsiClass directSubType : directSubTypes) {
-            collectSubTypes(directSubType, scope, subTypes);
-        }
-    }
-
-
-    /**
-     * Returns true if the given Java type is a non abstract Renarde controller and
-     * false otherwise.
-     *
-     * @param controllerType the renarde controller type.
-     * @return true if the given Java type is a non abstract Renarde controller and
-     * false otherwise.
-     */
-    private static boolean isRenardeController(PsiClass controllerType) {
-        if (controllerType.hasModifierProperty(PsiModifier.ABSTRACT)) {
-            return false;
-        }
-        String typeName = controllerType.getQualifiedName();
-        return !(JAVA_LANG_OBJECT_TYPE.equals(typeName) || RENARDE_CONTROLLER_TYPE.equals(typeName));
-    }
-
-    /**
-     * Add renarde controller as Qute resolver.
-     *
-     * @param namespace      the uri, uriabs renarde namespace.
-     * @param controllerType the controller type.
-     * @param resolvers      the resolvers to fill.
-     */
-    private static void addRenardeController(String namespace, PsiClass controllerType,
-                                             List<ValueResolverInfo> resolvers) {
-        String className = controllerType.getQualifiedName();
-        String named = controllerType.getName();
-        ValueResolverInfo resolver = new ValueResolverInfo();
-        resolver.setNamed(named);
-        resolver.setSourceType(className);
-        resolver.setSignature(className);
-        resolver.setNamespace(namespace);
-        resolver.setKind(ValueResolverKind.Renarde);
-        if (!resolvers.contains(resolver)) {
-            resolvers.add(resolver);
         }
     }
 

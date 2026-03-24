@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class RenardeJavaConstants {
 
-	public static final String RENARDE_CONTROLLER_TYPE = "io.quarkiverse.renarde.Controller";
+	private RenardeJavaConstants() {}
 
 	public static final String RENARDE_ARTIFACT_ID = "quarkus-renarde";
 

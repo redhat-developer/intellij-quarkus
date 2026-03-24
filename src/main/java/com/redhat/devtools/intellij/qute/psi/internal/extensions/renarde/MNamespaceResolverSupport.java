@@ -12,31 +12,11 @@
 package com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.DirectClassInheritorsSearch;
-import com.intellij.psi.util.PsiClassUtil;
 import com.intellij.util.Query;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.AbstractDataModelProvider;
 import com.redhat.devtools.intellij.qute.psi.template.datamodel.SearchContext;
-import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 
-import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
-import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
-
-import static com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeJavaConstants.RENARDE_CONTROLLER_TYPE;
-import static com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants.JAVA_LANG_OBJECT_TYPE;
 import static com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeUtils.isRenardeProject;
 
 /**
