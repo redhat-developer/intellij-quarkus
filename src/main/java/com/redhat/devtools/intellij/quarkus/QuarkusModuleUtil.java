@@ -11,20 +11,21 @@
 package com.redhat.devtools.intellij.quarkus;
 
 import com.intellij.facet.FacetManager;
+import com.intellij.java.library.JavaLibraryUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEnumerator;
-import com.intellij.openapi.roots.RootPolicy;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
-import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.facet.QuarkusFacet;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -38,69 +39,77 @@ import java.util.regex.Pattern;
 
 public class QuarkusModuleUtil {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleUtil.class);
-
-    private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
-
     public static final Pattern QUARKUS_STANDARD_VERSIONING = Pattern.compile("(\\d+).(\\d+).(\\d+)(.Final)?(-redhat-\\\\d+)?$");
-
     public static final Pattern APPLICATION_PROPERTIES = Pattern.compile("application(-.+)?\\.properties");
-
     public static final Pattern MICROPROFILE_CONFIG_PROPERTIES = Pattern.compile("microprofile-config(-.+)?\\.properties");
-
     public static final Pattern APPLICATION_YAML = Pattern.compile("application(-.+)?\\.ya?ml");
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusModuleUtil.class);
+    private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
     private static final Comparator<VirtualFile> ROOT_COMPARATOR = Comparator.comparingInt(r -> r.getPath().length());
 
+    private static final Key<Boolean> QUARKUS_MODULE_KEY = Key.create("quarkusModule");
+    private static final Key<Boolean> QUARKUS_WEB_APP_MODULE_KEY = Key.create("quarkusWebAppModule");
+
     /**
-     * Check if the module is a Quarkus project. Should check if some class if present
-     * but it seems PSI is not available when the module is added thus we rely on the
-     * library names (io.quarkus:quarkus-core*).
+     * Check if the module is a Quarkus project by checking if the Quarkus core library
+     * is present in its dependencies.
      *
-     * @param module the module to check
-     * @return true if module is a Quarkus project and false otherwise.
+     * <p>The result is cached in the module's user data and invalidated when module roots change.</p>
+     *
+     * @param module the module to check, may be null.
+     * @return true if the module is a Quarkus project, false otherwise.
      */
     public static boolean isQuarkusModule(@Nullable Module module) {
-        return module != null && hasLibrary(module, QuarkusConstants.QUARKUS_CORE_PREFIX);
+        if (module == null) {
+            return false;
+        }
+        Boolean cached = module.getUserData(QUARKUS_MODULE_KEY);
+        if (cached != null) {
+            return cached;
+        }
+        boolean result = ApplicationManager.getApplication().runReadAction(
+                (Computable<Boolean>) () -> JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_CORE_MAVEN_COORDS));
+        module.putUserData(QUARKUS_MODULE_KEY, result);
+        return result;
     }
 
     /**
-     * Check if the module is a Quarkus Web Application project. Should check if some class if present
-     * but it seems PSI is not available when the module is added thus we rely on the
-     * library names (io.quarkus:quarkus-vertx-http:*).
+     * Check if the module is a Quarkus Web Application project by checking if the
+     * Quarkus vertx-http library is present in its dependencies.
      *
-     * @param module the module to check
-     * @return true if module is a Quarkus project and false otherwise.
+     * <p>The result is cached in the module's user data and invalidated when module roots change.</p>
+     *
+     * @param module the module to check, may be null.
+     * @return true if the module is a Quarkus Web Application project, false otherwise.
      */
-    public static boolean isQuarkusWebAppModule(Module module) {
-        return hasLibrary(module, QuarkusConstants.QUARKUS_VERTX_HTTP_PREFIX);
-    }
-
-    private static boolean hasLibrary(Module module, String libraryNamePrefix) {
-        OrderEnumerator libraries = ModuleRootManager.getInstance(module).orderEntries().librariesOnly();
-        return libraries.process(new RootPolicy<Boolean>() {
-            @Override
-            public Boolean visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Boolean value) {
-                return value || isLibrary(libraryOrderEntry, libraryNamePrefix);
-            }
-        }, false);
-    }
-
-    private static boolean isLibrary(@NotNull LibraryOrderEntry libraryOrderEntry, String libraryNamePrefix) {
-        return libraryOrderEntry.getLibraryName() != null &&
-                libraryOrderEntry.getLibraryName().contains(libraryNamePrefix);
+    public static boolean isQuarkusWebAppModule(@Nullable Module module) {
+        if (module == null) {
+            return false;
+        }
+        Boolean cached = module.getUserData(QUARKUS_WEB_APP_MODULE_KEY);
+        if (cached != null) {
+            return cached;
+        }
+        boolean result = ApplicationManager.getApplication().runReadAction(
+                (Computable<Boolean>) () -> JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_VERTX_HTTP_MAVEN_COORDS));
+        module.putUserData(QUARKUS_WEB_APP_MODULE_KEY, result);
+        return result;
     }
 
     /**
-     * Checks whether the quarkus version used in this module matches the given predicate.
+     * Checks whether the Quarkus version used in this module matches the given predicate.
      * If we're unable to detect the Quarkus version, this method always returns false.
      * The predicate is based on a matcher that is based on the QUARKUS_STANDARD_VERSIONING regular expression,
-     * that means that `matcher.group(1)` returns the major version, `matcher.group(2)` returns the minor version,
-     * `matcher.group(3)` returns the patch version.
+     * that means that {@code matcher.group(1)} returns the major version, {@code matcher.group(2)} returns
+     * the minor version, {@code matcher.group(3)} returns the patch version.
      * If the detected Quarkus version does not follow the standard versioning, the matcher does not match at all.
-     * If we can't detect the Quarkus version, the returned value will be the value of the `returnIfNoQuarkusDetected` parameter.
+     *
+     * @param module                    the module to check, must not be null.
+     * @param predicate                 the predicate to apply to the version matcher, must not be null.
+     * @param returnIfNoQuarkusDetected the value to return if no Quarkus version is detected.
+     * @return true if the Quarkus version matches the predicate, false otherwise.
      */
-    public static boolean checkQuarkusVersion(Module module, Predicate<Matcher> predicate, boolean returnIfNoQuarkusDetected) {
+    public static boolean checkQuarkusVersion(@NotNull Module module, @NotNull Predicate<Matcher> predicate, boolean returnIfNoQuarkusDetected) {
         Optional<VirtualFile> quarkusCoreJar = Arrays.stream(ModuleRootManager.getInstance(module).orderEntries()
                         .runtimeOnly()
                         .classes()
@@ -122,7 +131,7 @@ public class QuarkusModuleUtil {
         }
     }
 
-    public static Set<String> getModulesURIs(Project project) {
+    public static Set<String> getModulesURIs(@NotNull Project project) {
         Set<String> uris = new HashSet<>();
         for (Module module : ModuleManager.getInstance(project).getModules()) {
             uris.add(PsiUtilsLSImpl.getProjectURI(module));
@@ -130,7 +139,7 @@ public class QuarkusModuleUtil {
         return uris;
     }
 
-    public static boolean isQuarkusPropertiesFile(VirtualFile file, Project project) {
+    public static boolean isQuarkusPropertiesFile(@NotNull VirtualFile file, @NotNull Project project) {
         if (APPLICATION_PROPERTIES.matcher(file.getName()).matches() ||
                 MICROPROFILE_CONFIG_PROPERTIES.matcher(file.getName()).matches()) {
             return isQuarkusModule(file, project);
@@ -142,14 +151,14 @@ public class QuarkusModuleUtil {
         return APPLICATION_YAML.matcher(file.getName()).matches();
     }
 
-    public static boolean isQuarkusYamlFile(VirtualFile file, Project project) {
+    public static boolean isQuarkusYamlFile(@NotNull VirtualFile file, @NotNull Project project) {
         if (isQuarkusYamlFile(file)) {
             return isQuarkusModule(file, project);
         }
         return false;
     }
 
-    private static boolean isQuarkusModule(VirtualFile file, Project project) {
+    private static boolean isQuarkusModule(@NotNull VirtualFile file, @NotNull Project project) {
         Module module = LSPIJUtils.getModule(file, project);
         return module != null && (FacetManager.getInstance(module).getFacetByType(QuarkusFacet.FACET_TYPE_ID) != null || QuarkusModuleUtil.isQuarkusModule(module));
     }
@@ -163,27 +172,27 @@ public class QuarkusModuleUtil {
     }
 
     /**
-     * Returns an array of content roots of the given module sorted with smallest path first (to eliminate generated sources roots) from all content entries.
+     * Returns an array of content roots of the given module sorted with smallest path first
+     * (to eliminate generated sources roots) from all content entries.
      *
-     * @param module the module
+     * @param module the module, must not be null.
      * @return the array of content roots.
      */
-    public static VirtualFile[] getContentRoots(Module module) {
+    public static VirtualFile[] getContentRoots(@NotNull Module module) {
         VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
         if (roots.length <= 1) {
             return roots;
         }
-        // put root with smallest path first (eliminates generated sources roots)
         sortRoot(roots);
         return roots;
     }
 
-    public static void sortRoot(List<VirtualFile> roots) {
-        Collections.sort(roots, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
+    public static void sortRoot(@NotNull List<VirtualFile> roots) {
+        Collections.sort(roots, ROOT_COMPARATOR);
     }
 
-    public static void sortRoot(VirtualFile[] roots) {
-        Arrays.sort(roots, ROOT_COMPARATOR); // put root with smallest path first (eliminates generated sources roots)
+    public static void sortRoot(@NotNull VirtualFile[] roots) {
+        Arrays.sort(roots, ROOT_COMPARATOR);
     }
 
     public static String getApplicationUrl(@NotNull PsiMicroProfileProject mpProject) {
@@ -202,7 +211,7 @@ public class QuarkusModuleUtil {
         return "http://localhost:" + port + normalize(path) + "dev";
     }
 
-    private static String normalize(String path) {
+    private static String normalize(@NotNull String path) {
         StringBuilder builder = new StringBuilder(path);
         if (builder.isEmpty() || builder.charAt(0) != '/') {
             builder.insert(0, '/');
@@ -218,4 +227,10 @@ public class QuarkusModuleUtil {
         return mpProject.getPropertyAsInteger("%dev.quarkus.http.port", port);
     }
 
+    public static void invalidateCache(@NotNull Project project) {
+        for (Module m : ModuleManager.getInstance(project).getModules()) {
+            m.putUserData(QUARKUS_MODULE_KEY, null);
+            m.putUserData(QUARKUS_WEB_APP_MODULE_KEY, null);
+        }
+    }
 }

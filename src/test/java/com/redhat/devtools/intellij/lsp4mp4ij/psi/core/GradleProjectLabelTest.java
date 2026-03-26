@@ -46,7 +46,7 @@ public class GradleProjectLabelTest extends GradleTestCase {
         VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(ModuleUtilCore.getModuleDirPath(module) + "/src/main/java/org/acme/vertx/GreetingService.java");
         String uri = VfsUtilCore.virtualToIoFile(javaFile).toURI().toString();
         projectLabelsParams.setUri(uri);
-        ProjectLabelInfoEntry projectLabelEntry = ProjectLabelManager.getInstance().getProjectLabelInfo(projectLabelsParams, PsiUtilsLSImpl.getInstance(module.getProject()));
+        ProjectLabelInfoEntry projectLabelEntry = ProjectLabelManager.getInstance(module.getProject()).getProjectLabelInfo(projectLabelsParams, PsiUtilsLSImpl.getInstance(module.getProject()));
         assertLabels(projectLabelEntry, "quarkus", "microprofile");
     }
 

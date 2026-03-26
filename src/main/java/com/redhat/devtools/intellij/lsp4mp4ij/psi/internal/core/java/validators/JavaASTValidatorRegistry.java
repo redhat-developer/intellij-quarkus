@@ -13,6 +13,7 @@
 *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.validators;
 
+import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidator;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.JavaASTValidatorExtensionPointBean;
@@ -46,22 +47,6 @@ public class JavaASTValidatorRegistry extends AnnotationValidator {
 	private static final JavaASTValidatorRegistry INSTANCE = new JavaASTValidatorRegistry();
 
 	private static final String EXTENSION_ID = "javaASTValidators";
-
-	private static final String VALIDATOR_ELT = "validator";
-
-	private static final String CLASS_ATTR = "class";
-
-	private static final String ANNOTATION_VALIDATOR_ELT = "annotationValidator";
-
-	private static final String ANNOTATION_ATTR = "annotation";
-
-	private static final String SOURCE_ATTR = "source";
-
-	private static final String ATTRIBUTE_ELT = "attribute";
-
-	private static final String NAME_ATTR = "name";
-
-	private static final String RANGE_ATTR = "range";
 
 	public static JavaASTValidatorRegistry getInstance() {
 		return INSTANCE;
@@ -132,12 +117,12 @@ public class JavaASTValidatorRegistry extends AnnotationValidator {
 		return rule;
 	}
 
-	public Collection<JavaASTValidator> getValidators(JavaDiagnosticsContext context, List<Diagnostic> diagnostics) {
-		List<JavaASTValidator> validators = new ArrayList<>();
-		addValidator(new AnnotationRulesJavaASTValidator(getRules()), context, diagnostics, validators);
+	public Collection<JavaRecursiveElementVisitor> getValidators(JavaDiagnosticsContext context) {
+		List<JavaRecursiveElementVisitor> validators = new ArrayList<>();
+		addValidator(new AnnotationRulesJavaASTValidator(getRules()), context, validators);
 		for (JavaASTValidatorExtensionPointBean ce : validatorsFromClass) {
 			try {
-				addValidator(ce.createValidator(), context, diagnostics, validators);
+				addValidator(ce.createValidator(), context, validators);
 			} catch (ClassNotFoundException | NoSuchMethodException |
 					 InvocationTargetException | InstantiationException | IllegalAccessException e) {
 				LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
@@ -146,9 +131,9 @@ public class JavaASTValidatorRegistry extends AnnotationValidator {
 		return validators;
 	}
 
-	private void addValidator(JavaASTValidator validator, JavaDiagnosticsContext context, List<Diagnostic> diagnostics,
-			List<JavaASTValidator> validators) {
-		validator.initialize(context, diagnostics);
+	private void addValidator(JavaASTValidator validator, JavaDiagnosticsContext context,
+			List<JavaRecursiveElementVisitor> validators) {
+		validator.initialize(context);
 		if (validator.isAdaptedForDiagnostics(context)) {
 			validators.add(validator);
 		}

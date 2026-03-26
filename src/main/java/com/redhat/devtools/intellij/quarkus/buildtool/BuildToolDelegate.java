@@ -26,10 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.model.MavenId;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -63,18 +61,19 @@ public interface BuildToolDelegate {
                 try (Reader r = new FileReader(quarkusFile)) {
                     result = getQuarkusExtension(r);
                 } catch (IOException e) {
+                    // Do nothing
                 }
             }
         } else {
-            try {
-                JarFile jarFile = new JarFile(file);
+            try(JarFile jarFile = new JarFile(file)) {
                 JarEntry entry = jarFile.getJarEntry(QUARKUS_EXTENSION_PROPERTIES);
                 if (entry != null) {
-                    try (Reader r = new InputStreamReader(jarFile.getInputStream(entry), "UTF-8")) {
+                    try (Reader r = new InputStreamReader(jarFile.getInputStream(entry), StandardCharsets.UTF_8)) {
                         result = getQuarkusExtension(r);
                     }
                 }
             } catch (IOException e) {
+                // Do nothing
             }
         }
         return result;
@@ -90,7 +89,7 @@ public interface BuildToolDelegate {
         return p.getProperty(QUARKUS_DEPLOYMENT_PROPERTY_NAME);
     }
 
-    public static BuildToolDelegate getDelegate(Module module) {
+    static BuildToolDelegate getDelegate(Module module) {
         for (BuildToolDelegate toolDelegate : getDelegates()) {
             if (toolDelegate.isValid(module)) {
                 return toolDelegate;
@@ -107,9 +106,9 @@ public interface BuildToolDelegate {
      */
     boolean isValid(Module module);
 
-    public static final int BINARY = 0;
+    int BINARY = 0;
 
-    public static final int SOURCES = 1;
+    int SOURCES = 1;
 
     /**
      * Return the list of additional deployment JARs for the module. The array should have 2 elements, the first
@@ -163,7 +162,7 @@ public interface BuildToolDelegate {
         return virtualFile != null ? JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile) : null;
     }
 
-    static final ExtensionPointName<BuildToolDelegate> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.toolDelegate");
+    ExtensionPointName<BuildToolDelegate> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.toolDelegate");
 
     @NotNull
     static List<VirtualFile>[] initDeploymentFiles() {
@@ -173,9 +172,9 @@ public interface BuildToolDelegate {
         return result;
     }
 
-    public static BuildToolDelegate[] getDelegates() {
+    static BuildToolDelegate[] getDelegates() {
         BuildToolDelegate[] delegates = EP_NAME.getExtensions();
-        Arrays.sort(delegates, (a, b) -> a.getOrder() - b.getOrder());
+        Arrays.sort(delegates, Comparator.comparingInt(BuildToolDelegate::getOrder));
         return delegates;
     }
 
@@ -185,13 +184,15 @@ public interface BuildToolDelegate {
      *
      * @param module        the module.
      * @param configuration the quarkus configuration.
-     * @param debugPort     the debug port tu use if Quarkus application must be debugged and null otherwise.
+     * @param debugPort     the debug port to use if Quarkus application must be debugged and null otherwise.
+     * @param quteDebugPort the debug port to use if Qute templates  must be debugged and null otherwise.
      * @return the configuration delegate (Gradle,Maven).
      */
     @Nullable
     RunnerAndConfigurationSettings getConfigurationDelegate(@NotNull Module module,
                                                             @NotNull QuarkusRunConfiguration configuration,
-                                                            @Nullable Integer debugPort);
+                                                            @Nullable Integer debugPort,
+                                                            @Nullable Integer quteDebugPort);
 
     /**
      * Add project import listener.

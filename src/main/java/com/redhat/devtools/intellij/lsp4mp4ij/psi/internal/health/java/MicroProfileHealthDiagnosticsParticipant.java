@@ -69,27 +69,23 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 	}
 
 	@Override
-	public List<Diagnostic> collectDiagnostics(JavaDiagnosticsContext context) {
+	public void collectDiagnostics(JavaDiagnosticsContext context) {
 		PsiFile typeRoot = context.getTypeRoot();
 		PsiElement[] elements = typeRoot.getChildren();
-		List<Diagnostic> diagnostics = new ArrayList<>();
-		collectDiagnostics(elements, diagnostics, context);
-		return diagnostics;
+		collectDiagnostics(elements, context);
 	}
 
-	private static void collectDiagnostics(PsiElement[] elements, List<Diagnostic> diagnostics,
-										   JavaDiagnosticsContext context) {
+	private static void collectDiagnostics(PsiElement[] elements, JavaDiagnosticsContext context) {
 		for (PsiElement element : elements) {
 			if (element instanceof PsiClass type) {
 				if (!type.isInterface()) {
-					validateClassType(type, diagnostics, context);
+					validateClassType(type, context);
 				}
 			}
 		}
 	}
 
-	private static void validateClassType(PsiClass classType, List<Diagnostic> diagnostics, JavaDiagnosticsContext context) {
-		String uri = context.getUri();
+	private static void validateClassType(PsiClass classType, JavaDiagnosticsContext context) {
 		IPsiUtils utils = context.getUtils();
 		DocumentFormat documentFormat = context.getDocumentFormat();
 		PsiClass[] interfaces = findImplementedInterfaces(classType);
@@ -101,20 +97,18 @@ public class MicroProfileHealthDiagnosticsParticipant implements IJavaDiagnostic
 		// implemented
 		if (hasOneOfHealthAnnotation && !implementsHealthCheck) {
 			Range healthCheckInterfaceRange = PositionUtils.toNameRange(classType, utils);
-			Diagnostic d = context.createDiagnostic(uri, createDiagnostic1Message(classType, documentFormat),
+			context.addDiagnostic(createDiagnostic1Message(classType, documentFormat),
 					healthCheckInterfaceRange, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
 					MicroProfileHealthErrorCode.ImplementHealthCheck);
-			diagnostics.add(d);
 		}
 
 		// Diagnostic 2: display HealthCheck diagnostic message if HealthCheck interface
 		// is implemented but Health/Liveness/Readiness/Startup annotation does not exist
 		if (implementsHealthCheck && !hasOneOfHealthAnnotation) {
 			Range healthCheckInterfaceRange = PositionUtils.toNameRange(classType, utils);
-			Diagnostic d = context.createDiagnostic(uri, createDiagnostic2Message(classType, documentFormat),
+			context.addDiagnostic(createDiagnostic2Message(classType, documentFormat),
 					healthCheckInterfaceRange, MicroProfileHealthConstants.DIAGNOSTIC_SOURCE,
 					MicroProfileHealthErrorCode.HealthAnnotationMissing);
-			diagnostics.add(d);
 		}
 	}
 

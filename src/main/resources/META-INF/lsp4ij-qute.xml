@@ -1,5 +1,6 @@
 <idea-plugin>
 
+    <!-- Qute language server -->
     <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
         <!-- Qute LSP -->
         <server id="qute"
@@ -20,6 +21,10 @@
                          serverId="qute"
                          documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
                          languageId="qute-html"/>
+        <languageMapping language="Qute"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
+                         languageId="qute-html"/>
         <languageMapping language="JSON"
                          serverId="qute"
                          documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
@@ -36,6 +41,10 @@
                          serverId="qute"
                          documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForJavaFile"
                          languageId="java"/>
+        <languageMapping language="Markdown"
+                         serverId="qute"
+                         documentMatcher="com.redhat.devtools.intellij.qute.lsp.QuteDocumentMatcherForTemplateFile"
+                         languageId="qute-markdown"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -102,6 +111,22 @@
                 enabledByDefault="true"
                 level="WARNING"
                 implementationClass="com.redhat.devtools.intellij.qute.psi.core.inspections.QuteUndefinedSectionTagInspection"/>
+    </extensions>
+
+    <!-- Qute DAP debugger -->
+    <extensions defaultExtensionNs="com.intellij">
+        <configurationType
+            implementation="com.redhat.devtools.intellij.qute.run.QuteConfigurationType"/>
+        <xdebugger.breakpointType
+                implementation="com.redhat.devtools.intellij.qute.run.QuteBreakpointType"/>
+        <consoleFilterProvider implementation="com.redhat.devtools.intellij.qute.run.QuteDebuggerConsoleFilterProvider"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <debugAdapterServer
+                id="qute"
+                name="Qute"
+                factoryClass="com.redhat.devtools.intellij.qute.run.QuteDebugAdapterDescriptorFactory" />
     </extensions>
 
 </idea-plugin>

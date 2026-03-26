@@ -78,7 +78,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/HelloResource.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(5, lenses.size());
 
@@ -118,7 +118,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/Templates.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(2, lenses.size());
 
@@ -150,7 +150,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResource.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, lenses.size());
 
@@ -186,7 +186,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplates.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, lenses.size());
 
@@ -215,7 +215,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesIgnoreFragments.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, lenses.size());
 
@@ -250,7 +250,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, lenses.size());
 
@@ -285,7 +285,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, lenses.size());
 
@@ -312,7 +312,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResourceWithFragment.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(6, lenses.size());
 
@@ -363,7 +363,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/HelloResource.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
 
         String helloFileUri = LSPIJUtils.toUri(module).resolve("/src/main/resources/templates/HelloResource/Hello.html").toASCIIString();
@@ -394,7 +394,7 @@ public class MavenJavaCodeLensTest extends QuteMavenModuleImportingTestCase {
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/ItemResource.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<? extends CodeLens> lenses = QuteSupportForJava.getInstance().codeLens(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, lenses.size());
 

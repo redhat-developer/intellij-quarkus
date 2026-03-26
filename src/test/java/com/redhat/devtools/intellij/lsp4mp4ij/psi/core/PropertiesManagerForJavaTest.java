@@ -42,7 +42,7 @@ public class PropertiesManagerForJavaTest extends MavenModuleImportingTestCase {
         MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
         String javaFileUri = getJavaFileUri("src/main/java/org/acme/config/GreetingResource.java");
         params.setUri(javaFileUri);
-        JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
+        JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(getProject()));
         assertNotNull(javaFileInfo);
         assertEquals("org.acme.config", javaFileInfo.getPackageName());
     }
@@ -53,7 +53,7 @@ public class PropertiesManagerForJavaTest extends MavenModuleImportingTestCase {
 
         MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
         params.setUri(javaFileUri);
-        JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
+        JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(getProject()));
         assertNotNull(javaFileInfo);
         assertEquals("", javaFileInfo.getPackageName());
     }
@@ -64,7 +64,7 @@ public class PropertiesManagerForJavaTest extends MavenModuleImportingTestCase {
 
         MicroProfileJavaFileInfoParams params = new MicroProfileJavaFileInfoParams();
         params.setUri(javaFileUri);
-        JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(myProject));
+        JavaFileInfo javaFileInfo = PropertiesManagerForJava.getInstance().fileInfo(params, PsiUtilsLSImpl.getInstance(getProject()));
         assertNull(javaFileInfo);
     }
 }

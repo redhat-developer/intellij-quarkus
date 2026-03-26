@@ -30,7 +30,7 @@ public class QuteEditorHighlighter extends LayeredLexerEditorHighlighter {
     public QuteEditorHighlighter(@Nullable Project project, @Nullable VirtualFile virtualFile, @NotNull EditorColorsScheme scheme) {
         super(new QuteSyntaxHighlighter(), scheme);
         if (virtualFile != null) {
-            Language templateLanguage = QuteFileViewProvider.getTemplateLanguage(virtualFile);
+            Language templateLanguage = QuteFileViewProvider.getTemplateLanguage(virtualFile, project);
             this.registerLayer(QuteElementTypes.QUTE_TEXT,
                     new LayerDescriptor(
                             SyntaxHighlighterFactory.getSyntaxHighlighter(templateLanguage, project, virtualFile),""));

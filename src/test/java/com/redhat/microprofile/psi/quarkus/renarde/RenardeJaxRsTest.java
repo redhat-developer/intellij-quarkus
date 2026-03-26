@@ -37,7 +37,7 @@ public class RenardeJaxRsTest extends QuarkusMavenModuleImportingTestCase {
         params.setUri(javaFileUri);
         params.setUrlCodeLensEnabled(true);
 
-        assertCodeLens(params, PsiUtilsLSImpl.getInstance(myProject), //
+        assertCodeLens(params, PsiUtilsLSImpl.getInstance(getProject()), //
                 cl("http://localhost:8080/", "", r(20, 4, 4)), //
                 cl("http://localhost:8080/about", "", r(25, 4, 4)), //
                 cl("http://localhost:8080/Application/test", "", r(30, 4, 4)), //
@@ -56,7 +56,7 @@ public class RenardeJaxRsTest extends QuarkusMavenModuleImportingTestCase {
         params.setUri(javaFileUri);
         params.setUrlCodeLensEnabled(true);
 
-        assertCodeLens(params, PsiUtilsLSImpl.getInstance(myProject), //
+        assertCodeLens(params, PsiUtilsLSImpl.getInstance(getProject()), //
                 cl("http://localhost:8080/play/id", "", r(9, 4, 4)),
                 cl("http://localhost:8080/play/start", "", r(13, 4, 4)));
     }
@@ -67,7 +67,7 @@ public class RenardeJaxRsTest extends QuarkusMavenModuleImportingTestCase {
 
         assertNotNull(javaProject);
 
-        assertWorkspaceSymbols(javaProject, PsiUtilsLSImpl.getInstance(myProject), //
+        assertWorkspaceSymbols(javaProject, PsiUtilsLSImpl.getInstance(getProject()), //
                 si("@/: GET", r(20, 28, 33)), //
                 si("@/Application/endpoint: GET", r(34, 18, 26)), //
                 si("@/Application/test: POST", r(30, 16, 20)), //

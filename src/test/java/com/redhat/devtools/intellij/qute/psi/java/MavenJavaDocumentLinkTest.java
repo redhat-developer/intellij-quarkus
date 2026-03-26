@@ -61,7 +61,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/HelloResource.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(5, links.size());
 
@@ -96,7 +96,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/Templates.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(2, links.size());
 
@@ -126,7 +126,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResource.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, links.size());
 
@@ -157,7 +157,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplates.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, links.size());
 
@@ -183,7 +183,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesIgnoreFragments.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, links.size());
 
@@ -207,7 +207,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResourceWithFragment.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(6, links.size());
 
@@ -245,7 +245,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemTemplatesCustomBasePath.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, links.size());
 
@@ -265,7 +265,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/qute/ItemResourceWithCustomBasePath.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, links.size());
 
@@ -299,7 +299,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/HelloResource.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, links.size());
 
@@ -328,7 +328,7 @@ public class MavenJavaDocumentLinkTest extends QuteMavenModuleImportingTestCase 
         String javaFileUri = LSPIJUtils.toUri(module).resolve("src/main/java/org/acme/sample/ItemResource.java").toASCIIString();
         params.setUri(javaFileUri);
 
-        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(myProject),
+        List<DocumentLink> links = QuteSupportForJava.getInstance().documentLink(params, PsiUtilsLSImpl.getInstance(getProject()),
                 new EmptyProgressIndicator());
         assertEquals(3, links.size());
 

@@ -7,7 +7,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-
+import io.quarkus.qute.TemplateContents;
 import io.quarkus.qute.TemplateInstance;
 
 @Path("hello")
@@ -21,6 +21,9 @@ public class HelloResource {
 
     @CheckedTemplate(basePath="Foo", defaultName=CheckedTemplate.HYPHENATED_ELEMENT_NAME)
     record HelloWorld(String name) implements TemplateInstance {}
+
+    @TemplateContents("Hello {name}!")
+    record HelloWithTemplateContents(String name) implements TemplateInstance {}
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)

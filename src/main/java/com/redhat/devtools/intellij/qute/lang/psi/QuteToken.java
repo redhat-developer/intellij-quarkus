@@ -13,12 +13,15 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.lang.psi;
 
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.HintedReferenceHost;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceService;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Qute token.
@@ -40,8 +43,18 @@ public class QuteToken extends LeafPsiElement implements HintedReferenceHost {
         return new PsiReference[] {new QutePsiReference(getNode())};
     }
 
+    public @Nullable TextRange getTextRangeInExpression() {
+        return null;
+    }
+
     @Override
     public boolean shouldAskParentForReferences(PsiReferenceService.@NotNull Hints hints) {
         return false;
+    }
+
+
+    protected static boolean isQuteType(@Nullable PsiElement element,
+                                        @NotNull IElementType type) {
+        return element != null && element.getNode().getElementType() == type;
     }
 }

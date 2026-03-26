@@ -18,6 +18,8 @@ import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import org.jetbrains.annotations.NotNull;
 
+import static com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil.isQuarkusModule;
+
 /**
  * Base class for Quarkus document matcher which checks that the file belongs to a Quarkus project.
  */
@@ -26,6 +28,6 @@ public class AbstractQuarkusDocumentMatcher extends AbstractDocumentMatcher {
     @Override
     public boolean match(@NotNull VirtualFile file, @NotNull Project fileProject) {
         Module module = LSPIJUtils.getModule(file, fileProject);
-        return module != null && QuarkusModuleUtil.isQuarkusModule(module);
+        return isQuarkusModule(module);
     }
 }

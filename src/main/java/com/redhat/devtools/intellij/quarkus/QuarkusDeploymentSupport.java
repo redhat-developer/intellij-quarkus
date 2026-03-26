@@ -33,7 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
-import com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent;
+import com.redhat.devtools.intellij.quarkus.search.QuarkusDeploymentProjectService;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import org.jetbrains.annotations.NotNull;
@@ -100,12 +100,12 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
             LOGGER.info("Tool delegate found for " + module.getName());
             if (isQuarkusModule(module)) {
                 LOGGER.info("isQuarkus module " + module.getName());
-                QuarkusModuleComponent component = module.getComponent(QuarkusModuleComponent.class);
-                Integer previousHash = component.getHash();
+                QuarkusDeploymentProjectService projectService = module.getProject().getService(QuarkusDeploymentProjectService.class);
+                Integer previousHash = projectService.getHash(module);
                 Integer actualHash = computeHash(module);
                 var qlib = OrderEntryUtil.findLibraryOrderEntry(ModuleRootManager.getInstance(module), QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
                 if (qlib == null || (actualHash != null && !actualHash.equals(previousHash)) ||
-                        !QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION.equals(component.getVersion())) {
+                        !QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION.equals(projectService.getVersion(module))) {
                     ModuleRootModificationUtil.updateModel(module, model -> {
                         LibraryTable table = model.getModuleLibraryTable();
                         Library library = table.getLibraryByName(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_NAME);
@@ -127,8 +127,8 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
 
                         addLibrary(model, files);
                     });
-                    component.setHash(actualHash);
-                    component.setVersion(QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION);
+                    projectService.setHash(module, actualHash);
+                    projectService.setVersion(module, QuarkusConstants.QUARKUS_DEPLOYMENT_LIBRARY_VERSION);
                 }
             }
         }

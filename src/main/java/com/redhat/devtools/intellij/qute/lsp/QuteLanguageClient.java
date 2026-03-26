@@ -38,9 +38,9 @@ import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.devtools.lsp4ij.client.CoalesceByKey;
 import com.redhat.devtools.lsp4ij.client.IndexAwareLanguageClient;
 import com.redhat.qute.commons.*;
+import com.redhat.qute.commons.binary.BinaryTemplateInfo;
+import com.redhat.qute.commons.binary.QuteBinaryTemplateParams;
 import com.redhat.qute.commons.datamodel.*;
-import com.redhat.qute.commons.usertags.QuteUserTagParams;
-import com.redhat.qute.commons.usertags.UserTagInfo;
 import com.redhat.qute.ls.api.QuteLanguageClientAPI;
 import com.redhat.qute.ls.api.QuteLanguageServerAPI;
 import org.eclipse.lsp4j.*;
@@ -249,9 +249,9 @@ public class QuteLanguageClient extends IndexAwareLanguageClient implements Qute
     }
 
     @Override
-    public CompletableFuture<List<UserTagInfo>> getUserTags(QuteUserTagParams params) {
-        var coalesceBy = new CoalesceByKey("qute/template/userTag", params.getProjectUri());
-        return runAsBackground("getUserTags", monitor -> QuteSupportForTemplate.getInstance().getUserTags(params, PsiUtilsLSImpl.getInstance(getProject()),
+    public CompletableFuture<List<BinaryTemplateInfo>> getBinaryTemplates(QuteBinaryTemplateParams params) {
+        var coalesceBy = new CoalesceByKey("qute/template/binaryTemplates", params.getProjectUri());
+        return runAsBackground("getUserTags", monitor -> QuteSupportForTemplate.getInstance().getBinaryTemplates(params, PsiUtilsLSImpl.getInstance(getProject()),
                 monitor), coalesceBy);
     }
 

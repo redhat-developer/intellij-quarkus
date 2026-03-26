@@ -110,7 +110,9 @@ public class PropertiesManager {
             if (query != null) {
                 try {
                     beginSearch(context, monitor);
-                    query.forEach((Consumer<? super PsiModifierListOwner>) psiMember -> collectProperties(psiMember, context, monitor));
+                    for (PsiModifierListOwner psiMember : query.findAll()) {
+                        collectProperties(psiMember, context, monitor);
+                    }
                 }
                 finally {
                     endSearch(context, monitor);

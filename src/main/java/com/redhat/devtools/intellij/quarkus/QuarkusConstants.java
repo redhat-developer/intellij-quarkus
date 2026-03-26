@@ -16,6 +16,9 @@ import com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModel;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
 import org.jetbrains.jps.model.java.JdkVersionDetector;
 
+import java.util.Collection;
+import java.util.List;
+
 public class QuarkusConstants {
     public final static Key<BuildToolDelegate> WIZARD_TOOL_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".tool");
     public final static Key<Boolean> WIZARD_EXAMPLE_KEY = Key.create(QuarkusConstants.class.getPackage().getName() + ".example");
@@ -66,9 +69,8 @@ public class QuarkusConstants {
 
     public static final String QUARKUS_SCHEDULED_ANNOTATION = "io.quarkus.scheduler.Scheduled";
 
-    public static final String QUARKUS_CORE_PREFIX = "io.quarkus:quarkus-core:";
-
-    public static final String QUARKUS_VERTX_HTTP_PREFIX = "io.quarkus:quarkus-vertx-http:";
+    public static final Collection<String> QUARKUS_CORE_MAVEN_COORDS = List.of("io.quarkus:quarkus-core");
+    public static final Collection<String> QUARKUS_VERTX_HTTP_MAVEN_COORDS = List.of("io.quarkus:quarkus-vertx-http");
 
     public static final String QUARKUS_PREFIX = "quarkus";
     public static final String QUARKUS_JAVADOC_PROPERTIES_FILE = "quarkus-javadoc.properties";

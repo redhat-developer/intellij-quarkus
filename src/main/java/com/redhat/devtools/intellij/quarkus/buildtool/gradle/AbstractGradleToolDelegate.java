@@ -372,18 +372,41 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     @Override
     public RunnerAndConfigurationSettings getConfigurationDelegate(@NotNull Module module,
                                                                    @NotNull QuarkusRunConfiguration configuration,
-                                                                   @Nullable Integer debugPort) {
+                                                                   @Nullable Integer debugPort,
+                                                                   @Nullable Integer quteDebugPort) {
         RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Gradle)", GradleExternalTaskConfigurationType.class);
         GradleRunConfiguration gradleConfiguration = (GradleRunConfiguration) settings.getConfiguration();
         gradleConfiguration.getSettings().getTaskNames().add("quarkusDev");
         gradleConfiguration.getSettings().setEnv(configuration.getEnv());
-        String parameters = debugPort != null ? ("-Ddebug=" + Integer.toString(debugPort)) : "";
-        if (StringUtils.isNotBlank(configuration.getProfile())) {
-            parameters += " -Dquarkus.profile=" + configuration.getProfile();
-        }
+        String parameters = createParameters(configuration, debugPort, quteDebugPort);
         gradleConfiguration.getSettings().setScriptParameters(parameters);
         gradleConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
+    }
+    private static @NotNull String createParameters(@NotNull QuarkusRunConfiguration configuration,
+                                                    @Nullable Integer debugPort,
+                                                    @Nullable Integer quteDebugPort) {
+        StringBuilder parameters = new StringBuilder();
+
+        if (debugPort != null) {
+            addParameter(parameters, "debug", debugPort);
+            addParameter(parameters, "suspend", "y");
+        }
+        if (StringUtils.isNotBlank(configuration.getProfile())) {
+            addParameter(parameters, "quarkus.profile", configuration.getProfile());
+        }
+        if (quteDebugPort != null) {
+            addParameter(parameters, "quteDebugPort", quteDebugPort);
+        }
+
+        return parameters.toString();
+    }
+
+    private static void addParameter(@NotNull StringBuilder parameters, @NotNull String name, @NotNull Object value) {
+        if (!parameters.isEmpty()) {
+            parameters.append(" ");
+        }
+        parameters.append("-D").append(name).append("=").append(value);
     }
 
     @Override

@@ -13,6 +13,7 @@ package com.redhat.microprofile.psi.quarkus;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.GradleTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PropertiesManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
@@ -43,6 +44,7 @@ public class GradleQuarkusConfigRootAllQuarkusExtensionsTest extends GradleTestC
     public void testAllExtensions() throws Exception {
         Module module = getModule("all-quarkus-extensions.main");
         QuarkusDeploymentSupport.getInstance(module.getProject()).updateClasspathWithQuarkusDeployment(module, new EmptyProgressIndicator());
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 
         MicroProfileProjectInfo info = ReadAction.compute(() ->PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator()));
         File keycloakJARFile = getDependency(getProjectPath(), "io.quarkus", "quarkus-keycloak-authorization", "1.0.1.Final");

@@ -207,13 +207,13 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
     @Override
     public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectLabels(MicroProfileJavaProjectLabelsParams javaParams) {
         var coalesceBy = new CoalesceByKey("microprofile/java/projectLabels", javaParams.getUri(), javaParams.getTypes());
-        return runAsBackground("Computing Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
+        return runAsBackground("Computing Java projects labels", monitor -> ProjectLabelManager.getInstance(getProject()).getProjectLabelInfo(javaParams, PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override
     public CompletableFuture<List<ProjectLabelInfoEntry>> getAllJavaProjectLabels() {
         var coalesceBy = new CoalesceByKey("microprofile/java/workspaceLabels");
-        return runAsBackground("Computing All Java projects labels", monitor -> ProjectLabelManager.getInstance().getProjectLabelInfo(PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
+        return runAsBackground("Computing All Java projects labels", monitor -> ProjectLabelManager.getInstance(getProject()).getProjectLabelInfo(PsiUtilsLSImpl.getInstance(getProject())), coalesceBy);
     }
 
     @Override
@@ -243,6 +243,13 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
     public CompletableFuture<List<? extends CodeLens>> getJavaCodelens(MicroProfileJavaCodeLensParams javaParams) {
         var coalesceBy = new CoalesceByKey("microprofile/java/codeLens", javaParams.getUri());
         return runAsBackground("Computing Java codelens", monitor -> PropertiesManagerForJava.getInstance().codeLens(javaParams, PsiUtilsLSImpl.getInstance(getProject()), monitor), coalesceBy);
+    }
+
+
+    @Override
+    public CompletableFuture<List<InlayHint>> getJavaInlayHint(MicroProfileJavaInlayHintParams javaParams) {
+        var coalesceBy = new CoalesceByKey("microprofile/java/inlayHint", javaParams.getUri());
+        return runAsBackground("Computing Java inlayHint", monitor -> PropertiesManagerForJava.getInstance().inlayHint(javaParams, PsiUtilsLSImpl.getInstance(getProject()), monitor), coalesceBy);
     }
 
     @Override
@@ -278,4 +285,5 @@ public class QuarkusLanguageClient extends IndexAwareLanguageClient implements M
         // Requires porting https://github.com/eclipse/lsp4mp/issues/321 / https://github.com/eclipse/lsp4mp/pull/329
         return CompletableFuture.completedFuture(null);
     }
+
 }

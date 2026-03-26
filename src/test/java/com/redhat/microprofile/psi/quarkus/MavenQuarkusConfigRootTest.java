@@ -43,7 +43,7 @@ public class MavenQuarkusConfigRootTest extends QuarkusMavenModuleImportingTestC
 
     public void testHibernateOrmResteasy() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.hibernate_orm_resteasy, true);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
         assertProperties(info,
 
                 // io.quarkus.hibernate.orm.deployment.HibernateOrmConfig
@@ -64,7 +64,7 @@ public class MavenQuarkusConfigRootTest extends QuarkusMavenModuleImportingTestC
 
     public void testAllQuarkusExtensions() throws Exception {
         Module module = loadMavenProject(QuarkusMavenProjectName.all_quarkus_extensions, true);
-        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo info = PropertiesManager.getInstance().getMicroProfileProjectInfo(module, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
         assertProperties(info,
 
                 p("quarkus-keycloak-authorization", "quarkus.keycloak.policy-enforcer.paths.{*}.name",

@@ -37,7 +37,7 @@ public class QuarkusMavenDebugProgramRunner extends GenericDebuggerRunner {
         if (!executorId.equals(DefaultDebugExecutor.EXECUTOR_ID)) {
             return false;
         }
-        // Debuging...
+        // Debugging...
         if (profile instanceof QuarkusRunConfiguration quarkusRunConfiguration) {
             // returns true if the profile is a QuarkusRunConfiguration which wraps a Maven configuration
             BuildToolDelegate delegate = BuildToolDelegate.getDelegate(quarkusRunConfiguration.getModule());

@@ -18,6 +18,7 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
@@ -29,6 +30,7 @@ import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +44,10 @@ import java.util.Map;
  */
 public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
 
+    private static final @Nullable Method putUserData = getPutUserDataMethod();
+
+    private static final @Nullable Key<Map<Object, Object>> NODE_LINKS = getNODE_LINKS();
+
     @Override
     public boolean isApplicable(@NotNull RunnerAndConfigurationSettings settings, @Nullable RunContentDescriptor descriptor) {
         return settings.getConfiguration() instanceof QuarkusRunConfiguration;
@@ -49,16 +55,15 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
 
     @Override
     public boolean updatePresentation(@NotNull PresentationData presentation, @NotNull RunDashboardRunConfigurationNode node) {
-        if (!(node.getConfigurationSettings().getConfiguration() instanceof QuarkusRunConfiguration)) {
+        var quarkusRunConfiguration = node.getConfigurationSettings().getConfiguration() instanceof QuarkusRunConfiguration config ? config : null;
+        if (quarkusRunConfiguration == null) {
             return false;
         }
-        node.putUserData(RunDashboardCustomizer.NODE_LINKS, null);
         RunContentDescriptor descriptor = node.getDescriptor();
         if (descriptor != null) {
             ProcessHandler processHandler = descriptor.getProcessHandler();
             if (processHandler != null && !processHandler.isProcessTerminated()) {
                 // The Quarkus run configuration is running
-                QuarkusRunConfiguration quarkusRunConfiguration = (QuarkusRunConfiguration) node.getConfigurationSettings().getConfiguration();
                 Module module = quarkusRunConfiguration.getModule();
                 if (QuarkusModuleUtil.isQuarkusWebAppModule(module)) {
                     PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(module.getProject()).getMicroProfileProject(module);
@@ -96,11 +101,41 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
                             TelemetryManager.instance().send(TelemetryEventName.UI_OPEN_DEV_UI);
                         }
                     });
-                    node.putUserData(RunDashboardCustomizer.NODE_LINKS, links);
+                    updateLinks(node, links);
                 }
             }
         }
         return true;
+    }
+
+    private void updateLinks(@NotNull RunDashboardRunConfigurationNode node, Map<Object, Object> links) {
+        if (putUserData == null) {
+            return;
+        }
+        try {
+            putUserData.invoke(node, NODE_LINKS, links);
+        } catch (Exception e) {
+
+        }
+    }
+
+    private static @Nullable Method getPutUserDataMethod() {
+        try {
+            // We need to use Java Reflection since IU 2025.3 has removed RunDashboardRunConfigurationNode.putUserData
+            return RunDashboardRunConfigurationNode.class.getMethod("putUserData",  Key.class, Object.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static @Nullable Key<Map<Object, Object>> getNODE_LINKS() {
+        try {
+            // We need to use Java Reflection since IU 2025.3 has removed RunDashboardCustomizer.NODE_LINKS
+            var field = RunDashboardCustomizer.class.getDeclaredField("NODE_LINKS");
+            return (Key<Map<Object, Object>>) field.get(RunDashboardCustomizer.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }

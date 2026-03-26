@@ -68,16 +68,21 @@ public class MicroProfilePropertiesConfigurable extends NamedConfigurable<UserDe
         if (myView == null) return;
         UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
         myView.setInlayHintEnabled(settings.isInlayHintEnabled());
+        myView.setInlayHintConvertersEnabled(settings.isInlayHintConvertersEnabled());
+        myView.setInlayHintDefaultValuesEnabled(settings.isInlayHintDefaultValuesEnabled());
+        myView.setInlayHintTypesEnabled(settings.isInlayHintTypesEnabled());
+        myView.setInlayHintResolveExpressionsEnabled(settings.isInlayHintResolveExpressionsEnabled());
     }
 
     @Override
     public boolean isModified() {
         if (myView == null) return false;
         UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
-        if (settings == null) {
-            return true;
-        }
-        return !(myView.isInlayHintEnabled()== settings.isInlayHintEnabled());
+        return !(myView.isInlayHintEnabled() == settings.isInlayHintEnabled() &&
+                myView.isInlayHintConvertersEnabled() == settings.isInlayHintConvertersEnabled() &&
+                myView.isInlayHintDefaultValuesEnabled() == settings.isInlayHintDefaultValuesEnabled() &&
+                myView.isInlayHintTypesEnabled() == settings.isInlayHintTypesEnabled() &&
+                myView.isInlayHintResolveExpressionsEnabled() == settings.isInlayHintResolveExpressionsEnabled());
     }
 
     @Override
@@ -85,6 +90,10 @@ public class MicroProfilePropertiesConfigurable extends NamedConfigurable<UserDe
         if (myView == null) return;
         UserDefinedMicroProfileSettings settings = UserDefinedMicroProfileSettings.getInstance(project);
         settings.setInlayHintEnabled(myView.isInlayHintEnabled());
+        settings.setInlayHintConvertersEnabled(myView.isInlayHintConvertersEnabled());
+        settings.setInlayHintDefaultValuesEnabled(myView.isInlayHintDefaultValuesEnabled());
+        settings.setInlayHintTypesEnabled(myView.isInlayHintTypesEnabled());
+        settings.setInlayHintResolveExpressionsEnabled(myView.isInlayHintResolveExpressionsEnabled());
         settings.fireStateChanged();
     }
 }

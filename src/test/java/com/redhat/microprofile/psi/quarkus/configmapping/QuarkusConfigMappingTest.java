@@ -34,7 +34,7 @@ public class QuarkusConfigMappingTest extends QuarkusMavenModuleImportingTestCas
     public void testConfigMapping() throws Exception {
 
         Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_mapping);
-        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.PlainText, new EmptyProgressIndicator());
+        MicroProfileProjectInfo infoFromJavaSources = PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, MicroProfilePropertiesScope.ONLY_SOURCES, ClasspathKind.SRC, PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.PlainText, new EmptyProgressIndicator());
 
         assertProperties(infoFromJavaSources,
 
@@ -68,6 +68,8 @@ public class QuarkusConfigMappingTest extends QuarkusMavenModuleImportingTestCas
                 p(null, "server.map.port", "int", null, false, "org.acme.map.Server", null, "port()I", 0, null),
                 p(null, "server.map.form.{*}", "java.util.Map", null, false, "org.acme.map.Server", null,
                         "form()Ljava/util/Map;", 0, null),
+                p(null, "server.map.category.{*}.level", "java.util.logging.Level", null, false, "org.acme.map.Server$CategoryConfig", null,
+                        "level()Ljava/util/logging/Level;", 0, null),
 
                 // 3) Naming strategy
 
@@ -182,8 +184,21 @@ public class QuarkusConfigMappingTest extends QuarkusMavenModuleImportingTestCas
 
                 p(null, "my.native.monitoring[*]", "java.util.List", null, false,
                         "org.acme.enums.MyNativeConfig", null,
-                        "monitoring()Ljava/util/Optional;", 0, null)
-        );
+                        "monitoring()Ljava/util/Optional;", 0, null),
+
+                // 9) Class
+                // import java.util.logging.Level;
+                //
+                // @ConfigMapping(prefix = "server.classes")
+                // public interface Server {
+                //
+                //	Level level;
+                //}
+                //}
+
+                p(null, "server.classes.level", "java.util.logging.Level", null, false, "org.acme.classes.ServerClass", null,
+                        "level()Ljava/util/logging/Level;", 0, null)
+                );
 
 
         assertPropertiesDuplicate(infoFromJavaSources);

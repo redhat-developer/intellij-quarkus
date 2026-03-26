@@ -58,12 +58,10 @@ public interface IJavaDiagnosticsParticipant {
 	/**
 	 * Collect diagnostics according to the context.
 	 * 
-	 * @param context the java diagnostics context
-	 *
-	 * @return diagnostics list and null otherwise.
+	 * @param context the java diagnostics context.
 	 * 
 	 */
-	List<Diagnostic> collectDiagnostics(JavaDiagnosticsContext context);
+	void collectDiagnostics(JavaDiagnosticsContext context);
 
 	/**
 	 * End diagnostics collection.

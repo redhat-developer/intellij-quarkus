@@ -30,6 +30,14 @@ plugins {
 group = prop("pluginGroup")
 version = prop("pluginVersion")
 
+val platformVersion = prop("platformVersion")
+val ideaVersionInt = when {
+    // e.g. '20XY.Z'
+    platformVersion.length == 6 -> platformVersion.replace(".", "").substring(2).toInt()
+    // e.g. '2XY.ABCDE.12'
+    else -> platformVersion.substringBefore(".").toInt()
+}
+
 val quarkusVersion = prop("quarkusVersion")
 val lsp4mpVersion = prop("lsp4mpVersion")
 val quarkusLsVersion = prop("quarkusLsVersion")
@@ -76,10 +84,16 @@ sourceSets {
 
 dependencies {
     intellijPlatform {
-        create(prop("platformType"), prop("platformVersion"))
+        create(prop("platformType"), platformVersion)
         // Bundled Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
         val platformBundledPlugins =  ArrayList<String>()
         platformBundledPlugins.addAll(providers.gradleProperty("platformBundledPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }.get())
+        /*
+         * platformVersion check for JSON breaking changes since 2024.3
+         */
+        if (ideaVersionInt >= 243) {
+            platformBundledPlugins.add("com.intellij.modules.json")
+        }
         bundledPlugins(platformBundledPlugins)
         // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
         val platformPlugins =  ArrayList<String>()
@@ -143,19 +157,29 @@ dependencies {
         isTransitive = false
     }
     lsp("com.redhat.microprofile:com.redhat.qute.ls:$quteLsVersion:uber") {
+        exclude(group= "org.jboss.logging")
         isTransitive = false
     }
     implementation(files(layout.buildDirectory.dir("server")) {
         builtBy("copyDeps")
     })
 
+    // To avoid having error in Test
+    // java.lang.NoClassDefFoundError: Could not initialize class io.smallrye.config._private.ConfigLogging
+    //Caused by: java.lang.NoSuchMethodError:
+    //'java.lang.Object org.jboss.logging.Logger.getMessageLogger(
+    //   java.lang.invoke.MethodHandles$Lookup,
+    //   java.lang.Class,
+    //   java.lang.String
+    //)
+    testImplementation("org.jboss.logging:jboss-logging:3.6.1.Final")
     testImplementation(libs.junit)
 }
 
-// Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
+// Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+., and Java 21 for 2025.3+.
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
         vendor = JvmVendorSpec.JETBRAINS
     }
 }
@@ -172,7 +196,12 @@ intellijPlatform {
         failureLevel = listOf(INVALID_PLUGIN, COMPATIBILITY_PROBLEMS, MISSING_DEPENDENCIES)
         verificationReportsFormats = listOf(MARKDOWN, PLAIN)
         ides {
-            recommended()
+            select {
+                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+                channels = listOf(ProductRelease.Channel.RELEASE) // Only stable releases
+                sinceBuild = "242" // From your minimum supported version
+                untilBuild = "252.*" // Up to current major version
+            }
         }
         freeArgs = listOf(
             "-mute",
@@ -184,6 +213,13 @@ intellijPlatform {
 configurations {
     runtimeClasspath {
         exclude(group = "org.slf4j", module = "slf4j-api")
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        cacheChangingModulesFor(0, "seconds")
+        cacheDynamicVersionsFor(0, "seconds")
     }
 }
 

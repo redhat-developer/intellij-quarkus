@@ -16,13 +16,20 @@ package com.redhat.devtools.intellij.qute.psi.internal.extensions.webbundler;
 import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.qute.psi.template.rootpath.ITemplateRootPathProvider;
 import com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils;
-import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import com.redhat.qute.commons.TemplateRootPath;
+import com.redhat.qute.commons.config.webbundler.WebBundlerConfig;
 
 import java.util.List;
+import java.util.Set;
+
+import static com.redhat.devtools.intellij.qute.psi.utils.PsiQuteProjectUtils.resolveRelativePath;
+import static com.redhat.qute.commons.config.webbundler.WebBundlerConfig.WEB_DIR;
+import static com.redhat.qute.commons.config.webbundler.WebBundlerConfig.WEB_ROOT;
 
 
 /**
@@ -30,7 +37,7 @@ import java.util.List;
  */
 public class WebBundlerTemplateRootPathProvider implements ITemplateRootPathProvider {
 
-    private static final String ORIGIN = "web-bundler";
+    private static final String ORIGIN = WebBundlerConfig.EXTENSION_ID;
 
     @Override
     public boolean isApplicable(Module project) {
@@ -41,9 +48,37 @@ public class WebBundlerTemplateRootPathProvider implements ITemplateRootPathProv
     public void collectTemplateRootPaths(Module javaProject, List<TemplateRootPath> rootPaths) {
         VirtualFile moduleDir = QuarkusModuleUtil.getModuleDirPath(javaProject);
         if (moduleDir != null) {
+            PsiMicroProfileProject mpProject = PsiMicroProfileProjectManager.getInstance(javaProject.getProject()).getMicroProfileProject(javaProject);
+            String webDir = mpProject.getProperty(WEB_DIR);
+            String webRoot = mpProject.getProperty(WEB_ROOT);
+
             // web/templates
-            String templateBaseDir = LSPIJUtils.toUri(moduleDir).resolve("web/templates").toASCIIString();
-            rootPaths.add(new TemplateRootPath(templateBaseDir, ORIGIN));
+            String webTemplateBaseDir = resolveRelativePath(moduleDir,
+                    webDir,
+                    "templates").toASCIIString();
+            rootPaths.add(new TemplateRootPath(webTemplateBaseDir, ORIGIN));
+
+            // src/main/resorces/web/templates
+            var resourcesDir = PsiQuteProjectUtils.findBestResourcesDir(javaProject, webRoot);
+            if (resourcesDir != null) {
+                String resourcesWebTemplateBaseDir = resolveRelativePath(resourcesDir,
+                        webRoot,
+                        "templates").toASCIIString();
+                rootPaths.add(new TemplateRootPath(resourcesWebTemplateBaseDir, ORIGIN));
+
+                // Qute tags
+                // See
+                // https://docs.quarkiverse.io/quarkus-web-bundler/dev/config-reference.html#quarkus-web-bundler_quarkus-web-bundler-bundle-bundle-qute-tags
+                // quarkus.web-bundler.bundle."bundle".qute-tags
+                Set<String> mathingSegments = mpProject.getMatchingSegments(WebBundlerConfig.QUTE_TAGS.getName());
+                for (String segment : mathingSegments) {
+                    String tagsDir = resolveRelativePath(resourcesDir,
+                            webRoot,
+                            segment).toASCIIString();
+                    rootPaths.add(new TemplateRootPath(tagsDir, true, false, ORIGIN));
+                }
+            }
+
         }
     }
 

@@ -41,13 +41,10 @@ public class ConfigItemIntBoolDefaultValueTest extends LSP4MPMavenModuleImportin
 
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart, true);
         MicroProfileProjectInfo infoFromClasspath = PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject, MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.SRC,
-                PsiUtilsLSImpl.getInstance(myProject), DocumentFormat.Markdown, new EmptyProgressIndicator());
-
-        String booleanDefault = "false";
-        String intDefault = "0";
+                PsiUtilsLSImpl.getInstance(getProject()), DocumentFormat.Markdown, new EmptyProgressIndicator());
 
         assertProperties(infoFromClasspath,
-                259 + 31 /* properties from Java sources with ConfigProperty */ + //
+                259 + 40 /* properties from Java sources with ConfigProperty */ + //
                         7 /* static properties from microprofile-context-propagation-api */ +
                         1 /* static property from microprofile config_ordinal */,
 

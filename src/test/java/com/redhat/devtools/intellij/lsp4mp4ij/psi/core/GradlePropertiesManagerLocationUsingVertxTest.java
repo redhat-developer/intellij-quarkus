@@ -11,6 +11,7 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.redhat.devtools.intellij.GradleTestCase;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport;
@@ -40,6 +41,7 @@ public class GradlePropertiesManagerLocationUsingVertxTest extends GradleTestCas
     public void testUsingVertxTest() {
         Module javaProject = getModule("using-vertx.main");
         QuarkusDeploymentSupport.getInstance(javaProject.getProject()).updateClasspathWithQuarkusDeployment(javaProject, new EmptyProgressIndicator());
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 
         // Test with JAR
         // quarkus.datasource.url

@@ -24,12 +24,14 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaComp
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.JavaCompletionContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.IJavaDefinitionParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.definition.JavaDefinitionContext;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.symbols.IJavaWorkspaceSymbolsParticipant;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.IJavaDiagnosticsParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.diagnostics.JavaDiagnosticsContext;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.IJavaHoverParticipant;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.hover.JavaHoverContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.inlayhint.IJavaInlayHintsParticipant;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.inlayhint.JavaInlayHintsContext;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.symbols.IJavaWorkspaceSymbolsParticipant;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.CodeActionHandler;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4mp.commons.*;
@@ -70,10 +72,10 @@ public class PropertiesManagerForJava {
      * Returns the Java file information (ex : package name) from the given file URI
      * and null otherwise.
      *
-     * @param params  the file information parameters.
-     * @param utils   the utilities class
+     * @param params the file information parameters.
+     * @param utils  the utilities class
      * @return the Java file information (ex : package name) from the given file URI
-     *         and null otherwise.
+     * and null otherwise.
      */
     public JavaFileInfo fileInfo(MicroProfileJavaFileInfoParams params, IPsiUtils utils) {
         String uri = params.getUri();
@@ -90,11 +92,11 @@ public class PropertiesManagerForJava {
     /**
      * Returns the codelens list according the given codelens parameters.
      *
-     * @param params  the codelens parameters
-     * @param utils   the utilities class
+     * @param params the codelens parameters
+     * @param utils  the utilities class
      * @return the codelens list according the given codelens parameters.
      */
-    public List<? extends CodeLens> codeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils,  ProgressIndicator monitor) {
+    public List<? extends CodeLens> codeLens(MicroProfileJavaCodeLensParams params, IPsiUtils utils, ProgressIndicator monitor) {
         String uri = params.getUri();
         PsiFile typeRoot = resolveTypeRoot(uri, utils);
         if (typeRoot == null) {
@@ -137,10 +139,60 @@ public class PropertiesManagerForJava {
     }
 
     /**
+     * Returns the inlayHint list according the given inlayHint parameters.
+     *
+     * @param params the inlayHint parameters
+     * @param utils  the utilities class
+     * @return the inlayHint list according the given inlayHint parameters.
+     */
+    public List<InlayHint> inlayHint(@NotNull MicroProfileJavaInlayHintParams params,
+                                               @NotNull IPsiUtils utils,
+                                               @NotNull ProgressIndicator monitor) {
+        String uri = params.getUri();
+        PsiFile typeRoot = resolveTypeRoot(uri, utils);
+        if (typeRoot == null) {
+            return Collections.emptyList();
+        }
+        List<InlayHint> inlayHints = new ArrayList<>();
+        collectInlayHints(uri, typeRoot, utils, params, inlayHints, monitor);
+        return inlayHints;
+    }
+
+    private void collectInlayHints(@NotNull String uri,
+                                   @NotNull PsiFile typeRoot,
+                                   @NotNull IPsiUtils utils,
+                                   @NotNull MicroProfileJavaInlayHintParams params,
+                                   @NotNull List<InlayHint> inlayHints,
+                                   @NotNull ProgressIndicator monitor) {
+        // Collect all adapted inlayHint participant
+        try {
+            Module module = utils.getModule(uri);
+            if (module == null) {
+                return;
+            }
+            JavaInlayHintsContext context = new JavaInlayHintsContext(uri, typeRoot, utils, module, params, inlayHints);
+            List<IJavaInlayHintsParticipant> definitions = IJavaInlayHintsParticipant.EP_NAME.getExtensionList()
+                    .stream()
+                    .filter(definition -> definition.isAdaptedForInlayHint(context, monitor))
+                    .toList();
+            if (definitions.isEmpty()) {
+                return;
+            }
+
+            // Begin, collect, end participants
+            definitions.forEach(definition -> definition.beginInlayHint(context, monitor));
+            definitions.forEach(definition -> definition.collectInlayHint(context, monitor));
+            definitions.forEach(definition -> definition.endInlayHint(context, monitor));
+        } catch (IOException e) {
+            LOGGER.warn(e.getLocalizedMessage(), e);
+        }
+    }
+    
+    /**
      * Returns the CompletionItems given the completion item params
      *
-     * @param params  the completion item params
-     * @param utils   the IJDTUtils
+     * @param params the completion item params
+     * @param utils  the IJDTUtils
      * @return the CompletionItems for the given the completion item params
      */
     public CompletionList completion(MicroProfileJavaCompletionParams params, IPsiUtils utils) {
@@ -191,8 +243,8 @@ public class PropertiesManagerForJava {
     /**
      * Returns the definition list according the given definition parameters.
      *
-     * @param params  the definition parameters
-     * @param utils   the utilities class
+     * @param params the definition parameters
+     * @param utils  the utilities class
      * @return the definition list according the given definition parameters.
      */
     public List<MicroProfileDefinition> definition(MicroProfileJavaDefinitionParams params, IPsiUtils utils) {
@@ -280,25 +332,22 @@ public class PropertiesManagerForJava {
 
         try {
             Module module = utils.getModule(uri);
-                // Collect all adapted diagnostics participant
-                JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, module, documentFormat, settings);
-                List<IJavaDiagnosticsParticipant> definitions = IJavaDiagnosticsParticipant.EP_NAME.getExtensionList()
-                        .stream()
-                        .filter(definition -> definition.isAdaptedForDiagnostics(context))
-                        .toList();
-                if (definitions.isEmpty()) {
-                    return;
-                }
+            // Collect all adapted diagnostics participant
+            JavaDiagnosticsContext context = new JavaDiagnosticsContext(uri, typeRoot, utils, module, documentFormat, settings, diagnostics);
+            List<IJavaDiagnosticsParticipant> definitions = IJavaDiagnosticsParticipant.EP_NAME.getExtensionList()
+                    .stream()
+                    .filter(definition -> definition.isAdaptedForDiagnostics(context))
+                    .toList();
+            if (definitions.isEmpty()) {
+                return;
+            }
 
-                // Begin, collect, end participants
-                definitions.forEach(definition -> definition.beginDiagnostics(context));
-                definitions.forEach(definition -> {
-                    List<Diagnostic> collectedDiagnostics = definition.collectDiagnostics(context);
-                    if (collectedDiagnostics != null && !collectedDiagnostics.isEmpty()) {
-                        diagnostics.addAll(collectedDiagnostics);
-                    }
-                });
-                definitions.forEach(definition -> definition.endDiagnostics(context));
+            // Begin, collect, end participants
+            definitions.forEach(definition -> definition.beginDiagnostics(context));
+            definitions.forEach(definition -> {
+                definition.collectDiagnostics(context);
+            });
+            definitions.forEach(definition -> definition.endDiagnostics(context));
         } catch (IOException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
@@ -307,8 +356,8 @@ public class PropertiesManagerForJava {
     /**
      * Returns the hover information according to the given <code>params</code>
      *
-     * @param params  the hover parameters
-     * @param utils   the utilities class
+     * @param params the hover parameters
+     * @param utils  the utilities class
      * @return the hover information according to the given <code>params</code>
      */
     public Hover hover(MicroProfileJavaHoverParams params, IPsiUtils utils) {
@@ -341,9 +390,9 @@ public class PropertiesManagerForJava {
     /**
      * Returns the cursor context for the given file and cursor position.
      *
-     * @param params  the completion params that provide the file and cursor
-     *                position to get the context for
-     * @param utils   the jdt utils
+     * @param params the completion params that provide the file and cursor
+     *               position to get the context for
+     * @param utils  the jdt utils
      * @return the cursor context for the given file and cursor position
      */
     public JavaCursorContextResult javaCursorContext(MicroProfileJavaCompletionParams params, IPsiUtils utils) {
@@ -378,31 +427,28 @@ public class PropertiesManagerForJava {
             PsiElement firstClass = javaFile.getClasses()[0];
 
             if (completionOffset <= firstClass.getTextOffset()) {
-                return JavaCursorContextKind.BEFORE_CLASS;
+                return JavaCursorContextKind.BEFORE_TOP_LEVEL_CLASS;
             }
 
             return JavaCursorContextKind.NONE;
         }
 
-        if (parent instanceof PsiClass) {
-            PsiClass psiClass = (PsiClass) parent;
+        if (parent instanceof PsiClass psiClass) {
             return getContextKindFromClass(completionOffset, psiClass, element);
         }
-        if (parent instanceof PsiAnnotation) {
-            PsiAnnotation psiAnnotation = (PsiAnnotation) parent;
+        if (parent instanceof PsiAnnotation psiAnnotation) {
             @Nullable PsiAnnotationOwner annotationOwner = psiAnnotation.getOwner();
             if (annotationOwner instanceof PsiClass) {
-                return (psiAnnotation.getStartOffsetInParent() == 0)? JavaCursorContextKind.BEFORE_CLASS:JavaCursorContextKind.IN_CLASS_ANNOTATIONS;
+                return (psiAnnotation.getStartOffsetInParent() == 0) ? JavaCursorContextKind.BEFORE_INNER_CLASS : JavaCursorContextKind.IN_CLASS_ANNOTATIONS;
             }
-            if (annotationOwner instanceof PsiMethod){
-                return (psiAnnotation.getStartOffsetInParent() == 0)? JavaCursorContextKind.BEFORE_METHOD:JavaCursorContextKind.IN_METHOD_ANNOTATIONS;
+            if (annotationOwner instanceof PsiMethod) {
+                return (psiAnnotation.getStartOffsetInParent() == 0) ? JavaCursorContextKind.BEFORE_METHOD : JavaCursorContextKind.IN_METHOD_ANNOTATIONS;
             }
             if (annotationOwner instanceof PsiField) {
-                return (psiAnnotation.getStartOffsetInParent() == 0)? JavaCursorContextKind.BEFORE_FIELD:JavaCursorContextKind.IN_FIELD_ANNOTATIONS;
+                return (psiAnnotation.getStartOffsetInParent() == 0) ? JavaCursorContextKind.BEFORE_FIELD : JavaCursorContextKind.IN_FIELD_ANNOTATIONS;
             }
         }
-        if (parent instanceof PsiMethod) {
-            PsiMethod psiMethod = (PsiMethod) parent;
+        if (parent instanceof PsiMethod psiMethod) {
             if (completionOffset == psiMethod.getTextRange().getStartOffset()) {
                 return JavaCursorContextKind.BEFORE_METHOD;
             }
@@ -415,8 +461,7 @@ public class PropertiesManagerForJava {
             }
         }
 
-        if (parent instanceof PsiField) {
-            PsiField psiField = (PsiField) parent;
+        if (parent instanceof PsiField psiField) {
             if (completionOffset == psiField.getTextRange().getStartOffset()) {
                 return JavaCursorContextKind.BEFORE_FIELD;
             }
@@ -435,26 +480,26 @@ public class PropertiesManagerForJava {
     @NotNull
     private static JavaCursorContextKind getContextKindFromClass(int completionOffset, PsiClass psiClass, PsiElement element) {
         if (completionOffset <= psiClass.getTextRange().getStartOffset()) {
-            return JavaCursorContextKind.BEFORE_CLASS;
+            return JavaCursorContextKind.BEFORE_TOP_LEVEL_CLASS;
         }
         int classStartOffset = getClassStartOffset(psiClass);
         if (completionOffset <= classStartOffset) {
             if (psiClass.getAnnotations().length > 0) {
                 return JavaCursorContextKind.IN_CLASS_ANNOTATIONS;
             }
-            return JavaCursorContextKind.BEFORE_CLASS;
+            return JavaCursorContextKind.BEFORE_INNER_CLASS;
         }
 
         PsiElement nextElement = element.getNextSibling();
 
-        if (nextElement instanceof  PsiField) {
+        if (nextElement instanceof PsiField) {
             return JavaCursorContextKind.BEFORE_FIELD;
         }
-        if (nextElement instanceof  PsiMethod) {
+        if (nextElement instanceof PsiMethod) {
             return JavaCursorContextKind.BEFORE_METHOD;
         }
-        if (nextElement instanceof  PsiClass) {
-            return JavaCursorContextKind.BEFORE_CLASS;
+        if (nextElement instanceof PsiClass) {
+            return JavaCursorContextKind.BEFORE_INNER_CLASS;
         }
 
         return JavaCursorContextKind.IN_CLASS;
@@ -541,20 +586,20 @@ public class PropertiesManagerForJava {
     /**
      * Returns the parameter element from the given <code>method</code> that
      * contains the given <code>offset</code>.
-     *
+     * <p>
      * Returns the given <code>method</code> if the correct parameter element cannot
      * be found
      *
      * @param method the method
      * @param offset the offset
      * @return the parameter element from the given <code>method</code> that
-     *         contains the given <code>offset</code>
+     * contains the given <code>offset</code>
      */
     private PsiElement getHoveredMethodParameter(PsiMethod method, int offset) {
         JvmParameter[] parameters = method.getParameters();
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i] instanceof PsiParameter) {
-                int start = ((PsiParameter)parameters[i] ).getStartOffsetInParent();
+                int start = ((PsiParameter) parameters[i]).getStartOffsetInParent();
                 int end = start + ((PsiParameter) parameters[i]).getTextLength();
                 if (start <= offset && offset <= end) {
                     return (PsiElement) parameters[i];
@@ -604,7 +649,7 @@ public class PropertiesManagerForJava {
      * associate the uri with a Java file ot class file.
      *
      * @param uri
-     * @param utils   JDT LS utilities
+     * @param utils JDT LS utilities
      * @return compilation unit
      */
     private static PsiFile resolveTypeRoot(String uri, IPsiUtils utils) {
@@ -614,8 +659,8 @@ public class PropertiesManagerForJava {
     /**
      * Returns the codeAction list according the given codeAction parameters.
      *
-     * @param params  the codeAction parameters
-     * @param utils   the utilities class
+     * @param params the codeAction parameters
+     * @param utils  the utilities class
      * @return the codeAction list according the given codeAction parameters.
      */
     public List<? extends CodeAction> codeAction(MicroProfileJavaCodeActionParams params, IPsiUtils utils) {

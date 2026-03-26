@@ -306,4 +306,44 @@ public class PsiTypeUtils {
     public static boolean isVoidReturnType(PsiMethod method) {
         return PsiTypes.voidType().equals(method.getReturnType());
     }
+
+    /**
+     * Extracts a string value from a PSI annotation member value.
+     *
+     * Supports:
+     *  - String literals: "hello"
+     *  - Compile-time constant expressions: "a" + "b"
+     *  - Fallback to source text
+     *
+     * @param value PSI annotation member value
+     * @return best possible string representation, never null
+     */
+    public static @Nullable String extractStringValue(PsiAnnotationMemberValue value) {
+        if (value == null) {
+            return null;
+        }
+
+        // 1. Direct string literal: "hello"
+        if (value instanceof PsiLiteralExpression literal
+                && literal.getValue() instanceof String s) {
+            return s;
+        }
+
+        // 2. Compile-time constant expression: "a" + "b", MY_CONST, etc.
+        if (value instanceof PsiExpression expr) {
+            Object constantValue =
+                    JavaPsiFacade.getInstance(expr.getProject())
+                            .getConstantEvaluationHelper()
+                            .computeConstantExpression(expr);
+
+            if (constantValue instanceof String s) {
+                return s;
+            }
+        }
+
+        // 3. Fallback: Java source representation
+        return value.getText();
+    }
+
+
 }

@@ -29,10 +29,11 @@ import com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4mp.commons.utils.AntPathMatcher;
+import org.eclipse.lsp4mp.commons.utils.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.MicroProfileConfigConstants.*;
@@ -52,8 +53,6 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUt
  */
 public class MicroProfileConfigASTValidator extends JavaASTValidator {
 
-    private static final Logger LOGGER = Logger.getLogger(MicroProfileConfigASTValidator.class.getName());
-
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private static final Pattern ARRAY_SPLITTER = Pattern.compile("(?<!\\\\),");
@@ -71,8 +70,8 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
     private String currentPrefix;
 
     @Override
-    public void initialize(JavaDiagnosticsContext context, List<Diagnostic> diagnostics) {
-        super.initialize(context, diagnostics);
+    public void initialize(JavaDiagnosticsContext context) {
+        super.initialize(context);
         this.currentPrefix = null;
         this.patterns = getPatternsFromContext(context);
     }
@@ -93,16 +92,10 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
         for (PsiAnnotation annotation : typeDeclaration.getAnnotations()) {
             if (AnnotationUtils.isMatchAnnotation(annotation, CONFIG_PROPERTIES_ANNOTATION)) {
                 PsiAnnotationMemberValue prefixExpr = getAnnotationMemberValueExpression(annotation, MicroProfileConfigConstants.CONFIG_PROPERTIES_ANNOTATION_PREFIX);
-                if (prefixExpr instanceof PsiLiteral && ((PsiLiteral) prefixExpr).getValue() instanceof String) {
-                    currentPrefix = (String) ((PsiLiteral) prefixExpr).getValue();
-                }
-
+                currentPrefix = PsiTypeUtils.extractStringValue(prefixExpr);
             } else if (AnnotationUtils.isMatchAnnotation(annotation, QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION)) {
                 PsiAnnotationMemberValue prefixExpr = getAnnotationMemberValueExpression(annotation, QuarkusConstants.CONFIG_PROPERTIES_ANNOTATION_PREFIX);
-                if (prefixExpr instanceof PsiLiteral && ((PsiLiteral) prefixExpr).getValue() instanceof String) {
-                    currentPrefix = (String) ((PsiLiteral) prefixExpr).getValue();
-                }
-
+                currentPrefix = PsiTypeUtils.extractStringValue(prefixExpr);
             }
         }
         typeDeclaration.acceptChildren(this);
@@ -110,11 +103,11 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
     }
 
     @Override
-    public void visitAnnotation(PsiAnnotation annotation) {
+    public void visitAnnotation(@NotNull PsiAnnotation annotation) {
         PsiField parent = PsiTreeUtil.getParentOfType(annotation, PsiField.class);
         if (AnnotationUtils.isMatchAnnotation(annotation, CONFIG_PROPERTY_ANNOTATION) && parent != null) {
             PsiAnnotationMemberValue defaultValueExpr = getAnnotationMemberValueExpression(annotation, MicroProfileConfigConstants.CONFIG_PROPERTY_ANNOTATION_DEFAULT_VALUE);
-            validatePropertyDefaultValue(annotation, defaultValueExpr, parent);
+            validatePropertyDefaultValue(defaultValueExpr, parent);
             validatePropertyHasValue(annotation, defaultValueExpr);
         }
 
@@ -124,33 +117,25 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
      * Validate "defaultValue" attribute of <code>@ConfigProperty</code> and
      * generate diagnostics if "defaultValue" cannot be represented by the given
      * field type.
-     * <p>
+     *
      * See
      * https://github.com/eclipse/microprofile-config/blob/master/spec/src/main/asciidoc/converters.asciidoc
      * for more details on default converters.
      *
-     * @param annotation       the annotation to validate the defaultValue of
      * @param defaultValueExpr the default value expression, or null if no default
      *                         value is defined
      */
-    private void validatePropertyDefaultValue(PsiAnnotation annotation, PsiAnnotationMemberValue defaultValueExpr,
+    private void validatePropertyDefaultValue(PsiAnnotationMemberValue defaultValueExpr,
                                               PsiField parent) {
-        if (defaultValueExpr instanceof PsiLiteral && ((PsiLiteral) defaultValueExpr).getValue() instanceof String && parent != null) {
-            String defValue = (String) ((PsiLiteral) defaultValueExpr).getValue();
-            Module javaProject = getContext().getJavaProject();
+        String defValue = PsiTypeUtils.extractStringValue(defaultValueExpr);
+        if (defValue != null && parent != null) {
             PsiType fieldBinding = parent.getType();
-            if (fieldBinding != null && defValue != null) {
-                if (isListLike(fieldBinding) && defValue.isEmpty()) {
-                    String message = MessageFormat.format(EMPTY_LIST_LIKE_WARNING_MESSAGE, fieldBinding.getPresentableText());
-                    super.addDiagnostic(message, MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE, defaultValueExpr,
-                            MicroProfileConfigErrorCode.EMPTY_LIST_NOT_SUPPORTED, DiagnosticSeverity.Warning);
-                }
-                if (!isAssignable(fieldBinding, javaProject, defValue)) {
-                    String message = MessageFormat.format(EXPECTED_TYPE_ERROR_MESSAGE, defValue, fieldBinding.getPresentableText());
-                    super.addDiagnostic(message, MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE, defaultValueExpr,
-                            MicroProfileConfigErrorCode.DEFAULT_VALUE_IS_WRONG_TYPE, DiagnosticSeverity.Error);
-                }
+            if (isListLike(fieldBinding) && defValue.isEmpty()) {
+                String message = MessageFormat.format(EMPTY_LIST_LIKE_WARNING_MESSAGE, fieldBinding.getPresentableText());
+                super.addDiagnostic(message, MICRO_PROFILE_CONFIG_DIAGNOSTIC_SOURCE, defaultValueExpr,
+                        MicroProfileConfigErrorCode.EMPTY_LIST_NOT_SUPPORTED, DiagnosticSeverity.Warning);
             }
+            getContext().validateWithConverter(defValue, fieldBinding, defaultValueExpr);
         }
     }
 
@@ -163,13 +148,12 @@ public class MicroProfileConfigASTValidator extends JavaASTValidator {
      *                         value is defined
      */
     private void validatePropertyHasValue(PsiAnnotation annotation, PsiAnnotationMemberValue defaultValueExpr) {
-        String name = null;
+
         PsiAnnotationMemberValue nameExpression = getAnnotationMemberValueExpression(annotation,
                 CONFIG_PROPERTY_ANNOTATION_NAME);
         boolean hasDefaultValue = defaultValueExpr != null;
-
-        if (nameExpression instanceof PsiLiteral && ((PsiLiteral) nameExpression).getValue() instanceof String) {
-            name = (String) ((PsiLiteral) nameExpression).getValue();
+        String name = PsiTypeUtils.extractStringValue(nameExpression);
+        if (!StringUtils.isEmpty(name)) {
             name = MicroProfileConfigPropertyProvider.getPropertyName(name, currentPrefix);
         }
 

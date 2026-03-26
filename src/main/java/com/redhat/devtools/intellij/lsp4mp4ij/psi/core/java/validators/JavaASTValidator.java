@@ -58,8 +58,6 @@ public class JavaASTValidator extends JavaRecursiveElementVisitor implements Clo
 
 	public static final ExtensionPointName<JavaASTValidatorExtensionPointBean> EP_NAME = ExtensionPointName.create("com.redhat.devtools.intellij.quarkus.javaASTValidator.validator");
 
-	private List<Diagnostic> diagnostics;
-
 	private JavaDiagnosticsContext context;
 
 	protected static String validate(String valueAsString, AnnotationAttributeRule attributeRule) {
@@ -73,11 +71,9 @@ public class JavaASTValidator extends JavaRecursiveElementVisitor implements Clo
 	 * Initialize the visitor with a given context and diagnostics to update.
 	 * 
 	 * @param context     the context.
-	 * @param diagnostics the diagnostics to update.
 	 */
-	public void initialize(JavaDiagnosticsContext context, List<Diagnostic> diagnostics) {
+	public void initialize(JavaDiagnosticsContext context) {
 		this.context = context;
-		this.diagnostics = diagnostics;
 	}
 
 	/**
@@ -105,15 +101,26 @@ public class JavaASTValidator extends JavaRecursiveElementVisitor implements Clo
 
 	public Diagnostic addDiagnostic(String message, String source, int offset, int length, IJavaErrorCode code,
 			DiagnosticSeverity severity) {
-			String fileUri = context.getUri();
-			PsiFile openable = context.getTypeRoot();
-			Range range = context.getUtils().toRange(openable, offset, length);
-			Diagnostic d = context.createDiagnostic(fileUri, message, range, source, code, severity);
-			diagnostics.add(d);
-			return d;
+        return addDiagnostic(message, source, offset, length, code != null ? code.getCode() : null, severity);
 	}
+
+    public Diagnostic addDiagnostic(String message, String source, int offset, int length, String code,
+                                    DiagnosticSeverity severity) {
+        return context.addDiagnostic(message, source, offset, length, code, severity);
+    }
 
 	public JavaDiagnosticsContext getContext() {
 		return context;
 	}
+
+    @Override
+    public JavaASTValidator clone() {
+        try {
+            JavaASTValidator clone = (JavaASTValidator) super.clone();
+            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 }

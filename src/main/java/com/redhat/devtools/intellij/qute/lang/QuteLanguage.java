@@ -15,22 +15,30 @@ import com.intellij.lang.Language;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.templateLanguages.TemplateLanguage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Qute language.
  */
 public class QuteLanguage extends Language implements TemplateLanguage, InjectableLanguage {
 
+    private static final String QUTE_LANGUAGE_ID = "Qute_";
+    private static final String QUTE_LANGUAGE_ID_FROM_JETBRAINS = "Qute";
+
     @NotNull
     public static final QuteLanguage INSTANCE = new QuteLanguage();
 
     private QuteLanguage() {
-        super("Qute_");
+        super(QUTE_LANGUAGE_ID);
     }
 
     @Override
     public @NotNull
     @NlsSafe String getDisplayName() {
         return "Qute";
+    }
+
+    public static boolean isQuteLanguage(@Nullable Language language) {
+        return language != null && (QuteLanguage.INSTANCE.is(language) || QUTE_LANGUAGE_ID_FROM_JETBRAINS.equals(language.getID()));
     }
 }

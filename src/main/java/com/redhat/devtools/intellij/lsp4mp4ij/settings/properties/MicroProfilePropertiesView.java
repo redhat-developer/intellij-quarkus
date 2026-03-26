@@ -32,6 +32,10 @@ public class MicroProfilePropertiesView implements Disposable {
     private final JPanel myMainPanel;
 
     private final JBCheckBox inlayHintCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.properties.inlayHint.enabled"));
+    private final JBCheckBox inlayHintConverterCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.properties.inlayHint.converters.enabled"));
+    private final JBCheckBox inlayHintDefaultValueCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.properties.inlayHint.defaultValues.enabled"));
+    private final JBCheckBox inlayHintTypeCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.properties.inlayHint.types.enabled"));
+    private final JBCheckBox inlayHintResolveExpressionCheckBox = new JBCheckBox(MicroProfileBundle.message("microprofile.properties.inlayHint.resolveExpressions.enabled"));
 
     public MicroProfilePropertiesView() {
         JComponent descriptionPanel = createDescription(null);
@@ -47,6 +51,10 @@ public class MicroProfilePropertiesView implements Disposable {
         return FormBuilder.createFormBuilder()
                 .addComponent(description, 0)
                 .addComponent(inlayHintCheckBox, 5)
+                .addComponent(inlayHintConverterCheckBox, 5)
+                .addComponent(inlayHintDefaultValueCheckBox, 5)
+                .addComponent(inlayHintTypeCheckBox, 5)
+                .addComponent(inlayHintResolveExpressionCheckBox, 5)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
@@ -74,13 +82,44 @@ public class MicroProfilePropertiesView implements Disposable {
         return myMainPanel;
     }
 
-
     public boolean isInlayHintEnabled() {
         return inlayHintCheckBox.isSelected();
     }
 
     public void setInlayHintEnabled(boolean inlayHint) {
         inlayHintCheckBox.setSelected(inlayHint);
+    }
+
+    public boolean isInlayHintConvertersEnabled() {
+        return inlayHintConverterCheckBox.isSelected();
+    }
+
+    public void setInlayHintConvertersEnabled(boolean inlayHint) {
+        inlayHintConverterCheckBox.setSelected(inlayHint);
+    }
+
+    public boolean isInlayHintDefaultValuesEnabled() {
+        return inlayHintDefaultValueCheckBox.isSelected();
+    }
+
+    public void setInlayHintDefaultValuesEnabled(boolean inlayHint) {
+        inlayHintDefaultValueCheckBox.setSelected(inlayHint);
+    }
+
+    public boolean isInlayHintTypesEnabled() {
+        return inlayHintTypeCheckBox.isSelected();
+    }
+
+    public void setInlayHintTypesEnabled(boolean inlayHint) {
+        inlayHintTypeCheckBox.setSelected(inlayHint);
+    }
+
+    public boolean isInlayHintResolveExpressionsEnabled() {
+        return inlayHintResolveExpressionCheckBox.isSelected();
+    }
+
+    public void setInlayHintResolveExpressionsEnabled(boolean inlayHint) {
+        inlayHintResolveExpressionCheckBox.setSelected(inlayHint);
     }
 
     @Override

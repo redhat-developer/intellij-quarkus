@@ -34,7 +34,7 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends LSP4MPMavenMod
     @Test
     public void testFallbackMethodCompletion() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         String javaFileUri = getFileUri("src/main/java/org/acme/FaultTolerantResource.java", javaProject);
 
@@ -49,7 +49,7 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends LSP4MPMavenMod
     @Test
     public void testFallbackMethodCompletionBeginning() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         String javaFileUri = getFileUri("src/main/java/org/acme/FaultTolerantResource.java", javaProject);
 
@@ -65,7 +65,7 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends LSP4MPMavenMod
     @Test
     public void testFallbackMethodNoCompletionOutside() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         String javaFileUri = getFileUri("src/main/java/org/acme/FaultTolerantResource.java", javaProject);
 
@@ -76,7 +76,7 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends LSP4MPMavenMod
     @Test
     public void testFallbackMethodEmptyQuotes() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         String javaFileUri = getFileUri("src/main/java/org/acme/OtherFaultToleranceResource.java", javaProject);
 
@@ -91,7 +91,7 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends LSP4MPMavenMod
     @Test
     public void testFallbackMethodNoSpacesAroundEquals() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         String javaFileUri = getFileUri("src/main/java/org/acme/OtherFaultToleranceResource.java", javaProject);
 
@@ -106,7 +106,7 @@ public class MicroProfileFaultToleranceJavaCompletionTest extends LSP4MPMavenMod
     @Test
     public void testFallbackMethodMultiline() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.microprofile_fault_tolerance);
-        IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+        IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         String javaFileUri = getFileUri("src/main/java/org/acme/OtherFaultToleranceResource.java", javaProject);
 

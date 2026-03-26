@@ -6,6 +6,30 @@
     </vendor>
 
     <change-notes><![CDATA[
+    <h3>2.4.1</h3>
+    <ul>
+      <li>Fix Qute debugger support with Java file</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/52?closed=1">changelog</a>.
+
+    <h3>2.4.0</h3>
+    <ul>
+      <li>Compatibility with IntelliJ Platform 2025.3</li>
+      <li>Hover evaluation on Qute expressions while debugging</li>
+      <li>Improved MicroProfile value validation using converters</li>
+      <li>Richer inlay hints: converters, default values and types</li>
+      <li>Qute syntax highlighting inside @TemplateContents and @Message</li>
+      <li>Various bug fixes and stability improvements</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/51?closed=1">changelog</a>.
+
+    <h3>2.3.0</h3>
+    <ul>
+      <li>Integrate (future) Qute debugger</li>
+      <li>More bug fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/50?closed=1">changelog</a>.
+
     <h3>2.2.0</h3>
     <ul>
       <li>Qute support improvement</li>
@@ -408,13 +432,21 @@
     <depends optional="true" config-file="com.redhat.devtools.intellij.quarkus.maven.xml">org.jetbrains.idea.maven</depends>
     <depends optional="true" config-file="com.redhat.devtools.intellij.quarkus.gradle.xml">org.jetbrains.plugins.gradle</depends>
     <depends optional="true" config-file="com.redhat.devtools.intellij.quarkus.json.xml">com.intellij.modules.json</depends>
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="242.*"/>
 
+    <projectListeners>
+        <listener class="com.redhat.devtools.intellij.QuarkusModuleRootListener"
+                  topic="com.intellij.openapi.roots.ModuleRootListener"/>
+        <listener class="com.redhat.devtools.intellij.QuarkusDumbModeListener"
+                  topic="com.intellij.openapi.project.DumbService$DumbModeListener"/>
+    </projectListeners>
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.redhat.devtools.intellij.quarkus.QuarkusPostStartupActivity"/>
+
         <!-- Telemetry manager singleton -->
         <applicationService
                 serviceImplementation="com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager"/>
-
         <facetType implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFacetType"/>
         <framework.detector implementation="com.redhat.devtools.intellij.quarkus.facet.QuarkusFrameworkDetector"/>
         <moduleBuilder builderClass="com.redhat.devtools.intellij.quarkus.projectWizard.QuarkusModuleBuilder"/>
@@ -427,10 +459,15 @@
         <properties.implicitPropertyUsageProvider
                 implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
         <projectService
+                serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.ProjectLabelManager"/>
+        <projectService
                 serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager"/>
         <projectService
                 serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager"/>
-        <projectService serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport"/>
+        <projectService
+                serviceImplementation="com.redhat.devtools.intellij.quarkus.QuarkusDeploymentSupport"/>
+        <projectService
+                serviceImplementation="com.redhat.devtools.intellij.quarkus.search.QuarkusDeploymentProjectService"/>
 
         <!--Quarkus run config -->
         <programRunner implementation="com.redhat.devtools.intellij.quarkus.buildtool.gradle.GradleRunAndDebugProgramRunner"/>
@@ -449,7 +486,7 @@
         <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
         <fileType name="Qute_"
                   language="Qute_"
-                  extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml"
+                  extensions="qute.html;qute.htm;qute.json;qute.txt;qute.yaml;qute.yml;qute.md"
                   implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileType"/>
         <lang.fileViewProviderFactory language="Qute_"
                                       implementationClass="com.redhat.devtools.intellij.qute.lang.QuteFileViewProviderFactory"/>
@@ -475,7 +512,10 @@
                           implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
         <lang.substitutor language="yaml"
                           implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
+        <lang.substitutor language="Markdown"
+                          implementationClass="com.redhat.devtools.intellij.qute.lang.QuteLanguageSubstitutor"/>
         <typedHandler implementation="com.redhat.devtools.intellij.qute.editor.QuteTypedHandler"/>
+        <multiHostInjector implementation="com.redhat.devtools.intellij.qute.lang.injector.QuteLanguageInjector"/>
     </extensions>
 
     <extensionPoints>
@@ -497,6 +537,8 @@
                         interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.completion.IJavaCompletionParticipant"/>
         <extensionPoint name="javaCodeLensParticipant"
                         interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.codelens.IJavaCodeLensParticipant"/>
+        <extensionPoint name="javaInlayHintsParticipant"
+                        interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.inlayhint.IJavaInlayHintsParticipant"/>
         <extensionPoint name="configSourceProvider"
                         interface="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.IConfigSourceProvider"/>
         <extensionPoint name="javaASTValidator.validator"
@@ -506,6 +548,11 @@
         </extensionPoint>
         <extensionPoint name="javaASTValidator.annotationValidator"
                         beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.validators.annotations.AnnotationRuleExtensionPointBean"/>
+        <extensionPoint name="javaASTInlayHint.inlayHint"
+                        beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.inlahint.JavaASTInlayHintExtensionPointBean">
+            <with attribute="implementation"
+                  implements="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.inlayhint.JavaASTInlayHint"/>
+        </extensionPoint>
         <extensionPoint name="javaCodeActionParticipant"
                         beanClass="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.codeaction.JavaCodeActionDefinition">
             <with attribute="implementationClass"
@@ -530,6 +577,11 @@
                         beanClass="com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.ResolvedJavaTypeFactoryRegistry$ResolvedJavaTypeFactoryBean">
             <with attribute="implementationClass"
                   implements="com.redhat.devtools.intellij.qute.psi.internal.template.resolvedtype.IResolvedJavaTypeFactory"/>
+        </extensionPoint>
+        <extensionPoint name="qute.projectFeatureProvider"
+                        beanClass="com.redhat.devtools.intellij.qute.psi.template.project.ProjectFeatureProviderRegistry$ProjectFeatureProviderBean">
+            <with attribute="implementationClass"
+                  implements="com.redhat.devtools.intellij.qute.psi.template.project.IProjectFeatureProvider"/>
         </extensionPoint>
     </extensionPoints>
 
@@ -578,6 +630,9 @@
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.metrics.java.MicroProfileMetricsDiagnosticsParticipant"/>
         <javaDiagnosticsParticipant
                 implementation="com.redhat.devtools.intellij.quarkus.psi.internal.validators.QuarkusBuildItemDiagnosticsParticipant"/>
+
+        <javaInlayHintsParticipant
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.java.inlahint.JavaASTInlayHintsParticipant"/>
 
         <projectLabelProvider
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileProjectLabelProvider"/>
@@ -688,12 +743,15 @@
         <configSourceProvider
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.providers.MicroProfileConfigSourceProvider"/>
 
+        <!-- MicroProfile Config support -->
         <javaASTValidator.validator
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTValidator"/>
+        <javaASTInlayHint.inlayHint
+            implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.config.java.MicroProfileConfigASTInlayHint" />
+
+        <!-- MicroProfile Fault Tolerance support -->
         <javaASTValidator.validator
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.faulttolerance.java.MicroProfileFaultToleranceASTValidator"/>
-        <javaASTValidator.validator
-                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java.MicroProfileGraphQLASTValidator"/>
 
         <javaASTValidator.annotationValidator annotation="org.eclipse.microprofile.faulttolerance.CircuitBreaker"
                                               source="microprofile-faulttolerance">
@@ -720,6 +778,10 @@
         </javaASTValidator.annotationValidator>
         <javaASTValidator.validator
                 implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.reactivemessaging.java.MicroProfileReactiveMessagingASTValidator"/>
+
+        <!-- MicroProfile GraphQL support -->
+        <javaASTValidator.validator
+                implementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.graphql.java.MicroProfileGraphQLASTValidator"/>
 
         <!-- Qute -->
         <qute.templateRootPathProvider
@@ -756,25 +818,25 @@
         <qute.dataModelProvider namespaces="uri,uriabs"
                                 description="In order to generate the URI to an endpoint, in a Qute view, you can use the `uri` and `uriabs` namespace with a call to the endpoint you want to point to."
                                 url="https://github.com/quarkiverse/quarkus-renarde/blob/main/docs/modules/ROOT/pages/index.adoc#obtaining-a-uri-in-qute-views"
+                                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.MNamespaceResolverSupport"/>
+
+        <qute.dataModelProvider namespaces="m"
+                                description="Localisation / Internationalisation."
+                                url="https://docs.quarkiverse.io/quarkus-renarde/dev/advanced.html#localisation"
                                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.UriNamespaceResolverSupport"/>
         <!-- Resolved Java Type Factories for Quarkus Renarde -->
         <qute.resolvedJavaTypeFactories
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeResolvedJavaTypeFactory"/>
+        <qute.projectFeatureProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeProjectFeatureProvider" />
 
         <!-- Data model providers for Quarkus Roq -->
         <qute.dataModelProvider
-                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqDataModelProvider"/>
-        <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.DataMappingSupport"/>
+        <qute.projectFeatureProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqProjectFeatureProvider" />
 
     </extensions>
-
-    <module-components>
-        <component>
-            <implementation-class>com.redhat.devtools.intellij.quarkus.search.QuarkusModuleComponent
-            </implementation-class>
-        </component>
-    </module-components>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="/META-INF/lsp4ij-quarkus.xml"
                 xpointer="xpointer(/idea-plugin/*)"/>

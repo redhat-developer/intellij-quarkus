@@ -20,23 +20,19 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.AbstractAnnotationTypeReferencePropertiesProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesCollector;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.SearchContext;
-import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import com.redhat.microprofile.psi.quarkus.PsiQuarkusUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
+import java.util.*;
 
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotation;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.AnnotationUtils.getAnnotationMemberValue;
@@ -46,11 +42,9 @@ import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getFirstTypeParameter;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getPropertyType;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getRawResolvedTypeName;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getResolvedResultTypeName;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getResolvedTypeName;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getSourceMethod;
 import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.getSourceType;
-import static com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils.isPrimitiveType;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION_NAMING_STRATEGY;
 import static com.redhat.microprofile.psi.internal.quarkus.QuarkusConstants.CONFIG_MAPPING_ANNOTATION_PREFIX;
@@ -110,16 +104,40 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
             return;
         }
         // @ConfigMapping(prefix="server") case
-        List<PsiClass> allInterfaces = new ArrayList<>(Arrays.asList(findInterfaces(configMappingType)));
-        allInterfaces.add(0, configMappingType);
+        Set<PsiClass> allInterfaces = findInterfaces(configMappingType);
         for (PsiClass configMappingInterface : allInterfaces) {
             populateConfigObject(configMappingInterface, prefix, extensionName, new HashSet<>(),
                     configMappingAnnotation, collector);
         }
     }
 
-    private static PsiClass[] findInterfaces(PsiClass type) {
-        return type.getInterfaces();
+    private static Set<PsiClass> findInterfaces(@NotNull PsiClass type) {
+        // No reason to use a JDK interface to generate a config class? Primarily to fix the java.nio.file.Path case.
+        // see https://github.com/smallrye/smallrye-config/blob/22635f24dc7634706867cc52e28d5bd82d15f54e/implementation/src/main/java/io/smallrye/config/ConfigMappingInterface.java#L782C9-L783C58
+        if (type.getQualifiedName() == null || type.getQualifiedName().startsWith("java")) {
+            return Collections.emptySet();
+        }
+        Set<PsiClass> result = new HashSet<>();
+        result.add(type);
+        collectInterfaces(type, result);
+        return result;
+    }
+
+    private static void collectInterfaces(@Nullable PsiClass cls, @NotNull Set<PsiClass> result) {
+        if (cls == null) return;
+
+        // Direct interfaces
+        for (PsiClass iface : cls.getInterfaces()) {
+            if (result.add(iface)) {
+                collectInterfaces(iface, result);
+            }
+        }
+
+        // Parent interfaces
+        PsiClass superClass = cls.getSuperClass();
+        if (superClass != null) {
+            collectInterfaces(superClass, result);
+        }
     }
 
     private void populateConfigObject(PsiClass configMappingType, String prefixStr, String extensionName,
@@ -133,7 +151,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
         for (PsiElement child : elements) {
             if (child instanceof PsiMethod method) {
                 if (method.getReturnType() == null || method.getModifierList().hasExplicitModifier(PsiModifier.DEFAULT) || method.hasParameters()
-                        || PsiTypeUtils.isVoidReturnType(method)) {
+                        || PsiTypeUtils.isVoidReturnType(method) || method.hasModifierProperty(PsiModifier.STATIC)) {
                     continue;
                 }
 
@@ -150,24 +168,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
                 }
 
                 PsiClass returnType = findType(method.getManager(), resolvedTypeSignature);
-                boolean simpleType = isSimpleType(resolvedTypeSignature, returnType);
-
-                if (!simpleType) {
-                    if (returnType != null
-                            && !returnType.isInterface()) {
-                        // When type is not an interface, it requires Converters
-                        // ex :
-                        // interface Server {Log log; class Log {}}
-                        // throw the error;
-                        // java.lang.IllegalArgumentException: SRCFG00013: No Converter registered for
-                        // class org.acme.Server2$Log
-                        // at
-                        // io.smallrye.config.SmallRyeConfig.requireConverter(SmallRyeConfig.java:466)
-                        // at
-                        // io.smallrye.config.ConfigMappingContext.getConverter(ConfigMappingContext.java:113)
-                        continue;
-                    }
-                }
+                boolean leafType = isLeafType( returnType);
 
                 String defaultValue = getWithDefault(method);
                 String propertyName = getPropertyName(method, prefixStr, configMappingAnnotation);
@@ -185,46 +186,57 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
                 PsiClass enclosedType = getEnclosedType(returnType, resolvedTypeSignature, method.getManager());
                 super.updateHint(collector, enclosedType);
 
-                if (!simpleType) {
+                boolean iterable = false;
+                if (!leafType) {
                     if (isMap(returnType, resolvedTypeSignature)) {
+                        iterable = true;
                         // Map<String, String>
+                        // Map<String, SomeConfig>
                         propertyName += ".{*}";
-                        simpleType = true;
+                        var parameters = ((PsiClassType) psiType).getParameters();
+                        if (parameters.length > 1) {
+                            returnType = (parameters[1] instanceof PsiClassReferenceType parameterClassType) ? parameterClassType.resolve() : null;
+                            leafType = isLeafType(returnType);
+                        } else {
+                            leafType = false;
+                        }
                     } else if (isCollection(returnType, resolvedTypeSignature)) {
+                        iterable = true;
                         // List<String>, List<App>
                         propertyName += "[*]"; // Generate indexed property.
-                        String genericTypeName = getResolvedTypeName(((PsiClassType) psiType).getParameters()[0]);
-                        resolvedTypeSignature = getRawResolvedTypeName(((PsiClassType) psiType).getParameters()[0]);
-                        returnType = findType(method.getManager(), resolvedTypeSignature);
-                        simpleType = isSimpleType(resolvedTypeSignature, returnType);
+                        var parameters = ((PsiClassType) psiType).getParameters();
+                        if (parameters.length > 0) {
+                            returnType = (parameters[0] instanceof PsiClassReferenceType parameterClassType) ? parameterClassType.resolve() : null;
+                            leafType = isLeafType(returnType);
+                        } else {
+                            leafType = false;
+                        }
                     }
                 }
 
-                if (simpleType) {
-                    // String, int, Optional, etc
+                if (leafType) {
+                    // String, int, Optional, or Class (not interface)
                     ItemMetadata metadata = super.addItemMetadata(collector, propertyName, type, description,
                             sourceType, null, sourceMethod, defaultValue, extensionName, PsiTypeUtils.isBinary(method));
                     PsiQuarkusUtils.updateConverterKinds(metadata, method, enclosedType);
                 } else {
-                    // Other type (App, etc)
-                    populateConfigObject(returnType, propertyName, extensionName, typesAlreadyProcessed,
-                            configMappingAnnotation, collector);
+                    // Other type (App interface, etc)
+                    Set<PsiClass> allInterfaces = findInterfaces(returnType);
+                    for (PsiClass configMappingInterface : allInterfaces) {
+                        populateConfigObject(configMappingInterface, propertyName, extensionName, new HashSet<>(),
+                                configMappingAnnotation, collector);
+                    }
                 }
             }
         }
     }
 
-    private boolean isSimpleType(String resolvedTypeSignature, PsiClass returnType) {
-        return returnType == null
-                || isPrimitiveType(resolvedTypeSignature)
-                || isSimpleOptionalType(resolvedTypeSignature)
-                || returnType.isEnum();
-    }
-
-    private boolean isSimpleOptionalType(String resolvedTypeSignature) {
-        return "java.util.OptionalInt".equals(resolvedTypeSignature)
-                || "java.util.OptionalDouble".equals(resolvedTypeSignature)
-                || "java.util.OptionalLong".equals(resolvedTypeSignature);
+    /**
+     * Returns true if the given return type should be treated as a leaf in the configuration tree,
+     * i.e. it is null or not an interface, and therefore not recursively visited.
+     */
+    private static boolean isLeafType(@Nullable PsiClass returnType) {
+        return returnType == null || !returnType.isInterface();
     }
 
     private static boolean isMap(PsiClass type, String typeName) {

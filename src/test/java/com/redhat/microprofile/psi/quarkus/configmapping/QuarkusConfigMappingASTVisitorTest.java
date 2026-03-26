@@ -43,7 +43,7 @@ public class QuarkusConfigMappingASTVisitorTest extends QuarkusMavenModuleImport
 	public void testExpectedInterface() throws Exception {
 
 		Module javaProject = loadMavenProject(QuarkusMavenProjectName.config_mapping);
-		IPsiUtils utils = PsiUtilsLSImpl.getInstance(myProject);
+		IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 		MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
 
 		String javaFileUri = getFileUri("src/main/java/org/acme/validation/ServerClass.java", javaProject);
