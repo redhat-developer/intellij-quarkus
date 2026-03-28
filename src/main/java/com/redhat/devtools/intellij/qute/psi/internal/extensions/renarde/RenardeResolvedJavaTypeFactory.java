@@ -36,6 +36,8 @@ import com.redhat.qute.commons.jaxrs.RestParam;
  */
 public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFactory {
 
+	private static final String JAVA_NET_URI = "java.net.URI";
+
 	private static final String JAVAX_WS_RS_POST_ANNOTATION = "javax.ws.rs.POST";
 	private static final String JAKARTA_WS_RS_POST_ANNOTATION = "jakarta.ws.rs.POST";
 
@@ -97,6 +99,8 @@ public class RenardeResolvedJavaTypeFactory extends AbstractResolvedJavaTypeFact
 			methodKind = JaxRsMethodKind.POST;
 		}
 		info.setJaxRsMethodKind(methodKind);
+		// Override return type of renarde controller as URI
+		info.setReturnType(JAVA_NET_URI);
 		try {
 			Map<String, RestParam> restParameters = null;
 			PsiParameter[] parameters = method.getParameterList().getParameters();
