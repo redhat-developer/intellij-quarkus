@@ -68,6 +68,7 @@
                 id="QuteLSPLocalInspectionTool"
                 language="Qute_"
                 bundle="messages.QuteBundle"
+                key="qute.templates.inspection"
                 groupName="Qute"
                 displayName="Templates"
                 enabledByDefault="true"
