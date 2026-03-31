@@ -830,6 +830,10 @@
         <qute.projectFeatureProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.renarde.RenardeProjectFeatureProvider" />
 
+        <!-- Quarkus Flags -->
+        <qute.projectFeatureProvider
+                implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.flags.FlagsProjectFeatureProvider" />
+
         <!-- Data model providers for Quarkus Roq -->
         <qute.dataModelProvider
                 implementationClass="com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.DataMappingSupport"/>
