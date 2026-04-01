@@ -11,7 +11,6 @@
 package com.redhat.devtools.intellij.qute.lang;
 
 import com.intellij.lang.Language;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -52,7 +51,6 @@ public class QuteLanguageSubstitutor extends LanguageSubstitutor {
             // File is inside a JAR archive in 'templates' JAR entry
             return hasQuteSupport(project) ? QuteLanguage.INSTANCE : null;
         }
-
         Module module = LSPIJUtils.getModule(file, project);
         if (module != null) {
             if (hasQuteSupport(module) && isQuteTemplate(file, module)) {

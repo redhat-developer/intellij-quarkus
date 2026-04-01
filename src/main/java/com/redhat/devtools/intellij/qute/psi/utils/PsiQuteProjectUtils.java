@@ -301,13 +301,32 @@ public class PsiQuteProjectUtils {
         if (projectInfo == null) {
             return false;
         }
-        Path templatePath = Paths.get(file.getPath());
+
+        if (file.isInLocalFileSystem()) {
+            // Local file system
+            Path templatePath = Paths.get(file.getPath());
+            for (TemplateRootPath rootPath : projectInfo.getTemplateRootPaths()) {
+                if (rootPath.isIncluded(templatePath)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Ex: WSL
+        URI templatePath = LSPIJUtils.toUri(file);
         for (TemplateRootPath rootPath : projectInfo.getTemplateRootPaths()) {
-            if (rootPath.isIncluded(templatePath)) {
+            URI rootPathUri = URI.create(rootPath.getBaseDir());
+            if (uriIncludes(rootPathUri, templatePath)) {
                 return true;
             }
         }
+
         return false;
+    }
+
+    private static boolean uriIncludes(URI parent, URI child) {
+        return child.getPath().startsWith(parent.getPath());
     }
 
     public static TemplatePathInfo getTemplatePath(@Nullable String templatesBaseDir, @Nullable String basePath, @Nullable String className, @Nullable String methodOrFieldName, boolean ignoreFragments, @NotNull TemplateNameStrategy templateNameStrategy) {
