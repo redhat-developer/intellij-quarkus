@@ -14,11 +14,14 @@
 package com.redhat.devtools.intellij.qute.settings;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.redhat.devtools.lsp4ij.ui.components.InspectionHyperlink;
 import com.redhat.devtools.intellij.qute.QuteBundle;
+import com.redhat.qute.settings.QuteFormattingSettings;
 
 import javax.swing.*;
 
@@ -30,6 +33,8 @@ public class QuteView implements Disposable {
     private final JPanel myMainPanel;
 
     private JBCheckBox nativeModeSupportEnabledCheckBox = new JBCheckBox(QuteBundle.message("qute.setting.validation.native.enabled"));
+    private ComboBox<QuteFormattingSettings.SplitSectionParameters> splitSectionParametersComboBox;
+    private JBTextField splitSectionParametersIndentSizeField;
 
     public QuteView() {
         this.myMainPanel = JBUI.Panels.simplePanel(10,10)
@@ -37,9 +42,16 @@ public class QuteView implements Disposable {
     }
 
     private JPanel createSettings() {
+        splitSectionParametersComboBox = new ComboBox<>(QuteFormattingSettings.SplitSectionParameters.values());
+        splitSectionParametersIndentSizeField = new JBTextField();
+        splitSectionParametersIndentSizeField.setColumns(5);
+
         return FormBuilder.createFormBuilder()
                 .addComponent(new InspectionHyperlink(QuteBundle.message("qute.inspection.link"), "Qute"))
                 .addComponent(nativeModeSupportEnabledCheckBox)
+                .addSeparator()
+                .addLabeledComponent("Split section parameters:", splitSectionParametersComboBox)
+                .addLabeledComponent("Indent size:", splitSectionParametersIndentSizeField)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
@@ -59,5 +71,25 @@ public class QuteView implements Disposable {
 
     public void setNativeModeSupportEnabled(boolean enabled) {
         nativeModeSupportEnabledCheckBox.setSelected(enabled);
+    }
+
+    public QuteFormattingSettings.SplitSectionParameters getSplitSectionParameters() {
+        return (QuteFormattingSettings.SplitSectionParameters) splitSectionParametersComboBox.getSelectedItem();
+    }
+
+    public void setSplitSectionParameters(QuteFormattingSettings.SplitSectionParameters splitSectionParameters) {
+        splitSectionParametersComboBox.setSelectedItem(splitSectionParameters);
+    }
+
+    public int getSplitSectionParametersIndentSize() {
+        try {
+            return Integer.parseInt(splitSectionParametersIndentSizeField.getText());
+        } catch (NumberFormatException e) {
+            return 2; // default
+        }
+    }
+
+    public void setSplitSectionParametersIndentSize(int indentSize) {
+        splitSectionParametersIndentSizeField.setText(String.valueOf(indentSize));
     }
 }

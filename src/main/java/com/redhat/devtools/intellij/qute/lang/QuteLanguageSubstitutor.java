@@ -53,22 +53,20 @@ public class QuteLanguageSubstitutor extends LanguageSubstitutor {
         }
         if (!file.isInLocalFileSystem()) {
             // Ignore non-local file system. This file could come from:
-            // -  JAR archive which is not a Qute template (ex: jar://foo.html)
+            // - JAR archive which is not a Qute template (ex: jar://foo.html)
             // - LightVirtualFile
             return null;
         }
 
-        // Early return: check project-level Qute support (fast, no read action)
+        // Check project-level Qute support (fast, cached)
         if (!hasQuteSupport(project)) {
             return null;
         }
 
-        // Now check module-level (requires read action)
+        // Check module-level support and if file is a Qute template
         Module module = LSPIJUtils.getModule(file, project);
-        if (module != null) {
-            if (hasQuteSupport(module) && isQuteTemplate(file, module)) {
-                return QuteLanguage.INSTANCE;
-            }
+        if (module != null && hasQuteSupport(module) && isQuteTemplate(file, module)) {
+            return QuteLanguage.INSTANCE;
         }
         return null;
     }
