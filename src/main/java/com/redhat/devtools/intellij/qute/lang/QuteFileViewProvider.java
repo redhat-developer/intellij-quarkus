@@ -84,6 +84,12 @@ public class QuteFileViewProvider
      * When Qute content is injected into a Java file, the template
      * language is retrieved from the injection host via
      * {@link #TEMPLATE_LANGUAGE_KEY}.
+     * <p>
+     * <strong>Conflict handling with JetBrains Quarkus plugin:</strong>
+     * If the JetBrains Quarkus plugin is installed, it may register its own
+     * "Qute" language for template files. We filter this out and return
+     * {@link QuteLanguage#INSTANCE} instead to avoid creating multiple
+     * {@link QuteFileViewProvider} instances with different template languages.
      *
      * @param file    the virtual file
      * @param project the current project
@@ -100,6 +106,13 @@ public class QuteFileViewProvider
                 ? ((LanguageFileType) fileType).getLanguage()
                 : QuteLanguage.INSTANCE;
 
+        // Filter out Qute languages (Red Hat "Qute_" or JetBrains "Qute") to get the real template language
+        // This happens when both plugins are installed and JetBrains associates its "Qute" language to .html files
+        if (QuteLanguage.isQuteLanguage(language)) {
+            // Find the real language based on file extension
+            language = getLanguageByExtension(fileExtension);
+        }
+
         if (language.is(JavaLanguage.INSTANCE) && file instanceof VirtualFileWindow) {
             // Injected Qute content inside a Java file:
             // retrieve the template language from the injection host.
@@ -111,6 +124,31 @@ public class QuteFileViewProvider
                     : PlainTextLanguage.INSTANCE;
         }
         return language;
+    }
+
+    /**
+     * Returns the language associated with a file extension, bypassing FileTypeManager
+     * to avoid conflicts when multiple plugins register the same extension.
+     *
+     * @param extension the file extension (without dot), can be null
+     * @return the language for this extension, or QuteLanguage.INSTANCE as fallback
+     */
+    private static @NotNull Language getLanguageByExtension(@Nullable String extension) {
+        if (extension == null) {
+            return QuteLanguage.INSTANCE;
+        }
+
+        // Map common template file extensions to their languages
+        Language lang = switch (extension.toLowerCase()) {
+            case "html", "htm" -> Language.findLanguageByID("HTML");
+            case "yaml", "yml" -> Language.findLanguageByID("yaml");
+            case "json" -> Language.findLanguageByID("JSON");
+            case "txt" -> Language.findLanguageByID("TEXT");
+            case "md" -> Language.findLanguageByID("Markdown");
+            default -> null;
+        };
+
+        return lang != null ? lang : QuteLanguage.INSTANCE;
     }
 
     @Override

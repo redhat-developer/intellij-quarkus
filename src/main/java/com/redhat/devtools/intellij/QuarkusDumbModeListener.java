@@ -40,11 +40,13 @@ public class QuarkusDumbModeListener implements DumbService.DumbModeListener {
 
     /**
      * Called when IntelliJ exits dumb mode (i.e. indexing is complete).
-     * Invalidates the Qute and Quarkus support caches so they are recomputed on the next access.
+     * Invalidates the Quarkus support cache so it is recomputed on the next access.
+     *
+     * <p>Note: Qute support cache is automatically invalidated via {@link com.intellij.psi.util.CachedValuesManager}
+     * when module roots change, so no manual invalidation is needed.</p>
      */
     @Override
     public void exitDumbMode() {
-        PsiQuteProjectUtils.invalidateCache(project);
         QuarkusModuleUtil.invalidateCache(project);
     }
 }

@@ -31,7 +31,10 @@ public class QuarkusModuleRootListener implements ModuleRootListener {
 
     /**
      * Called when the module roots change (e.g. a dependency is added or removed).
-     * Invalidates the Qute and Quarkus support caches so they are recomputed on the next access.
+     * Invalidates the Quarkus support cache so it is recomputed on the next access.
+     *
+     * <p>Note: Qute support cache is automatically invalidated via {@link com.intellij.psi.util.CachedValuesManager}
+     * when module roots change, so no manual invalidation is needed.</p>
      *
      * @param event the module root event, must not be null.
      */
@@ -39,7 +42,6 @@ public class QuarkusModuleRootListener implements ModuleRootListener {
     public void rootsChanged(@NotNull ModuleRootEvent event) {
         Object source = event.getSource();
         if (source instanceof Project project) {
-            PsiQuteProjectUtils.invalidateCache(project);
             QuarkusModuleUtil.invalidateCache(project);
         }
     }
