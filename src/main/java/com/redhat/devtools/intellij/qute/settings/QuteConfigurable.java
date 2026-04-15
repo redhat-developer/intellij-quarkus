@@ -66,13 +66,17 @@ public class QuteConfigurable extends NamedConfigurable<UserDefinedQuteSettings>
         if (myView == null) return;
         UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
         myView.setNativeModeSupportEnabled(settings.isNativeModeSupportEnabled());
+        myView.setSplitSectionParameters(settings.getSplitSectionParameters());
+        myView.setSplitSectionParametersIndentSize(settings.getSplitSectionParametersIndentSize());
     }
 
     @Override
     public boolean isModified() {
         if (myView == null) return false;
         UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
-        return myView.isNativeModeSupportEnabled() != settings.isNativeModeSupportEnabled();
+        return myView.isNativeModeSupportEnabled() != settings.isNativeModeSupportEnabled()
+                || myView.getSplitSectionParameters() != settings.getSplitSectionParameters()
+                || myView.getSplitSectionParametersIndentSize() != settings.getSplitSectionParametersIndentSize();
     }
 
     @Override
@@ -80,6 +84,8 @@ public class QuteConfigurable extends NamedConfigurable<UserDefinedQuteSettings>
         if (myView == null) return;
         UserDefinedQuteSettings settings = UserDefinedQuteSettings.getInstance(project);
         settings.setNativeModeSupportEnabled(myView.isNativeModeSupportEnabled());
+        settings.setSplitSectionParameters(myView.getSplitSectionParameters());
+        settings.setSplitSectionParametersIndentSize(myView.getSplitSectionParametersIndentSize());
         settings.fireStateChanged();
     }
 }

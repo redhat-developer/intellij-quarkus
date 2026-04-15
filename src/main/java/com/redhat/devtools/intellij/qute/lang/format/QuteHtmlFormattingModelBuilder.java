@@ -27,7 +27,7 @@ import static com.intellij.psi.formatter.WrappingUtil.getWrapType;
  * Template aware formatter which provides formatting for Qute syntax and delegates formatting
  * for the templated language to that languages formatter
  * <p>
- * This class is a copy/paste from https://github.com/JetBrains/intellij-plugins/blob/master/Qute/src/com/dmarcotte/Qute/format/HbFormattingModelBuilder.java adapted for Qute.
+ * This class is a copy/paste from <a href="https://github.com/JetBrains/intellij-plugins/blob/master/handlebars/src/com/dmarcotte/Qute/format/HbFormattingModelBuilder.java">HbFormattingModelBuilder.java</a> adapted for Qute.
  */
 public class QuteHtmlFormattingModelBuilder extends TemplateLanguageFormattingModelBuilder {
 

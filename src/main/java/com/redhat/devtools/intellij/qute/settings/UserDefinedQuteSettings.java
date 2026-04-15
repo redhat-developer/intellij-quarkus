@@ -20,6 +20,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.redhat.devtools.lsp4ij.features.diagnostics.SeverityMapping;
+import com.redhat.qute.settings.QuteFormattingSettings;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -152,6 +153,12 @@ public class UserDefinedQuteSettings implements PersistentStateComponent<UserDef
         //Native mode support
         qute.put("native", Collections.singletonMap("enabled", isNativeModeSupportEnabled()));
 
+        // Formatting
+        Map<String, Object> format = new HashMap<>();
+        qute.put("format", format);
+        format.put("splitSectionParameters", getSplitSectionParameters().name());
+        format.put("splitSectionParametersIndentSize", getSplitSectionParametersIndentSize());
+
         // Validation
         Map<String, Object> validation = new HashMap<>();
         qute.put("validation", validation);
@@ -177,6 +184,26 @@ public class UserDefinedQuteSettings implements PersistentStateComponent<UserDef
         myState.myNativeModeSupportEnabled = nativeModeSupportEnabled;
     }
 
+    public QuteFormattingSettings.SplitSectionParameters getSplitSectionParameters() {
+        try {
+            return QuteFormattingSettings.SplitSectionParameters.valueOf(myState.mySplitSectionParameters);
+        } catch (IllegalArgumentException e) {
+            return QuteFormattingSettings.SplitSectionParameters.preserve;
+        }
+    }
+
+    public void setSplitSectionParameters(QuteFormattingSettings.SplitSectionParameters splitSectionParameters) {
+        myState.mySplitSectionParameters = splitSectionParameters.name();
+    }
+
+    public int getSplitSectionParametersIndentSize() {
+        return myState.mySplitSectionParametersIndentSize;
+    }
+
+    public void setSplitSectionParametersIndentSize(int splitSectionParametersIndentSize) {
+        myState.mySplitSectionParametersIndentSize = splitSectionParametersIndentSize;
+    }
+
     public static class MyState {
 
         @Tag("validationEnabled")
@@ -184,6 +211,12 @@ public class UserDefinedQuteSettings implements PersistentStateComponent<UserDef
 
         @Tag("nativeModeSupportEnabled")
         public boolean myNativeModeSupportEnabled;
+
+        @Tag("splitSectionParameters")
+        public String mySplitSectionParameters = QuteFormattingSettings.SplitSectionParameters.preserve.name();
+
+        @Tag("splitSectionParametersIndentSize")
+        public int mySplitSectionParametersIndentSize = 2;
 
         MyState() {
         }

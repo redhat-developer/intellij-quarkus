@@ -11,7 +11,7 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.utils;
 
-import com.intellij.openapi.application.Application;
+import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
@@ -20,12 +20,16 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.openapi.roots.PackageIndex;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
+import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.devtools.intellij.qute.psi.internal.template.rootpath.TemplateRootPathProviderRegistry;
 import com.redhat.devtools.intellij.qute.psi.template.project.ProjectFeatureProviderRegistry;
 import com.redhat.devtools.lsp4ij.LSPIJUtils;
@@ -62,10 +66,8 @@ public class PsiQuteProjectUtils {
      */
     private static final String DEFAULTED = "<<defaulted>>";
 
-    /**
-     * Qute core package name used to detect if Qute is available in the project.
-     */
-    private static final String QUTE_CORE_PACKAGE = "io.quarkus.qute";
+    private static final Key<CachedValue<Boolean>> QUTE_PROJECT_KEY = Key.create("quteProject");
+    private static final Key<CachedValue<Boolean>> QUTE_SUPPORT_KEY = Key.create("quteSupport");
 
     private PsiQuteProjectUtils() {
     }
@@ -74,8 +76,8 @@ public class PsiQuteProjectUtils {
      * Returns true if the given project has Qute support (i.e. at least one module
      * has the Qute library in its dependencies), false otherwise.
      *
-     * <p>This method uses {@link PackageIndex} to check for the presence of the Qute
-     * core package, avoiding the need for explicit read actions and manual cache management.</p>
+     * <p>The result is cached using {@link CachedValuesManager} and invalidated when
+     * project root changes (dependencies added/removed).</p>
      *
      * @param project the project to check, must not be null.
      * @return true if the project has Qute support, false otherwise.
@@ -84,30 +86,25 @@ public class PsiQuteProjectUtils {
         if (project.isDefault()) {
             return false;
         }
-        return PackageIndex.getInstance(project)
-                .getDirectoriesByPackageName(QUTE_CORE_PACKAGE, true).length > 0;
+        CachedValuesManager manager = CachedValuesManager.getManager(project);
+        return manager.getCachedValue(project, QUTE_PROJECT_KEY, () -> {
+            boolean result = false;
+            for (Module m : ModuleManager.getInstance(project).getModules()) {
+                if (hasQuteSupport(m)) {
+                    result = true;
+                    break;
+                }
+            }
+            return CachedValueProvider.Result.create(result, ProjectRootManager.getInstance(project));
+        }, false);
     }
 
     /**
      * Returns true if the given module has Qute support (i.e. the Qute library is present
      * in its dependencies), false otherwise.
      *
-     * <p>This method uses {@link PackageIndex} to check for the presence of the Qute
-     * core package in the module's scope, avoiding the need for explicit read actions
-     * and manual cache management.</p>
-     *
-     * @param javaProject the module to check, must not be null.
-     * @return true if the module has Qute support, false otherwise.
-     */
-    /**
-     * Returns true if the given module has Qute support (i.e. the Qute library is present
-     * in its dependencies), false otherwise.
-     *
-     * <p>This method uses {@link PackageIndex} to check for the presence of the Qute
-     * core package in the module's scope.</p>
-     *
-     * <p><strong>Note:</strong> This method requires a read action to access the module scope.
-     * For quick checks without read action, use {@link #hasQuteSupport(Project)} instead.</p>
+     * <p>The result is cached using {@link CachedValuesManager} and invalidated when
+     * module dependencies change.</p>
      *
      * @param javaProject the module to check, must not be null.
      * @return true if the module has Qute support, false otherwise.
@@ -116,27 +113,11 @@ public class PsiQuteProjectUtils {
         if (javaProject == null || javaProject.getProject().isDefault()) {
             return false;
         }
-
-        if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-            // Read action is not allowed, check if project has Qute support
-            return hasQuteSupport(javaProject.getProject());
-        }
-
-        VirtualFile[] dirs = PackageIndex.getInstance(javaProject.getProject())
-                .getDirectoriesByPackageName(QUTE_CORE_PACKAGE, true);
-
-        if (dirs.length == 0) {
-            return false;
-        }
-
-        // Check if any directory is in the module's scope
-        GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(javaProject);
-        for (VirtualFile dir : dirs) {
-            if (scope.contains(dir)) {
-                return true;
-            }
-        }
-        return false;
+        CachedValuesManager manager = CachedValuesManager.getManager(javaProject.getProject());
+        return manager.getCachedValue(javaProject, QUTE_SUPPORT_KEY, () -> {
+            boolean result = JavaLibraryUtil.hasAnyLibraryJar(javaProject, QuteJavaConstants.QUTE_MAVEN_COORDS);
+            return CachedValueProvider.Result.create(result, ProjectRootManager.getInstance(javaProject.getProject()));
+        }, false);
     }
 
     public static ProjectInfo getProjectInfo(@NotNull Module javaProject) {
