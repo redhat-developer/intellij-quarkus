@@ -26,7 +26,6 @@ public class DefaultTemplateRootPathProvider implements ITemplateRootPathProvide
 
 	private static final String ORIGIN = "core";
 	public static final String TEMPLATES_FOLDER_NAME = "templates/";
-	public static final String TEMPLATES_BASE_DIR = TemplateRootPath.RESOURCE_DIR + "templates/";
 
 	@Override
 	public boolean isApplicable(Module project) {

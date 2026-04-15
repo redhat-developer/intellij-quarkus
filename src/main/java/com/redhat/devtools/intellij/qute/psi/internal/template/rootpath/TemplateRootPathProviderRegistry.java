@@ -13,6 +13,8 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.qute.psi.internal.template.rootpath;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.KeyedLazyInstanceEP;
@@ -58,10 +60,18 @@ public class TemplateRootPathProviderRegistry extends AbstractQuteExtensionPoint
     /**
      * Returns the template root path list for the given java project.
      *
+     * <p>This method ensures it runs within a read action to prevent threading issues.</p>
+     *
      * @param javaProject the java project.
      * @return the template root path list for the given java project.
      */
     public List<TemplateRootPath> getTemplateRootPaths(Module javaProject) {
+        return ApplicationManager.getApplication().isReadAccessAllowed() ?
+                internalGetTemplateRootPaths(javaProject) :
+                ReadAction.compute(() -> internalGetTemplateRootPaths(javaProject));
+    }
+
+    private List<TemplateRootPath> internalGetTemplateRootPaths(Module javaProject) {
         List<TemplateRootPath> rootPaths = new ArrayList<>();
         for (ITemplateRootPathProvider provider : super.getProviders()) {
             if (provider.isApplicable(javaProject)) {
