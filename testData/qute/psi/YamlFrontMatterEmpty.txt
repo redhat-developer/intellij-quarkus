@@ -1,0 +1,7 @@
+QUTE_FILE
+  ASTWrapperPsiElement(QuteElementType.QUTE_CONTENT)
+    PsiElement(QuteElementType.QUTE_LANGUAGE_INJECTION_START)('---\n')
+    PsiElement(QuteElementType.QUTE_YAML_STRING)('---')
+    PsiElement(QuteElementType.QUTE_YAML_WHITESPACE)('\n')
+    PsiElement(QuteElementType.QUTE_YAML_KEY)('<h1>Hello World</h1>')
+    PsiElement(QuteElementType.QUTE_YAML_WHITESPACE)('\n')

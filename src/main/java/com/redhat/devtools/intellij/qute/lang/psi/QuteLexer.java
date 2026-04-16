@@ -11,18 +11,30 @@
 package com.redhat.devtools.intellij.qute.lang.psi;
 
 import com.intellij.lexer.LexerBase;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.tree.IElementType;
+import com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqUtils;
+import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.scanner.ScannerState;
 import com.redhat.qute.parser.template.scanner.TemplateScanner;
 import com.redhat.qute.parser.template.scanner.TokenType;
+import com.redhat.qute.project.extensions.roq.frontmatter.YamlFrontMatterDetector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Qute lexer based on the Qute LS scanner to parse Qute template.
  */
 public class QuteLexer extends LexerBase {
 
+    public static final List<InjectionDetector> YAML_FRONT_MATTER_DETECTORS = Collections.singletonList(new YamlFrontMatterDetector());
+    private final Collection<InjectionDetector> injectors;
     private IElementType myTokenType;
     private CharSequence myText;
 
@@ -40,6 +52,23 @@ public class QuteLexer extends LexerBase {
     private int startExpressionOffset = -1;
 
     private int startTagOpenOffset;
+    private int startLanguageInjectionOffset;
+
+    public QuteLexer(@NotNull Module module) {
+        this(RoqUtils.isRoqProject(module));
+    }
+
+    public QuteLexer(@NotNull Project project) {
+        this(RoqUtils.isRoqProject(project));
+    }
+
+    public QuteLexer() {
+        this(false);
+    }
+
+    public QuteLexer(boolean roqSupport) {
+        injectors = roqSupport ? YAML_FRONT_MATTER_DETECTORS : Collections.emptyList();
+    }
 
     @Override
     public void start(@NotNull CharSequence buffer, int startOffset, int endOffset, int initialState) {
@@ -48,8 +77,9 @@ public class QuteLexer extends LexerBase {
         myBufferEnd = endOffset;
         startTagOpenOffset = -1;
         startExpressionOffset = -1;
+        startLanguageInjectionOffset = -1;
         currentSubLexer = null;
-        scanner = (TemplateScanner) TemplateScanner.createScanner(buffer.subSequence(0, endOffset).toString(), startOffset);
+        scanner = (TemplateScanner) TemplateScanner.createScanner(buffer.subSequence(0, endOffset).toString(), startOffset, injectors);
         myTokenType = null;
     }
 
@@ -101,7 +131,10 @@ public class QuteLexer extends LexerBase {
         if (myFailed) return;
 
         try {
-            if (startExpressionOffset != -1 && currentSubLexer == null) {
+            if (startLanguageInjectionOffset != -1 && currentSubLexer == null) {
+                // create a sub lexer to parse content of Qute expression (ex: {|foo.bar(0)|})
+                currentSubLexer = new QuteLexerForLanguageInjection(myText.toString(), scanner, startLanguageInjectionOffset);
+            } else  if (startExpressionOffset != -1 && currentSubLexer == null) {
                 // create a sub lexer to parse content of Qute expression (ex: {|foo.bar(0)|})
                 currentSubLexer = new QuteLexerForExpression(myText.toString(), scanner, startExpressionOffset);
             } else if (startTagOpenOffset != -1 && currentSubLexer == null) {
@@ -113,10 +146,21 @@ public class QuteLexer extends LexerBase {
                 // parse content of expression or content of Qute start section
                 myTokenType = currentSubLexer.getTokenType();
                 if (myTokenType == null) {
-                    // The parse of the content is fisnished, we can continue to parse another tokens of the template.
-                    continueToScanTemplate = true;
+                    // The parse of the content is finished, we can continue to parse another tokens of the template.
+                    // IMPORTANT: Update myTokenEnd even when token is null to ensure we're at the right position
+                    myTokenEnd = currentSubLexer.getTokenEnd();
+
+                    // If we've reached the buffer end, don't try to scan more
+                    if (myTokenEnd >= myBufferEnd) {
+                        myTokenEnd = myBufferEnd;
+                        continueToScanTemplate = false;
+                    } else {
+                        continueToScanTemplate = true;
+                    }
+
                     startExpressionOffset = -1;
                     startTagOpenOffset = -1;
+                    startLanguageInjectionOffset = -1;
                     currentSubLexer = null;
                 } else {
                     // collect token from the sub lexer
@@ -145,10 +189,20 @@ public class QuteLexer extends LexerBase {
                             // We will return this token and for the next iteration we will use a sub lexer
                             // to parse start tag content
                             startTagOpenOffset = scanner.getTokenEnd();
+                        } else if (myTokenType == QuteTokenType.QUTE_LANGUAGE_INJECTION_START) {
+                            // It is a start tag (ex : |{#|let ...},
+                            // We will return this token and for the next iteration we will use a sub lexer
+                            // to parse start tag content
+                            startLanguageInjectionOffset = scanner.getTokenEnd();
                         }
                         break;
                     }
                     tokenType = scanner.scan();
+                }
+                if (tokenType == TokenType.EOS) {
+                    // Reached end of stream - set myTokenEnd to buffer end so IntelliJ knows we consumed everything
+                    myTokenType = null;
+                    myTokenEnd = myBufferEnd;
                 }
             }
         } catch (ProcessCanceledException e) {
@@ -168,43 +222,29 @@ public class QuteLexer extends LexerBase {
      * @return the IJ {@link IElementType} from the given Qute parser token type.
      */
     static IElementType getTokenType(TokenType tokenType) {
-        switch (tokenType) {
-            case StartComment:
-                return QuteTokenType.QUTE_COMMENT_START;
-            case Comment:
-                return QuteElementTypes.QUTE_COMMENT;
-            case EndComment:
-                return QuteTokenType.QUTE_COMMENT_END;
-            case StartParameterDeclaration:
-                return QuteTokenType.QUTE_START_PARAMETER_DECLARATION;
-            case ParameterDeclaration:
-                return QuteTokenType.QUTE_PARAMETER_DECLARATION;
-            case EndParameterDeclaration:
-                return QuteTokenType.QUTE_END_PARAMETER_DECLARATION;
-            case StartExpression:
-                return QuteTokenType.QUTE_START_EXPRESSION;
-            case EndExpression:
-                return QuteTokenType.QUTE_END_EXPRESSION;
-            case StartTagOpen:
-                return QuteTokenType.QUTE_START_TAG_OPEN;
-            case StartTagClose:
-                return QuteTokenType.QUTE_START_TAG_CLOSE;
-            case StartTagSelfClose:
-                return QuteTokenType.QUTE_START_TAG_SELF_CLOSE;
-            case StartTag:
-                return QuteTokenType.QUTE_START_TAG;
-            case EndTag:
-                return QuteTokenType.QUTE_END_TAG;
-            case EndTagSelfClose:
-                return QuteTokenType.QUTE_END_TAG_SELF_CLOSE;
-            case EndTagOpen:
-                return QuteTokenType.QUTE_END_TAG_OPEN;
-            case EndTagClose:
-                return QuteTokenType.QUTE_END_TAG_CLOSE;
-            case Whitespace:
-                return QuteTokenType.QUTE_WHITESPACE;
-        }
-        return QuteElementTypes.QUTE_TEXT;
+        return switch (tokenType) {
+            case LanguageInjectionStart -> QuteTokenType.QUTE_LANGUAGE_INJECTION_START;
+            case LanguageInjectionContent -> QuteTokenType.QUTE_LANGUAGE_INJECTION_CONTENT;
+            case LanguageInjectionEnd -> QuteTokenType.QUTE_LANGUAGE_INJECTION_END;
+            case StartComment -> QuteTokenType.QUTE_COMMENT_START;
+            case Comment -> QuteElementTypes.QUTE_COMMENT;
+            case EndComment -> QuteTokenType.QUTE_COMMENT_END;
+            case StartParameterDeclaration -> QuteTokenType.QUTE_START_PARAMETER_DECLARATION;
+            case ParameterDeclaration -> QuteTokenType.QUTE_PARAMETER_DECLARATION;
+            case EndParameterDeclaration -> QuteTokenType.QUTE_END_PARAMETER_DECLARATION;
+            case StartExpression -> QuteTokenType.QUTE_START_EXPRESSION;
+            case EndExpression -> QuteTokenType.QUTE_END_EXPRESSION;
+            case StartTagOpen -> QuteTokenType.QUTE_START_TAG_OPEN;
+            case StartTagClose -> QuteTokenType.QUTE_START_TAG_CLOSE;
+            case StartTagSelfClose -> QuteTokenType.QUTE_START_TAG_SELF_CLOSE;
+            case StartTag -> QuteTokenType.QUTE_START_TAG;
+            case EndTag -> QuteTokenType.QUTE_END_TAG;
+            case EndTagSelfClose -> QuteTokenType.QUTE_END_TAG_SELF_CLOSE;
+            case EndTagOpen -> QuteTokenType.QUTE_END_TAG_OPEN;
+            case EndTagClose -> QuteTokenType.QUTE_END_TAG_CLOSE;
+            case Whitespace -> QuteTokenType.QUTE_WHITESPACE;
+            default -> QuteElementTypes.QUTE_TEXT;
+        };
     }
 
     static int getStateAsInt(ScannerState state) {

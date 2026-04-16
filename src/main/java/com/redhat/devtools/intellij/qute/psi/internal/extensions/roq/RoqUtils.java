@@ -14,6 +14,7 @@ package com.redhat.devtools.intellij.qute.psi.internal.extensions.roq;
 import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -40,5 +41,15 @@ public class RoqUtils {
         return projectDependencies
                 .stream()
                 .anyMatch(m -> RoqJavaConstants.ROQ_ARTIFACT_ID.equals(m.getName()));
+    }
+
+    /**
+     * Returns true if the given project is a Roq project and false otherwise.
+     *
+     * @param project the project.
+     * @return true if the given project is a Roq project and false otherwise.
+     */
+    public static boolean isRoqProject(@NotNull Project project) {
+        return JavaLibraryUtil.hasAnyLibraryJar(project, RoqJavaConstants.ROQ_MAVEN_COORS);
     }
 }

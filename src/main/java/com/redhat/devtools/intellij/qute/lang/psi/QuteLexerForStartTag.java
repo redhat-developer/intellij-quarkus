@@ -132,17 +132,13 @@ public class QuteLexerForStartTag extends AbstractQuteSubLexer {
      * @return the IJ {@link IElementType} from the given Qute parser token type.
      */
     public static IElementType getTokenType(com.redhat.qute.parser.parameter.scanner.TokenType tokenType) {
-        switch (tokenType) {
-            case ParameterName:
-                return QuteTokenType.QUTE_PARAMETER_NAME;
-            case Assign:
-                return QuteTokenType.QUTE_PARAMETER_ASSIGN;
-            case ParameterValue:
-                return QuteTokenType.QUTE_PARAMETER_VALUE;
-            case Whitespace:
-                return QuteTokenType.QUTE_EXPRESSION_WHITESPACE;
-        }
-        return null;
+        return switch (tokenType) {
+            case ParameterName -> QuteTokenType.QUTE_PARAMETER_NAME;
+            case Assign -> QuteTokenType.QUTE_PARAMETER_ASSIGN;
+            case ParameterValue -> QuteTokenType.QUTE_PARAMETER_VALUE;
+            case Whitespace -> QuteTokenType.QUTE_EXPRESSION_WHITESPACE;
+            default -> null;
+        };
     }
 
     public static int getStateAsInt(ScannerState state) {

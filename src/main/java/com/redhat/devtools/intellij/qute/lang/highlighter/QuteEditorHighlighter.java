@@ -22,13 +22,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.qute.lang.QuteFileViewProvider;
 import com.redhat.devtools.intellij.qute.lang.psi.QuteElementTypes;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class QuteEditorHighlighter extends LayeredLexerEditorHighlighter {
 
     public QuteEditorHighlighter(@Nullable Project project, @Nullable VirtualFile virtualFile, @NotNull EditorColorsScheme scheme) {
-        super(new QuteSyntaxHighlighter(), scheme);
+        super(new QuteSyntaxHighlighter(virtualFile, project), scheme);
         if (virtualFile != null) {
             Language templateLanguage = QuteFileViewProvider.getTemplateLanguage(virtualFile, project);
             this.registerLayer(QuteElementTypes.QUTE_TEXT,

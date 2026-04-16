@@ -33,8 +33,8 @@ import org.jetbrains.annotations.NotNull;
 public class QuteParserDefinition implements ParserDefinition {
 
     @Override
-    public @NotNull Lexer createLexer(Project project) {
-        return new QuteLexer();
+    public @NotNull Lexer createLexer(@NotNull Project project) {
+        return new QuteLexer(project);
     }
 
     @Override
