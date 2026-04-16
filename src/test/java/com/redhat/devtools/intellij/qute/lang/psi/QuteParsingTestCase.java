@@ -14,7 +14,7 @@ import java.io.IOException;
 public class QuteParsingTestCase extends ParsingTestCase  {
 
     public QuteParsingTestCase() {
-        super("psi", "qute", new QuteParserDefinition());
+        super("psi", "qute", new QuteParserDefinitionForTest());
     }
 
     @Override
@@ -45,6 +45,63 @@ public class QuteParsingTestCase extends ParsingTestCase  {
                                     {/if}
                                         </div>
                     </div>
+                """);
+    }
+
+    public void testYamlFrontMatterSimple() throws IOException {
+        doCodeTest("""
+                ---
+                title: My Page
+                ---
+                <h1>Hello World</h1>
+                """);
+    }
+
+    public void testYamlFrontMatterWithMultipleKeys() throws IOException {
+        doCodeTest("""
+                ---
+                title: My Page
+                author: John Doe
+                date: 2026-04-16
+                ---
+                <h1>Hello World</h1>
+                """);
+    }
+
+    public void testYamlFrontMatterWithStringValues() throws IOException {
+        doCodeTest("""
+                ---
+                title: "My Page"
+                description: 'This is a description'
+                ---
+                <p>Content</p>
+                """);
+    }
+
+    public void testYamlFrontMatterEmpty() throws IOException {
+        doCodeTest("""
+                ---
+                ---
+                <h1>Hello World</h1>
+                """);
+    }
+
+    public void testYamlFrontMatterWithQuteExpressions() throws IOException {
+        doCodeTest("""
+                ---
+                title: My Page
+                ---
+                <h1>{title}</h1>
+                <p>{description}</p>
+                """);
+    }
+
+    public void testYamlFrontMatterNotClosed() throws IOException {
+        doCodeTest("""
+                ---
+                title: My Page
+                author: John Doe
+                <h1>Hello World</h1>
                 """);
     }
 }

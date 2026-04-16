@@ -64,4 +64,17 @@ public interface QuteTokenType {
     IElementType QUTE_PARAMETER_NAME =  new QuteElementType("QUTE_PARAMETER_NAME");
     IElementType QUTE_PARAMETER_ASSIGN =  new QuteElementType("QUTE_PARAMETER_ASSIGN");
     IElementType QUTE_PARAMETER_VALUE =  new QuteElementType("QUTE_PARAMETER_VALUE");
+
+    // Language Injection (ex: Yaml front matter)
+    IElementType QUTE_LANGUAGE_INJECTION_START = new QuteElementType("QUTE_LANGUAGE_INJECTION_START");
+    IElementType QUTE_LANGUAGE_INJECTION_CONTENT = new QuteElementType("QUTE_LANGUAGE_INJECTION_CONTENT");
+    IElementType QUTE_LANGUAGE_INJECTION_END = new QuteElementType("QUTE_LANGUAGE_INJECTION_END");
+    IElementType QUTE_YAML_KEY = new QuteElementType("QUTE_YAML_KEY");
+    IElementType QUTE_YAML_COLON = new QuteElementType("QUTE_YAML_COLON");
+    IElementType QUTE_YAML_VALUE = new QuteElementType("QUTE_YAML_VALUE");
+    IElementType QUTE_YAML_STRING = new QuteElementType("QUTE_YAML_STRING");
+    IElementType QUTE_YAML_NUMBER = new QuteElementType("QUTE_YAML_NUMBER");
+    IElementType QUTE_YAML_BOOLEAN = new QuteElementType("QUTE_YAML_BOOLEAN");
+    IElementType QUTE_YAML_NULL = new QuteElementType("QUTE_YAML_NULL");
+    IElementType QUTE_YAML_WHITESPACE = new QuteElementType("QUTE_YAML_WHITESPACE");
 }

@@ -16,19 +16,24 @@ package com.redhat.devtools.intellij.qute.lang.highlighter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.MultiMap;
-import com.redhat.devtools.intellij.qute.lang.psi.QuteLexer;
 import com.redhat.devtools.intellij.qute.lang.psi.QuteElementTypes;
+import com.redhat.devtools.intellij.qute.lang.psi.QuteLexer;
 import com.redhat.devtools.intellij.qute.lang.psi.QuteTokenType;
+import com.redhat.devtools.lsp4ij.LSPIJUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.redhat.devtools.intellij.qute.lang.highlighter.QuteHighlighterColors.*;
 
 /**
  * Qyte syntax highlighter.
  */
-public class QuteSyntaxHighlighter extends SyntaxHighlighterBase  {
+public class QuteSyntaxHighlighter extends SyntaxHighlighterBase {
 
     private static final MultiMap<IElementType, TextAttributesKey> ourMap = MultiMap.create();
 
@@ -70,10 +75,44 @@ public class QuteSyntaxHighlighter extends SyntaxHighlighterBase  {
         // Qute parameter declaration (ex: {@java.lang.String foo}
         ourMap.putValue(QuteTokenType.QUTE_START_PARAMETER_DECLARATION, QUTE_EDGE);
         ourMap.putValue(QuteTokenType.QUTE_END_PARAMETER_DECLARATION, QUTE_EDGE);
+
+        // YAML front matter delimiters (language injection)
+        ourMap.putValue(QuteTokenType.QUTE_LANGUAGE_INJECTION_START, QUTE_EDGE);
+        ourMap.putValue(QuteTokenType.QUTE_LANGUAGE_INJECTION_END, QUTE_EDGE);
+
+        // YAML tokens (language injection)
+        ourMap.putValue(QuteTokenType.QUTE_YAML_KEY, YAML_KEY);
+        ourMap.putValue(QuteTokenType.QUTE_YAML_VALUE, YAML_VALUE);
+        ourMap.putValue(QuteTokenType.QUTE_YAML_STRING, YAML_STRING);
+        ourMap.putValue(QuteTokenType.QUTE_YAML_NUMBER, YAML_NUMBER);
+        ourMap.putValue(QuteTokenType.QUTE_YAML_BOOLEAN, YAML_BOOLEAN);
+        ourMap.putValue(QuteTokenType.QUTE_YAML_NULL, YAML_NULL);
+    }
+
+    private final @Nullable Module module;
+    private final @Nullable Project project;
+
+    public QuteSyntaxHighlighter() {
+        this(null, null);
+    }
+
+    public QuteSyntaxHighlighter(@Nullable VirtualFile virtualFile, @Nullable Project project) {
+        this.project = project;
+        if (virtualFile != null && project != null) {
+            this.module = LSPIJUtils.getModule(virtualFile, project);
+        } else {
+            this.module = null;
+        }
     }
 
     @Override
     public @NotNull Lexer getHighlightingLexer() {
+        if (module != null) {
+            return new QuteLexer(module);
+        }
+        if (project != null) {
+            return new QuteLexer(project);
+        }
         return new QuteLexer();
     }
 
