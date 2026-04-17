@@ -1,6 +1,7 @@
 QUTE_FILE
   ASTWrapperPsiElement(QuteElementType.QUTE_CONTENT)
-    PsiElement(QuteElementType.QUTE_LANGUAGE_INJECTION_START)('---\n')
+    PsiElement(QuteElementType.QUTE_LANGUAGE_INJECTION_START)('---')
+    PsiElement(QuteElementType.QUTE_YAML_WHITESPACE)('\n')
     PsiElement(QuteElementType.QUTE_YAML_KEY)('title')
     PsiElement(QuteElementType.QUTE_YAML_COLON)(':')
     PsiElement(QuteElementType.QUTE_YAML_WHITESPACE)(' ')
@@ -15,6 +16,6 @@ QUTE_FILE
     PsiElement(QuteElementType.QUTE_YAML_STRING)('This is a description')
     PsiElement(QuteElementType.QUTE_YAML_STRING)(''')
     PsiElement(QuteElementType.QUTE_YAML_WHITESPACE)('\n')
-    PsiElement(QuteElementType.QUTE_LANGUAGE_INJECTION_END)('---\n')
+    PsiElement(QuteElementType.QUTE_LANGUAGE_INJECTION_END)('---')
     ASTWrapperPsiElement(QUTE_TEXT)
-      PsiElement(QUTE_TEXT)('<p>Content</p>\n')
+      PsiElement(QUTE_TEXT)('\n<p>Content</p>\n')
