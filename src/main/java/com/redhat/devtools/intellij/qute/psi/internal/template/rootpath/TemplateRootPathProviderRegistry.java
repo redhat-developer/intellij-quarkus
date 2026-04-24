@@ -17,6 +17,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.util.KeyedLazyInstanceEP;
 import com.redhat.devtools.intellij.qute.psi.internal.AbstractQuteExtensionPointRegistry;
 import com.redhat.devtools.intellij.qute.psi.template.rootpath.ITemplateRootPathProvider;
@@ -77,6 +78,8 @@ public class TemplateRootPathProviderRegistry extends AbstractQuteExtensionPoint
             if (provider.isApplicable(javaProject)) {
                 try {
                     provider.collectTemplateRootPaths(javaProject, rootPaths);
+                } catch (ProcessCanceledException e) {
+                    throw e;
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "Error while collecting template root path with the provider '"
                             + provider.getClass().getName() + "'.", e);
