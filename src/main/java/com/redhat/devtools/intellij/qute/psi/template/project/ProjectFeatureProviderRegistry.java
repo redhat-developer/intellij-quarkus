@@ -15,6 +15,7 @@ package com.redhat.devtools.intellij.qute.psi.template.project;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.util.KeyedLazyInstanceEP;
 import com.redhat.devtools.intellij.qute.psi.internal.AbstractQuteExtensionPointRegistry;
@@ -63,6 +64,8 @@ public class ProjectFeatureProviderRegistry extends AbstractQuteExtensionPointRe
         for (IProjectFeatureProvider provider : super.getProviders()) {
             try {
                 provider.collectProjectFeatures(javaProject, projectFeatures);
+            } catch (ProcessCanceledException e) {
+                throw e;
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Error while collecting project feature with the provider '"
                         + provider.getClass().getName() + "'.", e);
