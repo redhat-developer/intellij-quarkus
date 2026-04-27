@@ -14,14 +14,19 @@ public class QuteLexerWithYamlTest {
         Lexer lexer = new QuteLexer(true); // roq support enabled
         lexer.start(text);
 
-        // Token 0: ---\n (LANGUAGE_INJECTION_START)
+        // Token 0: --- (LANGUAGE_INJECTION_START)
         assertNotNull(lexer.getTokenType());
         assertEquals(QuteTokenType.QUTE_LANGUAGE_INJECTION_START, lexer.getTokenType());
         assertEquals(0, lexer.getTokenStart());
-        assertEquals(4, lexer.getTokenEnd());
+        assertEquals(3, lexer.getTokenEnd());
         lexer.advance();
 
-        // Token 1: title (YAML_KEY)
+        // Token 1: \n (YAML_WHITESPACE)
+        assertNotNull(lexer.getTokenType());
+        assertEquals(QuteTokenType.QUTE_YAML_WHITESPACE, lexer.getTokenType());
+        lexer.advance();
+
+        // Token 2: title (YAML_KEY)
         assertNotNull(lexer.getTokenType());
         assertEquals(QuteTokenType.QUTE_YAML_KEY, lexer.getTokenType());
         lexer.advance();
@@ -101,26 +106,25 @@ public class QuteLexerWithYamlTest {
 
     @Test
     public void testEmptyYamlFrontMatterWithRoqEnabled() {
-        // Note: The YamlFrontMatterDetector doesn't recognize empty YAML (---\n---\n) as valid.
-        // The second --- is treated as YAML content (ScalarString) rather than the closing marker.
-        // This test verifies the current behavior.
+        // Empty YAML front matter (---\n---\n) is recognized as valid.
+        // The second --- is treated as the closing marker (LANGUAGE_INJECTION_END).
         String text = "---\n---\n<h1>Hello</h1>";
         Lexer lexer = new QuteLexer(true);
         lexer.start(text);
 
-        // Token 0: ---\n (LANGUAGE_INJECTION_START)
+        // Token 0: --- (LANGUAGE_INJECTION_START)
         assertNotNull(lexer.getTokenType());
         assertEquals(QuteTokenType.QUTE_LANGUAGE_INJECTION_START, lexer.getTokenType());
         lexer.advance();
 
-        // Token 1: --- (YAML_STRING) - treated as YAML content, not as closing marker
-        assertNotNull(lexer.getTokenType());
-        assertEquals(QuteTokenType.QUTE_YAML_STRING, lexer.getTokenType());
-        lexer.advance();
-
-        // Token 2: \n (YAML_WHITESPACE)
+        // Token 1: \n (YAML_WHITESPACE)
         assertNotNull(lexer.getTokenType());
         assertEquals(QuteTokenType.QUTE_YAML_WHITESPACE, lexer.getTokenType());
+        lexer.advance();
+
+        // Token 2: --- (LANGUAGE_INJECTION_END)
+        assertNotNull(lexer.getTokenType());
+        assertEquals(QuteTokenType.QUTE_LANGUAGE_INJECTION_END, lexer.getTokenType());
     }
 
     @Test
@@ -131,16 +135,21 @@ public class QuteLexerWithYamlTest {
         Lexer lexer = new QuteLexer(true);
         lexer.start(text);
 
-        // Token 0: ---\n (LANGUAGE_INJECTION_START)
+        // Token 0: --- (LANGUAGE_INJECTION_START)
         assertNotNull(lexer.getTokenType());
         assertEquals(QuteTokenType.QUTE_LANGUAGE_INJECTION_START, lexer.getTokenType());
         int start = lexer.getTokenStart();
         int end = lexer.getTokenEnd();
         assertEquals(0, start);
-        assertEquals(4, end);
+        assertEquals(3, end);
         lexer.advance();
 
-        // Token 1: title (YAML_KEY)
+        // Token 1: \n (YAML_WHITESPACE)
+        assertNotNull(lexer.getTokenType());
+        assertEquals(QuteTokenType.QUTE_YAML_WHITESPACE, lexer.getTokenType());
+        lexer.advance();
+
+        // Token 2: title (YAML_KEY)
         assertNotNull(lexer.getTokenType());
         assertEquals(QuteTokenType.QUTE_YAML_KEY, lexer.getTokenType());
         lexer.advance();
