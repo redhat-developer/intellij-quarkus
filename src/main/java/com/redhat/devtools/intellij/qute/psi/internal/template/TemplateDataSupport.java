@@ -72,7 +72,11 @@ public class TemplateDataSupport {
             searchScope = searchScope.intersectWith(new LocalSearchScope(fieldOrMethod.getContainingClass()));
         }
         Query<PsiReference> query = ReferencesSearch.search(fieldOrMethod, searchScope);
-        query.forEach((Consumer<? super PsiReference>) psiReference -> {
+        query.forEach((Processor<? super PsiReference>) psiReference -> {
+            // Check if the operation has been cancelled
+            if (monitor != null) {
+                monitor.checkCanceled();
+            }
             PsiMethodCallExpression methodCall = PsiTreeUtil.getParentOfType(psiReference.getElement(), PsiMethodCallExpression.class);
             if (methodCall != null) {
                 PsiMethod method = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class);
@@ -81,6 +85,7 @@ public class TemplateDataSupport {
                     methodCall.accept(visitor);
                 }
             }
+            return true; // Continue processing
         });
     }
 

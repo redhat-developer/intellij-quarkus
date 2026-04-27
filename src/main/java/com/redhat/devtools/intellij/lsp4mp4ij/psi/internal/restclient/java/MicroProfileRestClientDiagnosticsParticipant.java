@@ -12,6 +12,7 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.restclient.java;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
@@ -193,6 +194,8 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 		final AtomicInteger nbReferences = new AtomicInteger(0);
 		Query<PsiReference> query = ReferencesSearch.search(interfaceType, createSearchScope(context.getJavaProject()));
 		for (PsiReference match : query.findAll()) {
+			// Check if the operation has been cancelled
+			ProgressManager.checkCanceled();
 			PsiField field = PsiTreeUtil.getParentOfType(match.getElement(), PsiField.class);
 			if (field != null) {
 				boolean hasInjectAnnotation = AnnotationUtils.hasAnyAnnotation(field, INJECT_JAVAX_ANNOTATION, INJECT_JAKARTA_ANNOTATION);
