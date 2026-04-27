@@ -83,6 +83,8 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 
 			Set<PsiClass> jaxRsClasses = new HashSet<>();
 			for (PsiModifierListOwner item : query.findAll()) {
+				// Check if the operation has been cancelled
+				monitor.checkCanceled();
 				if (item instanceof PsiMember) {
 					PsiClass cl = ((PsiMember) item).getContainingClass();
 					if (cl != null) {

@@ -51,13 +51,16 @@ public class UriNamespaceResolverSupport extends AbstractDataModelProvider {
 
     private static final String URIABS_NAMESPACE = "uriabs";
 
-    private static void collectSubTypes(PsiClass psiClass, GlobalSearchScope scope, List<PsiClass> subTypes) {
+    private static void collectSubTypes(PsiClass psiClass, GlobalSearchScope scope, List<PsiClass> subTypes, ProgressIndicator monitor) {
+        if (monitor != null) {
+            monitor.checkCanceled();
+        }
         Query<PsiClass> query = DirectClassInheritorsSearch.search(psiClass, scope);
         List<PsiClass> directSubTypes = new ArrayList<>(query.findAll());
         subTypes.addAll(directSubTypes);
 
         for (PsiClass directSubType : directSubTypes) {
-            collectSubTypes(directSubType, scope, subTypes);
+            collectSubTypes(directSubType, scope, subTypes, monitor);
         }
     }
 
@@ -128,7 +131,7 @@ public class UriNamespaceResolverSupport extends AbstractDataModelProvider {
         Project project = context.getUtils().getProject();
         GlobalSearchScope scope = GlobalSearchScope.allScope(project);
         List<PsiClass> subTypes = new ArrayList<>();
-        collectSubTypes(type, scope, subTypes);
+        collectSubTypes(type, scope, subTypes, monitor);
         if (subTypes.isEmpty()) {
             return;
         }

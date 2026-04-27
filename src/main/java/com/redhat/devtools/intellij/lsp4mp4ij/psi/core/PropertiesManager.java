@@ -111,6 +111,8 @@ public class PropertiesManager {
                 try {
                     beginSearch(context, monitor);
                     for (PsiModifierListOwner psiMember : query.findAll()) {
+                        // Check if the operation has been cancelled
+                        monitor.checkCanceled();
                         collectProperties(psiMember, context, monitor);
                     }
                 }
