@@ -6,6 +6,39 @@
     </vendor>
 
     <change-notes><![CDATA[
+    <h3>2.5.0</h3>
+    <ul>
+      <li><b>Roq Support:</b> Full support for Roq static site generator (YAML frontmatter, layouts, themes, data files, fragments)</li>
+      <li><b>Renarde Support:</b> Namespace resolver (m:) and messages support</li>
+      <li><b>Web Bundler Support:</b> LSP support for Quarkus Web Bundler components</li>
+      <li><b>Qute Enhancements:</b>
+        <ul>
+          <li>YAML frontmatter syntax highlighting</li>
+          <li>Binary templates and MarkDown support</li>
+          <li>User tag parameter type validation and smart inference</li>
+          <li>Include parameter support and namespaced sections</li>
+          <li>Resolve completion and debugging in Java files</li>
+          <li>Quarkus Flags support and split section parameters settings</li>
+        </ul>
+      </li>
+      <li><b>Bug Fixes:</b>
+        <ul>
+          <li>Fixed PsiInvalidElementAccessException with Qute files</li>
+          <li>Fixed IllegalArgumentException during project indexing</li>
+          <li>Fixed debugger auto-attach issues with Gradle projects</li>
+          <li>Fixed Qute run configuration and breakpoint EDT issues</li>
+          <li>Fixed SlowOperations in QuteLanguageSubstitutor</li>
+          <li>Fixed StackOverflow in Quarkus mapping provider</li>
+          <li>Fixed IndexNotReadyException when opening projects</li>
+          <li>Fixed false positives (CheckedTemplate, non-HTML templates, Web Bundler tags)</li>
+          <li>Recognize config/application.properties as config source</li>
+        </ul>
+      </li>
+      <li>Added suspend=y support for Gradle debugging</li>
+      <li>Performance improvements and cache eviction fixes</li>
+    </ul>
+    Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/53?closed=1">changelog</a>.
+
     <h3>2.4.1</h3>
     <ul>
       <li>Fix Qute debugger support with Java file</li>
