@@ -67,6 +67,7 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 
 			Query<PsiModifierListOwner> query = null;
 			for (var httpAnnotation : JaxRsConstants.HTTP_METHOD_ANNOTATIONS) {
+				monitor.checkCanceled();
 				PsiClass annotationClass = utils.findClass(javaProject, httpAnnotation);
 				if (annotationClass != null) {
 					Query<PsiModifierListOwner> annotationQuery = AnnotatedElementsSearch.searchElements(annotationClass, scope, PsiModifierListOwner.class);

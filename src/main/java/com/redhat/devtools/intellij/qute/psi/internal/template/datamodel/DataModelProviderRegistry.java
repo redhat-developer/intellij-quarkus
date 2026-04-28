@@ -35,6 +35,7 @@ import com.redhat.qute.commons.datamodel.DataModelProject;
 import com.redhat.qute.commons.datamodel.DataModelTemplate;
 import com.redhat.qute.commons.datamodel.resolvers.NamespaceResolverInfo;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -106,7 +107,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
     public DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(Module javaProject,
                                                                                        List<QuteProjectScope> scopes,
                                                                                        IPsiUtils utils,
-                                                                                       ProgressIndicator monitor) {
+                                                                                       @NotNull ProgressIndicator monitor) {
         DataModelProject<DataModelTemplate<DataModelParameter>> project = new DataModelProject<DataModelTemplate<DataModelParameter>>();
         project.setTemplates(new ArrayList<>());
         project.setNamespaceResolverInfos(new HashMap<>());
@@ -116,7 +117,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
     }
 
     private void collectDataModel(DataModelProject<DataModelTemplate<DataModelParameter>> project,
-                                  Module javaProject, List<QuteProjectScope> scopes, IPsiUtils utils, ProgressIndicator monitor) {
+                                  Module javaProject, List<QuteProjectScope> scopes, IPsiUtils utils, @NotNull ProgressIndicator monitor) {
         long startTime = System.currentTimeMillis();
         if (LOGGER.isLoggable(Level.INFO)) {
             LOGGER.info("Start collecting Qute data model for '" + PsiQuteProjectUtils.getProjectURI(javaProject)
@@ -149,7 +150,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
 
     private void scanJavaClasses(Module javaProject, boolean excludeTestCode, List<QuteProjectScope> scopes,
                                  DataModelProject<DataModelTemplate<DataModelParameter>> project, IPsiUtils utils,
-                                 ProgressIndicator mainMonitor) {
+                                 @NotNull ProgressIndicator mainMonitor) {
         // Create JDT Java search pattern, engine and scope
         String text = mainMonitor.getText();
         mainMonitor.setText("Scanning Java classes");
@@ -158,13 +159,16 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
             //subMonitor.split(5); // give feedback to the user that something is happening
 
             SearchContext context = new SearchContext(javaProject, project, utils, scopes);
-            Query<?> pattern = createSearchPattern(context);
+            Query<?> pattern = createSearchPattern(context, subMonitor);
             if (pattern != null) {
                 SearchScope scope = createSearchScope(javaProject, scopes, excludeTestCode, subMonitor);
                 // Execute the search
                 try {
                     beginSearch(context, subMonitor);
-                    pattern.forEach((Consumer<Object>) psiMember -> collectDataModel(psiMember, context, mainMonitor));
+                    pattern.forEach((Consumer<Object>) psiMember -> {
+                        mainMonitor.checkCanceled();
+                        collectDataModel(psiMember, context, mainMonitor);
+                    });
                 } finally {
                     endSearch(context, subMonitor);
                 }
@@ -174,21 +178,24 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
         }
     }
 
-    private void beginSearch(SearchContext context, ProgressIndicator monitor) {
+    private void beginSearch(SearchContext context, @NotNull ProgressIndicator monitor) {
         for (IDataModelProvider provider : getProviders()) {
+            monitor.checkCanceled();
             provider.beginSearch(context, monitor);
         }
     }
 
-    private void endSearch(SearchContext context, ProgressIndicator monitor) {
+    private void endSearch(SearchContext context, @NotNull ProgressIndicator monitor) {
         for (IDataModelProvider provider : getProviders()) {
+            monitor.checkCanceled();
             provider.endSearch(context, monitor);
         }
     }
 
-    private @Nullable Query<? extends Object> createSearchPattern(SearchContext context) {
+    private @Nullable Query<? extends Object> createSearchPattern(SearchContext context, @NotNull ProgressIndicator monitor) {
         Query<? extends Object> leftPattern = null;
         for (IDataModelProvider provider : getProviders()) {
+            monitor.checkCanceled();
             if (leftPattern == null) {
                 leftPattern = provider.createSearchPattern(context);
             } else {
@@ -201,7 +208,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
         return leftPattern;
     }
 
-    private void collectDataModel(Object match, SearchContext context, ProgressIndicator monitor) {
+    private void collectDataModel(Object match, SearchContext context, @NotNull ProgressIndicator monitor) {
         for (IDataModelProvider provider : getProviders()) {
             try {
                 provider.collectDataModel(match, context, monitor);
@@ -220,7 +227,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
     }
 
     private SearchScope createSearchScope(Module project, List<QuteProjectScope> scopes,
-                                          boolean excludeTestCode, ProgressIndicator monitor) {
+                                          boolean excludeTestCode, @NotNull ProgressIndicator monitor) {
         SearchScope searchScope = GlobalSearchScope.EMPTY_SCOPE;
 
         for (QuteProjectScope scope : scopes) {

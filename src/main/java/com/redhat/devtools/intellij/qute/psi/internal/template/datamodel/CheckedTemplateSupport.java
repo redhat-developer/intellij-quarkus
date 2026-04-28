@@ -79,7 +79,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
 
     @Override
     protected void processAnnotation(PsiElement javaElement, PsiAnnotation checkedTemplateAnnotation, String annotationName,
-                                     SearchContext context, ProgressIndicator monitor) {
+                                     SearchContext context, @NotNull ProgressIndicator monitor) {
         if (javaElement instanceof PsiClass type && !type.isRecord()) {
             boolean ignoreFragments = isIgnoreFragments(checkedTemplateAnnotation);
             String basePath = getBasePath(checkedTemplateAnnotation);
@@ -227,13 +227,14 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
                                                                    TemplateNameStrategy templateNameStrategy,
                                                                    ITypeResolver typeResolver,
                                                                    List<DataModelTemplate<DataModelParameter>> templates,
-                                                                   ProgressIndicator monitor) {
+                                                                   @NotNull ProgressIndicator monitor) {
         String className = getParentClassName(type);
 
         // Loop for each method (book, book) and create a template data model per
         // method.
         PsiMethod[] methods = type.getMethods();
         for (PsiMethod method : methods) {
+            monitor.checkCanceled();
             if (isCheckedTemplateMethod(method)) {
                 // src/main/resources/templates/${className}/${methodName}.qute.html
                 TemplatePathInfo templatePathInfo = getTemplatePath(templatesBaseDir, basePath, className, method.getName(), ignoreFragments, templateNameStrategy);
@@ -309,7 +310,7 @@ public class CheckedTemplateSupport extends AbstractAnnotationTypeReferenceDataM
     }
 
     public static void collectParameters(PsiMethod method, ITypeResolver typeResolver,
-                                         DataModelBaseTemplate<DataModelParameter> templateOrFragment, ProgressIndicator monitor) {
+                                         DataModelBaseTemplate<DataModelParameter> templateOrFragment, @NotNull ProgressIndicator monitor) {
         try {
             PsiParameterList parameters = method.getParameterList();
             if (!parameters.isEmpty()) {

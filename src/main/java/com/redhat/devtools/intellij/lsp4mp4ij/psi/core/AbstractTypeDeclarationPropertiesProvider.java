@@ -49,6 +49,7 @@ public abstract class AbstractTypeDeclarationPropertiesProvider extends Abstract
 			String className = type.getQualifiedName();
 			String[] names = getTypeNames();
 			for (String name : names) {
+				context.getMonitor().checkCanceled();
 				if (name.equals(className)) {
 					try {
 						// Collect properties from the class name and stop the loop.

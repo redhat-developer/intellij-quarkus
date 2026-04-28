@@ -57,6 +57,7 @@ public abstract class AbstractAnnotationTypeReferencePropertiesProvider extends 
 			String[] names = getAnnotationNames();
 			PsiAnnotation[] annotations = psiElement.getAnnotations();
 			for (PsiAnnotation annotation : annotations) {
+				context.getMonitor().checkCanceled();
 				for (String annotationName : names) {
 					if (isMatchAnnotation(annotation, annotationName)) {
 						processAnnotation(psiElement, annotation, annotationName, context);

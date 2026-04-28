@@ -105,8 +105,8 @@ public class PropertiesManager {
         PropertiesCollector collector = new PropertiesCollector(info, scopes);
         if (module != null) {
             SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
-            SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat);
-            Query<PsiModifierListOwner> query = createSearchQuery(context);
+            SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat, monitor);
+            Query<PsiModifierListOwner> query = createSearchQuery(context, monitor);
             if (query != null) {
                 try {
                     beginSearch(context, monitor);
@@ -176,10 +176,11 @@ public class PropertiesManager {
         return searchScope;
     }
 
-    private @Nullable Query<PsiModifierListOwner> createSearchQuery(SearchContext context) {
+    private @Nullable Query<PsiModifierListOwner> createSearchQuery(SearchContext context, @NotNull ProgressIndicator monitor) {
         Query<PsiModifierListOwner> query = null;
 
         for (IPropertiesProvider provider : getPropertiesProviders()) {
+            monitor.checkCanceled();
             Query<PsiModifierListOwner> providerQuery = provider.createSearchPattern(context);
             if (providerQuery != null) {
                 if (query == null) {
