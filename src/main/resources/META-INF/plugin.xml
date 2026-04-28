@@ -36,6 +36,7 @@
       </li>
       <li>Added suspend=y support for Gradle debugging</li>
       <li>Performance improvements and cache eviction fixes</li>
+      <li><b>Special thanks</b> to <a href="https://github.com/dcucchietti">@dcucchietti</a> (<a href="https://sedona.fr/">Sedona Solutions</a>) for reporting numerous bugs and providing reproduction use cases</li>
     </ul>
     Learn more in the <a href="https://github.com/redhat-developer/intellij-quarkus/milestone/53?closed=1">changelog</a>.
 
