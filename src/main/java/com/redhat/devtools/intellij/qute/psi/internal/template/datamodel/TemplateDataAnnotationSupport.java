@@ -30,6 +30,7 @@ import com.redhat.devtools.intellij.qute.psi.utils.PsiTypeUtils;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverInfo;
 import com.redhat.qute.commons.datamodel.resolvers.ValueResolverKind;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -77,7 +78,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 
 	@Override
 	protected void processAnnotation(PsiElement javaElement, PsiAnnotation annotation, String annotationName,
-									 SearchContext context, ProgressIndicator monitor) {
+									 SearchContext context, @NotNull ProgressIndicator monitor) {
 		if (!(javaElement instanceof PsiClass)) {
 			return;
 		}
@@ -94,6 +95,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 		String namespace = null;
 		boolean hasTemplateData = false;
 		for (PsiAnnotation typeAnnotation : type.getAnnotations()) {
+			monitor.checkCanceled();
 			if (AnnotationUtils.isMatchAnnotation(typeAnnotation, TEMPLATE_DATA_ANNOTATION)) {
 				hasTemplateData = true;
 				namespace = AnnotationUtils.getAnnotationMemberValue(typeAnnotation,
@@ -112,6 +114,7 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 		// Loop for static fields
 		PsiField[] fields = type.getFields();
 		for (PsiField field : fields) {
+			monitor.checkCanceled();
 			collectResolversForTemplateData(field, namespace, context.getDataModelProject().getValueResolvers(),
 					typeResolver, monitor);
 		}
@@ -119,13 +122,14 @@ public class TemplateDataAnnotationSupport extends AbstractAnnotationTypeReferen
 		// Loop for static methods
 		PsiMethod[] methods = type.getMethods();
 		for (PsiMethod method : methods) {
+			monitor.checkCanceled();
 			collectResolversForTemplateData(method, namespace, context.getDataModelProject().getValueResolvers(),
 					typeResolver, monitor);
 		}
 	}
 
 	private void collectResolversForTemplateData(PsiMember member, String namespace, List<ValueResolverInfo> resolvers,
-												 ITypeResolver typeResolver, ProgressIndicator monitor) {
+												 ITypeResolver typeResolver, @NotNull ProgressIndicator monitor) {
 		try {
 			if (PsiTypeUtils.isPublicMember(member) && PsiTypeUtils.isStaticMember(member)) {
 				// The field or method is public and static
