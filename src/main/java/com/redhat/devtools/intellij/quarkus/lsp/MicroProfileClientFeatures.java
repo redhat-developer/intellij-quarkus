@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2025 Red Hat, Inc.
+ * Copyright (c) 2026 Red Hat, Inc.
  * Distributed under license by Red Hat, Inc. All rights reserved.
  * This program is made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution,
@@ -8,17 +8,16 @@
  * Contributors:
  * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package com.redhat.devtools.intellij.qute.lsp;
+package com.redhat.devtools.intellij.quarkus.lsp;
 
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures;
 
 /**
- * Qute client features.
+ * MicroProfile client features.
  */
-public class QuteClientFeatures extends LSPClientFeatures {
+public class MicroProfileClientFeatures extends LSPClientFeatures {
 
-    public QuteClientFeatures() {
-        super.setDiagnosticFeature(new QuteDiagnosticFeature());
-        super.setBreadcrumbsFeature(new QuteBreadcrumbsFeature());
+    public MicroProfileClientFeatures() {
+        super.setBreadcrumbsFeature(new MicroProfileBreadcrumbsFeature());
     }
 }
