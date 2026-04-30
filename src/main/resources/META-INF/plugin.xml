@@ -19,6 +19,7 @@
           <li>Include parameter support and namespaced sections</li>
           <li>Resolve completion and debugging in Java files</li>
           <li>Quarkus Flags support and split section parameters settings</li>
+          <li>support for Qute Alternative expression syntax</li>
         </ul>
       </li>
       <li><b>Bug Fixes:</b>

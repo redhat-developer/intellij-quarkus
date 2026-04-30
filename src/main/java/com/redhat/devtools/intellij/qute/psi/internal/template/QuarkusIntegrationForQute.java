@@ -54,6 +54,8 @@ public class QuarkusIntegrationForQute {
 
     private static final String TEMPLATES_ENTRY = "templates";
     private static final String APPLICATION_PROPERTIES_ENTRY = "application.properties";
+    private static final String DOT_QUTE_ENTRY = ".qute";
+    private static final String ALT_EXPR_PROPERTY = "alt-expr-syntax";
     private static final Logger LOGGER = Logger.getLogger(QuarkusIntegrationForQute.class.getName());
 
     public static DataModelProject<DataModelTemplate<DataModelParameter>> getDataModelProject(Module javaProject,
@@ -102,7 +104,9 @@ public class QuarkusIntegrationForQute {
         // Look for the 'templates' directory at the root of the JAR
         VirtualFile templatesDir = root.findFileByRelativePath(TEMPLATES_ENTRY);
         if (templatesDir != null && templatesDir.exists() && templatesDir.isDirectory()) {
-            collectTemplatesRecursively(templatesDir, "", templates);
+            // Check for .qute file at templates root to detect alt-expr-syntax
+            boolean altSyntaxExpr = parseAltSyntaxExpr(templatesDir);
+            collectTemplatesRecursively(templatesDir, "", altSyntaxExpr, templates);
         }
 
         if (templates.isEmpty()) {
@@ -125,17 +129,20 @@ public class QuarkusIntegrationForQute {
     /**
      * Recursively collects template files from a directory VirtualFile.
      *
-     * @param dir         the current directory to scan.
-     * @param currentPath the relative path from {@code templates/} (empty for root).
-     * @param templates   the list to fill.
+     * @param dir           the current directory to scan.
+     * @param currentPath   the relative path from {@code templates/} (empty for root).
+     * @param altSyntaxExpr whether alternate expression syntax is enabled (from .qute file).
+     * @param templates     the list to fill.
      */
     private static void collectTemplatesRecursively(VirtualFile dir, String currentPath,
+                                                    boolean altSyntaxExpr,
                                                     List<BinaryTemplate> templates) {
         for (VirtualFile child : dir.getChildren()) {
             if (child.isDirectory()) {
                 String childPath = currentPath.isEmpty() ? child.getName() : currentPath + "/" + child.getName();
-                collectTemplatesRecursively(child, childPath, templates);
-            } else {
+                collectTemplatesRecursively(child, childPath, altSyntaxExpr, templates);
+            } else if (!DOT_QUTE_ENTRY.equals(child.getName())) {
+                // Skip .qute files, only process actual template files
                 try {
                     String fileName = child.getName();
                     String path = currentPath.isEmpty() ? fileName : currentPath + "/" + fileName;
@@ -146,6 +153,7 @@ public class QuarkusIntegrationForQute {
                     template.setPath(path);
                     template.setUri(uri);
                     template.setContent(content);
+                    template.setAltSyntaxExpr(altSyntaxExpr);
                     templates.add(template);
                 } catch (IOException e) {
                     LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
@@ -173,6 +181,28 @@ public class QuarkusIntegrationForQute {
             map.put(key, props.getProperty(key));
         }
         return map;
+    }
+
+    /**
+     * Checks for a {@code .qute} file in the given directory and parses the
+     * {@code alt-expr-syntax} property if present.
+     *
+     * @param directory the directory to search for a .qute file.
+     * @return {@code true} if alt-expr-syntax is enabled, {@code false} otherwise.
+     */
+    private static boolean parseAltSyntaxExpr(VirtualFile directory) {
+        VirtualFile dotQuteFile = directory.findChild(DOT_QUTE_ENTRY);
+        if (dotQuteFile != null && dotQuteFile.exists() && !dotQuteFile.isDirectory()) {
+            Properties props = new Properties();
+            try (InputStream is = dotQuteFile.getInputStream()) {
+                props.load(is);
+                Object result = props.getOrDefault(ALT_EXPR_PROPERTY, false);
+                return result instanceof Boolean ? (Boolean) result : Boolean.parseBoolean(result.toString());
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Error while loading .qute file from: " + dotQuteFile.getPath(), e);
+            }
+        }
+        return false;
     }
 
     /**
