@@ -28,6 +28,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqUtils.isRoqProject;
+
 /**
  * Qute lexer based on the Qute LS scanner to parse Qute template.
  */
@@ -35,6 +37,7 @@ public class QuteLexer extends LexerBase {
 
     public static final List<InjectionDetector> YAML_FRONT_MATTER_DETECTORS = Collections.singletonList(new YamlFrontMatterDetector());
     private final Collection<InjectionDetector> injectors;
+    private final Character expressionCommand = null;
     private IElementType myTokenType;
     private CharSequence myText;
 
@@ -55,15 +58,15 @@ public class QuteLexer extends LexerBase {
     private int startLanguageInjectionOffset;
 
     public QuteLexer(@NotNull Module module) {
-        this(RoqUtils.isRoqProject(module));
+        this(isRoqProject(module));
     }
 
     public QuteLexer(@NotNull Project project) {
-        this(RoqUtils.isRoqProject(project));
+        this(isRoqProject(project));
     }
 
     public QuteLexer() {
-        this(false);
+        this(true);
     }
 
     public QuteLexer(boolean roqSupport) {
@@ -79,7 +82,7 @@ public class QuteLexer extends LexerBase {
         startExpressionOffset = -1;
         startLanguageInjectionOffset = -1;
         currentSubLexer = null;
-        scanner = (TemplateScanner) TemplateScanner.createScanner(buffer.subSequence(0, endOffset).toString(), startOffset, injectors);
+        scanner = (TemplateScanner) TemplateScanner.createScanner(buffer.subSequence(0, endOffset).toString(), startOffset, expressionCommand, injectors);
         myTokenType = null;
     }
 
