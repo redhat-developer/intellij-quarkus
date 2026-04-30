@@ -516,7 +516,13 @@
         <runDashboardDefaultTypesProvider
                 implementation="com.redhat.devtools.intellij.quarkus.run.dashboard.QuarkusRunDashboardDefaultTypesProvider"/>
 
-        <!-- Qute -->
+        <!-- Qute configuration .qute -->
+        <fileType name="Qute Configuration"
+                  language="Properties"
+                  patterns=".qute"
+                  implementationClass="com.redhat.devtools.intellij.qute.lang.QuteConfigFileType"/>
+
+        <!-- Qute template -->
         <facetType implementation="com.redhat.devtools.intellij.qute.facet.QuteFacetType"/>
         <framework.detector implementation="com.redhat.devtools.intellij.qute.facet.QuteFrameworkDetector"/>
         <fileType name="Qute_"
