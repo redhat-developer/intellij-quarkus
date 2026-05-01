@@ -154,7 +154,21 @@ public class AttachDebuggerProcessListener implements ProcessListener {
                             String name = env.getRunProfile().getName();
                             String transport = matcher.group(1);
                             String address = matcher.group(2);
-                            JavaAttachDebuggerProvider.attach(transport, address, name, project);
+                            try {
+                                // Wait for the debug port to be really available before attaching
+                                // This is important on WSL2 where the port might be detected before Quarkus is ready
+                                indicator.setText("Waiting for debugger to be ready on port " + address);
+                                int port = Integer.parseInt(address);
+                                waitForPortAvailable(port, indicator);
+                                indicator.setText("Connecting debugger to port " + address);
+                                JavaAttachDebuggerProvider.attach(transport, address, name, project);
+                            } catch (IOException e) {
+                                LOGGER.error("Failed to connect debugger to port " + address, e);
+                            } catch (NumberFormatException e) {
+                                // address might be "host:port", try to parse port from it
+                                LOGGER.warn("Cannot parse port from address: " + address + ", connecting without wait", e);
+                                JavaAttachDebuggerProvider.attach(transport, address, name, project);
+                            }
                         }
                     });
                 }
