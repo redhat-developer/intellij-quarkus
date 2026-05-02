@@ -16,12 +16,15 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Key;
-import com.intellij.util.SlowOperations;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.net.NetUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
@@ -44,11 +47,13 @@ import static com.intellij.execution.runners.ExecutionUtil.createEnvironment;
  * Quarkus run configration which wraps Maven / Gradle configuration.
  */
 public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigurationModule, QuarkusRunConfigurationOptions>
-        implements RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
+        implements RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, CommonProgramRunConfigurationParameters {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(QuarkusRunConfiguration.class);
 
     public static final Key<Integer> QUARKUS_DEBUG_PORT_KEY = Key.create("quarkus.debug.port");
+
+    private static final Key<CachedValue<Boolean>> QUTE_DEBUGGER_INSTALLED_KEY = Key.create("quarkus.qute.debugger.installed");
 
     static final String QUARKUS_CONFIGURATION = "Quarkus Configuration";
 
@@ -102,7 +107,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     @NotNull
     @Override
     public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
-        return new QuarkusRunSettingsEditor(getProject());
+        return new QuarkusRunSettingsEditor(this);
     }
 
     private int allocateLocalPort() {
@@ -159,9 +164,18 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         // We check if "io.quarkus.qute.runtime.debug.DebugQuteEngineObserver" is in the classpath
         // Note: we cannot check if "io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter" is in classpath
         // because "io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter" is not available in the standard IJ classpath
-        return SlowOperations.allowSlowOperations(() ->
-            PsiTypeUtils.findType("io.quarkus.qute.runtime.debug.DebugQuteEngineObserver", module, null) != null
-        );
+
+        // Don't check during indexing - just return false
+        if (DumbService.isDumb(module.getProject())) {
+            return false;
+        }
+
+        // Use cached value that automatically invalidates when project roots change
+        CachedValuesManager manager = CachedValuesManager.getManager(module.getProject());
+        return manager.getCachedValue(module, QUTE_DEBUGGER_INSTALLED_KEY, () -> {
+            boolean installed = PsiTypeUtils.findType("io.quarkus.qute.runtime.debug.DebugQuteEngineObserver", module, null) != null;
+            return CachedValueProvider.Result.create(installed, ProjectRootManager.getInstance(module.getProject()));
+        }, false);
     }
 
     public String getProfile() {
@@ -183,6 +197,49 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
 
     public void setEnv(Map<String, String> env) {
         getOptions().setEnv(env);
+    }
+
+    @Override
+    public String getProgramParameters() {
+        String params = getOptions().getProgramParameters();
+        return params != null ? params : "";
+    }
+
+    @Override
+    public void setProgramParameters(String programParameters) {
+        getOptions().setProgramParameters(programParameters);
+    }
+
+    @Override
+    public boolean isPassParentEnvs() {
+        return getOptions().isPassParentEnvs();
+    }
+
+    @Override
+    public void setPassParentEnvs(boolean passParentEnvs) {
+        getOptions().setPassParentEnvs(passParentEnvs);
+    }
+
+    @Override
+    public Map<String, String> getEnvs() {
+        return getEnv();
+    }
+
+    @Override
+    public void setEnvs(@NotNull Map<String, String> envs) {
+        setEnv(envs);
+    }
+
+    @Nullable
+    @Override
+    public String getWorkingDirectory() {
+        String dir = getOptions().getWorkingDirectory();
+        return (dir == null || dir.isEmpty()) ? null : dir;
+    }
+
+    @Override
+    public void setWorkingDirectory(@Nullable String workingDirectory) {
+        getOptions().setWorkingDirectory(workingDirectory);
     }
 
     private static RunProfileState doRunConfiguration(@NotNull RunnerAndConfigurationSettings configuration,

@@ -10,76 +10,59 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.run;
 
-import com.intellij.application.options.ModulesComboBox;
-import com.intellij.execution.configuration.EnvironmentVariablesComponent;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.project.Project;
+import com.intellij.compiler.options.CompileStepBeforeRun;
+import com.intellij.execution.ExecutionBundle;
+import com.intellij.execution.ui.*;
 import com.intellij.openapi.ui.LabeledComponent;
-import com.intellij.util.ui.FormBuilder;
+import com.intellij.openapi.util.Predicates;
+import com.intellij.ui.RawCommandLineEditor;
+import com.redhat.devtools.intellij.quarkus.run.fragments.QuarkusModuleFragment;
+import com.redhat.devtools.intellij.quarkus.run.fragments.QuarkusProfileFragment;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.intellij.execution.ui.CommandLinePanel.setMinimumWidth;
 
 /**
- * Settings editor for Quarkus run configurations.
- * <p>
- * This class builds the UI programmatically (no .form file)
- * using IntelliJ's FormBuilder for a clean, consistent layout.
+ * Settings editor for Quarkus run configurations using fragmented approach.
  */
-public class QuarkusRunSettingsEditor extends SettingsEditor<QuarkusRunConfiguration> {
+public class QuarkusRunSettingsEditor extends RunConfigurationFragmentedEditor<QuarkusRunConfiguration> {
 
-    private final @NotNull Project project;
-
-    private final @NotNull JPanel root;
-    private final @NotNull LabeledComponent<ModulesComboBox> module;
-    private final @NotNull LabeledComponent<JTextField> profile;
-    private final @NotNull EnvironmentVariablesComponent envVariables;
-
-    public QuarkusRunSettingsEditor(@NotNull Project project) {
-        this.project = project;
-
-        // --- Module selection combo box
-        ModulesComboBox modulesComboBox = new ModulesComboBox();
-        modulesComboBox.fillModules(project);
-        module = LabeledComponent.create(modulesComboBox, "Module");
-
-        // --- Quarkus profile input field
-        JTextField profileField = new JTextField();
-        profile = LabeledComponent.create(profileField, "Profile");
-
-        // --- Environment variables component (standard IntelliJ component)
-        envVariables = new EnvironmentVariablesComponent();
-
-        // --- Build main panel layout
-        // FormBuilder helps to easily create vertical forms with labels and spacing
-        root = FormBuilder.createFormBuilder()
-                .addLabeledComponent(module.getLabel(), module.getComponent(), 8, false)
-                .addLabeledComponent(profile.getLabel(), profile.getComponent(), 8, false)
-                .addComponent(envVariables, 8)
-                .addVerticalGap(8)
-                .getPanel();
+    public QuarkusRunSettingsEditor(@NotNull QuarkusRunConfiguration runConfiguration) {
+        super(runConfiguration);
     }
 
     @Override
-    protected void resetEditorFrom(@NotNull QuarkusRunConfiguration configuration) {
-        // Load configuration values into the UI components
-        profile.getComponent().setText(configuration.getProfile());
-        module.getComponent().setSelectedModule(configuration.getModule());
-        envVariables.setEnvs(configuration.getEnv());
-    }
+    protected @NotNull List<SettingsEditorFragment<QuarkusRunConfiguration, ?>> createRunFragments() {
+        List<SettingsEditorFragment<QuarkusRunConfiguration, ?>> fragments = new ArrayList<>();
 
-    @Override
-    protected void applyEditorTo(@NotNull QuarkusRunConfiguration configuration) throws ConfigurationException {
-        // Save UI component values back into the configuration
-        configuration.setProfile(profile.getComponent().getText());
-        configuration.setModule(module.getComponent().getSelectedModule());
-        configuration.setEnv(envVariables.getEnvs());
-    }
+        // Before Run tasks
+        BeforeRunComponent beforeRunComponent = new BeforeRunComponent(this);
+        fragments.add(BeforeRunFragment.createBeforeRun(beforeRunComponent, CompileStepBeforeRun.ID));
+        fragments.addAll(BeforeRunFragment.createGroup());
 
-    @Override
-    protected @NotNull JComponent createEditor() {
-        // Return the root UI panel
-        return root;
+        // Module fragment
+        QuarkusModuleFragment moduleFragment = new QuarkusModuleFragment(getProject());
+        fragments.add(moduleFragment);
+
+        // Quarkus specific fragments (right after module)
+        fragments.add(new QuarkusProfileFragment());
+
+        // Common parameter fragments
+        CommonParameterFragments<QuarkusRunConfiguration> commonParameterFragments =
+            new CommonParameterFragments<>(getProject(), () -> moduleFragment.getSelectedModule());
+
+        // Program arguments right after profile
+        SettingsEditorFragment<QuarkusRunConfiguration, ?> programArgsFragment = commonParameterFragments.programArguments();
+        programArgsFragment.setHint("Arguments passed to the Quarkus application (via -Dquarkus.args)");
+        fragments.add(programArgsFragment);
+
+        // Add other environment fragments
+        fragments.add(CommonParameterFragments.createEnvParameters());
+
+        return fragments;
     }
 }

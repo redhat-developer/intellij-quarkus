@@ -12,6 +12,7 @@ package com.redhat.devtools.intellij.quarkus.buildtool;
 
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.util.ProgramParametersUtil;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -19,6 +20,7 @@ import com.intellij.openapi.module.ModuleGrouper;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -249,5 +251,16 @@ public interface BuildToolDelegate {
     @Nullable
     default Executor getOverridedExecutor() {
         return null;
+    }
+
+    /**
+     * Returns the resolved command line with expanded macros.
+     *
+     * @param module the module.
+     * @return the resolved command line with expanded macros.
+     * @see <a href="https://www.jetbrains.com/help/idea/built-in-macros.html">Built In Macro</a>
+     */
+    static String resolveCommandLine(@NotNull String commandLine, @NotNull Module module) {
+        return ProgramParametersUtil.expandPathAndMacros(commandLine, module, module.getProject());
     }
 }
