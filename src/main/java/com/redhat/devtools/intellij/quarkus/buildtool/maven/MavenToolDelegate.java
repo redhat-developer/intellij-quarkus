@@ -183,7 +183,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
                     }
                 }
             }
-        }catch(ProcessCanceledException e) {
+        } catch (ProcessCanceledException e) {
             throw e;
         } catch (Exception e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
@@ -218,6 +218,10 @@ public class MavenToolDelegate implements BuildToolDelegate {
         if (quteDebugPort != null) {
             mavenConfiguration.getRunnerSettings().getMavenProperties().put("quteDebugPort", Integer.toString(quteDebugPort));
         }
+        if (StringUtils.isNotBlank(configuration.getProgramParameters())) {
+            String resolvedArgs = BuildToolDelegate.resolveCommandLine(configuration.getProgramParameters(), module);
+            mavenConfiguration.getRunnerSettings().getMavenProperties().put("quarkus.args", resolvedArgs);
+        }
         mavenConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
     }
@@ -250,4 +254,5 @@ public class MavenToolDelegate implements BuildToolDelegate {
             mavenConfiguration.setRunnerSettings(new MavenRunnerSettings());
         }
     }
+
 }

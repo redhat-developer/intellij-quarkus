@@ -21,6 +21,12 @@ public class QuarkusRunConfigurationOptions extends ModuleBasedConfigurationOpti
 
     private final StoredProperty<Map<String, String>> envProperty = this.<String, String>map().provideDelegate(this, "env");
 
+    private final StoredProperty<String> programParametersProperty = string("").provideDelegate(this, "programParameters");
+
+    private final StoredProperty<Boolean> passParentEnvsProperty = property(true).provideDelegate(this, "passParentEnvs");
+
+    private final StoredProperty<String> workingDirectoryProperty = string("").provideDelegate(this, "workingDirectory");
+
     public String getProfile() {
         return profileProperty.getValue(this);
     }
@@ -39,5 +45,29 @@ public class QuarkusRunConfigurationOptions extends ModuleBasedConfigurationOpti
 
     public void setEnv(Map<String, String> env) {
         envProperty.setValue(this, env);
+    }
+
+    public String getProgramParameters() {
+        return programParametersProperty.getValue(this);
+    }
+
+    public void setProgramParameters(String programParameters) {
+        programParametersProperty.setValue(this, programParameters);
+    }
+
+    public boolean isPassParentEnvs() {
+        return passParentEnvsProperty.getValue(this);
+    }
+
+    public void setPassParentEnvs(boolean passParentEnvs) {
+        passParentEnvsProperty.setValue(this, passParentEnvs);
+    }
+
+    public String getWorkingDirectory() {
+        return workingDirectoryProperty.getValue(this);
+    }
+
+    public void setWorkingDirectory(String workingDirectory) {
+        workingDirectoryProperty.setValue(this, workingDirectory);
     }
 }

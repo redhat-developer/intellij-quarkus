@@ -374,12 +374,13 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         String externalProjectPath = getModuleDirPath(module);
         gradleConfiguration.getSettings().setExternalProjectPath(externalProjectPath);
         gradleConfiguration.getSettings().setEnv(configuration.getEnv());
-        String parameters = createParameters(configuration, debugPort, quteDebugPort);
+        String parameters = createParameters(module, configuration, debugPort, quteDebugPort);
         gradleConfiguration.getSettings().setScriptParameters(parameters);
         gradleConfiguration.setBeforeRunTasks(configuration.getBeforeRunTasks());
         return settings;
     }
-    private static @NotNull String createParameters(@NotNull QuarkusRunConfiguration configuration,
+    private static @NotNull String createParameters(@NotNull Module module,
+                                                    @NotNull QuarkusRunConfiguration configuration,
                                                     @Nullable Integer debugPort,
                                                     @Nullable Integer quteDebugPort) {
         StringBuilder parameters = new StringBuilder();
@@ -394,7 +395,10 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         if (quteDebugPort != null) {
             addParameter(parameters, "quteDebugPort", quteDebugPort);
         }
-
+        if (StringUtils.isNotBlank(configuration.getProgramParameters())) {
+            String resolvedArgs = BuildToolDelegate.resolveCommandLine(configuration.getProgramParameters(), module);
+            addParameter(parameters, "quarkus.args", "\"" + resolvedArgs + "\"");
+        }
         return parameters.toString();
     }
 
