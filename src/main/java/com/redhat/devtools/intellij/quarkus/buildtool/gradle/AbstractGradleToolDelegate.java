@@ -377,6 +377,11 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Gradle)", GradleExternalTaskConfigurationType.class);
         GradleRunConfiguration gradleConfiguration = (GradleRunConfiguration) settings.getConfiguration();
         gradleConfiguration.getSettings().getTaskNames().add("quarkusDev");
+        String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
+        if (externalProjectPath == null) {
+            externalProjectPath = getModuleDirPath(module);
+        }
+        gradleConfiguration.getSettings().setExternalProjectPath(externalProjectPath);
         gradleConfiguration.getSettings().setEnv(configuration.getEnv());
         String parameters = createParameters(configuration, debugPort, quteDebugPort);
         gradleConfiguration.getSettings().setScriptParameters(parameters);
