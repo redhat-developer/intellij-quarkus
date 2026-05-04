@@ -13,13 +13,18 @@ package com.redhat.devtools.intellij.quarkus.buildtool;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleGrouper;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +41,38 @@ import static com.redhat.devtools.intellij.quarkus.QuarkusConstants.QUARKUS_EXTE
 
 public interface BuildToolDelegate {
 
-    static boolean shouldResolveArtifactTransitively(MavenId deploymentId) {
+    static @Nullable String getModuleDirPath(@NotNull Module module) {
+        return getModuleDirPath(module, null);
+    }
+
+    static @Nullable String getModuleDirPath(@NotNull Module module, @Nullable String scriptName) {
+        String modulePath = ExternalSystemApiUtil.getExternalProjectPath(module);
+        if (modulePath != null) {
+            return modulePath;
+        }
+
+        VirtualFile dir = QuarkusModuleUtil.getModuleDirPath(module);
+        if (scriptName == null) {
+            return dir != null ? VfsUtilCore.virtualToIoFile(dir).getAbsolutePath() : null;
+        }
+
+        VirtualFile script = dir != null ? dir.findChild(scriptName) : null;
+        if (script != null && script.exists()) {
+            return dir.getPath();
+        }
+        ModuleGrouper grouper = ModuleGrouper.instanceFor(module.getProject());
+        List<String> names = grouper.getGroupPath(module);
+        if (!names.isEmpty()) {
+            ModuleManager manager = ModuleManager.getInstance(module.getProject());
+            Module parentModule = manager.findModuleByName(names.get(0));
+            if (parentModule != null) {
+                return getModuleDirPath(parentModule, scriptName);
+            }
+        }
+        return null;
+    }
+
+    static boolean shouldResolveArtifactTransitively(@NotNull MavenId deploymentId) {
         // The kubernetes support is only available if quarkus-kubernetes artifact is
         // declared in the pom.xml
         // When quarkus-kubernetes is declared, this JAR declares the deployment JAR
@@ -53,7 +89,7 @@ public interface BuildToolDelegate {
                 || "quarkus-smallrye-openapi-deployment".equals(deploymentId.getArtifactId());
     }
 
-    static String getDeploymentJarId(File file) {
+    static String getDeploymentJarId(@NotNull File file) {
         String result = null;
         if (file.isDirectory()) {
             File quarkusFile = new File(file, QUARKUS_EXTENSION_PROPERTIES);
@@ -65,7 +101,7 @@ public interface BuildToolDelegate {
                 }
             }
         } else {
-            try(JarFile jarFile = new JarFile(file)) {
+            try (JarFile jarFile = new JarFile(file)) {
                 JarEntry entry = jarFile.getJarEntry(QUARKUS_EXTENSION_PROPERTIES);
                 if (entry != null) {
                     try (Reader r = new InputStreamReader(jarFile.getInputStream(entry), StandardCharsets.UTF_8)) {
@@ -79,17 +115,17 @@ public interface BuildToolDelegate {
         return result;
     }
 
-    static boolean hasExtensionProperties(File file) {
+    static boolean hasExtensionProperties(@NotNull File file) {
         return getDeploymentJarId(file) != null;
     }
 
-    static String getQuarkusExtension(Reader r) throws IOException {
+    static String getQuarkusExtension(@NotNull Reader r) throws IOException {
         Properties p = new Properties();
         p.load(r);
         return p.getProperty(QUARKUS_DEPLOYMENT_PROPERTY_NAME);
     }
 
-    static BuildToolDelegate getDelegate(Module module) {
+    static BuildToolDelegate getDelegate(@NotNull Module module) {
         for (BuildToolDelegate toolDelegate : getDelegates()) {
             if (toolDelegate.isValid(module)) {
                 return toolDelegate;
@@ -114,12 +150,14 @@ public interface BuildToolDelegate {
      * Return the list of additional deployment JARs for the module. The array should have 2 elements, the first
      * one being for binary JARs, the second one for sources JARs.
      *
-     * @param module the module to process
+     * @param module            the module to process
+     * @param progressIndicator the progress indicator
      * @return the list of additional deployment JARs for the module
      * @see #BINARY
      * @see #SOURCES
      */
-    List<VirtualFile>[] getDeploymentFiles(Module module, ProgressIndicator progressIndicator);
+    List<VirtualFile>[] getDeploymentFiles(@NotNull Module module,
+                                           @NotNull ProgressIndicator progressIndicator);
 
     /**
      * Returns the displayable string for the delegate.
@@ -157,7 +195,7 @@ public interface BuildToolDelegate {
         return getJarFile(new File(path));
     }
 
-    default VirtualFile getJarFile(File file) {
+    default VirtualFile getJarFile(@NotNull File file) {
         VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
         return virtualFile != null ? JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile) : null;
     }
