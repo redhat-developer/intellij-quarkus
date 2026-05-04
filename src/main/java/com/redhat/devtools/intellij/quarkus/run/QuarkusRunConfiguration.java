@@ -16,10 +16,12 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.SlowOperations;
 import com.intellij.util.net.NetUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.quarkus.buildtool.BuildToolDelegate;
@@ -157,7 +159,9 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         // We check if "io.quarkus.qute.runtime.debug.DebugQuteEngineObserver" is in the classpath
         // Note: we cannot check if "io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter" is in classpath
         // because "io.quarkus.qute.debug.adapter.RegisterDebugServerAdapter" is not available in the standard IJ classpath
-        return PsiTypeUtils.findType("io.quarkus.qute.runtime.debug.DebugQuteEngineObserver", module, null) != null;
+        return SlowOperations.allowSlowOperations(() ->
+            PsiTypeUtils.findType("io.quarkus.qute.runtime.debug.DebugQuteEngineObserver", module, null) != null
+        );
     }
 
     public String getProfile() {

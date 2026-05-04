@@ -14,6 +14,7 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
@@ -56,7 +57,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
     }
 
     @Override
-    public List<VirtualFile>[] getDeploymentFiles(Module module, ProgressIndicator progressIndicator) {
+    public List<VirtualFile>[] getDeploymentFiles(@NotNull Module module, @NotNull ProgressIndicator progressIndicator) {
         MavenProject mavenProject = MavenProjectsManager.getInstance(module.getProject()).findProject(module);
         List<VirtualFile>[] result = BuildToolDelegate.initDeploymentFiles();
         if (mavenProject != null) {
@@ -81,7 +82,10 @@ public class MavenToolDelegate implements BuildToolDelegate {
 
     }
 
-    private void getDeploymentFiles(Module module, MavenProject mavenProject, List<VirtualFile>[] result, ProgressIndicator progressIndicator) {
+    private void getDeploymentFiles(@NotNull Module module,
+                                    @NotNull MavenProject mavenProject,
+                                    @NotNull List<VirtualFile>[] result,
+                                    @NotNull ProgressIndicator progressIndicator) {
         Set<MavenArtifact> downloaded = new HashSet<>();
         Set<MavenId> toDownload = new HashSet<>();
 
@@ -179,6 +183,8 @@ public class MavenToolDelegate implements BuildToolDelegate {
                     }
                 }
             }
+        }catch(ProcessCanceledException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         }
@@ -192,14 +198,15 @@ public class MavenToolDelegate implements BuildToolDelegate {
     }
 
     @Override
-    public RunnerAndConfigurationSettings getConfigurationDelegate(@NotNull Module module, @NotNull QuarkusRunConfiguration configuration,
+    public RunnerAndConfigurationSettings getConfigurationDelegate(@NotNull Module module,
+                                                                   @NotNull QuarkusRunConfiguration configuration,
                                                                    @Nullable Integer debugPort,
                                                                    @Nullable Integer quteDebugPort) {
         RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Maven)", MavenRunConfigurationType.class);
         MavenRunConfiguration mavenConfiguration = (MavenRunConfiguration) settings.getConfiguration();
         mavenConfiguration.getRunnerParameters().setResolveToWorkspace(true);
         mavenConfiguration.getRunnerParameters().setGoals(Collections.singletonList("quarkus:dev"));
-        mavenConfiguration.getRunnerParameters().setWorkingDirPath(VfsUtilCore.virtualToIoFile(QuarkusModuleUtil.getModuleDirPath(module)).getAbsolutePath());
+        mavenConfiguration.getRunnerParameters().setWorkingDirPath(BuildToolDelegate.getModuleDirPath(module));
         ensureRunnerSettings(mavenConfiguration);
         mavenConfiguration.getRunnerSettings().setEnvironmentProperties(configuration.getEnv());
         if (StringUtils.isNotBlank(configuration.getProfile())) {

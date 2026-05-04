@@ -73,7 +73,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
 
     private static final String GRADLE_LIBRARY_PREFIX = "Gradle: ";
 
-    private boolean scriptExists(Module module) {
+    private boolean scriptExists(@NotNull Module module) {
         String path = getModuleDirPath(module);
         if (path != null) {
             File script = new File(path, getScriptName());
@@ -83,21 +83,24 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     }
 
     @Override
-    public boolean isValid(Module module) {
+    public boolean isValid(@NotNull Module module) {
         return ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module) && scriptExists(module);
     }
 
     @Override
-    public List<VirtualFile>[] getDeploymentFiles(Module module, ProgressIndicator progressIndicator) {
+    public List<VirtualFile>[] getDeploymentFiles(@NotNull Module module,
+                                                  @NotNull ProgressIndicator progressIndicator) {
         List<VirtualFile>[] result = BuildToolDelegate.initDeploymentFiles();
         ModuleRootManager manager = ModuleRootManager.getInstance(module);
         Set<String> deploymentIds = new HashSet<>();
         try {
             manager.orderEntries().forEachLibrary(library -> {
+                progressIndicator.checkCanceled();
                 processLibrary(library, manager, deploymentIds);
                 return true;
             });
             if (!deploymentIds.isEmpty()) {
+                progressIndicator.checkCanceled();
                 processDownload(module, deploymentIds, result);
             }
         } catch (IOException e) {
@@ -114,7 +117,9 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      * @param result        the list where to place results to
      * @throws IOException if an error occurs running Gradle
      */
-    private void processDownload(Module module, Set<String> deploymentIds, List<VirtualFile>[] result) throws IOException {
+    private void processDownload(@NotNull Module module,
+                                 @NotNull Set<String> deploymentIds,
+                                 @NotNull List<VirtualFile>[] result) throws IOException {
         Path outputPath = Files.createTempFile(null, ".txt");
         Path customBuildFile = generateCustomGradleBuild(getModuleDirPath(module), outputPath, deploymentIds);
         Path customSettingsFile = generateCustomGradleSettings(getModuleDirPath(module), customBuildFile);
@@ -149,23 +154,8 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         }
     }
 
-
-    private String getModuleDirPath(Module module) {
-        VirtualFile dir = QuarkusModuleUtil.getModuleDirPath(module);
-        VirtualFile script = dir != null ? dir.findChild(getScriptName()) : null;
-        if (script != null && script.exists()) {
-            return dir.getPath();
-        }
-        ModuleGrouper grouper = ModuleGrouper.instanceFor(module.getProject());
-        List<String> names = grouper.getGroupPath(module);
-        if (!names.isEmpty()) {
-            ModuleManager manager = ModuleManager.getInstance(module.getProject());
-            Module parentModule = manager.findModuleByName(names.get(0));
-            if (parentModule != null) {
-                return getModuleDirPath(parentModule);
-            }
-        }
-        return null;
+    private @Nullable String getModuleDirPath(Module module) {
+        return BuildToolDelegate.getModuleDirPath(module, getScriptName());
     }
 
     /**
@@ -177,7 +167,11 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      * @param callback   the callback to call after running the task
      * @throws IOException if an error occurs running Gradle
      */
-    private void collectDependencies(Module module, Path customSettingsFile, Path outputPath, List<VirtualFile>[] result, TaskCallback callback) throws IOException {
+    private void collectDependencies(@NotNull Module module,
+                                     @NotNull Path customSettingsFile,
+                                     @NotNull Path outputPath,
+                                     @NotNull List<VirtualFile>[] result,
+                                     @NotNull TaskCallback callback) throws IOException {
         try {
             ExternalSystemTaskExecutionSettings executionSettings = new ExternalSystemTaskExecutionSettings();
             executionSettings.setExternalSystemIdString(GradleConstants.SYSTEM_ID.toString());
@@ -377,10 +371,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         RunnerAndConfigurationSettings settings = RunManager.getInstance(module.getProject()).createConfiguration(module.getName() + " Quarkus (Gradle)", GradleExternalTaskConfigurationType.class);
         GradleRunConfiguration gradleConfiguration = (GradleRunConfiguration) settings.getConfiguration();
         gradleConfiguration.getSettings().getTaskNames().add("quarkusDev");
-        String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
-        if (externalProjectPath == null) {
-            externalProjectPath = getModuleDirPath(module);
-        }
+        String externalProjectPath = getModuleDirPath(module);
         gradleConfiguration.getSettings().setExternalProjectPath(externalProjectPath);
         gradleConfiguration.getSettings().setEnv(configuration.getEnv());
         String parameters = createParameters(configuration, debugPort, quteDebugPort);
