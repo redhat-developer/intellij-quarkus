@@ -91,6 +91,7 @@ public class QuteSyntaxHighlighter extends SyntaxHighlighterBase {
 
     private final @Nullable Module module;
     private final @Nullable Project project;
+    private final @Nullable VirtualFile virtualFile;
 
     public QuteSyntaxHighlighter() {
         this(null, null);
@@ -98,6 +99,7 @@ public class QuteSyntaxHighlighter extends SyntaxHighlighterBase {
 
     public QuteSyntaxHighlighter(@Nullable VirtualFile virtualFile, @Nullable Project project) {
         this.project = project;
+        this.virtualFile = virtualFile;
         if (virtualFile != null && project != null) {
             this.module = LSPIJUtils.getModule(virtualFile, project);
         } else {
@@ -108,10 +110,10 @@ public class QuteSyntaxHighlighter extends SyntaxHighlighterBase {
     @Override
     public @NotNull Lexer getHighlightingLexer() {
         if (module != null) {
-            return new QuteLexer(module);
+            return new QuteLexer(virtualFile, module);
         }
         if (project != null) {
-            return new QuteLexer(project);
+            return new QuteLexer(virtualFile, project);
         }
         return new QuteLexer();
     }

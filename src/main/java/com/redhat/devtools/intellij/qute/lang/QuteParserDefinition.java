@@ -34,7 +34,7 @@ public class QuteParserDefinition implements ParserDefinition {
 
     @Override
     public @NotNull Lexer createLexer(@NotNull Project project) {
-        return new QuteLexer(project);
+        return new QuteLexer(null, project);
     }
 
     @Override

@@ -1,0 +1,10 @@
+QUTE_FILE
+  ASTWrapperPsiElement(QuteElementType.QUTE_CONTENT)
+    ASTWrapperPsiElement(QuteElementType.QUTE_EXPRESSION)
+      PsiElement(QuteElementType.QUTE_START_EXPRESSION)('{=')
+      ASTWrapperPsiElement(QuteElementType.QUTE_EXPRESSION_NAMESPACE_PART)
+        PsiElement(QuteElementType.QUTE_EXPRESSION_NAMESPACE_PART)('uri')
+      PsiElement(QuteElementType.QUTE_EXPRESSION_COLON_SPACE)(':')
+      ASTWrapperPsiElement(QuteElementType.QUTE_EXPRESSION_OBJECT_PART)
+        PsiElement(QuteElementType.QUTE_EXPRESSION_OBJECT_PART)('item')
+      PsiElement(QuteElementType.QUTE_END_EXPRESSION)('}')
