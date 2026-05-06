@@ -12,10 +12,13 @@ package com.redhat.devtools.intellij.qute.lang.psi;
 
 import com.intellij.lexer.LexerBase;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
-import com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.qute.parser.injection.InjectionDetector;
 import com.redhat.qute.parser.template.scanner.ScannerState;
 import com.redhat.qute.parser.template.scanner.TemplateScanner;
@@ -35,9 +38,15 @@ import static com.redhat.devtools.intellij.qute.psi.internal.extensions.roq.RoqU
  */
 public class QuteLexer extends LexerBase {
 
+    /**
+     * UserData key to force alt-expr-syntax mode for testing purposes.
+     * When set to true in Project.getUserData(), the lexer will use {=...} syntax.
+     */
+    public static final Key<Boolean> FORCE_ALT_EXPR_SYNTAX = Key.create("qute.force.alt.expr.syntax");
+
     public static final List<InjectionDetector> YAML_FRONT_MATTER_DETECTORS = Collections.singletonList(new YamlFrontMatterDetector());
     private final Collection<InjectionDetector> injectors;
-    private final Character expressionCommand = null;
+    private final Character expressionCommand;
     private IElementType myTokenType;
     private CharSequence myText;
 
@@ -57,12 +66,69 @@ public class QuteLexer extends LexerBase {
     private int startTagOpenOffset;
     private int startLanguageInjectionOffset;
 
-    public QuteLexer(@NotNull Module module) {
-        this(isRoqProject(module));
+    public QuteLexer(@Nullable VirtualFile file, @NotNull Module module) {
+        this(isRoqProject(module), isAltExprSyntax(file, module));
     }
 
-    public QuteLexer(@NotNull Project project) {
-        this(isRoqProject(project));
+    public QuteLexer(@Nullable VirtualFile file, @NotNull Project project) {
+        this(isRoqProject(project), isAltExprSyntax(file, getFirstModule(project)));
+    }
+
+    private static @Nullable Module getFirstModule(@NotNull Project project) {
+        var modules = ModuleManager.getInstance(project).getModules();
+        return modules != null && modules.length > 0 ? modules[0] : null;
+    }
+
+    private static boolean isAltExprSyntax(@Nullable VirtualFile file, @Nullable Module module) {
+        if (file == null && module == null){
+            return false;
+        }
+
+        // Check UserData first (for testing purposes)
+        if (module != null) {
+            Boolean forceAltSyntax = module.getProject().getUserData(FORCE_ALT_EXPR_SYNTAX);
+            if (forceAltSyntax != null && forceAltSyntax) {
+                return true;
+            }
+
+            // Check application.properties
+            var mpProject = PsiMicroProfileProjectManager.getInstance(module.getProject()).getMicroProfileProject(module);
+            if (mpProject.getProperty("quarkus.qute.alt-expr-syntax", "false").equals("true")) {
+                return true;
+            }
+        }
+
+        if (file != null) {
+            // Search for .qute file in parent directories
+            return searchAltExprSyntaxInParent(file);
+        }
+        return false;
+    }
+
+    /**
+     * Searches for a {@code .qute} file in the parent directories of the given file
+     * and checks if {@code alt-expr-syntax=true} is set.
+     *
+     * @param file the template file to start searching from.
+     * @return {@code true} if alt-expr-syntax is enabled in a parent .qute file, {@code false} otherwise.
+     */
+    private static boolean searchAltExprSyntaxInParent(@NotNull VirtualFile file) {
+        VirtualFile parent = file.getParent();
+        while (parent != null) {
+            VirtualFile dotQuteFile = parent.findChild(".qute");
+            if (dotQuteFile != null && dotQuteFile.exists() && !dotQuteFile.isDirectory()) {
+                java.util.Properties props = new java.util.Properties();
+                try (java.io.InputStream is = dotQuteFile.getInputStream()) {
+                    props.load(is);
+                    Object result = props.getOrDefault("alt-expr-syntax", false);
+                    return result instanceof Boolean ? (Boolean) result : Boolean.parseBoolean(result.toString());
+                } catch (java.io.IOException e) {
+                    // Ignore and continue searching in parent directories
+                }
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
 
     public QuteLexer() {
@@ -70,7 +136,12 @@ public class QuteLexer extends LexerBase {
     }
 
     public QuteLexer(boolean roqSupport) {
-        injectors = roqSupport ? YAML_FRONT_MATTER_DETECTORS : Collections.emptyList();
+        this(roqSupport, false);
+    }
+
+    public QuteLexer(boolean roqSupport, boolean altExprSyntax) {
+        this.injectors = roqSupport ? YAML_FRONT_MATTER_DETECTORS : Collections.emptyList();
+        this.expressionCommand = altExprSyntax ? '=' : null;
     }
 
     @Override

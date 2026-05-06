@@ -1,0 +1,11 @@
+QUTE_FILE
+  ASTWrapperPsiElement(QuteElementType.QUTE_CONTENT)
+    ASTWrapperPsiElement(QUTE_TEXT)
+      PsiElement(QUTE_TEXT)('<h1>Hello ')
+    ASTWrapperPsiElement(QuteElementType.QUTE_EXPRESSION)
+      PsiElement(QuteElementType.QUTE_START_EXPRESSION)('{=')
+      ASTWrapperPsiElement(QuteElementType.QUTE_EXPRESSION_OBJECT_PART)
+        PsiElement(QuteElementType.QUTE_EXPRESSION_OBJECT_PART)('name')
+      PsiElement(QuteElementType.QUTE_END_EXPRESSION)('}')
+    ASTWrapperPsiElement(QUTE_TEXT)
+      PsiElement(QUTE_TEXT)('!</h1>')
