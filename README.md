@@ -23,6 +23,24 @@ by using [LSP4IJ (Language Server Protocol for Intellij)](https://github.com/red
 
 <!-- Plugin description end -->
 
+## Documentation
+
+Comprehensive documentation is available in the [User Guide](https://github.com/redhat-developer/intellij-quarkus/blob/main/UserGuide.md) folder:
+
+### Quarkus Support
+- [Create Quarkus Application (Wizard)](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/quarkus/Wizard.md)
+- [Quarkus Editing Support](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/quarkus/EditingSupport.md) - Code completion, validation, and navigation for Java files and properties
+- [Quarkus Debugging Support](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/quarkus/RunningSupport.md) - Debug your Quarkus applications with live reload
+
+### Qute Template Support
+- [Qute Editing Support](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/qute/EditingSupport.md) - Syntax coloration, completion, validation, and quick fixes for Qute templates
+- [Qute Debugging Support](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/qute/DebuggingSupport.md) - Debug Qute templates with breakpoints and variable inspection
+- [Renarde Support](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/qute/RenardeSupport.md) - Specific support for Renarde framework
+- [Roq Support](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/qute/RoqSupport.md) - Specific support for Roq static site generator
+- [Web Bundler Support](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/qute/WebBundler.md) - Asset management and bundling
+
+## Features Overview
+
 ### application.properties support
 
 ### Code completion (Ctrl + ENTER)
