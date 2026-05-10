@@ -1,14 +1,250 @@
-# MicroProfile editing support
+# MicroProfile Editing Support
 
-## In properties files
+Quarkus Tools for IntelliJ provides comprehensive editing support for [MicroProfile](https://microprofile.io/) specifications and configuration. MicroProfile is a set of specifications for building cloud-native microservices in Java.
 
-Completion, validation, definition, hover in application.properties, microprofile-config.properties
+The plugin offers intelligent features for both configuration files and Java source code:
 
-![Micro Profile Config Support](../images/microprofile/MicroProfileConfigSupport.gif)
+- **Configuration file support** - Completion, validation, hover, and navigation for `application.properties` and `microprofile-config.properties`
+- **Java annotation support** - Validation and completion for MicroProfile annotations
+- **Type converters** - Smart validation using MicroProfile Config converters
+- **Quick fixes** - Automated fixes for common configuration issues
 
-## In Java files
+## In Properties Files
 
-Validation, completion according MicroProfile extensions.
+MicroProfile Config properties are fully supported in `application.properties` and `microprofile-config.properties` files with intelligent IDE features.
+
+### Features
+
+#### Code Completion
+
+Press `Ctrl+Space` (Windows/Linux) or `⌘Space` (macOS) to get intelligent suggestions for:
+- **Property names** - All available MicroProfile Config properties based on your project's dependencies
+- **Property values** - Context-aware value suggestions (enums, booleans, numbers, etc.)
+- **Nested properties** - Hierarchical property completion for complex configurations
+
+#### Hover Documentation
+
+Hover over any property name to see:
+- Property description and documentation
+- Expected value type
+- Default value (if any)
+- Source extension that provides the property
+
+Press `Ctrl+Q` (Windows/Linux) or `F1` (macOS) to open detailed documentation.
+
+#### Go to Definition
+
+Navigate between properties and their usage:
+- `Ctrl+B` (Windows/Linux) or `⌘B` (macOS) on a property jumps to:
+  - The Java field annotated with `@ConfigProperty` that uses it
+  - The configuration class where it's defined
+  - The source code that provides the property
+
+#### Validation
+
+The IDE validates properties in real-time:
+- **Unknown properties** - Warnings for properties not defined in any extension
+- **Invalid values** - Errors for values that don't match the expected type
+- **Deprecated properties** - Strikethrough for deprecated configuration
+- **Required properties** - Errors when required properties are missing
+
+#### Property Profiles
+
+MicroProfile Config supports profiles (e.g., `%dev`, `%test`, `%prod`) for environment-specific configuration:
+
+```properties
+# Default value
+greeting.message=Hello
+
+# Development profile
+%dev.greeting.message=Hello from Dev
+
+# Production profile  
+%prod.greeting.message=Hello from Production
+```
+
+The IDE understands profile prefixes and provides completion and validation accordingly.
+
+![MicroProfile Config Support](../images/microprofile/MicroProfileConfigSupport.gif)
+
+## In Java Files
+
+MicroProfile annotations in Java source files receive full IDE support including validation, completion, and quick fixes.
+
+### @ConfigProperty
+
+The `@ConfigProperty` annotation injects configuration values into your Java code.
+
+#### Example
+
+```java
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import jakarta.inject.Inject;
+
+public class GreetingService {
+    
+    @Inject
+    @ConfigProperty(name = "greeting.message")
+    String message;
+    
+    @Inject
+    @ConfigProperty(name = "greeting.suffix", defaultValue = "!")
+    String suffix;
+}
+```
+
+#### IDE Features
+
+- **Validation** - Warns if the property is not defined in `application.properties` (unless `defaultValue` is provided)
+- **Hover** - Shows the current value from your configuration file
+- **Quick fix** - Offers to create the missing property in `application.properties`
+- **Go to definition** - Navigate from Java field to the property definition
+- **Refactoring** - Rename the property across Java and properties files
+
+### MicroProfile Health
+
+[MicroProfile Health](https://github.com/eclipse/microprofile-health) provides health check endpoints.
+
+#### Validation
+
+The IDE validates:
+- `@Liveness` and `@Readiness` annotations are used correctly
+- Health check classes implement `HealthCheck` interface
+- `call()` method returns `HealthCheckResponse`
+
+#### Example
+
+```java
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.eclipse.microprofile.health.Liveness;
+
+@Liveness
+public class DatabaseHealthCheck implements HealthCheck {
+    
+    @Override
+    public HealthCheckResponse call() {
+        return HealthCheckResponse.up("Database connection OK");
+    }
+}
+```
+
+Related properties in `application.properties` receive completion and validation for the health extension.
+
+### MicroProfile Fault Tolerance
+
+[MicroProfile Fault Tolerance](https://github.com/eclipse/microprofile-fault-tolerance) provides resilience patterns like retry, timeout, circuit breaker, bulkhead, and fallback.
+
+#### @Fallback Annotation
+
+The IDE validates and provides completion for the `fallbackMethod` attribute:
+
+```java
+import org.eclipse.microprofile.faulttolerance.Fallback;
+
+public class GreetingService {
+    
+    @Fallback(fallbackMethod = "fallbackGreeting")
+    public String greeting() {
+        // Primary method
+        return callExternalService();
+    }
+    
+    public String fallbackGreeting() {
+        // Fallback method
+        return "Hello from fallback";
+    }
+}
+```
+
+#### IDE Features
+
+- **Validation** - Ensures the `fallbackMethod` exists and has compatible signature
+- **Completion** - Lists available methods when typing `fallbackMethod = ""`
+- **Go to definition** - Navigate from annotation to the fallback method
+- **Quick fix** - Create the fallback method if it doesn't exist
+
+#### Other Fault Tolerance Annotations
+
+The IDE supports configuration properties for:
+- `@Retry` - Retry policies
+- `@Timeout` - Operation timeouts  
+- `@CircuitBreaker` - Circuit breaker configuration
+- `@Bulkhead` - Bulkhead patterns
+- `@Asynchronous` - Async execution
+
+All related properties in `application.properties` receive completion and validation.
+
+### MicroProfile REST Client
+
+[MicroProfile REST Client](https://github.com/eclipse/microprofile-rest-client) provides type-safe REST client interfaces.
+
+#### Example
+
+```java
+import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+
+@RegisterRestClient(configKey = "hello-service")
+public interface HelloService {
+    
+    @GET
+    @Path("/hello")
+    String hello();
+}
+```
+
+#### IDE Features
+
+- **Validation** - Checks that `@RestClient` is used with `@Inject` for proper injection
+- **Quick fix** - Adds missing `@RestClient` annotation
+- **Properties completion** - Suggests REST client configuration properties:
+  ```properties
+  hello-service/mp-rest/url=http://localhost:8080
+  hello-service/mp-rest/scope=jakarta.inject.Singleton
+  ```
+
+### MicroProfile OpenAPI
+
+[MicroProfile OpenAPI](https://github.com/eclipse/microprofile-openapi) generates OpenAPI documentation.
+
+Properties like `mp.openapi.extensions.*` receive completion and validation in `application.properties`.
+
+### MicroProfile Metrics
+
+[MicroProfile Metrics](https://github.com/eclipse/microprofile-metrics) provides application metrics.
+
+#### @Gauge Validation
+
+The IDE validates `@Gauge` usage:
+- Must be on a method with no parameters
+- Return type must be numeric
+- Method must not return `void`
+
+```java
+import org.eclipse.microprofile.metrics.annotation.Gauge;
+
+public class MemoryGauge {
+    
+    @Gauge(name = "memory.used", unit = MetricUnits.BYTES)
+    public long getMemoryUsed() {
+        return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    }
+}
+```
+
+### MicroProfile LRA
+
+[MicroProfile LRA](https://github.com/eclipse/microprofile-lra) (Long Running Actions) for distributed transactions.
+
+Configuration properties for LRA receive completion and validation.
+
+### MicroProfile OpenTracing
+
+[MicroProfile OpenTracing](https://github.com/eclipse/microprofile-opentracing) integrates distributed tracing.
+
+Configuration properties for tracing receive completion and validation.
 
 ## Type Converters
 
@@ -122,3 +358,40 @@ When you set execution mode to **full** in a Quarkus project:
 | **Full** | Trusted projects with framework-specific formats | Your project's converters | Slower (requires classpath loading) | ⚠️ Executes project code |
 
 **Recommendation**: Use **safe mode** for general development and when working with untrusted projects. Only switch to **full mode** for trusted projects when you need framework-specific converter validation.
+
+## Keyboard Shortcuts
+
+Common shortcuts for MicroProfile editing:
+
+| Action | Windows/Linux | macOS |
+|--------|---------------|-------|
+| Code completion | `Ctrl+Space` | `⌘Space` |
+| Go to definition | `Ctrl+B` | `⌘B` |
+| Quick documentation | `Ctrl+Q` | `F1` |
+| Show quick fixes | `Alt+Enter` | `⌥Enter` |
+| Rename | `Shift+F6` | `⇧F6` |
+
+## Configuration Settings
+
+Access MicroProfile settings at:
+- **Settings > Languages & Frameworks > MicroProfile**
+
+Available options:
+- Enable/disable inlay hints for configuration properties
+- Show/hide MicroProfile converters
+- Show/hide default values
+- Show/hide Java types
+- Configure execution mode (safe/full)
+
+## Next Steps
+
+- Learn about [Quarkus-specific features](../quarkus/EditingSupport.md) that extend MicroProfile
+- Explore [Quarkus run configurations](../quarkus/RunningSupport.md) for testing your MicroProfile applications
+- See the [Quarkus wizard](../quarkus/Wizard.md) to create projects with MicroProfile extensions
+
+## Additional Resources
+
+- [MicroProfile Specifications](https://microprofile.io/specifications/)
+- [MicroProfile Config Specification](https://github.com/eclipse/microprofile-config)
+- [Quarkus MicroProfile Guide](https://quarkus.io/guides/#microprofile)
+- [SmallRye Config Documentation](https://smallrye.io/smallrye-config/)

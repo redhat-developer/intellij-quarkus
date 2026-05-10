@@ -25,7 +25,7 @@ by using [LSP4IJ (Language Server Protocol for Intellij)](https://github.com/red
 
 ## Documentation
 
-Comprehensive documentation is available in the [User Guide](https://github.com/redhat-developer/intellij-quarkus/blob/main/UserGuide.md) folder:
+Comprehensive documentation is available in the [User Guide](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/UserGuide.md):
 
 ### Quarkus Support
 - [Create Quarkus Application (Wizard)](https://github.com/redhat-developer/intellij-quarkus/blob/main/docs/quarkus/Wizard.md)
