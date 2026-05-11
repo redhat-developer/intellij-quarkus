@@ -14,28 +14,20 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.util.MergeQuery;
 import com.intellij.util.Query;
 import com.intellij.util.UniqueResultsQuery;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.PsiTypeUtils;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.PropertiesCollector;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.StaticPropertyProviderExtensionPointBean;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4mp.commons.ClasspathKind;
-import org.eclipse.lsp4mp.commons.DocumentFormat;
-import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
-import org.eclipse.lsp4mp.commons.MicroProfileProjectInfoParams;
-import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
-import org.eclipse.lsp4mp.commons.MicroProfilePropertyDefinitionParams;
+import org.eclipse.lsp4mp.commons.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -45,7 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +80,7 @@ public class PropertiesManager {
         return getMicroProfileProjectInfo(module, scopes, classpathKind, utils, documentFormat, monitor);
     }
 
-    public MicroProfileProjectInfo getMicroProfileProjectInfo(Module module,
+    public MicroProfileProjectInfo getMicroProfileProjectInfo(@NotNull Module module,
                                                               List<MicroProfilePropertiesScope> scopes, ClasspathKind classpathKind, IPsiUtils utils,
                                                               DocumentFormat documentFormat, ProgressIndicator monitor) {
         MicroProfileProjectInfo info = createInfo(module, classpathKind);
@@ -103,26 +95,28 @@ public class PropertiesManager {
         long startTime = System.currentTimeMillis();
         boolean excludeTestCode = classpathKind == ClasspathKind.SRC;
         PropertiesCollector collector = new PropertiesCollector(info, scopes);
-        if (module != null) {
-            SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
-            SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat, monitor);
-            Query<PsiModifierListOwner> query = createSearchQuery(context, monitor);
-            if (query != null) {
-                try {
-                    beginSearch(context, monitor);
-                    for (PsiModifierListOwner psiMember : query.findAll()) {
-                        // Check if the operation has been cancelled
-                        monitor.checkCanceled();
-                        collectProperties(psiMember, context, monitor);
-                    }
+        SearchScope scope = createSearchScope(module, scopes, classpathKind == ClasspathKind.TEST);
+        SearchContext context = new SearchContext(module, scope, collector, utils, documentFormat, monitor);
+        Query<PsiModifierListOwner> query = createSearchQuery(context, monitor);
+        if (query != null) {
+            try {
+                beginSearch(context, monitor);
+                for (PsiModifierListOwner psiMember : query.findAll()) {
+                    // Check if the operation has been cancelled
+                    monitor.checkCanceled();
+                    collectProperties(psiMember, context, monitor);
                 }
-                finally {
-                    endSearch(context, monitor);
-                }
+            } finally {
+                endSearch(context, monitor);
             }
         }
         LOGGER.info("End computing MicroProfile properties for '" + info.getProjectURI() + "' in "
                 + (System.currentTimeMillis() - startTime) + "ms.");
+        // Classpath
+        if (scopes.contains(MicroProfilePropertiesScope.dependencies)) {
+            Set<String> classpath = PsiMicroProfileProjectManager.getInstance(module.getProject()).getMicroProfileProject(module).getProjectRuntime().getClasspath();
+            info.setClasspath(classpath);
+        }
         return info;
     }
 
@@ -225,7 +219,7 @@ public class PropertiesManager {
 
     public Location findPropertyLocation(Module module, String sourceType, String sourceField, String sourceMethod, IPsiUtils utils) {
         PsiMember fieldOrMethod = ReadAction
-            .compute(() -> findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils));
+                .compute(() -> findDeclaredProperty(module, sourceType, sourceField, sourceMethod, utils));
         if (fieldOrMethod != null) {
             PsiFile classFile = fieldOrMethod.getContainingFile();
             if (classFile != null) {
@@ -236,7 +230,7 @@ public class PropertiesManager {
             }
             if (utils != null) {
                 return ReadAction
-                    .compute(() -> utils.toLocation(fieldOrMethod));
+                        .compute(() -> utils.toLocation(fieldOrMethod));
             }
         }
         return null;
