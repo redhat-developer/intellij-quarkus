@@ -12,7 +12,7 @@ package com.redhat.devtools.intellij.qute.lsp;
 
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,6 +24,7 @@ import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider;
 import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
 import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,11 +39,11 @@ import java.util.Map;
  */
 public class QuteServer extends OSProcessStreamConnectionProvider {
 
-    private final Project project;
+    private final @NotNull Project project;
 
-    public QuteServer(Project project) {
+    public QuteServer(@NotNull Project project) {
         this.project = project;
-        IdeaPluginDescriptor descriptor = PluginManagerCore.getPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
+        IdeaPluginDescriptor descriptor = PluginManager.getInstance().findEnabledPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
         assert descriptor != null;
         Path pluginPath = descriptor.getPluginPath();
         assert pluginPath != null;
