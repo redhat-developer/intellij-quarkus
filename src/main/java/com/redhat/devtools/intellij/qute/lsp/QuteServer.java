@@ -13,9 +13,11 @@ package com.redhat.devtools.intellij.qute.lsp;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.redhat.devtools.intellij.lsp4mp4ij.PluginUtils;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import com.redhat.devtools.intellij.qute.psi.QuteCommandConstants;
@@ -43,7 +45,7 @@ public class QuteServer extends OSProcessStreamConnectionProvider {
 
     public QuteServer(@NotNull Project project) {
         this.project = project;
-        IdeaPluginDescriptor descriptor = PluginManager.getInstance().findEnabledPlugin(PluginId.getId("com.redhat.devtools.intellij.quarkus"));
+        PluginDescriptor descriptor = PluginUtils.getPluginDescriptor(this.getClass());
         assert descriptor != null;
         Path pluginPath = descriptor.getPluginPath();
         assert pluginPath != null;
