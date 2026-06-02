@@ -86,9 +86,9 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     @Override
     public PsiClass findClass(Module module, String className) {
-        return ReadAction
-            .compute(() -> ClassUtil.findPsiClass(PsiManager.getInstance(module.getProject()), className, null, false,
-                GlobalSearchScope.allScope(module.getProject())));
+        return PsiUtils.runCancellableReadAction(() ->
+                ClassUtil.findPsiClass(PsiManager.getInstance(module.getProject()), className, null, false,
+                        GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)));
     }
 
     @Override
@@ -208,7 +208,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
 
     public static ClasspathKind getClasspathKind(VirtualFile file, Module module) {
         if (module != null) {
-            return ReadAction.compute(() ->
+            return PsiUtils.runCancellableReadAction(() ->
                     ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(file) ?
                             ClasspathKind.TEST : ClasspathKind.SRC);
         }

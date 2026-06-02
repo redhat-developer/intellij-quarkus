@@ -14,6 +14,7 @@ package com.redhat.microprofile.psi.internal.quarkus.providers;
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.AbstractStaticPropertiesProvider;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.SearchContext;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.microprofile.psi.quarkus.PsiQuarkusUtils;
 
 /**
@@ -33,7 +34,7 @@ public abstract class AbstractStaticQuarkusPropertiesProvider extends AbstractSt
 	@Override
 	protected boolean isAdaptedFor(SearchContext context) {
 		Module javaProject = context.getJavaProject();
-		return PsiQuarkusUtils.isQuarkusProject(javaProject);
+		return QuarkusModuleUtil.isQuarkusModule(javaProject);
 	}
 
 }

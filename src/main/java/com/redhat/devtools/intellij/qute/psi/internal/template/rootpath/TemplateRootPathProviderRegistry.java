@@ -14,11 +14,11 @@
 package com.redhat.devtools.intellij.qute.psi.internal.template.rootpath;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.util.KeyedLazyInstanceEP;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
 import com.redhat.devtools.intellij.qute.psi.internal.AbstractQuteExtensionPointRegistry;
 import com.redhat.devtools.intellij.qute.psi.template.rootpath.ITemplateRootPathProvider;
 import com.redhat.qute.commons.TemplateRootPath;
@@ -69,7 +69,7 @@ public class TemplateRootPathProviderRegistry extends AbstractQuteExtensionPoint
     public List<TemplateRootPath> getTemplateRootPaths(Module javaProject) {
         return ApplicationManager.getApplication().isReadAccessAllowed() ?
                 internalGetTemplateRootPaths(javaProject) :
-                ReadAction.compute(() -> internalGetTemplateRootPaths(javaProject));
+                PsiUtils.runCancellableReadAction(() -> internalGetTemplateRootPaths(javaProject));
     }
 
     private List<TemplateRootPath> internalGetTemplateRootPaths(Module javaProject) {

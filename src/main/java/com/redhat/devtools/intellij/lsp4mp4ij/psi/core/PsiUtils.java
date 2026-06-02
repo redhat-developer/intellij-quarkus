@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
@@ -24,12 +25,34 @@ import com.intellij.psi.PsiNameValuePair;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.JsonRpcHelpers;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 public class PsiUtils {
     private static Set<String> SILENCED_CODEGENS = Collections.singleton("lombok");
+
+    /**
+     * Executes a read action in a cancellable way to avoid UI freezes.
+     * <p>
+     * This method uses {@link ReadAction#nonBlocking(Callable)} which creates a cancellable
+     * read action, preventing UI freezes when the operation takes too long or when the user
+     * performs actions that require write access.
+     * </p>
+     * <p>
+     * See <a href="https://blog.jetbrains.com/platform/2026/03/ui-freezes-and-the-dangers-of-non-cancellable-read-actions-in-background-threads/">
+     * UI Freezes and the Dangers of Non-Cancellable Read Actions in Background Threads</a>
+     * </p>
+     *
+     * @param action the read action to execute
+     * @param <T>    the type of the result
+     * @return the result of the read action
+     */
+    public static <T> T runCancellableReadAction(@NotNull Callable<T> action) {
+        return ReadAction.nonBlocking(action).executeSynchronously();
+    }
 
     public static Range toRange(PsiElement element, int offset, int length) {
         Document buffer = PsiDocumentManager.getInstance(element.getProject()).getCachedDocument(element.getContainingFile());

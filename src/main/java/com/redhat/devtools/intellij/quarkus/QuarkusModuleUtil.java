@@ -14,12 +14,12 @@ import com.intellij.facet.FacetManager;
 import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProject;
@@ -47,53 +47,38 @@ public class QuarkusModuleUtil {
     private static final Pattern QUARKUS_CORE_PATTERN = Pattern.compile("quarkus-core-(\\d[a-zA-Z\\d-.]+?).jar");
     private static final Comparator<VirtualFile> ROOT_COMPARATOR = Comparator.comparingInt(r -> r.getPath().length());
 
-    private static final Key<Boolean> QUARKUS_MODULE_KEY = Key.create("quarkusModule");
-    private static final Key<Boolean> QUARKUS_WEB_APP_MODULE_KEY = Key.create("quarkusWebAppModule");
-
     /**
      * Check if the module is a Quarkus project by checking if the Quarkus core library
      * is present in its dependencies.
      *
-     * <p>The result is cached in the module's user data and invalidated when module roots change.</p>
+     * <p>Note: This method delegates to JavaLibraryUtil which has internal caching (ParameterizedCachedValue)
+     * and performs null/disposed/default checks. The call is wrapped in a ReadAction if needed.</p>
      *
      * @param module the module to check, may be null.
      * @return true if the module is a Quarkus project, false otherwise.
      */
     public static boolean isQuarkusModule(@Nullable Module module) {
-        if (module == null) {
-            return false;
+        if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+            return JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_CORE_MAVEN_COORDS);
         }
-        Boolean cached = module.getUserData(QUARKUS_MODULE_KEY);
-        if (cached != null) {
-            return cached;
-        }
-        boolean result = ApplicationManager.getApplication().runReadAction(
-                (Computable<Boolean>) () -> JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_CORE_MAVEN_COORDS));
-        module.putUserData(QUARKUS_MODULE_KEY, result);
-        return result;
+        return PsiUtils.runCancellableReadAction(() -> JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_CORE_MAVEN_COORDS));
     }
 
     /**
      * Check if the module is a Quarkus Web Application project by checking if the
      * Quarkus vertx-http library is present in its dependencies.
      *
-     * <p>The result is cached in the module's user data and invalidated when module roots change.</p>
+     * <p>Note: This method delegates to JavaLibraryUtil which has internal caching (ParameterizedCachedValue)
+     * and performs null/disposed/default checks. The call is wrapped in a ReadAction if needed.</p>
      *
      * @param module the module to check, may be null.
      * @return true if the module is a Quarkus Web Application project, false otherwise.
      */
     public static boolean isQuarkusWebAppModule(@Nullable Module module) {
-        if (module == null) {
-            return false;
+        if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+            return JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_VERTX_HTTP_MAVEN_COORDS);
         }
-        Boolean cached = module.getUserData(QUARKUS_WEB_APP_MODULE_KEY);
-        if (cached != null) {
-            return cached;
-        }
-        boolean result = ApplicationManager.getApplication().runReadAction(
-                (Computable<Boolean>) () -> JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_VERTX_HTTP_MAVEN_COORDS));
-        module.putUserData(QUARKUS_WEB_APP_MODULE_KEY, result);
-        return result;
+        return PsiUtils.runCancellableReadAction(() -> JavaLibraryUtil.hasAnyLibraryJar(module, QuarkusConstants.QUARKUS_VERTX_HTTP_MAVEN_COORDS));
     }
 
     /**
@@ -227,10 +212,4 @@ public class QuarkusModuleUtil {
         return mpProject.getPropertyAsInteger("%dev.quarkus.http.port", port);
     }
 
-    public static void invalidateCache(@NotNull Project project) {
-        for (Module m : ModuleManager.getInstance(project).getModules()) {
-            m.putUserData(QUARKUS_MODULE_KEY, null);
-            m.putUserData(QUARKUS_WEB_APP_MODULE_KEY, null);
-        }
-    }
 }

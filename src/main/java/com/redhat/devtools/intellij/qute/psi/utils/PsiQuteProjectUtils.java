@@ -13,8 +13,8 @@ package com.redhat.devtools.intellij.qute.psi.utils;
 
 import com.intellij.java.library.JavaLibraryUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -22,12 +22,9 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
+import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.PsiUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.devtools.intellij.qute.psi.internal.QuteJavaConstants;
 import com.redhat.devtools.intellij.qute.psi.internal.template.rootpath.TemplateRootPathProviderRegistry;
@@ -66,9 +63,6 @@ public class PsiQuteProjectUtils {
      */
     private static final String DEFAULTED = "<<defaulted>>";
 
-    private static final Key<CachedValue<Boolean>> QUTE_PROJECT_KEY = Key.create("quteProject");
-    private static final Key<CachedValue<Boolean>> QUTE_SUPPORT_KEY = Key.create("quteSupport");
-
     private PsiQuteProjectUtils() {
     }
 
@@ -76,8 +70,8 @@ public class PsiQuteProjectUtils {
      * Returns true if the given project has Qute support (i.e. at least one module
      * has the Qute library in its dependencies), false otherwise.
      *
-     * <p>The result is cached using {@link CachedValuesManager} and invalidated when
-     * project root changes (dependencies added/removed).</p>
+     * <p>Note: This method relies on JavaLibraryUtil's internal caching (ParameterizedCachedValue)
+     * to avoid redundant cache layers that can cause deadlocks.</p>
      *
      * @param project the project to check, must not be null.
      * @return true if the project has Qute support, false otherwise.
@@ -86,38 +80,29 @@ public class PsiQuteProjectUtils {
         if (project.isDefault()) {
             return false;
         }
-        CachedValuesManager manager = CachedValuesManager.getManager(project);
-        return manager.getCachedValue(project, QUTE_PROJECT_KEY, () -> {
-            boolean result = false;
-            for (Module m : ModuleManager.getInstance(project).getModules()) {
-                if (hasQuteSupport(m)) {
-                    result = true;
-                    break;
-                }
+        for (Module m : ModuleManager.getInstance(project).getModules()) {
+            if (hasQuteSupport(m)) {
+                return true;
             }
-            return CachedValueProvider.Result.create(result, ProjectRootManager.getInstance(project));
-        }, false);
+        }
+        return false;
     }
 
     /**
      * Returns true if the given module has Qute support (i.e. the Qute library is present
      * in its dependencies), false otherwise.
      *
-     * <p>The result is cached using {@link CachedValuesManager} and invalidated when
-     * module dependencies change.</p>
+     * <p>Note: This method delegates to JavaLibraryUtil which has internal caching (ParameterizedCachedValue)
+     * and performs null/disposed/default checks. The call is wrapped in a ReadAction if needed.</p>
      *
-     * @param javaProject the module to check, must not be null.
+     * @param javaProject the module to check, may be null.
      * @return true if the module has Qute support, false otherwise.
      */
     public static boolean hasQuteSupport(@Nullable Module javaProject) {
-        if (javaProject == null || javaProject.getProject().isDefault()) {
-            return false;
+        if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+            return JavaLibraryUtil.hasAnyLibraryJar(javaProject, QuteJavaConstants.QUTE_MAVEN_COORDS);
         }
-        CachedValuesManager manager = CachedValuesManager.getManager(javaProject.getProject());
-        return manager.getCachedValue(javaProject, QUTE_SUPPORT_KEY, () -> {
-            boolean result = JavaLibraryUtil.hasAnyLibraryJar(javaProject, QuteJavaConstants.QUTE_MAVEN_COORDS);
-            return CachedValueProvider.Result.create(result, ProjectRootManager.getInstance(javaProject.getProject()));
-        }, false);
+        return PsiUtils.runCancellableReadAction(() -> JavaLibraryUtil.hasAnyLibraryJar(javaProject, QuteJavaConstants.QUTE_MAVEN_COORDS));
     }
 
     public static ProjectInfo getProjectInfo(@NotNull Module javaProject) {
@@ -288,7 +273,7 @@ public class PsiQuteProjectUtils {
     public static boolean isQuteTemplate(@NotNull VirtualFile file, @NotNull Module module) {
         return ApplicationManager.getApplication().isReadAccessAllowed() ?
                 internalIsQuteTemplate(file, module) :
-                (Boolean) ReadAction.compute(() -> internalIsQuteTemplate(file, module));
+                PsiUtils.runCancellableReadAction(() -> internalIsQuteTemplate(file, module));
     }
 
     public static boolean maybeBinaryQuteTemplate(@NotNull VirtualFile file) {

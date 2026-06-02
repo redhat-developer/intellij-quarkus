@@ -158,10 +158,25 @@ public class AnnotationUtils {
 	 *         false otherwise.
 	 */
 	public static boolean isMatchAnnotation(PsiAnnotation annotation, String annotationName) {
-		if(annotation == null || annotation.getQualifiedName() == null){
+		if(annotation == null){
 			return false;
 		}
-		return annotationName.endsWith(annotation.getQualifiedName());
+
+		// Fast path: try without full resolution first
+		String shortName = annotation.getNameReferenceElement() != null
+			? annotation.getNameReferenceElement().getReferenceName()
+			: null;
+		if (shortName != null && annotationName.endsWith(shortName)) {
+			// Potential match - verify with qualified name only if necessary
+			String qualifiedName = annotation.getQualifiedName();
+			if (qualifiedName == null) {
+				return false;
+			}
+			return annotationName.endsWith(qualifiedName);
+		}
+
+		// No match based on short name
+		return false;
 	}
 
 	/**
