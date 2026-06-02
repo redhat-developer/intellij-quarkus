@@ -19,6 +19,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImp
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.eclipse.lsp4mp.commons.metadata.ConverterKind;
 import org.eclipse.lsp4mp.commons.metadata.ItemMetadata;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -68,20 +69,9 @@ public class PsiQuarkusUtils {
         metadata.setConverterKinds(DEFAULT_QUARKUS_CONVERTERS);
     }
 
-    public static boolean isSupportNamingStrategy(Module javaProject) {
+    public static boolean isSupportNamingStrategy(@NotNull Module javaProject) {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(javaProject.getProject());
         return facade.findClass(QuarkusConstants.CONFIG_PROPERTIES_NAMING_STRATEGY_ENUM, GlobalSearchScope.moduleWithLibrariesScope(javaProject)) != null;
-    }
-
-    /**
-     * Returns true if <code>javaProject</code> is a Quarkus project. Returns false
-     * otherwise.
-     *
-     * @param javaProject the Java project to check
-     * @return true only if <code>javaProject</code> is a Quarkus project.
-     */
-    public static boolean isQuarkusProject(Module javaProject) {
-            return PsiUtilsLSImpl.getInstance(javaProject.getProject()).findClass(javaProject, QuarkusConstants.QUARKUS_RUNTIME_CLASS_NAME) != null;
     }
 
 }

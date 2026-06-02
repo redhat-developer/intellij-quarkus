@@ -10,7 +10,9 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.lsp;
 
+import com.intellij.openapi.vfs.VirtualFile;
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * MicroProfile client features.

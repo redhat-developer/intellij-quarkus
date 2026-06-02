@@ -11,6 +11,7 @@ package com.redhat.microprofile.psi.internal.quarkus.providers;
 
 import com.intellij.openapi.module.Module;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IProjectLabelProvider;
+import com.redhat.devtools.intellij.quarkus.QuarkusModuleUtil;
 import com.redhat.microprofile.psi.quarkus.PsiQuarkusUtils;
 
 import java.util.Collections;
@@ -32,7 +33,7 @@ public class QuarkusProjectLabelProvider implements IProjectLabelProvider {
 
 	@Override
 	public List<String> getProjectLabels(Module project) {
-		if (PsiQuarkusUtils.isQuarkusProject(project)) {
+		if (QuarkusModuleUtil.isQuarkusModule(project)) {
 			return Collections.singletonList(QUARKUS_LABEL);
 		};
 		return Collections.emptyList();
