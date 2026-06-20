@@ -80,9 +80,15 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      * only relies on the DSL agnostic Gradle project API. This replaces the legacy approach based on a custom
      * settings file (selected with the {@code -c} option) and {@code rootProject.buildFileName}, both removed
      * in Gradle 9.
+     * <p>
+     * The configuration/dependencies/task are contributed to the project whose directory matches the analyzed
+     * module directory (not necessarily the root project), so the deployment artifacts are resolved with that
+     * module's own repositories. This keeps multi-module projects working, where repositories may be declared
+     * per subproject.
      * <ul>
      *     <li>{@code %1$s} is the list of deployment dependencies to resolve</li>
      *     <li>{@code %2$s} is the path of the file where the resolved artifacts are written</li>
+     *     <li>{@code %3$s} is the directory of the analyzed module (used to select the target Gradle project)</li>
      * </ul>
      */
     private static final String INIT_SCRIPT_TEMPLATE = """
@@ -91,7 +97,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
             import org.gradle.api.artifacts.result.ResolvedArtifactResult
 
             allprojects { proj ->
-                if (proj == proj.rootProject) {
+                if (proj.projectDir.canonicalPath == new File('%3$s').canonicalPath) {
                     proj.afterEvaluate { project ->
                         project.configurations.create('quarkusDeployment')
             %1$s\
@@ -172,7 +178,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
                                  @NotNull Set<String> deploymentIds,
                                  @NotNull List<VirtualFile>[] result) throws IOException {
         Path outputPath = Files.createTempFile(null, ".txt");
-        Path initScript = generateInitScript(outputPath, deploymentIds);
+        Path initScript = generateInitScript(outputPath, deploymentIds, getModuleDirPath(module));
         TaskCallback callback = new TaskCallback() {
             @Override
             public void onSuccess() {
@@ -262,8 +268,8 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      * @return the path to the generated init script
      * @throws IOException if an error occurs generating the file
      */
-    private Path generateInitScript(Path outputPath, Set<String> deploymentIds) throws IOException {
-        String content = buildInitScript(outputPath, deploymentIds);
+    private Path generateInitScript(Path outputPath, Set<String> deploymentIds, String moduleDirPath) throws IOException {
+        String content = buildInitScript(outputPath, deploymentIds, moduleDirPath);
         Path initScript = Files.createTempFile("quarkus-list-dependencies", ".gradle");
         try (Writer writer = Files.newBufferedWriter(initScript, StandardCharsets.UTF_8)) {
             IOUtils.write(content, writer);
@@ -276,17 +282,21 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      *
      * @param outputPath    the path to the task result file
      * @param deploymentIds the Maven coordinates of the module deployment JARs
+     * @param moduleDirPath the directory of the analyzed module, used to select the target Gradle project
      * @return the content of the init script
      */
     // Package-private for testing (see GradleListQuarkusDependenciesInitScriptTest).
-    String buildInitScript(Path outputPath, Set<String> deploymentIds) {
+    String buildInitScript(Path outputPath, Set<String> deploymentIds, String moduleDirPath) {
         StringBuilder dependencies = new StringBuilder();
         deploymentIds.forEach(id ->
                 dependencies.append("                project.dependencies.add('quarkusDeployment', '")
                         .append(id)
                         .append("')")
                         .append(System.lineSeparator()));
-        return String.format(INIT_SCRIPT_TEMPLATE, dependencies.toString(), outputPath.toString().replace("\\", "\\\\"));
+        return String.format(INIT_SCRIPT_TEMPLATE,
+                dependencies.toString(),
+                outputPath.toString().replace("\\", "\\\\"),
+                moduleDirPath.replace("\\", "\\\\"));
     }
 
     private void processLibrary(Library library, ModuleRootManager manager, Set<String> deploymentIds) {
