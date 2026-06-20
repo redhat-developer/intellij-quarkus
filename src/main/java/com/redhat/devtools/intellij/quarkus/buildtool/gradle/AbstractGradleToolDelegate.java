@@ -63,7 +63,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -72,6 +71,58 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     private static final String M2_REPO = System.getProperty("user.home") + File.separator + ".m2" + File.separator + "repository";
 
     private static final String GRADLE_LIBRARY_PREFIX = "Gradle: ";
+
+    /**
+     * The Groovy init script that contributes the {@code quarkusDeployment} configuration, the deployment
+     * dependencies and the {@code listQuarkusDependencies} task to the (root) project.
+     * <p>
+     * It is applied through {@code --init-script} and works for both Groovy and Kotlin DSL projects since it
+     * only relies on the DSL agnostic Gradle project API. This replaces the legacy approach based on a custom
+     * settings file (selected with the {@code -c} option) and {@code rootProject.buildFileName}, both removed
+     * in Gradle 9.
+     * <ul>
+     *     <li>{@code %1$s} is the list of deployment dependencies to resolve</li>
+     *     <li>{@code %2$s} is the path of the file where the resolved artifacts are written</li>
+     * </ul>
+     */
+    private static final String INIT_SCRIPT_TEMPLATE = """
+            import org.gradle.jvm.JvmLibrary
+            import org.gradle.language.base.artifact.SourcesArtifact
+            import org.gradle.api.artifacts.result.ResolvedArtifactResult
+
+            allprojects { proj ->
+                if (proj == proj.rootProject) {
+                    proj.afterEvaluate { project ->
+                        project.configurations.create('quarkusDeployment')
+            %1$s\
+                        project.tasks.register('listQuarkusDependencies') {
+                            doLast {
+                                def quarkusDeployment = project.configurations.quarkusDeployment
+                                new File('%2$s').withPrintWriter('UTF8') { writer ->
+                                    quarkusDeployment.incoming.artifacts.each {
+                                        writer.println it.id.componentIdentifier
+                                        writer.println it.file
+                                    }
+                                    def componentIds = quarkusDeployment.incoming.resolutionResult.allDependencies.collect { it.selected.id }
+                                    def result = project.dependencies.createArtifactResolutionQuery()
+                                        .forComponents(componentIds)
+                                        .withArtifacts(JvmLibrary, SourcesArtifact)
+                                        .execute()
+                                    result.resolvedComponents.each { component ->
+                                        component.getArtifacts(SourcesArtifact).each { ar ->
+                                            if (ar instanceof ResolvedArtifactResult) {
+                                                writer.println ar.id.componentIdentifier
+                                                writer.println ar.file
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """;
 
     private boolean scriptExists(@NotNull Module module) {
         String path = getModuleDirPath(module);
@@ -121,8 +172,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
                                  @NotNull Set<String> deploymentIds,
                                  @NotNull List<VirtualFile>[] result) throws IOException {
         Path outputPath = Files.createTempFile(null, ".txt");
-        Path customBuildFile = generateCustomGradleBuild(getModuleDirPath(module), outputPath, deploymentIds);
-        Path customSettingsFile = generateCustomGradleSettings(getModuleDirPath(module), customBuildFile);
+        Path initScript = generateInitScript(outputPath, deploymentIds);
         TaskCallback callback = new TaskCallback() {
             @Override
             public void onSuccess() {
@@ -137,8 +187,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
 
             private void cleanCustomFiles() {
                 try {
-                    Files.delete(customBuildFile);
-                    Files.delete(customSettingsFile);
+                    Files.delete(initScript);
                 } catch (IOException e) {
                     LOGGER.warn(e.getLocalizedMessage(), e);
                 }
@@ -146,7 +195,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
 
         };
         try {
-            collectDependencies(module, customSettingsFile, outputPath, result, callback);
+            collectDependencies(module, initScript, outputPath, result, callback);
         } catch (IOException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         } finally {
@@ -162,13 +211,14 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
      * Collect all deployment JARs and dependencies through a Gradle specific task.
      *
      * @param module     the module to analyze
+     * @param initScript the Gradle init script that contributes the {@code listQuarkusDependencies} task
      * @param outputPath the file where the result of the specific task is stored
      * @param result     the list where to place results to
      * @param callback   the callback to call after running the task
      * @throws IOException if an error occurs running Gradle
      */
     private void collectDependencies(@NotNull Module module,
-                                     @NotNull Path customSettingsFile,
+                                     @NotNull Path initScript,
                                      @NotNull Path outputPath,
                                      @NotNull List<VirtualFile>[] result,
                                      @NotNull TaskCallback callback) throws IOException {
@@ -176,7 +226,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
             ExternalSystemTaskExecutionSettings executionSettings = new ExternalSystemTaskExecutionSettings();
             executionSettings.setExternalSystemIdString(GradleConstants.SYSTEM_ID.toString());
             executionSettings.setTaskNames(Collections.singletonList("listQuarkusDependencies"));
-            executionSettings.setScriptParameters(String.format("-c %s -q --console plain", customSettingsFile.toString()));
+            executionSettings.setScriptParameters(String.format("--init-script \"%s\" -q --console plain", initScript.toString()));
             executionSettings.setExternalProjectPath(getModuleDirPath(module));
             ExternalSystemUtil.runTask(executionSettings,DefaultRunExecutor.EXECUTOR_ID,
                 module.getProject(),
@@ -204,74 +254,39 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
 
     abstract String getScriptName();
 
-    abstract String getSettingsScriptName();
-
-    abstract String getScriptExtension();
-
-    abstract String formatQuarkusDependency(String id);
-
-    abstract String generateTask(String path);
-
-    abstract String createQuarkusConfiguration();
-
     /**
-     * Generate the custom build file from the module build file and adding the specific task.
+     * Generate the Gradle init script that contributes the {@code listQuarkusDependencies} task.
      *
-     * @param basePath      the base path where the module build file is in
      * @param outputPath    the path to the task result file
      * @param deploymentIds the Maven coordinates of the module deployment JARs
-     * @return the path to the custom build file
+     * @return the path to the generated init script
      * @throws IOException if an error occurs generating the file
      */
-    private Path generateCustomGradleBuild(String basePath, Path outputPath, Set<String> deploymentIds) throws IOException {
-        Path base = Paths.get(basePath);
-        Path path = base.resolve(getScriptName());
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            String content = IOUtils.toString(reader);
-            content = appendQuarkusResolution(content, outputPath, deploymentIds);
-            Path customPath = Files.createTempFile(base, null, getScriptExtension());
-            try (Writer writer = Files.newBufferedWriter(customPath, StandardCharsets.UTF_8)) {
-                IOUtils.write(content, writer);
-                return customPath;
-            }
-        }
-    }
-
-    private Path generateCustomGradleSettings(String basePath, Path customBuildFile) throws IOException {
-        Path base = Paths.get(basePath);
-        Path path = base.resolve(getSettingsScriptName());
-        String content = "";
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            content = IOUtils.toString(reader);
-        } catch (IOException e) {
-            LOGGER.warn(e.getLocalizedMessage(), e);
-        }
-        content += System.lineSeparator() + "rootProject.buildFileName =\"" + customBuildFile.getFileName().toFile().getName() + "\"";
-        Path customPath = Files.createTempFile(base, null, getScriptExtension());
-        try (Writer writer = Files.newBufferedWriter(customPath, StandardCharsets.UTF_8)) {
+    private Path generateInitScript(Path outputPath, Set<String> deploymentIds) throws IOException {
+        String content = buildInitScript(outputPath, deploymentIds);
+        Path initScript = Files.createTempFile("quarkus-list-dependencies", ".gradle");
+        try (Writer writer = Files.newBufferedWriter(initScript, StandardCharsets.UTF_8)) {
             IOUtils.write(content, writer);
-            return customPath;
+            return initScript;
         }
     }
-
 
     /**
-     * Append the specific task definition.
+     * Build the content of the init script.
      *
-     * @param content       the content of the module build file
      * @param outputPath    the path to the task result file
      * @param deploymentIds the Maven coordinates of the module deployment JARs
-     * @return the content of the custom build file
+     * @return the content of the init script
      */
-    private String appendQuarkusResolution(String content, Path outputPath, Set<String> deploymentIds) {
-        StringBuilder buffer = new StringBuilder(content);
-        buffer.append(System.lineSeparator());
-        buffer.append(createQuarkusConfiguration()).append(System.lineSeparator());
-        buffer.append("dependencies {").append(System.lineSeparator());
-        deploymentIds.forEach(id -> buffer.append(formatQuarkusDependency(id)));
-        buffer.append('}').append(System.lineSeparator());
-        buffer.append(generateTask(outputPath.toString().replace("\\", "\\\\")));
-        return buffer.toString();
+    // Package-private for testing (see GradleListQuarkusDependenciesInitScriptTest).
+    String buildInitScript(Path outputPath, Set<String> deploymentIds) {
+        StringBuilder dependencies = new StringBuilder();
+        deploymentIds.forEach(id ->
+                dependencies.append("                project.dependencies.add('quarkusDeployment', '")
+                        .append(id)
+                        .append("')")
+                        .append(System.lineSeparator()));
+        return String.format(INIT_SCRIPT_TEMPLATE, dependencies.toString(), outputPath.toString().replace("\\", "\\\\"));
     }
 
     private void processLibrary(Library library, ModuleRootManager manager, Set<String> deploymentIds) {
