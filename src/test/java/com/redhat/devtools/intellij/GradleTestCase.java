@@ -71,6 +71,11 @@ public abstract class GradleTestCase extends GradleImportingTestCase {
 
     @Parameterized.Parameters(name = "{index}: with Gradle-{0}")
     public static Collection<Object[]> data() {
+        // These integration tests import fixtures that apply the Quarkus Gradle plugin. The plugin
+        // versions pinned by those fixtures (1.x/2.x) predate Gradle 9 support and fail to configure
+        // on Gradle 9 (e.g. the removed JavaPluginConvention), so the suite is kept on Gradle 8.x.
+        // Gradle 9 compatibility of the deployment-collection init script is covered, without the
+        // Quarkus plugin, by GradleListQuarkusDependenciesInitScriptTest.
         return Arrays.asList(new Object[][]{{"8.6"}});
     }
 
