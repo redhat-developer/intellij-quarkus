@@ -106,6 +106,56 @@ public class PropertiesCollectorTest {
 		assertNull(configuration.getProperties().get(0).getDescription());
 	}
 
+	// ------------ Test with addItemMetadata de-duplication
+
+	private static final String SWAGGER_UI_CONFIG = "io.quarkus.swaggerui.deployment.SwaggerUiConfig";
+	private static final String OPTIONAL_STRING = "java.util.Optional<java.lang.String>";
+
+	@Test
+	public void addItemMetadataIgnoresDuplicateForSameSourceMember() {
+		// A config interface annotated with both @ConfigRoot and @ConfigMapping is matched by several
+		// providers, which would otherwise contribute the same property twice (and surface as multiple
+		// identical "Go to definition" targets).
+		ConfigurationMetadata configuration = new ConfigurationMetadata();
+		PropertiesCollector collector = new PropertiesCollector(configuration,
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+
+		collector.addItemMetadata("quarkus.swagger-ui.oauth-client-id", OPTIONAL_STRING, null,
+				SWAGGER_UI_CONFIG, null, "oauthClientId", null, "swagger-ui", true, 1);
+		collector.addItemMetadata("quarkus.swagger-ui.oauth-client-id", OPTIONAL_STRING, null,
+				SWAGGER_UI_CONFIG, null, "oauthClientId", null, "swagger-ui", true, 1);
+
+		assertEquals(1, configuration.getProperties().size());
+	}
+
+	@Test
+	public void addItemMetadataKeepsDistinctPropertiesFromSameType() {
+		ConfigurationMetadata configuration = new ConfigurationMetadata();
+		PropertiesCollector collector = new PropertiesCollector(configuration,
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+
+		collector.addItemMetadata("quarkus.swagger-ui.oauth-client-id", OPTIONAL_STRING, null,
+				SWAGGER_UI_CONFIG, null, "oauthClientId", null, "swagger-ui", true, 1);
+		collector.addItemMetadata("quarkus.swagger-ui.oauth-client-secret", OPTIONAL_STRING, null,
+				SWAGGER_UI_CONFIG, null, "oauthClientSecret", null, "swagger-ui", true, 1);
+
+		assertEquals(2, configuration.getProperties().size());
+	}
+
+	@Test
+	public void addItemMetadataKeepsSameNameFromDifferentSourceMembers() {
+		ConfigurationMetadata configuration = new ConfigurationMetadata();
+		PropertiesCollector collector = new PropertiesCollector(configuration,
+				MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES);
+
+		collector.addItemMetadata("quarkus.config.value", OPTIONAL_STRING, null,
+				"com.acme.ConfigA", null, "value", null, "acme", true, 1);
+		collector.addItemMetadata("quarkus.config.value", OPTIONAL_STRING, null,
+				"com.acme.ConfigB", null, "value", null, "acme", true, 1);
+
+		assertEquals(2, configuration.getProperties().size());
+	}
+
 	private static ConfigurationMetadata createToMerge() {
 		ConfigurationMetadata toMerge = new ConfigurationMetadata();
 		toMerge.setProperties(new ArrayList<>());
