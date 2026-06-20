@@ -28,6 +28,7 @@ import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleGrouper;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
@@ -64,6 +65,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
@@ -158,7 +161,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
             });
             if (!deploymentIds.isEmpty()) {
                 progressIndicator.checkCanceled();
-                processDownload(module, deploymentIds, result);
+                processDownload(module, deploymentIds, result, progressIndicator);
             }
         } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage(), e);
@@ -169,14 +172,16 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     /**
      * Collect all deployment JARs and dependencies including the sources JARs. Will run a specific Gradle task.
      *
-     * @param module        the module
-     * @param deploymentIds the Maven coordinates of the module deployment JARs
-     * @param result        the list where to place results to
+     * @param module            the module
+     * @param deploymentIds     the Maven coordinates of the module deployment JARs
+     * @param result            the list where to place results to
+     * @param progressIndicator the progress indicator used to react to cancellation while the task runs
      * @throws IOException if an error occurs running Gradle
      */
     private void processDownload(@NotNull Module module,
                                  @NotNull Set<String> deploymentIds,
-                                 @NotNull List<VirtualFile>[] result) throws IOException {
+                                 @NotNull List<VirtualFile>[] result,
+                                 @NotNull ProgressIndicator progressIndicator) throws IOException {
         Path outputPath = Files.createTempFile(null, ".txt");
         Path initScript = generateInitScript(outputPath, deploymentIds, getModuleDirPath(module));
         TaskCallback callback = new TaskCallback() {
@@ -201,7 +206,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
 
         };
         try {
-            collectDependencies(module, initScript, outputPath, result, callback);
+            collectDependencies(module, initScript, outputPath, result, callback, progressIndicator);
         } catch (IOException e) {
             LOGGER.warn(e.getLocalizedMessage(), e);
         } finally {
@@ -216,27 +221,58 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     /**
      * Collect all deployment JARs and dependencies through a Gradle specific task.
      *
-     * @param module     the module to analyze
-     * @param initScript the Gradle init script that contributes the {@code listQuarkusDependencies} task
-     * @param outputPath the file where the result of the specific task is stored
-     * @param result     the list where to place results to
-     * @param callback   the callback to call after running the task
+     * @param module            the module to analyze
+     * @param initScript        the Gradle init script that contributes the {@code listQuarkusDependencies} task
+     * @param outputPath        the file where the result of the specific task is stored
+     * @param result            the list where to place results to
+     * @param callback          the callback to call after running the task
+     * @param progressIndicator the progress indicator used to react to cancellation while the task runs
      * @throws IOException if an error occurs running Gradle
      */
     private void collectDependencies(@NotNull Module module,
                                      @NotNull Path initScript,
                                      @NotNull Path outputPath,
                                      @NotNull List<VirtualFile>[] result,
-                                     @NotNull TaskCallback callback) throws IOException {
+                                     @NotNull TaskCallback callback,
+                                     @NotNull ProgressIndicator progressIndicator) throws IOException {
         try {
             ExternalSystemTaskExecutionSettings executionSettings = new ExternalSystemTaskExecutionSettings();
             executionSettings.setExternalSystemIdString(GradleConstants.SYSTEM_ID.toString());
             executionSettings.setTaskNames(Collections.singletonList("listQuarkusDependencies"));
             executionSettings.setScriptParameters(String.format("--init-script \"%s\" -q --console plain", initScript.toString()));
             executionSettings.setExternalProjectPath(getModuleDirPath(module));
+
+            // The task is run asynchronously, so wait for it to complete before reading the result file:
+            // reading it eagerly would race with Gradle still writing it and would (silently) collect no
+            // deployment dependencies. This runs on a background thread (the model is committed later), so
+            // blocking here is safe.
+            CountDownLatch latch = new CountDownLatch(1);
+            TaskCallback waitingCallback = new TaskCallback() {
+                @Override
+                public void onSuccess() {
+                    try {
+                        callback.onSuccess();
+                    } finally {
+                        latch.countDown();
+                    }
+                }
+
+                @Override
+                public void onFailure() {
+                    try {
+                        callback.onFailure();
+                    } finally {
+                        latch.countDown();
+                    }
+                }
+            };
             ExternalSystemUtil.runTask(executionSettings,DefaultRunExecutor.EXECUTOR_ID,
                 module.getProject(),
-                GradleConstants.SYSTEM_ID, callback, ProgressExecutionMode.IN_BACKGROUND_ASYNC, false);
+                GradleConstants.SYSTEM_ID, waitingCallback, ProgressExecutionMode.IN_BACKGROUND_ASYNC, false);
+            while (!latch.await(100, TimeUnit.MILLISECONDS)) {
+                progressIndicator.checkCanceled();
+            }
+
             try (BufferedReader reader = Files.newBufferedReader(outputPath)) {
                 String id;
 
@@ -251,7 +287,10 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while collecting Quarkus deployment dependencies", e);
+        } catch (ProcessCanceledException | IOException e) {
             throw e;
         } catch (Exception e) {
             throw new IOException(e);
