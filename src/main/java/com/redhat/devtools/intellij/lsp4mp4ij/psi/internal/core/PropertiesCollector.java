@@ -15,9 +15,11 @@ package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.IPropertiesCollector;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertiesScope;
@@ -38,6 +40,12 @@ public class PropertiesCollector implements IPropertiesCollector {
 
 	private final Map<String, ItemHint> hintsCache;
 
+	/**
+	 * Keys of the properties already collected, used to avoid contributing the same property twice for
+	 * the same source member.
+	 */
+	private final Set<String> propertyKeys;
+
 	private final boolean onlySources;
 
 	public PropertiesCollector(ConfigurationMetadata configuration, List<MicroProfilePropertiesScope> scopes) {
@@ -45,6 +53,7 @@ public class PropertiesCollector implements IPropertiesCollector {
 		this.configuration.setProperties(new ArrayList<>());
 		this.configuration.setHints(new ArrayList<>());
 		this.hintsCache = new HashMap<>();
+		this.propertyKeys = new HashSet<>();
 		this.onlySources = MicroProfilePropertiesScope.isOnlySources(scopes);
 	}
 
@@ -70,8 +79,18 @@ public class PropertiesCollector implements IPropertiesCollector {
 		property.setPhase(phase);
 		property.setRequired(defaultValue == null);
 
-		configuration.getProperties().add(property);
+		// Avoid contributing the same property twice for the same source member. This happens when a config
+		// interface is annotated with both @ConfigRoot and @ConfigMapping (typical of build-time Quarkus
+		// extensions, e.g. SwaggerUiConfig): it is matched by several providers and would otherwise produce
+		// duplicate metadata, surfacing as multiple identical "Go to definition" targets.
+		if (propertyKeys.add(propertyKey(name, sourceType, sourceField, sourceMethod))) {
+			configuration.getProperties().add(property);
+		}
 		return property;
+	}
+
+	private static String propertyKey(String name, String sourceType, String sourceField, String sourceMethod) {
+		return name + ' ' + sourceType + ' ' + sourceField + ' ' + sourceMethod;
 	}
 
 	@Override
