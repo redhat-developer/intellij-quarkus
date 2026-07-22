@@ -11,29 +11,18 @@
 package com.redhat.devtools.intellij.quarkus.lsp;
 
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
-import com.intellij.openapi.extensions.PluginDescriptor;
-import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.lsp4mp4ij.PluginUtils;
+import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
 import com.redhat.devtools.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider;
-import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
-import com.redhat.devtools.intellij.lsp4mp4ij.settings.UserDefinedMicroProfileSettings;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Start the MicroProfile language server process with the Quarkus extension.
@@ -44,16 +33,10 @@ public class QuarkusServer extends OSProcessStreamConnectionProvider {
 
     public QuarkusServer(@NotNull Project project) {
         this.project = project;
-        PluginDescriptor descriptor = PluginUtils.getPluginDescriptor(this.getClass());
-        assert descriptor != null;
-        Path pluginPath = descriptor.getPluginPath();
-        assert pluginPath != null;
-        pluginPath = pluginPath.toAbsolutePath();
-        Path lsp4mpServerPath = pluginPath.resolve("lib/server/org.eclipse.lsp4mp.ls-uber.jar");
-        Path quarkusServerPath = pluginPath.resolve("lib/server/com.redhat.quarkus.ls.jar");
-
+        File lsp4mpServerFile = Objects.requireNonNull(PluginPathManager.getPluginResource(getClass(), "lib/server/org.eclipse.lsp4mp.ls-uber.jar"));
+        File quarkusServerFile = Objects.requireNonNull(PluginPathManager.getPluginResource(getClass(), "lib/server/com.redhat.quarkus.ls.jar"));
         List<String> commands = new JavaProcessCommandBuilder(project, "microprofile")
-                .setCp(lsp4mpServerPath.toString() +  File.pathSeparatorChar + quarkusServerPath.toString())
+                .setCp(lsp4mpServerFile.getAbsolutePath() + File.pathSeparatorChar + quarkusServerFile.getAbsolutePath())
                 .create();
         commands.add("org.eclipse.lsp4mp.ls.MicroProfileServerLauncher");
         commands.add("-DrunAsync=true");

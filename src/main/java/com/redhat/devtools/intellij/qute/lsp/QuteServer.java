@@ -11,30 +11,19 @@
 package com.redhat.devtools.intellij.qute.lsp;
 
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
-import com.intellij.openapi.extensions.PluginDescriptor;
-import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.redhat.devtools.intellij.lsp4mp4ij.PluginUtils;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryEventName;
 import com.redhat.devtools.intellij.quarkus.telemetry.TelemetryManager;
-import com.redhat.devtools.intellij.qute.psi.QuteCommandConstants;
+import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
 import com.redhat.devtools.lsp4ij.server.JavaProcessCommandBuilder;
 import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider;
-import com.redhat.devtools.lsp4ij.server.ProcessStreamConnectionProvider;
-import com.redhat.devtools.intellij.qute.settings.UserDefinedQuteSettings;
 import com.redhat.qute.services.commands.QuteClientCommandConstants;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 /**
  * Start the Qute language server process.
@@ -45,14 +34,9 @@ public class QuteServer extends OSProcessStreamConnectionProvider {
 
     public QuteServer(@NotNull Project project) {
         this.project = project;
-        PluginDescriptor descriptor = PluginUtils.getPluginDescriptor(this.getClass());
-        assert descriptor != null;
-        Path pluginPath = descriptor.getPluginPath();
-        assert pluginPath != null;
-        Path quteServerPath = pluginPath.toAbsolutePath().resolve("lib/server/com.redhat.qute.ls-uber.jar");
-
+        File quteServerFile = Objects.requireNonNull(PluginPathManager.getPluginResource(getClass(), "lib/server/com.redhat.qute.ls-uber.jar"));
         List<String> commands = new JavaProcessCommandBuilder(project, "qute")
-                .setJar(quteServerPath.toString())
+                .setJar(quteServerFile.getAbsolutePath())
                 .create();
         commands.add("-DrunAsync=true");
         super.setCommandLine(new GeneralCommandLine(commands));
