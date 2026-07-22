@@ -13,10 +13,11 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.telemetry;
 
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.cl.PluginAwareClassLoader;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import com.redhat.devtools.intellij.telemetry.core.service.TelemetryMessageBuilder;
 import com.redhat.devtools.intellij.telemetry.core.util.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -37,21 +38,35 @@ public class TelemetryManager implements Disposable {
     private final Lazy<TelemetryMessageBuilder> builderInstance;
 
     private TelemetryManager() {
-        if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            builderInstance = new Lazy<>(() -> new TelemetryMessageBuilder(PluginManager.getPluginByClass(this.getClass())));
-        } else {
-            builderInstance = new Lazy<>(() -> new TelemetryMessageBuilder(new DefaultPluginDescriptor("")));
-        }
+        builderInstance = new Lazy<>(() -> new TelemetryMessageBuilder(getPluginDescriptor()));
     }
 
     private boolean hasError;
 
+    /**
+     * Returns the plugin descriptor for the given class.
+     *
+     * @return the plugin descriptor
+     */
+    @Nullable
+    private static PluginDescriptor getPluginDescriptor() {
+        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            @NotNull Class<?> clazz = TelemetryManager.class;
+            ClassLoader classLoader = clazz.getClassLoader();
+            if (classLoader instanceof PluginAwareClassLoader pluginAwareClassLoader) {
+                return pluginAwareClassLoader.getPluginDescriptor();
+            }
+        }
+        return new DefaultPluginDescriptor("");
+    }
+    
     public static TelemetryManager instance() {
         return ApplicationManager.getApplication().getService(TelemetryManager.class);
     }
 
     /**
      * Sends a tracking event without additional properties.
+     *
      * @param eventName the name of the event
      */
     public void send(@NotNull TelemetryEventName eventName) {
@@ -60,8 +75,9 @@ public class TelemetryManager implements Disposable {
 
     /**
      * Sends a tracking event with additional properties.
+     *
      * @param eventName the name of the event
-     * @param error the error
+     * @param error     the error
      */
     public void send(@NotNull TelemetryEventName eventName,
                      @NotNull Exception error) {
@@ -70,7 +86,8 @@ public class TelemetryManager implements Disposable {
 
     /**
      * Sends a tracking event with additional properties.
-     * @param eventName the name of the event
+     *
+     * @param eventName  the name of the event
      * @param properties the properties of the event
      */
     public void send(@NotNull TelemetryEventName eventName,
@@ -80,9 +97,10 @@ public class TelemetryManager implements Disposable {
 
     /**
      * Sends a tracking event with additional properties.
-     * @param eventName the name of the event
+     *
+     * @param eventName  the name of the event
      * @param properties the properties of the event and null otherwise
-     * @param error the error of the event and null otherwise
+     * @param error      the error of the event and null otherwise
      */
     public void send(@NotNull TelemetryEventName eventName,
                      @Nullable Map<String, String> properties,
@@ -110,8 +128,7 @@ public class TelemetryManager implements Disposable {
                 properties.forEach((k, v) -> action.property(k, v));
             }
             return action;
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.warn("Error while creating telemetry message.", e);
             return null;
         }
@@ -124,8 +141,7 @@ public class TelemetryManager implements Disposable {
         }
         try {
             return builderInstance.get();
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.warn("Error while creating TelemetryMessageBuilder instance.", e);
             hasError = true;
             return null;
@@ -134,7 +150,7 @@ public class TelemetryManager implements Disposable {
 
     private void asyncSend(@NotNull TelemetryMessageBuilder.ActionMessage message) {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            try{
+            try {
                 message.send();
             } catch (Exception e) {
                 LOGGER.warn("Failed to send Telemetry data : {}", e.getMessage());
