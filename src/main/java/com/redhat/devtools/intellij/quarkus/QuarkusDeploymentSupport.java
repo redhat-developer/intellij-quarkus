@@ -91,11 +91,12 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
      * @param progressIndicator the progress indicator.
      */
     public void updateClasspathWithQuarkusDeployment(Module module, ProgressIndicator progressIndicator) {
-        if (module.isDisposed())
+        if (module == null || module.isDisposed()) {
             return;
+        }
         LOGGER.info("Ensuring library to " + module.getName());
         long start = System.currentTimeMillis();
-        BuildToolDelegate toolDelegate = BuildToolDelegate.getDelegate(module);
+        BuildToolDelegate toolDelegate = module != null ? BuildToolDelegate.getDelegate(module) : null;
         if (toolDelegate != null) {
             LOGGER.info("Tool delegate found for " + module.getName());
             if (isQuarkusModule(module)) {

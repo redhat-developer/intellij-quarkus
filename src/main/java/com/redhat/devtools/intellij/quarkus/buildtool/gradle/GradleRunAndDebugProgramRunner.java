@@ -38,7 +38,8 @@ public class GradleRunAndDebugProgramRunner implements ProgramRunner<RunnerSetti
         // and the profile check is done by checking if QuarkusRunConfiguration wraps a Gradle run/debug configuration.
         if (profile instanceof QuarkusRunConfiguration quarkusRunConfiguration) {
             // returns true if the profile is a QuarkusRunConfiguration which wraps a Gradle configuration
-            BuildToolDelegate delegate = BuildToolDelegate.getDelegate(quarkusRunConfiguration.getModule());
+            var module = quarkusRunConfiguration.getModule();
+            BuildToolDelegate delegate = module != null ? BuildToolDelegate.getDelegate(module) : null;
             return !(delegate instanceof MavenToolDelegate);
         }
         return false;

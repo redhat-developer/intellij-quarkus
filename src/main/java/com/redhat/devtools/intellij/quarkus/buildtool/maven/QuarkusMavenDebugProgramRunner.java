@@ -40,7 +40,8 @@ public class QuarkusMavenDebugProgramRunner extends GenericDebuggerRunner {
         // Debugging...
         if (profile instanceof QuarkusRunConfiguration quarkusRunConfiguration) {
             // returns true if the profile is a QuarkusRunConfiguration which wraps a Maven configuration
-            BuildToolDelegate delegate = BuildToolDelegate.getDelegate(quarkusRunConfiguration.getModule());
+            var module = quarkusRunConfiguration.getModule();
+            BuildToolDelegate delegate = module != null ? BuildToolDelegate.getDelegate(module) : null;
             return (delegate instanceof MavenToolDelegate);
         }
         return false;
