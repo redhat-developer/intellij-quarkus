@@ -38,7 +38,7 @@ public class QuarkusNewProjectFirstPage extends NewProjectFirstPage {
 
     @Override
     public ComboBoxFixture getProjectJdkComboBox() {
-        if (UITestRunner.getIdeaVersionInt() >= 20241) {
+        if (UITestRunner.getIdeaVersionInt() >= 20233) {
             return comboBox(byXpath(XPathDefinitions.PROJECT_SDK_COMBOBOX_PROJECT_WIZARD), Duration.ofSeconds(10));
         }
         throw new UnsupportedOperationException("Get Project SDK ComboBox is not supported yet for IDEA version " + UITestRunner.getIdeaVersionInt());

@@ -34,4 +34,5 @@ public class XPathDefinitions {
     @Language("XPath")
     public static final String PROJECT_SDK_COMBOBOX_PROJECT_WIZARD = "//div[@class='JdkComboBox']";
 
+    private XPathDefinitions() {}
 }
