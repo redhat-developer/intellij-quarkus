@@ -90,7 +90,7 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
         if (!QuarkusModuleUtil.isQuarkusModule(module)) {
             throw new RuntimeConfigurationException("Not a Quarkus module", QUARKUS_CONFIGURATION);
         }
-        BuildToolDelegate delegate = BuildToolDelegate.getDelegate(module);
+        BuildToolDelegate delegate = module != null ? BuildToolDelegate.getDelegate(module) : null;
         if (delegate == null) {
             throw new RuntimeConfigurationException("Can't find a tool to process the module", QUARKUS_CONFIGURATION);
         }
@@ -123,7 +123,9 @@ public class QuarkusRunConfiguration extends ModuleBasedConfiguration<RunConfigu
     @Override
     public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
         Module module = getModule();
-
+        if (module == null) {
+            return null;
+        }
         Map<String, String> telemetryData = new HashMap<>();
         telemetryData.put("kind", executor.getId());
 
