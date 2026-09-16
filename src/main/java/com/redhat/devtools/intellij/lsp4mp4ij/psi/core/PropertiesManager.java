@@ -101,11 +101,11 @@ public class PropertiesManager {
         if (query != null) {
             try {
                 beginSearch(context, monitor);
-                for (PsiModifierListOwner psiMember : query.findAll()) {
+                query.findAll().forEach(psiMember -> {
                     // Check if the operation has been cancelled
                     monitor.checkCanceled();
                     collectProperties(psiMember, context, monitor);
-                }
+                });
             } finally {
                 endSearch(context, monitor);
             }

@@ -83,7 +83,7 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 			}
 
 			Set<PsiClass> jaxRsClasses = new HashSet<>();
-			for (PsiModifierListOwner item : query.findAll()) {
+			query.findAll().forEach(item -> {
 				// Check if the operation has been cancelled
 				monitor.checkCanceled();
 				if (item instanceof PsiMember) {
@@ -92,7 +92,7 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 						jaxRsClasses.add(cl);
 					}
 				}
-			}
+			});
 			if (monitor.isCanceled()) {
 				return Collections.emptySet();
 			}

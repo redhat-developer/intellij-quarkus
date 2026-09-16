@@ -158,9 +158,7 @@ public class JaxRsContext {
 
 		Query<PsiClass> pattern = AnnotatedElementsSearch.searchElements(annotationType, javaProject.getModuleWithDependenciesScope(),
 				PsiClass.class);
-        for (PsiClass match : pattern.findAll()) {
-            collectApplicationPath(match, applicationPathRef);
-        }
+		pattern.findAll().forEach(match -> collectApplicationPath(match, applicationPathRef));
 		return applicationPathRef.get();
 	}
 

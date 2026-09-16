@@ -193,7 +193,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 
 		final AtomicInteger nbReferences = new AtomicInteger(0);
 		Query<PsiReference> query = ReferencesSearch.search(interfaceType, createSearchScope(context.getJavaProject()));
-		for (PsiReference match : query.findAll()) {
+		query.findAll().forEach(match -> {
 			// Check if the operation has been cancelled
 			ProgressManager.checkCanceled();
 			PsiField field = PsiTreeUtil.getParentOfType(match.getElement(), PsiField.class);
@@ -204,7 +204,7 @@ public class MicroProfileRestClientDiagnosticsParticipant implements IJavaDiagno
 					nbReferences.incrementAndGet();
 				}
 			}
-		}
+		});
 
 		if (nbReferences.get() > 0) {
 			Range restInterfaceRange = PositionUtils.toNameRange(interfaceType, context.getUtils());
