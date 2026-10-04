@@ -76,7 +76,7 @@ public class QuarkusExtensionApiSchemaTest {
     }
 
     /**
-     * Fetches extensions for each Quarkus version and verifies deserialization.
+     * Fetches extensions from the API and verifies deserialization works.
      *
      * This test will fail if:
      * - API is unreachable
@@ -84,7 +84,7 @@ public class QuarkusExtensionApiSchemaTest {
      * - QuarkusExtension model doesn't match API structure
      */
     @Test
-    public void testExtensionApiSchemaForVersion() throws Exception {
+    public void testExtensionApiSchema() throws Exception {
         String url = API_BASE + "/extensions/stream/" + streamKey + "?platformOnly=false";
 
         HttpRequest request = HttpRequest.newBuilder()
