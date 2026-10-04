@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class QuarkusExtension {
     @JsonProperty("category")
-    private String category;
+    private QuarkusCategoryRef category;
 
     @JsonProperty("description")
     private String description;
@@ -64,12 +64,16 @@ public class QuarkusExtension {
     @JsonProperty("platform")
     private boolean platform;
 
-    public String getCategory() {
+    public QuarkusCategoryRef getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(QuarkusCategoryRef category) {
         this.category = category;
+    }
+
+    public String getCategoryName() {
+        return category != null ? category.getName() : null;
     }
 
     public String getDescription() {
