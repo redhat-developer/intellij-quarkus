@@ -22,8 +22,9 @@ public class QuarkusExtensionsModel {
         Map<String, QuarkusExtension> extensionIds = new HashMap<>();
         final QuarkusCategory[] currentCategory = {null};
         extensions.forEach(e -> {
-            if (currentCategory[0] == null || !e.getCategory().equals(currentCategory[0].getName())) {
-                currentCategory[0] = new QuarkusCategory(e.getCategory());
+            String categoryName = e.getCategoryName();
+            if (currentCategory[0] == null || !categoryName.equals(currentCategory[0].getName())) {
+                currentCategory[0] = new QuarkusCategory(categoryName);
                 categories.add(currentCategory[0]);
             }
             if (extensionIds.containsKey(e.getId())) {
