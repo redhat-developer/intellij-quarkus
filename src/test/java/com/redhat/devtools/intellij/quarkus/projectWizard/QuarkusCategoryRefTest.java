@@ -70,6 +70,26 @@ public class QuarkusCategoryRefTest {
     }
 
     @Test
+    public void testDeserializePlainStringCategory() throws IOException {
+        String json = """
+            [{
+              "id": "io.quarkus:quarkus-rest",
+              "category": "Web",
+              "name": "Quarkus REST"
+            }]
+            """;
+        List<QuarkusExtension> extensions = mapper.readValue(json,
+          new TypeReference<>() {
+          });
+
+        assertEquals(1, extensions.size());
+        assertNotNull(extensions.get(0).getCategory());
+        assertEquals("web", extensions.get(0).getCategory().getId());
+        assertEquals("Web", extensions.get(0).getCategory().getName());
+        assertEquals("Web", extensions.get(0).getCategoryName());
+    }
+
+    @Test
     public void testDeserializeNullCategory() throws IOException {
         String json = """
             [{

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij.quarkus.projectWizard;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,6 +25,7 @@ public class QuarkusCategoryRef {
     public QuarkusCategoryRef() {
     }
 
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public QuarkusCategoryRef(String name) {
         this.id = name != null ? name.toLowerCase() : null;
         this.name = name;
