@@ -16,6 +16,7 @@ import com.intellij.openapi.startup.ProjectActivity;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project.PsiMicroProfileProjectManager;
 import com.redhat.devtools.intellij.quarkus.run.QuarkusRunConfigurationManager;
+import com.redhat.devtools.intellij.quarkus.settings.UserDefinedQuarkusSettings;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ public class QuarkusPostStartupActivity implements ProjectActivity, DumbAware {
     @Nullable
     @Override
     public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
+        UserDefinedQuarkusSettings.getInstance(project);
         QuarkusRunConfigurationManager.getInstance(project);
         ClasspathResourceChangedManager.getInstance(project);
         // Force the instantiation of the manager to be sure that classpath listener
