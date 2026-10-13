@@ -18,9 +18,10 @@ package org.jboss.tools.intellij.quarkus.utils;
  */
 public enum BuildTool {
     MAVEN("Maven"),
-    GRADLE("Gradle");
+    GRADLE("Gradle"),
+    GRADLE_WITH_KOTLIN("Gradle with Kotlin DSL"),;
 
-    private String textRepresentation;
+    private final String textRepresentation;
 
     BuildTool(String textRepresentation) {
         this.textRepresentation = textRepresentation;
