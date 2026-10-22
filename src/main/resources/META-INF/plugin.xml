@@ -503,6 +503,11 @@
 
         <properties.implicitPropertyUsageProvider
                 implementation="com.redhat.devtools.intellij.quarkus.lang.QuarkusImplicitPropertyUsageProvider"/>
+
+        <!-- Quarkus Flow support: navigate from @Identifier("...") to the matching workflow file -->
+        <psi.referenceContributor
+                language="JAVA"
+                implementation="com.redhat.microprofile.psi.internal.quarkus.flow.java.FlowIdentifierReferenceContributor"/>
         <projectService
                 serviceImplementation="com.redhat.devtools.intellij.lsp4mp4ij.psi.core.ProjectLabelManager"/>
         <projectService
