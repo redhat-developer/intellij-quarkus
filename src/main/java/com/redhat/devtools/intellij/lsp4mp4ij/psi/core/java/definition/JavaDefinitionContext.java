@@ -32,10 +32,10 @@ public class JavaDefinitionContext extends AbstractJavaContext {
 
 	private final Position hyperlinkedPosition;
 
-	public JavaDefinitionContext(String uri, PsiFile typeRoot, IPsiUtils utils, Module module, PsiElement hyperlinkeElement,
+	public JavaDefinitionContext(String uri, PsiFile typeRoot, IPsiUtils utils, Module module, PsiElement hyperlinkedElement,
 								 Position hyperlinkePosition) {
 		super(uri, typeRoot, utils, module);
-		this.hyperlinkedElement = hyperlinkeElement;
+		this.hyperlinkedElement = hyperlinkedElement;
 		this.hyperlinkedPosition = hyperlinkePosition;
 	}
 

@@ -1,0 +1,9 @@
+document:
+  dsl: '1.0.0'
+  namespace: flow
+  name: for-task-name-collision
+  version: '0.1.0'
+do:
+  - transform:
+      set:
+        message: '${ .name | ascii_upcase }'
