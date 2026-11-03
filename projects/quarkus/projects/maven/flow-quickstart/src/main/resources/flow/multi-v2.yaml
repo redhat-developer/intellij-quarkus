@@ -1,0 +1,9 @@
+document:
+  dsl: '1.0.0'
+  namespace: flow
+  name: multi-version
+  version: '2.0.0'
+do:
+  - transform:
+      set:
+        message: 'v2'
