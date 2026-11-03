@@ -43,7 +43,7 @@ public class QuteDebuggerEditorsProvider extends DAPDebuggerEditorsProvider {
         // to show correctly properties/methods completion of an object part
         FileType fileType = PlainTextFileType.INSTANCE;
         Language language = PlainTextLanguage.INSTANCE;
-        return super.createExpressionCodeFragment(project, text, fileType, language);
+        return super.createExpressionCodeFragment(project, text, fileType, language, isPhysical);
     }
 
 }
