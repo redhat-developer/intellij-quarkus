@@ -31,4 +31,6 @@ public class QuarkusMavenProjectName {
 	public static final String all_quarkus_extensions = "all-quarkus-extensions";
 
 	public static final String quarkus_route = "quarkus-route";
+
+	public static final String flow_quickstart = "flow-quickstart";
 }

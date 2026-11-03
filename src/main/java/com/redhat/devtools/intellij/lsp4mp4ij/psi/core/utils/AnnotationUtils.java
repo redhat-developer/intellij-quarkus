@@ -257,19 +257,67 @@ public class AnnotationUtils {
 				Pattern memberPattern = Pattern.compile(".*[^\"]\\s*(" + annotationMemberName + ")\\s*=.*",
 						Pattern.DOTALL);
 				Matcher match = memberPattern.matcher(annotationSource);
-				if (match.matches()) {
+				Range range;
+				if (isExplicitlyNamedAttribute(annotation, annotationMemberName) && match.matches()) {
 					int offset = annotationSource.indexOf(annotationMemberValue, match.end(1));
-					Range range = utils.toRange(typeRoot, r.getStartOffset() + offset, annotationMemberValue.length());
+					range = utils.toRange(typeRoot, r.getStartOffset() + offset, annotationMemberValue.length());
+				} else {
+					// Shorthand annotation form (ex : @Identifier("foo"))
+                    PsiAnnotationMemberValue valueExpression = getAnnotationMemberValueExpression(annotation, annotationMemberName);
+                    if (valueExpression instanceof PsiLiteralExpression literalExpression && literalExpression.getValue() instanceof String value) {
+                        annotationMemberValue = value;
+                    }
+					range = getShorthandAnnotationMemberRange(annotation, annotationMemberName,
+							annotationMemberValue, typeRoot, utils);
+				}
 
-					if (!position.equals(range.getEnd()) && Ranges.containsPosition(range, position)) {
-						return new AnnotationMemberInfo(annotationMemberValue, range);
-					}
+				if (range != null && !position.equals(range.getEnd()) && Ranges.containsPosition(range, position)) {
+					return new AnnotationMemberInfo(annotationMemberValue, range);
 				}
 			}
 		}
 
 		return null;
 
+	}
+
+	/**
+	 * Returns <code>true</code> if the given annotation member is written with an explicit
+	 * "name = value" form in the source and <code>false</code> when it relies on the implicit
+	 * default attribute name (shorthand form), ex : {@code @Identifier("foo")}.
+	 */
+	private static boolean isExplicitlyNamedAttribute(PsiAnnotation annotation, String memberName) {
+		for (PsiNameValuePair pair : annotation.getParameterList().getAttributes()) {
+			if (memberName.equals(pair.getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Locates the range of an annotation member's value expression directly (bypassing the
+	 * "member =" regex match above), for shorthand annotation forms where that text never
+	 * appears in the source, ex : {@code @Identifier("foo")} instead of
+	 * {@code @Identifier(value = "foo")}.
+	 */
+	private static @Nullable Range getShorthandAnnotationMemberRange(PsiAnnotation annotation,
+			String annotationMemberName, String annotationMemberValue, PsiFile typeRoot, IPsiUtils utils) {
+		PsiAnnotationMemberValue valueExpression = getAnnotationMemberValueExpression(annotation, annotationMemberName);
+		if (valueExpression == null) {
+			return null;
+		}
+		TextRange valueRange = valueExpression.getTextRange();
+		int offset = valueRange.getStartOffset();
+		int length = valueRange.getLength();
+		if (valueExpression instanceof PsiLiteralExpression literalExpression
+				&& annotationMemberValue.equals(literalExpression.getValue())) {
+			// Exclude the surrounding double quotes, matching the "member =" branch above which
+			// also returns the unquoted value's range.
+			offset += 1;
+			length -= 2;
+		}
+		return utils.toRange(typeRoot, offset, length);
 	}
 
 }

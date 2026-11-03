@@ -764,6 +764,10 @@
         <javaCodeLensParticipant
                 implementation="com.redhat.microprofile.psi.internal.quarkus.jaxrs.java.QuarkusJaxRsCodeLensParticipant"/>
 
+        <!-- Quarkus Flow support -->
+        <javaDefinitionParticipant
+                implementation="com.redhat.microprofile.psi.internal.quarkus.flow.java.FlowIdentifierDefinitionParticipant"/>
+
         <!-- Quarkus @Scheduled annotation support -->
         <javaDefinitionParticipant
                 implementation="com.redhat.microprofile.psi.internal.quarkus.scheduler.java.QuarkusScheduledDefinitionParticipant"/>

@@ -17,11 +17,8 @@ import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.xdebugger.XExpression;
-import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.redhat.devtools.lsp4ij.dap.DAPDebugProcess;
 import com.redhat.devtools.lsp4ij.dap.DAPDebuggerEditorsProvider;
-import com.redhat.devtools.lsp4ij.dap.evaluation.DAPExpressionCodeFragment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
