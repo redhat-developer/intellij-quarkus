@@ -47,7 +47,7 @@ public class PsiMicroProfileProject {
     private List<IConfigSource> configSources;
     private transient IConfigSourcePropertiesProvider aggregatedPropertiesProvider = null;
     private transient PropertyValueExpander propertyValueExpander = null;
-    private MicroProfileProjectRuntime projectRuntime;
+    private volatile MicroProfileProjectRuntime projectRuntime;
 
     public PsiMicroProfileProject(Module javaProject) {
         this.javaProject = javaProject;
@@ -311,18 +311,14 @@ public class PsiMicroProfileProject {
     }
 
     public MicroProfileProjectRuntime getProjectRuntime() {
-        if (projectRuntime == null) {
-            try {
-                Set<String> classpath = resolveClasspathJars(javaProject);
-                projectRuntime = new MicroProfileProjectRuntime(classpath);
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Error while loading project runtime", e);
-            }
-        }
         return projectRuntime;
     }
 
-    private static Set<String> resolveClasspathJars(@NotNull Module javaProject) {
+    void setProjectRuntime(MicroProfileProjectRuntime projectRuntime) {
+        this.projectRuntime = projectRuntime;
+    }
+
+    static Set<String> resolveClasspathJars(@NotNull Module javaProject) {
         Set<String> jars = new LinkedHashSet<>();
 
         // Recursively enumerate all order entries for the module

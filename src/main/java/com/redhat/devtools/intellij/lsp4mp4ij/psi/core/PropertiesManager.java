@@ -28,6 +28,7 @@ import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.StaticPropertyPr
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.core.ls.PsiUtilsLSImpl;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4mp.commons.*;
+import org.eclipse.lsp4mp.commons.runtime.MicroProfileProjectRuntime;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -114,8 +115,10 @@ public class PropertiesManager {
                 + (System.currentTimeMillis() - startTime) + "ms.");
         // Classpath
         if (scopes.contains(MicroProfilePropertiesScope.dependencies)) {
-            Set<String> classpath = PsiMicroProfileProjectManager.getInstance(module.getProject()).getMicroProfileProject(module).getProjectRuntime().getClasspath();
-            info.setClasspath(classpath);
+            MicroProfileProjectRuntime runtime = PsiMicroProfileProjectManager.getInstance(module.getProject()).getMicroProfileProject(module).getProjectRuntime();
+            if (runtime != null) {
+                info.setClasspath(runtime.getClasspath());
+            }
         }
         return info;
     }
