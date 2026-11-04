@@ -17,14 +17,19 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.redhat.devtools.intellij.lsp4mp4ij.classpath.ClasspathResourceChangedManager;
 import com.redhat.devtools.intellij.quarkus.QuarkusPluginDisposable;
+import org.eclipse.lsp4mp.commons.runtime.MicroProfileProjectRuntime;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * {@link PsiMicroProfileProject} manager.
@@ -33,6 +38,8 @@ import java.util.Set;
  * @see <a href="https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/core/project/JDTMicroProfileProjectManager.java">https://github.com/redhat-developer/quarkus-ls/blob/master/microprofile.jdt/com.redhat.microprofile.jdt.core/src/main/java/com/redhat/microprofile/jdt/core/project/JDTMicroProfileProjectManager.java</a>
  */
 public final class PsiMicroProfileProjectManager implements Disposable {
+
+	private static final Logger LOGGER = Logger.getLogger(PsiMicroProfileProjectManager.class.getName());
 
 	private static final Key<PsiMicroProfileProject> KEY = new Key<>(PsiMicroProfileProject.class.getName());
 
@@ -105,6 +112,7 @@ public final class PsiMicroProfileProjectManager implements Disposable {
 			}
 			mpProject = new PsiMicroProfileProject(javaProject);
 			javaProject.putUserData(KEY, mpProject);
+			initProjectRuntime(mpProject, javaProject);
 		}
 		return mpProject;
 	}
@@ -136,6 +144,21 @@ public final class PsiMicroProfileProjectManager implements Disposable {
 	 */
 	public static boolean isJavaFile(VirtualFile file) {
 		return file != null && JAVA_FILE_EXTENSION.equals(file.getExtension());
+	}
+
+	/**
+	 * Initialize the project runtime in a background thread, outside of any read action,
+	 * to avoid blocking the EDT with heavy ServiceLoader I/O.
+	 */
+	private static void initProjectRuntime(@NotNull PsiMicroProfileProject mpProject, @NotNull Module javaProject) {
+		AppExecutorUtil.getAppExecutorService().submit(() -> {
+			try {
+				Set<String> classpath = ReadAction.compute(() -> PsiMicroProfileProject.resolveClasspathJars(javaProject));
+				mpProject.setProjectRuntime(new MicroProfileProjectRuntime(classpath));
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Error while loading project runtime for module " + javaProject.getName(), e);
+			}
+		});
 	}
 
 	@Override
