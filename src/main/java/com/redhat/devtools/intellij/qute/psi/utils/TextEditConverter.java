@@ -17,12 +17,15 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
+import org.eclipse.lsp4j.SnippetTextEdit;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Converts an {@link org.eclipse.text.edits.TextEdit} to
@@ -67,9 +70,11 @@ public class TextEditConverter {
 
 	public TextDocumentEdit convertToTextDocumentEdit(int version) {
 		String uri = utils.toUri(compilationUnit);
-		VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(version);
-		identifier.setUri(uri);
-		return new TextDocumentEdit(identifier, this.convert());
+		VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, version);
+		List<Either<org.eclipse.lsp4j.TextEdit, SnippetTextEdit>> edits = this.convert().stream()
+				.map(Either::<org.eclipse.lsp4j.TextEdit, SnippetTextEdit>forLeft)
+				.collect(Collectors.toList());
+		return new TextDocumentEdit(identifier, edits);
 	}
 
 }

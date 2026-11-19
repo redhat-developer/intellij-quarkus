@@ -51,9 +51,8 @@ public class PropertiesManagerClassPathKindTest extends LSP4MPMavenModuleImporti
         IPsiUtils JDT_UTILS = PsiUtilsLSImpl.getInstance(javaProject.getProject());
 
         // not in classpath -> 0 quarkus properties
-        VirtualFile fileFromNone = LocalFileSystem.getInstance().findFileByIoFile(new File(ModuleUtilCore.getModuleDirPath(javaProject), "application.properties"));
-        MicroProfileProjectInfo infoFromNone = PropertiesManager.getInstance().getMicroProfileProjectInfo(fileFromNone,
-                MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, JDT_UTILS,
+        MicroProfileProjectInfo infoFromNone = PropertiesManager.getInstance().getMicroProfileProjectInfo(javaProject,
+                MicroProfilePropertiesScope.SOURCES_AND_DEPENDENCIES, ClasspathKind.NONE, JDT_UTILS,
                 DocumentFormat.Markdown, new EmptyProgressIndicator());
         Assert.assertEquals(ClasspathKind.NONE, infoFromNone.getClasspathKind());
         Assert.assertEquals(0, infoFromNone.getProperties().size());

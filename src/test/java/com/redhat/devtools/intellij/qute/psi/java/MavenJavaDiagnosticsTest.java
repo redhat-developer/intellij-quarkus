@@ -339,7 +339,7 @@ public class MavenJavaDiagnosticsTest extends QuteMavenModuleImportingTestCase {
         assertEquals(expected.length, actual.size());
         for (int i = 0; i < expected.length; i++) {
             assertEquals(expected[i].getRange(), actual.get(i).getRange());
-            assertEquals(expected[i].getMessage(), actual.get(i).getMessage());
+            assertEquals(expected[i].getMessage().getLeft(), actual.get(i).getMessage().getLeft());
             assertEquals(expected[i].getData(), actual.get(i).getData());
         }
     }

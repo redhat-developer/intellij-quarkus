@@ -101,7 +101,9 @@ public class MicroProfileForJavaAssert {
 
         VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(uri, 0);
 
-        TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier, Arrays.asList(te));
+        TextDocumentEdit textDocumentEdit = new TextDocumentEdit(versionedTextDocumentIdentifier, Arrays.stream(te)
+                .map(Either::<TextEdit, SnippetTextEdit>forLeft)
+                .collect(Collectors.toList()));
         WorkspaceEdit workspaceEdit = new WorkspaceEdit(Arrays.asList(Either.forLeft(textDocumentEdit)));
         codeAction.setEdit(workspaceEdit);
         codeAction.setData(new CodeActionData(id));
@@ -189,7 +191,7 @@ public class MicroProfileForJavaAssert {
         List<Diagnostic> received = actual;
         final boolean filterMessage;
         if (expected != null && !expected.isEmpty()
-                && (expected.get(0).getMessage() == null || expected.get(0).getMessage().isEmpty())) {
+                && (getMessage(expected.get(0)) == null || getMessage(expected.get(0)).isEmpty())) {
             filterMessage = true;
         } else {
             filterMessage = false;
@@ -205,6 +207,14 @@ public class MicroProfileForJavaAssert {
             }).collect(Collectors.toList());
         }
         Assert.assertArrayEquals("Unexpected diagnostics:", expected.toArray(), received.toArray());
+    }
+
+    public static String getMessage(Diagnostic diagnostic) {
+        Either<String, MarkupContent> message = diagnostic.getMessage();
+        if (message == null) {
+            return null;
+        }
+        return message.isLeft() ? message.getLeft() : message.getRight() != null ? message.getRight().getValue() : null;
     }
 
     // Assert for Hover

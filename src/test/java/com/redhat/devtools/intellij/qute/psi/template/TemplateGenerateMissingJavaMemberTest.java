@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Integration tests for QuteSupportForTemplateGenerateMissingJavaMember
@@ -189,7 +190,9 @@ public class TemplateGenerateMissingJavaMemberTest extends QuteMavenModuleImport
 	public static TextDocumentEdit tde(String uri, int version, TextEdit... te) {
 		VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier(uri,
 				version);
-		return new TextDocumentEdit(versionedTextDocumentIdentifier, Arrays.asList(te));
+		return new TextDocumentEdit(versionedTextDocumentIdentifier, Arrays.stream(te)
+				.map(Either::<TextEdit, SnippetTextEdit>forLeft)
+				.collect(Collectors.toList()));
 	}
 
 	// ------------------- TextEdit assert

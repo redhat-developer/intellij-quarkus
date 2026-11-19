@@ -1,10 +1,13 @@
 package com.redhat.devtools.intellij.qute.lang.psi;
 
-import com.intellij.lang.ParserDefinition;
+import com.intellij.lang.LanguageASTFactory;
+import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.mock.MockSmartPointerManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.psi.LanguageFileViewProviders;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.testFramework.ParsingTestCase;
+import com.redhat.devtools.intellij.qute.lang.QuteLanguage;
 import com.redhat.devtools.intellij.qute.lang.QuteParserDefinition;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,6 +24,19 @@ public class QuteParsingTestCase extends ParsingTestCase  {
     protected void setUp() throws Exception {
         super.setUp();
         project.registerService(SmartPointerManager.class, new MockSmartPointerManager());
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        // This test runs against a MockApplication which does not load the Qute plugin
+        // extensions (AST factory, file view provider factory). The language extensions
+        // are cached statically, so they must be cleared to let the following tests,
+        // which run with the real application, resolve them again.
+        // Clear the caches before super.tearDown() disposes the application.
+        LanguageASTFactory.INSTANCE.clearCache(QuteLanguage.INSTANCE);
+        LanguageFileViewProviders.INSTANCE.clearCache(QuteLanguage.INSTANCE);
+        LanguageParserDefinitions.INSTANCE.clearCache(QuteLanguage.INSTANCE);
+        super.tearDown();
     }
 
     @Override

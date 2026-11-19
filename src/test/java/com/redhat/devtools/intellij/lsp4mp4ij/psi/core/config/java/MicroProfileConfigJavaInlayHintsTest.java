@@ -31,6 +31,7 @@ public class MicroProfileConfigJavaInlayHintsTest extends LSP4MPMavenModuleImpor
     @Test
     public void testDefaultValuesAndConverters() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+        waitForProjectRuntime(javaProject);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaInlayHintParams inlayHintsParams = new MicroProfileJavaInlayHintParams();

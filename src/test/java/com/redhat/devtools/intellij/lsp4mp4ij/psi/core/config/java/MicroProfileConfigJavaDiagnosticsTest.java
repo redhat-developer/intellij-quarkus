@@ -50,6 +50,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testImproperDefaultValues() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+        waitForProjectRuntime(javaProject);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -101,6 +102,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testImproperDefaultValuesList() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+        waitForProjectRuntime(javaProject);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -140,6 +142,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testNoValueAssignedWithIgnore() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+        waitForProjectRuntime(javaProject);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         MicroProfileJavaDiagnosticsParams diagnosticsParams = new MicroProfileJavaDiagnosticsParams();
@@ -216,6 +219,7 @@ public class MicroProfileConfigJavaDiagnosticsTest extends LSP4MPMavenModuleImpo
     @Test
     public void testCodeActionForUnassigned() throws Exception {
         Module javaProject = loadMavenProject(MicroProfileMavenProjectName.config_quickstart);
+        waitForProjectRuntime(javaProject);
         IPsiUtils utils = PsiUtilsLSImpl.getInstance(getProject());
 
         saveFile(MicroProfileConfigSourceProvider.MICROPROFILE_CONFIG_PROPERTIES_FILE, "", javaProject);
