@@ -16,11 +16,14 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.psi.PsiFile;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.java.corrections.proposal.Change;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
+import org.eclipse.lsp4j.SnippetTextEdit;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Converts an {@link DocumentEvent} to
@@ -60,6 +63,9 @@ public class TextEditConverter {
 
 	public TextDocumentEdit convertToTextDocumentEdit(int version) {
 		VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, version);
-		return new TextDocumentEdit(identifier, this.convert());
+		List<Either<org.eclipse.lsp4j.TextEdit, SnippetTextEdit>> edits = this.convert().stream()
+				.map(Either::<org.eclipse.lsp4j.TextEdit, SnippetTextEdit>forLeft)
+				.collect(Collectors.toList());
+		return new TextDocumentEdit(identifier, edits);
 	}
 }

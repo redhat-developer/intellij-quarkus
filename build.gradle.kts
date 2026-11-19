@@ -214,6 +214,16 @@ configurations {
     }
 }
 
+// The IntelliJ Platform bundles an old LSP4J in its lib.jar, which is placed before the LSP4J
+// provided by LSP4IJ on the compilation classpath. Compile against LSP4J from LSP4IJ instead,
+// so that the plugin is built against the same LSP4J version it runs with.
+tasks.withType<JavaCompile>().configureEach {
+    classpath = files(
+        classpath.filter { it.name.startsWith("org.eclipse.lsp4j") },
+        classpath.filter { !it.name.startsWith("org.eclipse.lsp4j") }
+    )
+}
+
 configurations.all {
     resolutionStrategy {
         cacheChangingModulesFor(0, "seconds")

@@ -88,7 +88,7 @@ public class PsiUtilsLSImpl implements IPsiUtils {
     public PsiClass findClass(Module module, String className) {
         return PsiUtils.runCancellableReadAction(() ->
                 ClassUtil.findPsiClass(PsiManager.getInstance(module.getProject()), className, null, false,
-                        GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)));
+                        GlobalSearchScope.moduleRuntimeScope(module, false)));
     }
 
     @Override

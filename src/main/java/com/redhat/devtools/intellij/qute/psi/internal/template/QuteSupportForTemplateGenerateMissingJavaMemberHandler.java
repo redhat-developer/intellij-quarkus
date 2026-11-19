@@ -382,7 +382,7 @@ public class QuteSupportForTemplateGenerateMissingJavaMemberHandler {
 		String cuContent = constructCUContent(cu, typeStub, lineDelimiter);
 		TextDocumentEdit tde = new TextDocumentEdit();
 		tde.setTextDocument(new VersionedTextDocumentIdentifier(uri, 0));
-		tde.setEdits(Arrays.asList(new TextEdit(PREPEND_RANGE, cuContent)));
+		tde.setEdits(Arrays.asList(Either.forLeft(new TextEdit(PREPEND_RANGE, cuContent))));
 		return tde;
 	}
 
