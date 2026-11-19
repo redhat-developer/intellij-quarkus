@@ -74,7 +74,7 @@ jobs:
         distribution: temurin
         java-version: 17
     - name: Run integration tests
-      run: .\gradlew.bat integrationTest
+      run: .\gradlew.bat integrationTest --warning-mode none
       shell: powershell
     - uses: actions/upload-artifact@v4
       with:
