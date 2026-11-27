@@ -4,7 +4,7 @@ The Quarkus wizard helps you bootstrap a new Quarkus project with your choice of
 
 ## Prerequisites
 
-- IntelliJ IDEA 2024.2 or later
+- IntelliJ IDEA 2025.1 or later
 - Java JDK 17 or later
 - Internet connection (to connect to code.quarkus.io)
 

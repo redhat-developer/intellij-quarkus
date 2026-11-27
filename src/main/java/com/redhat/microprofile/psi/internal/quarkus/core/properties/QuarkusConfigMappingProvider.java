@@ -358,6 +358,7 @@ public class QuarkusConfigMappingProvider extends AbstractAnnotationTypeReferenc
     }
 
     private static String snake(String orig) {
+        // join(String, Iterator) is deprecated in quarkus-core 3.15.1, which names no replacement
         return join("_", lowerCase(camelHumpsIterator(orig)));
     }
 }

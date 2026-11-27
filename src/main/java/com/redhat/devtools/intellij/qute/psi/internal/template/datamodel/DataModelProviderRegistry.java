@@ -43,7 +43,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CancellationException;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -165,7 +164,7 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
                 // Execute the search
                 try {
                     beginSearch(context, subMonitor);
-                    pattern.forEach((Consumer<Object>) psiMember -> {
+                    pattern.findAll().forEach(psiMember -> {
                         mainMonitor.checkCanceled();
                         collectDataModel(psiMember, context, mainMonitor);
                     });
@@ -212,10 +211,6 @@ public class DataModelProviderRegistry extends AbstractQuteExtensionPointRegistr
         for (IDataModelProvider provider : getProviders()) {
             try {
                 provider.collectDataModel(match, context, monitor);
-            } catch (ProcessCanceledException e) {
-                //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-                //TODO delete block when minimum required version is 2024.2
-                throw e;
             } catch (IndexNotReadyException | CancellationException e) {
                 throw e;
             } catch (Exception e) {

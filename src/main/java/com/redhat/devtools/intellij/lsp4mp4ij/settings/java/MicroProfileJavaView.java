@@ -56,6 +56,8 @@ public class MicroProfileJavaView implements Disposable {
          * Normally comments are below the controls.
          * Here we want the comments to precede the controls, we therefore create an empty, 0-sized panel.
          */
+        // UI.PanelFactory is deprecated, and scheduled for removal in 2026.3, with no replacement in Java up to 2026.3:
+        // the Kotlin UI DSL replaces it
         JPanel titledComponent = UI.PanelFactory.grid().createPanel();
         titledComponent.setMinimumSize(JBUI.emptySize());
         titledComponent.setPreferredSize(JBUI.emptySize());

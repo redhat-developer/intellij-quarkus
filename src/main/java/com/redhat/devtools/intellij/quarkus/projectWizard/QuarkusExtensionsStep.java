@@ -19,12 +19,11 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
 import com.redhat.devtools.lsp4ij.internal.StringUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -32,8 +31,6 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.text.EditorKit;
-import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -48,7 +45,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusExtensionsStep.class);
     private static final Icon PLATFORM_ICON = IconLoader.findIcon("/images/platform-icon.svg", QuarkusExtensionsStep.class);
 
     private JPanel outerPanel;
@@ -161,7 +157,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             CheckedTreeNode root = getModel(categories, filter, platformCheckbox.isSelected());
             CheckboxTree extensionsTree = new ExtensionsTree(root);
             JTextPane extensionDetailTextPane = new JTextPane();
-            extensionDetailTextPane.setEditorKit(getHtmlEditorKit());
+            extensionDetailTextPane.setEditorKit(new HTMLEditorKitBuilder().build());
             extensionDetailTextPane.setEditable(false);
             JBSplitter extensionsSplitter = new JBSplitter(true, 0.8f);
             extensionsSplitter.setFirstComponent(new JBScrollPane(extensionsTree));
@@ -397,25 +393,6 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             }
         }
         return nodes;
-    }
-
-    /**
-     * Use reflection to get IntelliJ specific HTML editor kit as it has moved in 2020.1
-     *
-     * @return the HTML editor kit to use
-     */
-    @NotNull
-    private EditorKit getHtmlEditorKit() {
-        try {
-            return (EditorKit) Class.forName("com.intellij.util.ui.JBHtmlEditorKit").newInstance();
-        } catch (IllegalAccessException | ClassNotFoundException | InstantiationException e) {
-            try {
-                return (EditorKit) Class.forName("com.intellij.util.ui.UIUtil$JBHtmlEditorKit").newInstance();
-            } catch (InstantiationException | ClassNotFoundException | IllegalAccessException e1) {
-                LOGGER.warn("Can't create IntelliJ specific editor kit", e1);
-                return new HTMLEditorKit();
-            }
-        }
     }
 
     @Override

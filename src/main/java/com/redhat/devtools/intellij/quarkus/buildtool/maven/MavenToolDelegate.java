@@ -160,6 +160,8 @@ public class MavenToolDelegate implements BuildToolDelegate {
         Set<MavenArtifact> deploymentArtifacts = new HashSet<>();
         try {
             MavenEmbedderWrapper serverWrapper = MavenProjectsManager.getInstance(module.getProject()).getEmbeddersManager().getEmbedder(mavenProject, FOR_DEPENDENCIES_RESOLVE);
+            // resolve and resolveArtifactTransitively are deprecated for resolveArtifacts and
+            // resolveArtifactsTransitively, which 2025.1 to 2026.3 have as Kotlin suspend functions only
             if (classifier != null) {
                 for (MavenId id : deploymentIds) {
                     deploymentArtifacts.add(serverWrapper.resolve(new MavenArtifactInfo(id, "jar", classifier), mavenProject.getRemoteRepositories()));
@@ -241,6 +243,7 @@ public class MavenToolDelegate implements BuildToolDelegate {
                                 }
                             }
                             listener.importFinished(modules);
+                            return null;
                         })
                         .inSmartMode(project)
                         .submit(NonUrgentExecutor.getInstance());

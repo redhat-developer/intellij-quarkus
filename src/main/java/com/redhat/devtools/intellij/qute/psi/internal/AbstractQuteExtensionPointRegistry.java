@@ -14,7 +14,6 @@
 package com.redhat.devtools.intellij.qute.psi.internal;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.util.KeyedLazyInstanceEP;
 import org.slf4j.LoggerFactory;
@@ -96,11 +95,6 @@ public abstract class AbstractQuteExtensionPointRegistry<T, K extends KeyedLazyI
                     providers.add(provider);
                 }
                 LOGGER.log(Level.INFO, "  Loaded " + getProviderExtensionId() + ": " + provider.getClass().getName());
-            } catch (ProcessCanceledException e) {
-                //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-                //TODO delete block when minimum required version is 2024.2
-                extensionProvidersLoaded = false;
-                throw e;
             } catch (IndexNotReadyException | CancellationException e) {
                 extensionProvidersLoaded = false;
                 throw e;

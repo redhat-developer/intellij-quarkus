@@ -99,7 +99,7 @@ public class RenardeUtils {
 
 		Set<PsiClass> types = new HashSet<>();
 		DefinitionsScopedSearch.search(renardeControllerType, ProjectScope.getAllScope(project.getProject()), true)
-				.forEach(element -> {
+				.findAll().forEach(element -> {
 					if (element instanceof PsiClass renardeType) {
 						types.add(renardeType);
 					}

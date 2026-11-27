@@ -74,6 +74,8 @@ public class QuarkusCodeEndpointChooserStep extends ModuleWizardStep implements 
                 QuarkusCodeEndpointChooserStep.this.validate();
                 BrowserUtil.browse(QuarkusCodeEndpointChooserStep.this.endpointURL.getText());
             } catch (ConfigurationException var3) {
+                // getMessage() is deprecated for getMessageHtml(), an HtmlChunk that escapes a text message, where the
+                // dialog takes the message itself
                 Messages.showErrorDialog(var3.getMessage(), "Cannot open URL");
             }
 
