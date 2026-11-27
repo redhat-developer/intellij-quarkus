@@ -31,12 +31,6 @@ group = prop("pluginGroup")
 version = prop("pluginVersion")
 
 val platformVersion = prop("platformVersion")
-val ideaVersionInt = when {
-    // e.g. '20XY.Z'
-    platformVersion.length == 6 -> platformVersion.replace(".", "").substring(2).toInt()
-    // e.g. '2XY.ABCDE.12'
-    else -> platformVersion.substringBefore(".").toInt()
-}
 
 val quarkusVersion = prop("quarkusVersion")
 val lsp4mpVersion = prop("lsp4mpVersion")
@@ -87,12 +81,6 @@ dependencies {
         // Bundled Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
         val platformBundledPlugins =  ArrayList<String>()
         platformBundledPlugins.addAll(providers.gradleProperty("platformBundledPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }.get())
-        /*
-         * platformVersion check for JSON breaking changes since 2024.3
-         */
-        if (ideaVersionInt >= 243) {
-            platformBundledPlugins.add("com.intellij.modules.json")
-        }
         bundledPlugins(platformBundledPlugins)
         // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
         val platformPlugins =  ArrayList<String>()
@@ -114,6 +102,8 @@ dependencies {
         println("bundledPlugins: $platformBundledPlugins")
         println("marketplacePlugins: $platformPlugins")
         pluginVerifier()
+        // The platform's test framework too: from 2025.1 on, the Java test framework needs it only at runtime
+        testFramework(TestFrameworkType.Platform)
         testFramework(TestFrameworkType.Plugin.Java)
     }
 
@@ -175,7 +165,8 @@ dependencies {
     testImplementation(libs.junit)
 }
 
-// Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+., and Java 21 for 2025.3+.
+// Set the JVM language level used to build the project: Java 21, the version of the JetBrains Runtime of IntelliJ 2025.1,
+// the oldest supported platform.
 kotlin {
     jvmToolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -197,7 +188,7 @@ intellijPlatform {
             select {
                 types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
                 channels = listOf(ProductRelease.Channel.RELEASE) // Only stable releases
-                sinceBuild = "242" // From your minimum supported version
+                sinceBuild = properties("pluginSinceBuild") // From the minimum supported version
                 untilBuild = "252.*" // Up to current major version
             }
         }

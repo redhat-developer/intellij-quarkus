@@ -182,7 +182,7 @@ abstract class MavenTestCase : UsefulTestCase() {
 
   protected fun waitForMavenUtilRunnablesComplete() {
     PlatformTestUtil.waitWithEventsDispatching(
-      { "Waiting for MavenUtils runnables completed" + MavenUtil.getUncompletedRunnables() },
+      { "Waiting for MavenUtils runnables completed" + MavenUtil.uncompletedRunnables },
       { MavenUtil.noUncompletedRunnables() }, 15)
   }
 
@@ -347,7 +347,7 @@ abstract class MavenTestCase : UsefulTestCase() {
     }
 
   protected val repositoryFile: File
-    get() = mavenGeneralSettings.effectiveLocalRepository
+    get() = mavenGeneralSettings.effectiveRepositoryPath.toFile()
 
   protected val projectPath: String
     get() = myProjectRoot!!.path

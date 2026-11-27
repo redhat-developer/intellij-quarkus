@@ -76,7 +76,7 @@ abstract class MavenImportingTestCase : MavenTestCase() {
     myCodeStyleSettingsTracker = CodeStyleSettingsTracker { currentCodeStyleSettings }
     val settingsFile = MavenUtil.resolveGlobalSettingsFile(BundledMaven3)
     if (settingsFile != null) {
-      VfsRootAccess.allowRootAccess(getTestRootDisposable(), settingsFile.absolutePath)
+      VfsRootAccess.allowRootAccess(getTestRootDisposable(), settingsFile.toAbsolutePath().toString())
     }
     myNotificationAware = AutoImportProjectNotificationAware.getInstance(project)
     myProjectTracker = AutoImportProjectTracker.getInstance(project)
@@ -386,7 +386,7 @@ abstract class MavenImportingTestCase : MavenTestCase() {
     runBlockingMaybeCancellable { updateAllProjects() }
     if (failOnReadingError) {
       for (each in projectsManager.getProjectsTree().projects) {
-        assertFalse("Failed to import Maven project: " + each.getProblems(), each.hasReadingProblems())
+        assertFalse("Failed to import Maven project: " + each.problems, each.hasReadingErrors())
       }
     }
     IndexingTestUtil.waitUntilIndexesAreReady(project);
@@ -404,7 +404,7 @@ abstract class MavenImportingTestCase : MavenTestCase() {
     updateAllProjects()
     if (failOnReadingError) {
       for (each in projectsManager.getProjectsTree().projects) {
-        assertFalse("Failed to import Maven project: " + each.getProblems(), each.hasReadingProblems())
+        assertFalse("Failed to import Maven project: " + each.problems, each.hasReadingErrors())
       }
     }
   }
