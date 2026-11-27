@@ -173,6 +173,13 @@ kotlin {
     }
 }
 
+// Lists each use of a deprecated API, in the main and the test classes, instead of javac's one note per source set, up
+// to javac's 100 warnings a source set. The uses of an API scheduled for removal are listed without it. Warnings don't
+// fail the build.
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-Xlint:deprecation")
+}
+
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellijPlatform {
     pluginConfiguration {
