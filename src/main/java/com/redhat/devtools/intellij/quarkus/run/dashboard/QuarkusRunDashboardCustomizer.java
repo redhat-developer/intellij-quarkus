@@ -112,7 +112,7 @@ public class QuarkusRunDashboardCustomizer extends RunDashboardCustomizer {
 
     private static @Nullable Key<Map<Object, Object>> getNODE_LINKS() {
         try {
-            // We need to use Java Reflection since IU 2025.3 has removed RunDashboardCustomizer.NODE_LINKS
+            // We need to use Java Reflection since IU 2025.3 has deprecated RunDashboardCustomizer.NODE_LINKS
             var field = RunDashboardCustomizer.class.getDeclaredField("NODE_LINKS");
             return (Key<Map<Object, Object>>) field.get(RunDashboardCustomizer.class);
         } catch (Exception e) {

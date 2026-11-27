@@ -14,7 +14,6 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiFile;
@@ -98,10 +97,6 @@ public class JaxRsCodeLensParticipant implements IJavaCodeLensParticipant {
 				.map(methodInfo -> {
 					try {
 						return createCodeLens(methodInfo, params.getOpenURICommand(), utils);
-					} catch (ProcessCanceledException e) {
-						//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-						//TODO delete block when minimum required version is 2024.2
-						throw e;
 					} catch (IndexNotReadyException | CancellationException e) {
 						throw e;
 					} catch (Exception e) {

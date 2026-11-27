@@ -14,7 +14,6 @@ package com.redhat.devtools.intellij.qute.psi.internal.resolver;
 import com.intellij.lang.jvm.types.JvmReferenceType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -64,10 +63,6 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 					typeName.append(">");
 				}
 				return typeName.toString();
-			} catch (ProcessCanceledException e) {
-				//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-				//TODO delete block when minimum required version is 2024.2
-				throw e;
 			} catch (IndexNotReadyException | CancellationException e) {
 				throw e;
 			} catch (Exception e) {
@@ -98,10 +93,6 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 			if (primaryType.isInterface() && !extendedTypes.contains("java.lang.Object")) {
 				extendedTypes.add("java.lang.Object");
 			}
-		} catch (ProcessCanceledException e) {
-			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-			//TODO delete block when minimum required version is 2024.2
-			throw e;
 		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -118,10 +109,6 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 		signature.append(" : ");
 		try {
 			signature.append(PsiTypeUtils.resolveSignature(field.getType(), false));
-		} catch (ProcessCanceledException e) {
-			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-			//TODO delete block when minimum required version is 2024.2
-			throw e;
 		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -149,10 +136,6 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 							varargs && i == parameters.length - 1));
 				}
 			}
-		} catch (ProcessCanceledException e) {
-			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-			//TODO delete block when minimum required version is 2024.2
-			throw e;
 		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -164,10 +147,6 @@ public abstract class AbstractTypeResolver implements ITypeResolver {
 			String returnType = PsiTypeUtils.resolveSignature(method.getReturnType(), false);
 			signature.append(" : ");
 			signature.append(returnType);
-		} catch (ProcessCanceledException e) {
-			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-			//TODO delete block when minimum required version is 2024.2
-			throw e;
 		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {

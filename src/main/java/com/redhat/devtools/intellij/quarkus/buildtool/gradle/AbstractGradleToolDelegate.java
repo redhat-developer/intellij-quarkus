@@ -19,7 +19,6 @@ import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
-import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener;
 import com.intellij.openapi.externalSystem.task.TaskCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -60,7 +59,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -404,25 +402,14 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
         }
     }
 
-    private static final String LEGACY_IMPORT_PROVIDER_CLASS_NAME = "org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportProvider";
-    private static final String LEGACY_IMPORT_BUILDER_CLASS_NAME = "org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder";
-
+    // Created by name: the class is internal, and deprecated, in IntelliJ 2025.1 to 2026.3
     private static final String NEW_IMPORT_PROVIDER_CLASS_NAME = "org.jetbrains.plugins.gradle.service.project.wizard.JavaGradleProjectImportProvider";
 
     @NotNull
     private ProjectImportProvider getGradleProjectImportProvider() {
         try {
             return (ProjectImportProvider) Class.forName(NEW_IMPORT_PROVIDER_CLASS_NAME).newInstance();
-        } catch (ClassNotFoundException e) {
-            try {
-                Class<ProjectImportBuilder> clazz = (Class<ProjectImportBuilder>) Class.forName(LEGACY_IMPORT_BUILDER_CLASS_NAME);
-                ProjectImportBuilder builder = clazz.getConstructor(ProjectDataManager.class).newInstance(ProjectDataManager.getInstance());
-                return (ProjectImportProvider) Class.forName(LEGACY_IMPORT_PROVIDER_CLASS_NAME).getConstructor(clazz).newInstance(builder);
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException |
-                     InvocationTargetException e1) {
-                throw new RuntimeException(e1);
-            }
-        } catch (IllegalAccessException | InstantiationException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             throw new RuntimeException(e);
         }
     }

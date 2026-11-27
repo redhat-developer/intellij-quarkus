@@ -15,7 +15,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -156,10 +155,6 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
                         long elapsed = System.currentTimeMillis() - start;
                         LOGGER.info("Ensured QuarkusLibrary in {} ms", elapsed);
                         future.complete(null);
-                    } catch (ProcessCanceledException e) {
-                        //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-                        //TODO delete block when minimum required version is 2024.2
-                        future.cancel(true);
                     } catch (CancellationException e) {
                         future.cancel(true);
                     } catch (Exception e) {

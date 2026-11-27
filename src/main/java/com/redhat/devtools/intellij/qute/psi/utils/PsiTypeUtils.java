@@ -12,7 +12,6 @@
 package com.redhat.devtools.intellij.qute.psi.utils;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
@@ -166,10 +165,6 @@ public class PsiTypeUtils {
                 // ex : if className = String we should find type of java.lang.String
                 return JavaPsiFacade.getInstance(javaProject.getProject()).findClass("java.lang." + className, javaProject.getModuleWithDependenciesAndLibrariesScope(true));
             }
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {

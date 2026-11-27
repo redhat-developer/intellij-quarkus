@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.extensions.RequiredElement;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.serviceContainer.BaseKeyedLazyInstance;
 import com.intellij.util.xmlb.annotations.Attribute;
@@ -62,10 +61,6 @@ public class JavaCodeActionDefinition extends BaseKeyedLazyInstance<IJavaCodeAct
 	public boolean isAdaptedForCodeAction(JavaCodeActionContext context) {
 		try {
 			return getInstance().isAdaptedForCodeAction(context);
-		} catch (ProcessCanceledException e) {
-			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-			//TODO delete block when minimum required version is 2024.2
-			throw e;
 		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -79,10 +74,6 @@ public class JavaCodeActionDefinition extends BaseKeyedLazyInstance<IJavaCodeAct
 		try {
 			List<? extends CodeAction> codeActions = getInstance().getCodeActions(context, diagnostic);
 			return codeActions != null ? codeActions : Collections.emptyList();
-		} catch (ProcessCanceledException e) {
-			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-			//TODO delete block when minimum required version is 2024.2
-			throw e;
 		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {

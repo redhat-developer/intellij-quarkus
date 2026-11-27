@@ -12,7 +12,6 @@
 package com.redhat.devtools.intellij.qute.psi.internal.template.datamodel;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
@@ -94,10 +93,6 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
                 // class
                 addDummyResolverForTemplateExtensionsClass(type, resolvers);
             }
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
@@ -125,10 +120,6 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
         try {
             return !method.isConstructor() /* && Flags.isPublic(method.getFlags()) */
                     && !PsiTypeUtils.isVoidReturnType(method);
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
@@ -169,10 +160,6 @@ public class TemplateExtensionAnnotationSupport extends AbstractAnnotationTypeRe
                     resolver.setMatchNames(Arrays.asList(matchName));
                 }
             }
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (RuntimeException e) {

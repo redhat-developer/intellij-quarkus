@@ -17,7 +17,6 @@ import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
@@ -102,10 +101,6 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
     private static PsiAnnotation getMessageBundleAnnotation(PsiClass type) {
         try {
             return AnnotationUtils.getAnnotation(type, MESSAGE_BUNDLE_ANNOTATION);
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
@@ -120,10 +115,6 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
             if (messageBundleAnnotation != null) {
                 namespace = AnnotationUtils.getAnnotationMemberValue(messageBundleAnnotation, VALUE_ANNOTATION_NAME);
             }
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
@@ -139,10 +130,6 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
                 return AnnotationUtils.getAnnotationMemberValue(messageBundleAnnotation,
                         MESSAGE_BUNDLE_ANNOTATION_LOCALE);
             }
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {
@@ -155,10 +142,6 @@ public class TypeSafeMessageBundlesSupport extends AbstractAnnotationTypeReferen
     private static String getMessageContent(PsiAnnotation messageAnnotation) {
         try {
             return AnnotationUtils.getAnnotationMemberValue(messageAnnotation, VALUE_ANNOTATION_NAME);
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (Exception e) {

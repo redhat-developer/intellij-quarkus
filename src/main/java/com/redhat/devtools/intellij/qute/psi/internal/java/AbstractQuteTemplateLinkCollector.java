@@ -12,7 +12,6 @@
 package com.redhat.devtools.intellij.qute.psi.internal.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.util.TextRange;
@@ -274,10 +273,6 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
             templatePathInfo = new TemplatePathInfo(templateUri, templatePathInfo.getFragmentId());
             collectTemplateLink(basePath, fieldOrMethod, locationAnnotation, type, className, fieldOrMethodName, location,
                     templateFile, templatePathInfo);
-        } catch (ProcessCanceledException e) {
-            //Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-            //TODO delete block when minimum required version is 2024.2
-            throw e;
         } catch (IndexNotReadyException | CancellationException e) {
             throw e;
         } catch (RuntimeException e) {

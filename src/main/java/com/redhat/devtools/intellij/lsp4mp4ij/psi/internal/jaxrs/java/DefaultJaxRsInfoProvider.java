@@ -14,7 +14,6 @@
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.internal.jaxrs.java;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.*;
@@ -97,10 +96,6 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 				return Collections.emptySet();
 			}
 			return jaxRsClasses;
-		} catch (ProcessCanceledException e) {
-			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-			//TODO delete block when minimum required version is 2024.2
-			throw e;
 		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -115,10 +110,6 @@ public class DefaultJaxRsInfoProvider implements IJaxRsInfoProvider {
 		List<JaxRsMethodInfo> methodInfos = new ArrayList<>();
 		try {
 			collectJaxRsMethodInfo(typeRoot.getChildren(), null, methodInfos, jaxrsContext, utils, monitor);
-		} catch (ProcessCanceledException e) {
-			//Since 2024.2 ProcessCanceledException extends CancellationException so we can't use multicatch to keep backward compatibility
-			//TODO delete block when minimum required version is 2024.2
-			throw e;
 		} catch (IndexNotReadyException | CancellationException e) {
 			throw e;
 		} catch (Exception e) {
