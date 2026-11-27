@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IndexingTestUtil;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -35,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public abstract class MavenModuleImportingTestCase extends MavenImportingTestCase {
 
@@ -52,6 +55,9 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
 
   private static int counter = 0;
 
+  // The first import of a project downloads its dependencies
+  private static final long MAVEN_IMPORT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(10);
+
   /**
    * Create a new module into the test project from existing project folder.
    *
@@ -68,9 +74,7 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
       pomFiles.add(pomFile);
     }
 
-    // Calling the non-suspending importProjects method instead of the Kotlin suspending function
-    // importProjectsAsync(file: VirtualFile) to prevent blocking unit tests starting from IntelliJ version 2024.2.
-    importProjects(pomFiles.toArray(VirtualFile[]::new));
+    importProjectsOffEdt(pomFiles.toArray(VirtualFile[]::new));
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for(Module module : modules) {
@@ -98,7 +102,7 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     VirtualFile pomFile = createPomFile(LocalFileSystem.getInstance().findFileByIoFile(moduleDir), xml);
     List<VirtualFile> pomFiles = new ArrayList<>();
     pomFiles.add(pomFile);
-    importProjects(pomFiles.toArray(VirtualFile[]::new));
+    importProjectsOffEdt(pomFiles.toArray(VirtualFile[]::new));
     Module[] modules = ModuleManager.getInstance(getTestFixture().getProject()).getModules();
     if (modules.length > 0) {
       module = modules[modules.length - 1];
@@ -106,6 +110,19 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     }
     IndexingTestUtil.waitUntilIndexesAreReady(getTestFixture().getProject());
     return module;
+  }
+
+  /**
+   * Imports the given POM files with the non-suspending importProjects method, on a pooled thread, while the test's
+   * thread, the EDT, dispatches its events. The Kotlin suspending function importProjectsAsync(file: VirtualFile) blocks
+   * the tests from IntelliJ 2024.2 on, and importProjects blocks them on the EDT from IntelliJ 2025.1 on: the Maven sync
+   * waits there for a write action on the EDT (edtWriteAction).
+   *
+   * @param pomFiles the POM files to import
+   */
+  private void importProjectsOffEdt(VirtualFile... pomFiles) {
+    Future<?> imported = ApplicationManager.getApplication().executeOnPooledThread(() -> importProjects(pomFiles));
+    PlatformTestUtil.waitForFuture(imported, MAVEN_IMPORT_TIMEOUT_MILLIS);
   }
 
   protected IPsiUtils getJDTUtils() {
