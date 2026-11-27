@@ -10,17 +10,20 @@
  ******************************************************************************/
 package com.redhat.devtools.intellij;
 
+import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.maven.testFramework.MavenImportingTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.redhat.devtools.intellij.lsp4mp4ij.psi.core.utils.IPsiUtils;
@@ -49,6 +52,12 @@ public abstract class MavenModuleImportingTestCase extends MavenImportingTestCas
     myProjectBuilder.addModule(JavaModuleFixtureBuilder.class);
     IdeaProjectTestFixture myFixture = factory.createCodeInsightFixture(myProjectBuilder.getFixture());
     setTestFixture(myFixture);
+    // The default project's ExternalAnnotationsManager, which IntelliJ creates the first time a test reads a class of a
+    // library, keeps a document listener, which the fixture's leak check reports as a leak of that test before IntelliJ
+    // 2026.3, whose check ignores it. Created here, in the application that the fixture's setUp starts, it exists before
+    // the check takes its snapshot at the end of setUp.
+    TestApplicationManager.getInstance();
+    ExternalAnnotationsManager.getInstance(ProjectManager.getInstance().getDefaultProject());
     myFixture.setUp();
     LanguageLevelProjectExtension.getInstance(myFixture.getProject()).setLanguageLevel(LanguageLevel.JDK_17);
   }
