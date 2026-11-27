@@ -26,6 +26,8 @@ import org.jetbrains.idea.maven.project.MavenProjectsTree;
 import java.util.List;
 import java.util.Map;
 
+// FacetImporter is deprecated for MavenWorkspaceFacetConfigurator, which 2025.1 has: a migration of the import, not
+// a replacement call. 2025.1 still runs it, through LegacyToWorkspaceConfiguratorBridge.
 public class QuarkusFacetMavenImporter extends FacetImporter<QuarkusFacet, QuarkusFacetConfiguration, QuarkusFacetType> {
     protected QuarkusFacetMavenImporter() {
         super("io.quarkus", "quarkus-maven-plugin", FacetType.findInstance(QuarkusFacetType.class));

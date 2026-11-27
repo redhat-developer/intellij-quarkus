@@ -19,7 +19,7 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.JBHtmlEditorKit;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
 import com.redhat.devtools.lsp4ij.internal.StringUtils;
 import com.redhat.devtools.intellij.quarkus.QuarkusConstants;
@@ -157,7 +157,7 @@ public class QuarkusExtensionsStep extends ModuleWizardStep implements Disposabl
             CheckedTreeNode root = getModel(categories, filter, platformCheckbox.isSelected());
             CheckboxTree extensionsTree = new ExtensionsTree(root);
             JTextPane extensionDetailTextPane = new JTextPane();
-            extensionDetailTextPane.setEditorKit(new JBHtmlEditorKit());
+            extensionDetailTextPane.setEditorKit(new HTMLEditorKitBuilder().build());
             extensionDetailTextPane.setEditable(false);
             JBSplitter extensionsSplitter = new JBSplitter(true, 0.8f);
             extensionsSplitter.setFirstComponent(new JBScrollPane(extensionsTree));

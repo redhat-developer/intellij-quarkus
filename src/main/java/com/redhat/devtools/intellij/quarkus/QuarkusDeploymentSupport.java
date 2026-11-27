@@ -204,7 +204,7 @@ public class QuarkusDeploymentSupport implements ClasspathResourceChangedManager
             @Override
             public Set<String> visitLibraryOrderEntry(@NotNull LibraryOrderEntry libraryOrderEntry, Set<String> value) {
                 if (!isQuarkusDeploymentLibrary(libraryOrderEntry) && isQuarkusExtensionWithDeploymentArtifact(libraryOrderEntry.getLibrary())) {
-                    for (VirtualFile file : libraryOrderEntry.getFiles(OrderRootType.CLASSES)) {
+                    for (VirtualFile file : libraryOrderEntry.getRootFiles(OrderRootType.CLASSES)) {
                         value.add(file.getPath());
                     }
                 }

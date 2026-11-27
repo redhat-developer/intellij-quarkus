@@ -408,8 +408,8 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
     @NotNull
     private ProjectImportProvider getGradleProjectImportProvider() {
         try {
-            return (ProjectImportProvider) Class.forName(NEW_IMPORT_PROVIDER_CLASS_NAME).newInstance();
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+            return (ProjectImportProvider) Class.forName(NEW_IMPORT_PROVIDER_CLASS_NAME).getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -480,6 +480,7 @@ public abstract class AbstractGradleToolDelegate implements BuildToolDelegate {
                             }
                         }
                         listener.importFinished(modules);
+                        return null;
                     })
                         .inSmartMode(project)
                         .submit(NonUrgentExecutor.getInstance());

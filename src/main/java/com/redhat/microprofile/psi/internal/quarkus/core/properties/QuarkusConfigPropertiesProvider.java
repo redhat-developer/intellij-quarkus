@@ -367,6 +367,7 @@ public class QuarkusConfigPropertiesProvider extends AbstractAnnotationTypeRefer
 	private static String getPrefixFromClassName(PsiClass className) {
 		String simpleName = className.getName(); // className.isInner() ? className.local() :
 														// className.withoutPackagePrefix();
+		// join(String, Iterator) is deprecated in quarkus-core 3.15.1, which names no replacement
 		return join("-", withoutSuffix(lowerCase(camelHumpsIterator(simpleName)), "config", "configuration",
 				"properties", "props"));
 	}

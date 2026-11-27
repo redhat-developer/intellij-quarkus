@@ -16,10 +16,13 @@
 package com.redhat.devtools.intellij.qute.lang.format;
 
 import com.intellij.lang.Language;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.FileViewProvider;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
@@ -36,9 +39,19 @@ import org.jetbrains.annotations.Nullable;
  */
 public class QuteFileIndentOptionsProvider extends FileIndentOptionsProvider {
 
-    @Nullable
     @Override
-    public CommonCodeStyleSettings.@Nullable IndentOptions getIndentOptions(@NotNull CodeStyleSettings settings, @NotNull PsiFile file) {
+    public CommonCodeStyleSettings.@Nullable IndentOptions getIndentOptions(@NotNull Project project,
+                                                                            @NotNull CodeStyleSettings settings,
+                                                                            @NotNull VirtualFile file) {
+        // The PSI file of a loaded document only, as the platform's default did for the deprecated
+        // getIndentOptions(CodeStyleSettings, PsiFile), which this provider overrode
+        Document document = FileDocumentManager.getInstance().getCachedDocument(file);
+        PsiFile psiFile = document != null ? PsiDocumentManager.getInstance(project).getPsiFile(document) : null;
+        return psiFile != null ? getQuteIndentOptions(settings, psiFile) : null;
+    }
+
+    private static CommonCodeStyleSettings.@Nullable IndentOptions getQuteIndentOptions(@NotNull CodeStyleSettings settings,
+                                                                                         @NotNull PsiFile file) {
         if (file.getFileType().equals(QuteFileType.QUTE)) {
             VirtualFile virtualFile = file.getVirtualFile();
             Project project = file.getProject();

@@ -332,6 +332,8 @@ public abstract class AbstractQuteTemplateLinkCollector extends JavaRecursiveEle
     protected static String getVirtualFileUrl(Module project, String templateFilePath) {
         try {
             for (VirtualFile root : getContentRoots(project)) {
+                // new URL(URL, String) is deprecated since Java 20: URI.resolve, its replacement, rejects paths that
+                // it accepts
                 return new URL(LSPIJUtils.toUri(root).toURL(), templateFilePath).toString();
             }
         } catch (MalformedURLException e) {

@@ -9,7 +9,6 @@
  *******************************************************************************/
 package com.redhat.devtools.intellij.lsp4mp4ij.psi.core.project;
 
-import com.intellij.ProjectTopics;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -95,7 +94,7 @@ public final class PsiMicroProfileProjectManager implements Disposable {
 		microprofileProjectListener = new MicroProfileProjectListener();
 		connection = project.getMessageBus().connect(QuarkusPluginDisposable.getInstance(project));
 		connection.subscribe(ClasspathResourceChangedManager.TOPIC, microprofileProjectListener);
-		connection.subscribe(ProjectTopics.MODULES, microprofileProjectListener);
+		connection.subscribe(ModuleListener.TOPIC, microprofileProjectListener);
 	}
 
 	@NotNull

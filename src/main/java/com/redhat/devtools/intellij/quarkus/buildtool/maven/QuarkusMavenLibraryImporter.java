@@ -12,7 +12,6 @@ package com.redhat.devtools.intellij.quarkus.buildtool.maven;
 
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.idea.maven.importing.MavenImporter;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.project.MavenProject;
@@ -24,8 +23,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+// MavenImporter is deprecated for MavenWorkspaceConfigurator, which 2025.1 has: a migration of the import, not
+// a replacement call. 2025.1 still runs it, through LegacyToWorkspaceConfiguratorBridge.
 public class QuarkusMavenLibraryImporter extends MavenImporter {
-    private static final List<String> SUPPORTED_PACKAGINGS = ContainerUtil.immutableList(new String[]{"jar", "war"});
+    private static final List<String> SUPPORTED_PACKAGINGS = List.of("jar", "war");
 
     public QuarkusMavenLibraryImporter() {
         super("io.quarkus", "quarkus-maven-plugin");

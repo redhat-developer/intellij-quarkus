@@ -113,11 +113,13 @@ public class JaxRsWorkspaceSymbolParticipant implements IJavaWorkspaceSymbolsPar
 		Location location = new Location(methodInfo.getDocumentUri(), r);
 
 		StringBuilder nameBuilder = new StringBuilder("@");
+		// new URL(String) is deprecated since Java 20: URI.toURL(), its replacement, rejects URLs that it accepts
 		String path = new URL(methodInfo.getUrl()).getPath();
 		nameBuilder.append(path);
 		nameBuilder.append(": ");
 		nameBuilder.append(methodInfo.getHttpMethod());
 
+		// LSP4J deprecates SymbolInformation for WorkspaceSymbol, which changes the type of the result (#1424)
 		SymbolInformation symbol = new SymbolInformation();
 		symbol.setName(nameBuilder.toString());
 		symbol.setKind(SymbolKind.Method);

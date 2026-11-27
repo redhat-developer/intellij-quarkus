@@ -11,11 +11,11 @@
 package com.redhat.devtools.intellij.quarkus.projectWizard;
 
 import com.intellij.codeInsight.daemon.JavaErrorBundle;
-import com.intellij.codeInsight.daemon.impl.analysis.HighlightClassUtil;
 import com.intellij.ide.starters.shared.TextValidationFunction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.impl.PsiNameHelperImpl;
+import com.intellij.psi.util.PsiTypesUtil;
 
 /**
  * Holds  {@link TextValidationFunction}s implementations used to validate elements of a Quarkus project.
@@ -36,7 +36,7 @@ public class QuarkusValidationFunctions {
             return JavaErrorBundle.message("create.class.action.this.not.valid.java.qualified.name");
         }
         String shortName = StringUtil.getShortName(inputString);
-        if (HighlightClassUtil.isRestrictedIdentifier(shortName, LanguageLevel.HIGHEST)) {
+        if (PsiTypesUtil.isRestrictedIdentifier(shortName, LanguageLevel.HIGHEST)) {
             return JavaErrorBundle.message("restricted.identifier", shortName);
         }
         return null;
